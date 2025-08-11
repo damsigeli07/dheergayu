@@ -1,0 +1,375 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+/* Header Styles */
+.header {
+    background: linear-gradient(135deg, #8B7355, #A0916B);
+    color: white;
+    padding: 0.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    margin-right: 0.5rem;
+}
+
+.header-title {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-right: 2.5rem;
+    color: white;
+}
+
+.user-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.user-icon {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.user-icon:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.user-icon svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+}
+
+.user-role {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Navigation */
+.navigation {
+    display: flex !important;
+    gap: 0 !important;
+    align-items: center !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    height: 2.8rem !important;
+    min-height: 2.8rem !important;
+    max-height: 2.8rem !important;
+}
+
+.navigation .nav-btn {
+    background: none !important;
+    border: none !important;
+    padding: 0.6rem 1.5rem !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 1rem !important;
+    cursor: pointer !important;
+    color: white !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    border-bottom: none !important;
+    outline: none !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    height: 2.8rem !important;
+    line-height: 1.6rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 2.8rem !important;
+    max-height: 2.8rem !important;
+}
+
+.navigation .nav-btn.active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    text-decoration: none !important;
+    border-bottom: none !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+    height: 2.8rem !important;
+    line-height: 1.6rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 2.8rem !important;
+    max-height: 2.8rem !important;
+}
+
+.navigation .nav-btn:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    text-decoration: none !important;
+    border-bottom: none !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+    height: 2.8rem !important;
+    line-height: 1.6rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 2.8rem !important;
+    max-height: 2.8rem !important;
+}
+
+/* Main Content */
+.main-content {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Search Container */
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.search-box {
+    position: relative;
+    width: 300px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px 10px 35px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #7a9b57;
+    box-shadow: 0 0 0 3px rgba(122, 155, 87, 0.1);
+}
+
+/* Table Styles */
+.table-container {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.appointments-table th {
+    background-color: #fafbfc;
+    padding: 18px 20px;
+    text-align: left;
+    font-weight: 600;
+    color: #5a5a5a;
+    border-bottom: 2px solid #e5e7eb;
+    font-size: 14px;
+}
+
+.appointments-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    color: #4a5568;
+}
+
+.appointments-table tr:hover {
+    background-color: #f7f9fc;
+}
+
+/* Actions Column */
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Button Styles */
+.btn-start {
+    background-color: #7a9b57;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-start:hover {
+    background-color: #6b8a4a;
+}
+
+.btn-view, .btn-edit {
+    background-color: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-view:hover, .btn-edit:hover {
+    background-color: #cbd5e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 15px;
+    }
+    
+    .header {
+        padding: 0.5rem 1rem;
+    }
+    
+    .header-left, .header-right {
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .header-right {
+        gap: 0.3rem;
+    }
+    
+    .header-title {
+        font-size: 1.4rem;
+        margin-right: 1.5rem;
+    }
+    
+    .user-role {
+        font-size: 0.8rem;
+    }
+    
+    .navigation {
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .navigation .nav-btn {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn-start, .btn-view, .btn-edit {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .search-box {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .header-left, .header-right {
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.3rem;
+    }
+    
+    .header-right {
+        gap: 0.2rem;
+    }
+    
+    .header-title {
+        font-size: 1.2rem;
+        margin-right: 1rem;
+    }
+    
+    .user-role {
+        font-size: 0.75rem;
+    }
+    
+    .navigation {
+        gap: 0.3rem;
+        justify-content: center;
+    }
+    
+    .navigation .nav-btn {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .main-content {
+        padding: 10px;
+    }
+    
+    .appointments-table th,
+    .appointments-table td {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+    
+    .btn-start, .btn-view, .btn-edit {
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+}
