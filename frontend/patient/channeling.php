@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dheergayu - Channeling</title>
-    <link rel="stylesheet" href="css/channeling.css">
+    <link rel="stylesheet" href="css/channeling.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <div class="header">
@@ -15,21 +15,48 @@
     <div class="container">
         <div class="doctor-card">
             <div class="doctor-header">
-                <div class="doctor-name">Dr. &lt;Name&gt;</div>
+                <div class="doctor-name">Channeling Form</div>
                 <div class="date-display">9TH MAY 2025</div>
             </div>
 
             <div class="booking-content">
                 <div class="left-section">
                     <div class="availability-section">
-                        <div class="availability-label">Available</div>
-                        
-                        <div class="time-slots">
-                            <button class="time-slot" onclick="selectTimeSlot(this, '9am-1pm')">9am - 1pm</button>
-                            <button class="time-slot" onclick="selectTimeSlot(this, '2pm-5pm')">2pm - 5pm</button>
+                        <div class="card">
+                            <h3 class="section-title">Treatment Type</h3>
+                            <select id="traetment" name="treatment" required>
+                                <option value="Treatment1">Asthma</option>
+                                <option value="Treatment2">Diabetes</option>
+                                <option value="Treatment3">Skin Diseases</option>
+                                <option value="Treatment3">Respiratory Disorders</option>
+                                <option value="Treatment3">Arthritise</option>
+                                <option value="Treatment3">ENT Disorders</option>
+                                <option value="Treatment3">Neurological Diseases and Paralysis</option>
+                                <option value="Treatment3">Dislocation Features of Joints & Bones</option>
+                                <option value="Treatment3">Osteoporosis</option>
+                                <option value="Treatment3">Anxiety, Stress and Depression</option>
+                                <option value="Treatment3">Cholesterol</option>
+                            </select>
+                            <h3 class="section-title">Select Doctor</h3>
+                            <select id="doctor" name="doctor" required>
+                                <option value="Doctor1">Dr. L.M.Perera</option>
+                                <option value="Doctor2">Dr. K.Jayawardena</option>
+                                <option value="Doctor3">Dr. A.T.Gunarathne</option>
+                            </select>
+                            <div class="form-group">
+                                <label for="appointmentDate">Date</label>
+                                <input type="date" id="appointmentDate" name="appointmentDate" required>
+                            </div>
+                            <h3 class="section-title">Available Slots</h3>
+                            <div class="availability-grid">
+                                <button class="time-slot" onclick="selectTimeSlot(this, '8:00 AM')">8:00 AM</button>
+                                <button class="time-slot" onclick="selectTimeSlot(this, '10:00 AM')">10:00 AM</button>
+                                <button class="time-slot" onclick="selectTimeSlot(this, '11:00 AM')">11:00 AM</button>
+                                <button class="time-slot" onclick="selectTimeSlot(this, '1:00 PM')">1:00 PM</button>
+                                <button class="time-slot" onclick="selectTimeSlot(this, '3:00 PM')">3:00 PM</button>
+                                <button class="time-slot" onclick="selectTimeSlot(this, '4:00 PM')">4:00 PM</button>
+                            </div>
                         </div>
-
-                        <div class="availability-badge">✓ Available</div>
                     </div>
                 </div>
 

@@ -69,6 +69,57 @@
             font-weight: 500;
         }
 
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            height: fit-content;
+        }
+
+        .section-title {
+            color: #8B4513;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .availability-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .time-slot {
+            background: #5CB85C;
+            color: white;
+            border: none;
+            padding: 12px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .time-slot:hover {
+            background: #4CAF50;
+            transform: translateY(-2px);
+        }
+
+        .time-slot.selected {
+            background: #8B4513;
+            box-shadow: 0 3px 10px rgba(139, 69, 19, 0.3);
+        }
+
         .booking-content {
             padding: 25px;
             display: grid;

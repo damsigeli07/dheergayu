@@ -17,17 +17,17 @@
         .container {
             background: white;
             border-radius: 15px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             width: 100%;
-            max-width: 400px;
-            animation: fadeInUp 0.8s ease-out;
+            max-width: 450px;
+            animation: slideUp 0.6s ease-out;
         }
 
-        @keyframes fadeInUp {
+        @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(40px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
@@ -36,20 +36,20 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #e25e3e, #e49554);
+            background: linear-gradient(135deg, #8B6F47, #A0845C);
             color: white;
             text-align: center;
-            padding: 30px 20px;
-            font-size: 22px;
+            padding: 25px 20px;
+            font-size: 20px;
             font-weight: 500;
         }
 
         .form-container {
-            padding: 40px 30px;
+            padding: 30px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
@@ -60,22 +60,38 @@
             font-size: 14px;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             width: 100%;
-            padding: 15px;
+            padding: 12px 15px;
             border: 2px solid #e1e5e9;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 14px;
             transition: all 0.3s ease;
             background: #fafbfc;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #8B6F47;
             background: white;
-            box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.1);
             transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(139, 111, 71, 0.1);
+        }
+
+        .date-input {
+            position: relative;
+        }
+
+        .date-input::after {
+            content: '▼';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8B6F47;
+            pointer-events: none;
         }
 
         .password-field {
@@ -94,60 +110,43 @@
             font-size: 18px;
         }
 
-        .forgot-password {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .forgot-password a {
-            color: #8B6F47;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .forgot-password a:hover {
-            text-decoration: underline;
-        }
-
         .submit-btn {
             width: 100%;
-            background: linear-gradient(135deg, #28a745, #20c997);
+            background-color: #28A745;
             color: white;
             border: none;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-top: 10px;
         }
 
         .submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
         }
 
         .submit-btn:active {
             transform: translateY(0);
         }
 
-        .signup-link {
+        .login-link {
             text-align: center;
-            margin-top: 25px;
+            margin-top: 20px;
             color: #666;
             font-size: 14px;
         }
 
-        .signup-link a {
+        .login-link a {
             color: #8B6F47;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 500;
         }
 
-        .signup-link a:hover {
+        .login-link a:hover {
             text-decoration: underline;
         }
 
@@ -158,12 +157,12 @@
             }
 
             .form-container {
-                padding: 30px 20px;
+                padding: 20px;
             }
 
             .header {
-                padding: 25px 20px;
-                font-size: 20px;
+                padding: 20px;
+                font-size: 18px;
             }
         }
 
@@ -173,14 +172,15 @@
             }
 
             .form-container {
-                padding: 20px 15px;
+                padding: 15px;
             }
 
             .form-group {
-                margin-bottom: 20px;
+                margin-bottom: 15px;
             }
 
-            .form-group input {
-                padding: 12px;
+            .form-group input,
+            .form-group select {
+                padding: 10px 12px;
             }
         }

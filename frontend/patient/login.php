@@ -18,14 +18,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Dheergayu</title>
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/login.css?v=<?php echo time(); ?>">
 </head>
 <body>
+<!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <button class="nav-btn active">Home</button>
+                <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
+                <a href="pharmacistorders.php" class="nav-btn">Orders</a>
+                <a href="pharmacistreports.php" class="nav-btn">Reports</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+            <h1 class="header-title">Dheergayu</h1>
+        </div>
+    </header>
+
+<div class="form-container-main">
     <div class="container">
-        <div class="header">
+        <div class="form_header">
             Login to your account
         </div>
-        
         <div class="form-container">
             <form id="loginForm" method="POST" action="login.php">
                 <div class="form-group">
@@ -53,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
         </div>
     </div>
-
+</div>
     <script>
         function togglePassword() {
             const field = document.getElementById('password');
@@ -110,5 +126,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             });
         });
     </script>
+    
 </body>
 </html>
