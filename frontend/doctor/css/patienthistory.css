@@ -1,0 +1,525 @@
+/* Updated Patient History CSS with Unified Header - v1.5 */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f6f8fa;
+  color: #333;
+}
+
+/* Header Styles */
+.header {
+  background: linear-gradient(135deg, #8B7355, #A0916B);
+  color: white;
+  padding: 0.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-right: 0.5rem;
+}
+
+.header-title {
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-right: 2.5rem;
+  color: white;
+}
+
+.user-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.user-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.user-icon:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.user-icon svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+.user-role {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Navigation */
+.navigation {
+  display: flex !important;
+  gap: 0 !important;
+  align-items: center !important;
+  background: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  height: 2.8rem !important;
+  min-height: 2.8rem !important;
+  max-height: 2.8rem !important;
+}
+
+.navigation .nav-btn {
+  background: none !important;
+  border: none !important;
+  padding: 0.6rem 1.5rem !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  font-size: 1rem !important;
+  cursor: pointer !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  outline: none !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  height: 2.8rem !important;
+  line-height: 1.6rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 2.8rem !important;
+  max-height: 2.8rem !important;
+}
+
+.navigation .nav-btn.active {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+  height: 2.8rem !important;
+  line-height: 1.6rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 2.8rem !important;
+  max-height: 2.8rem !important;
+}
+
+.navigation .nav-btn:not(.active):hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+  height: 2.8rem !important;
+  line-height: 1.6rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 2.8rem !important;
+  max-height: 2.8rem !important;
+}
+
+/* Main Content */
+.main-content {
+  max-width: 900px;
+  margin: 30px auto;
+  background: white;
+  padding: 20px 30px 40px 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgb(0 0 0 / 0.1);
+}
+
+/* Search Section */
+
+.search-section h2 {
+  margin-top: 0;
+  color: #8B7355;
+}
+
+.search-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Search Form */
+
+.search-form {
+  margin-bottom: 30px;
+}
+
+.search-fields {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-field label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.search-field input[type='text'],
+.search-field input[type='date'] {
+  padding: 8px 10px;
+  border: 1.5px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  outline-offset: 2px;
+  transition: border-color 0.3s;
+}
+
+.search-field input[type='text']:focus,
+.search-field input[type='date']:focus {
+  border-color: #8B7355;
+}
+
+/* Search buttons */
+
+.search-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+.btn {
+  cursor: pointer;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  transition: background-color 0.3s;
+}
+
+.btn-search {
+  background-color: #8B7355;
+  color: white;
+}
+
+.btn-search:hover {
+  background-color: #6F5B42;
+}
+
+.btn-clear {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-clear:hover {
+  background-color: #5a6268;
+}
+
+/* Back Navigation - Removed since we have header navigation */
+
+/* Patient Info Section */
+
+.patient-info-section {
+  border-top: 2px solid #8B7355;
+  padding-top: 20px;
+  margin-top: 30px;
+}
+
+.patient-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 15px;
+}
+
+.patient-header h3 {
+  color: #8B7355;
+  margin: 0;
+}
+
+.patient-id {
+  background-color: #8B7355;
+  color: white;
+  padding: 4px 10px;
+  font-size: 14px;
+  border-radius: 15px;
+  font-family: monospace;
+}
+
+.patient-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  flex: 1 1 150px;
+  font-size: 14px;
+}
+
+.detail-item strong {
+  display: inline-block;
+  width: 85px;
+  color: #555;
+}
+
+.detail-item.full-width {
+  flex: 1 1 100%;
+}
+
+/* History Section */
+
+.history-section {
+  margin-top: 40px;
+}
+
+.history-section h3 {
+  color: #8B7355;
+  margin-bottom: 20px;
+}
+
+/* Timeline */
+
+.history-timeline {
+  border-left: 3px solid #8B7355;
+  padding-left: 20px;
+  position: relative;
+}
+
+.history-record {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.record-date {
+  font-size: 14px;
+  color: #8B7355;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeline-dot {
+  width: 14px;
+  height: 14px;
+  background: #8B7355;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 5px #8B7355aa;
+}
+
+.record-content {
+  background-color: #f5f2f0;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px #8B735533;
+  position: relative;
+  margin-left: 20px;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.record-header h4 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.record-number {
+  background-color: #6F5B42;
+  color: white;
+  padding: 4px 11px;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* Record details */
+
+.record-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.record-item {
+  flex: 1 1 250px;
+  font-size: 14px;
+}
+
+.record-item strong {
+  display: inline-block;
+  width: 95px;
+  color: #333;
+}
+
+/* No Results */
+
+.no-results {
+  text-align: center;
+  margin-top: 40px;
+  color: #777;
+}
+
+.no-results-icon {
+  font-size: 80px;
+  margin-bottom: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem 1rem;
+  }
+  
+  .header-left, .header-right {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .header-right {
+    gap: 0.3rem;
+  }
+  
+  .header-title {
+    font-size: 1.4rem;
+    margin-right: 1.5rem;
+  }
+  
+  .user-role {
+    font-size: 0.8rem;
+  }
+  
+  .navigation {
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  
+  .navigation .nav-btn {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .main-content {
+    margin: 15px;
+    padding: 15px 20px 30px 20px;
+  }
+  
+  .search-fields {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .search-field {
+    min-width: 100%;
+  }
+  
+  .search-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .header-left, .header-right {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+  }
+  
+  .header-right {
+    gap: 0.2rem;
+  }
+  
+  .header-title {
+    font-size: 1.2rem;
+    margin-right: 1rem;
+  }
+  
+  .user-role {
+    font-size: 0.75rem;
+  }
+  
+  .navigation {
+    gap: 0.3rem;
+    justify-content: center;
+  }
+  
+  .navigation .nav-btn {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .main-content {
+    margin: 10px;
+    padding: 10px 15px 20px 15px;
+  }
+  
+  .search-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .search-description {
+    font-size: 13px;
+  }
+}
