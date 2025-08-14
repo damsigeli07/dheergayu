@@ -11,14 +11,26 @@
 </head>
 
 <body>
-    <div class="header">
-        TREATMENT APPOINTMENT
-        <div class="user-icon" onclick="showUserMenu()" title="User Menu">👤</div>
-    </div>
+
+<header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <h1 class="header-title">Dheergayu</h1>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn active">Home</button>
+                <a href="channeling.php" class="nav-btn">Consultations</a>
+                <a href="treatment.php" class="nav-btn">Our Treatments</a>
+                <a href="products.php" class="nav-btn">Our Products</a>
+                <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+        </div>
+    </header>
 
     <div class="treatments-container">
-        <div class="treatments-header">
-            <h1 class="treatments-title">Our Ayurvedic Treatments</h1>
+        <div class="page-header">
+            <h1 class="main-title">Our Ayurvedic Treatments</h1>
             <p class="treatments-subtitle">Discover our range of traditional Ayurvedic treatments for holistic wellness</p>
         </div>
 

@@ -7,14 +7,29 @@
     <link rel="stylesheet" href="css/verify.css?v=<?php echo time(); ?>">
 </head>
 <body>
+    <header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <h1 class="header-title">Dheergayu</h1>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn active">Home</button>
+                <a href="channeling.php" class="nav-btn">Consultations</a>
+                <a href="treatment.php" class="nav-btn">Our Treatments</a>
+                <a href="products.php" class="nav-btn">Our Products</a>
+                <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+        </div>
+    </header>
+    
+<div class="form-container-main">
     <div class="container">
         <div class="header">
             Verify Your Account
         </div>
-        
         <div class="form-container">
             <div class="verification-icon">📧</div>
-            
             <div class="info-text">
                 Enter the verification code sent to your email.
             </div>
@@ -43,7 +58,7 @@
             </div>
         </div>
     </div>
-
+</div>
     <script>
         let resendTimer = 0;
         let timerInterval;

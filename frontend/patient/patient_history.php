@@ -7,11 +7,22 @@
     <link rel="stylesheet" href="css/patient_history.css?v=<?php echo time(); ?>">
 </head>
 <body>
-    <div class="header">
-        PATIENT HISTORY
-        <button class="export-btn" onclick="exportHistory()">📄 All Consultations Feature</button>
-        <div class="user-icon" onclick="showUserMenu()" title="User Menu">👤</div>
-    </div>
+
+<header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <h1 class="header-title">Dheergayu</h1>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn active">Home</button>
+                <a href="channeling.php" class="nav-btn">Consultations</a>
+                <a href="treatment.php" class="nav-btn">Our Treatments</a>
+                <a href="products.php" class="nav-btn">Our Products</a>
+                <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+        </div>
+    </header>
 
     <div class="container">
         <div class="tabs-container">

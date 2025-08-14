@@ -7,8 +7,25 @@
     <link rel="stylesheet" href="css/password_reset.css?v=<?php echo time(); ?>">
 </head>
 <body>
+    <header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <h1 class="header-title">Dheergayu</h1>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn active">Home</button>
+                <a href="channeling.php" class="nav-btn">Consultations</a>
+                <a href="treatment.php" class="nav-btn">Our Treatments</a>
+                <a href="products.php" class="nav-btn">Our Products</a>
+                <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+        </div>
+    </header>
+
+<div class="form-container-main">
     <div class="reset-container">
-        <div class="header">
+        <div class="title">
             Reset your Password
         </div>
         <div class="form-container">
@@ -59,7 +76,7 @@
             </form>
         </div>
     </div>
-
+</div>
     <script>
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);

@@ -25,15 +25,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <header class="header">
         <div class="header-left">
             <nav class="navigation">
-                <button class="nav-btn active">Home</button>
-                <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
-                <a href="pharmacistorders.php" class="nav-btn">Orders</a>
-                <a href="pharmacistreports.php" class="nav-btn">Reports</a>
+                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <h1 class="header-title">Dheergayu</h1>
             </nav>
         </div>
         <div class="header-right">
-            <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
-            <h1 class="header-title">Dheergayu</h1>
+            <button class="nav-btn active">Home</button>
+                <a href="channeling.php" class="nav-btn">Consultations</a>
+                <a href="treatment.php" class="nav-btn">Our Treatments</a>
+                <a href="products.php" class="nav-btn">Our Products</a>
+                <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
         </div>
     </header>
 
@@ -58,14 +59,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
 
                 <div class="forgot-password">
-                    <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
+                    <a href="password_reset.php">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="submit-btn">LOGIN</button>
             </form>
 
             <div class="signup-link">
-                Don't have an account? <a href="#" onclick="showSignupPage()">SIGN UP</a>
+                Don't have an account? <a href="signup.php">SIGN UP</a>
             </div>
         </div>
     </div>
@@ -74,7 +75,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         function togglePassword() {
             const field = document.getElementById('password');
             const toggle = document.querySelector('.password-toggle');
-            
             if (field.type === 'password') {
                 field.type = 'text';
                 toggle.textContent = '🙈';

@@ -7,16 +7,27 @@
     <link rel="stylesheet" href="css/payment.css?v=<?php echo time(); ?>">
 </head>
 <body>
-    <div class="header">
-        CONFIRM AND PAY
-        <div class="user-icon" onclick="showUserMenu()" title="User Menu">👤</div>
-    </div>
+
+<header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <h1 class="header-title">Dheergayu</h1>
+            </nav>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn active">Home</button>
+                <a href="channeling.php" class="nav-btn">Consultations</a>
+                <a href="treatment.php" class="nav-btn">Our Treatments</a>
+                <a href="products.php" class="nav-btn">Our Products</a>
+                <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+        </div>
+    </header>
 
     <div class="container">
         <!-- Booking Summary Card -->
         <div class="card">
             <h2 class="card-title">Booking Summary</h2>
-            
             <div class="booking-summary">
                 <div class="summary-row">
                     <span class="summary-label">Consultation Fee</span>

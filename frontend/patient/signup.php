@@ -7,11 +7,26 @@
     <link rel="stylesheet" href="css/signup.css?v=<?php echo time(); ?>">
 </head>
 <body>
+<!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <h1 class="header-title">Dheergayu</h1>
+            </nav>
+        </div>
+        <div class="header-right">
+            <a href="channeling.php" class="nav-btn">Consultations</a>
+            <a href="treatment.php" class="nav-btn">Our Treatments</a>
+            <a href="products.php" class="nav-btn">Our Products</a>
+            <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+        </div>
+    </header>
+<div class="form-container-main">
     <div class="container">
-        <div class="header">
+        <div class="title">
             Let's get your account set up
         </div>
-        
         <div class="form-container">
             <form id="signupForm">
                 <div class="form-group">
@@ -54,11 +69,11 @@
             </form>
 
             <div class="login-link">
-                Already have an account? <a href="#" onclick="showLoginPage()">Log In</a>
+                Already have an account? <a href="login.php">Log In</a>
             </div>
         </div>
     </div>
-
+</div>
     <script>
         function togglePassword(fieldId) {
             const field = document.getElementById(fieldId);
