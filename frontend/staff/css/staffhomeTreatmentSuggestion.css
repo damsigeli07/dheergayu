@@ -1,0 +1,395 @@
+/* ================== Global Styles ================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    line-height: 1.5;
+}
+
+/* ================== Header Styles - Ribbon Style ================== */
+.header {
+    background: linear-gradient(135deg, #8B7355, #A0916B);
+    color: white;
+    padding: 0.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    margin-right: 0.5rem;
+}
+
+.header-title {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-right: 2rem;
+    color: white;
+}
+
+.user-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.user-icon {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.user-role {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* ================== Navigation ================== */
+.navigation {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.nav-btn.active {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.nav-btn:hover:not(.active) {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* ================== Main Content ================== */
+.main-content {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ================== Dashboard Layout ================== */
+.dashboard-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+/* ================== Info Sections ================== */
+.info-section {
+    background-color: #fefefe;
+    border-radius: 6px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+.info-section h3 {
+    color: #8B7355;
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.treatment-list, .product-list {
+    list-style: none;
+    padding-left: 20px;
+}
+
+.treatment-list li:before,
+.product-list li:before {
+    content: "•";
+    color: #8B7355;
+    position: absolute;
+    left: -15px;
+}
+
+.treatment-list li, .product-list li {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #666;
+    position: relative;
+}
+
+/* ================== Schedule Section ================== */
+.schedule-section {
+    background-color: #f8f6f3;
+    border: 1px solid #d4d0c8;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.schedule-content {
+    background-color: white;
+    border: 1px solid #e0ddd6;
+    border-radius: 4px;
+    padding: 12px;
+}
+
+.schedule-item {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #555;
+}
+
+.schedule-item .time {
+    font-weight: bold;
+    color: #333;
+}
+
+.schedule-item .description {
+    color: #666;
+    margin-top: 2px;
+}
+
+/* ================== Actions Section ================== */
+.actions-section {
+    background-color: #f8f6f3;
+    border: 1px solid #d4d0c8;
+    border-radius: 6px;
+    padding: 15px;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.action-btn.primary {
+    background-color: #7a9b57;
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background-color: #5a7a37;
+}
+
+/* ================== Treatment Suggestion Table ================== */
+.search-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 200px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #8B7355;
+}
+
+.search-btn {
+    background-color: #7a9b57;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.search-btn:hover {
+    background-color: #5a7a37;
+}
+
+.suggestion-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background-color: #fefefe;
+}
+
+.suggestion-table thead th {
+    background-color: #fefefe;
+    color: #8B7355;
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.suggestion-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.2s;
+}
+
+.suggestion-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.suggestion-table td {
+    padding: 12px 8px;
+    vertical-align: top;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 14px;
+    color: #666;
+    background-color: #fefefe;
+    word-break: break-word;
+}
+
+.suggestion-table td:first-child {
+    font-weight: bold;
+    color: #8B7355;
+}
+
+.suggestion-table td:nth-child(2) {
+    color: #7a9b57;
+    font-weight: 500;
+}
+
+.suggestion-table td:nth-child(4) {
+    color: #333;
+    line-height: 1.4;
+    white-space: normal;
+}
+
+.no-results {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 1.25rem !important;
+}
+
+.summary-section {
+    margin-top: 20px;
+    padding: 15px 1rem;
+    background-color: #f8f6f3;
+    border-top: 1px solid #d4d0c8;
+    border-bottom: 1px solid #d4d0c8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.summary-section p {
+    color: #8B7355;
+    font-weight: bold;
+    margin: 0;
+}
+
+.clear-search {
+    color: #7a9b57;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 5px 10px;
+    border: 1px solid #7a9b57;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.clear-search:hover {
+    background-color: #7a9b57;
+    color: white;
+}
+
+/* ================== Responsive ================== */
+@media (max-width: 768px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    
+    .header-title {
+        font-size: 1.5rem;
+    }
+    
+    .navigation {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .action-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .search-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .suggestion-table {
+        font-size: 12px;
+    }
+    
+    .suggestion-table th,
+    .suggestion-table td {
+        padding: 10px;
+    }
+    
+    .summary-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

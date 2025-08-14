@@ -1,0 +1,275 @@
+/* Common Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+/* Header - Ribbon Style */
+.header {
+    background: linear-gradient(135deg, #8B7355, #A0916B);
+    color: white;
+    padding: 0.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    margin-right: 0.5rem;
+}
+
+.header-title {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-right: 2rem;
+    color: white;
+}
+
+.user-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.user-icon {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.user-role {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Navigation */
+.navigation {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.nav-btn.active {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.nav-btn:hover:not(.active) {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Main Content */
+.main-content {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Top Section */
+.top-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.page-title h2 {
+    color: #8B7355;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.action-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Search Section */
+.search-section {
+    display: flex;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 200px;
+    transition: border-color 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #8B7355;
+}
+
+.search-btn {
+    background-color: #7a9b57;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+    background-color: #5a7a37;
+}
+
+/* Table Styles */
+.table-container {
+    background-color: #fefefe;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fefefe;
+}
+
+.appointments-table th {
+    background-color: #fefefe;
+    color: #8B7355;
+    padding: 1rem;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 16px;
+}
+
+.appointments-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 14px;
+    color: #666;
+    vertical-align: middle;
+}
+
+/* Special Columns */
+.doctor-name { color: #8B7355; font-weight: 500; }
+.patient-name { color: #2c5530; font-weight: 500; }
+.date-time { color: #666; font-size: 13px; }
+
+/* Actions */
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.edit-btn { background-color: #007bff; color: white; }
+.edit-btn:hover { background-color: #0056b3; transform: translateY(-1px); }
+
+.delete-btn { background-color: #dc3545; color: white; }
+.delete-btn:hover { background-color: #c82333; transform: translateY(-1px); }
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.page-btn {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.page-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #8B7355;
+}
+
+.page-btn.active {
+    background-color: #6B8E23;
+    color: white;
+    border-color: #6B8E23;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-content { padding: 20px; }
+    .top-section { flex-direction: column; align-items: stretch; }
+    .action-section { justify-content: space-between; flex-wrap: wrap; }
+    .search-section { flex-direction: column; align-items: stretch; }
+    .search-input { width: 100%; margin-bottom: 10px; }
+    .appointments-table { font-size: 12px; min-width: 600px; }
+    .actions { flex-direction: column; gap: 4px; }
+    .action-btn { padding: 4px 8px; font-size: 10px; }
+    .table-container { overflow-x: auto; }
+}
+
+@media (max-width: 480px) {
+    .header-title { font-size: 18px; }
+    .nav-btn { padding: 6px 12px; font-size: 12px; }
+    .page-title h2 { font-size: 18px; }
+    .search-input { width: 120px; font-size: 12px; }
+    .pagination { flex-wrap: wrap; gap: 5px; }
+    .page-btn { padding: 6px 10px; font-size: 12px; }
+}
