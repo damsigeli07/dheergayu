@@ -1,153 +1,177 @@
-/* Pharmacist Reports Page Styles */
-
-/* Global Box Sizing */
+/* ===========================
+   Global Box Sizing & Body
+=========================== */
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
-/* Header */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* ===========================
+   Header Styles
+=========================== */
 .header {
-    background: linear-gradient(135deg, #8B7355, #A0916B);
+    background: linear-gradient(135deg, #37a762 0%, #41ac62 25%, #7ba05b 75%, #9d7448 100%);
     color: white;
-    padding: 0.5rem 2rem;
+    padding: 0.2rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
+/* Subtle background pattern in header */
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    pointer-events: none;
 }
 
+.header-left,
 .header-right {
     display: flex;
     align-items: center;
-    gap: 0.1rem;
+    gap: 0.5rem;
+    z-index: 1;
+}
+
+.header-right {
+    gap: 0.3rem;
 }
 
 .logo {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     object-fit: contain;
-    margin-right: 0.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
 }
 
 .header-title {
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     margin-right: 2.5rem;
-    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(45deg, #ffffff, #f0f8f4);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .user-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.4rem;
+    transition: transform 0.3s ease;
+}
+
+.user-section:hover {
+    transform: translateY(-2px);
 }
 
 .user-icon {
-    background-color: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(145deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 50%;
-    padding: 0.5rem;
+    padding: 0.4rem;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .user-icon:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background: linear-gradient(145deg, rgba(255,255,255,0.35), rgba(255,255,255,0.2));
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .user-icon svg {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     color: white;
 }
 
 .user-role {
     color: white;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     text-align: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    letter-spacing: 0.5px;
 }
 
-/* Navigation */
+/* ===========================
+   Navigation Styles
+=========================== */
 .navigation {
-    display: flex !important;
-    gap: 0 !important;
-    align-items: center !important;
-    background: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    height: 2.8rem !important;
-    min-height: 2.8rem !important;
-    max-height: 2.8rem !important;
+    display: flex;
+    gap: 0;
+    align-items: center;
+    height: 2.8rem;
 }
 
 .navigation .nav-btn {
-    background: none !important;
-    border: none !important;
-    padding: 0.6rem 1.5rem !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    font-size: 1rem !important;
-    cursor: pointer !important;
-    color: white !important;
-    transition: all 0.3s ease !important;
-    text-decoration: none !important;
-    border-bottom: none !important;
-    outline: none !important;
-    font-weight: 500 !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    height: 2.8rem !important;
-    line-height: 1.6rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 2.8rem !important;
-    max-height: 2.8rem !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.8rem;
+    padding: 0 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.navigation .nav-btn.active {
-    background-color: rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
-    text-decoration: none !important;
-    border-bottom: none !important;
-    border-radius: 5px !important;
-    box-shadow: none !important;
-    height: 2.8rem !important;
-    line-height: 1.6rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 2.8rem !important;
-    max-height: 2.8rem !important;
+.navigation .nav-btn.active,
+.navigation .nav-btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 .navigation .nav-btn:not(.active):hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-    text-decoration: none !important;
-    border-bottom: none !important;
-    border-radius: 5px !important;
-    box-shadow: none !important;
-    height: 2.8rem !important;
-    line-height: 1.6rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 2.8rem !important;
-    max-height: 2.8rem !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
-/* Main Content */
+.navigation .nav-btn:active {
+    transform: scale(0.97);
+}
+
+/* ===========================
+   Main Content Layout
+=========================== */
 .main-content {
     max-width: 1400px;
     margin: 0 auto;
@@ -156,34 +180,33 @@
     box-sizing: border-box;
 }
 
+/* ===========================
+   Reports Container
+=========================== */
 .reports-container {
     width: 100%;
-    max-width: 100%;
     box-sizing: border-box;
 }
 
 .reports-header {
     text-align: center;
     margin-bottom: 2rem;
-    width: 100%;
 }
 
 .reports-title {
-    color: #8B7355 !important;
-    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
-    font-size: 2rem !important;
-    font-weight: 600 !important;
-    margin-bottom: 0.5rem !important;
-    width: 100%;
+    color: #8B7355;
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
 .reports-subtitle {
-    color: #666 !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    font-size: 1rem !important;
-    width: 100%;
+    color: #666;
+    font-size: 1rem;
 }
 
+/* Grid for cards */
 .reports-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -191,14 +214,14 @@
     margin-bottom: 2rem;
 }
 
+/* Report Card */
 .report-card {
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     border: 1px solid #e0e0e0;
     width: 100%;
-    box-sizing: border-box;
 }
 
 .report-card h3 {
@@ -207,53 +230,23 @@
     font-weight: 600;
     margin-bottom: 1rem;
     text-align: center;
-    width: 100%;
 }
 
+/* Chart Container */
 .chart-container {
     position: relative;
     height: 300px;
     margin-bottom: 1rem;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #7a9b57;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    color: #666;
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
+/* Expiring Stock Alerts */
 .expiring-alerts {
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     border: 1px solid #e0e0e0;
     margin-bottom: 2rem;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .expiring-alerts h3 {
@@ -261,7 +254,6 @@
     font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    width: 100%;
 }
 
 .alert-item {
@@ -273,12 +265,6 @@
     border: 1px solid #ffeaa7;
     border-radius: 6px;
     margin-bottom: 0.5rem;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.alert-item:last-child {
-    margin-bottom: 0;
 }
 
 .alert-product {
@@ -291,10 +277,12 @@
     font-weight: 600;
 }
 
+/* Full Width Card */
 .full-width {
     grid-column: 1 / -1;
 }
 
+/* Generate Report Button */
 .generate-report-section {
     text-align: center;
     margin-top: 2rem;
@@ -319,109 +307,72 @@
     background: linear-gradient(135deg, #6B8E23, #556B2F);
 }
 
-/* Responsive Design */
+/* ===========================
+   Responsive Design
+=========================== */
 @media (max-width: 768px) {
     .header {
         padding: 0.5rem 1rem;
-    }
-    
-    .header-left, .header-right {
         flex-direction: column;
-        justify-content: center;
         gap: 0.5rem;
     }
-    
+
+    .header-left,
     .header-right {
+        flex-direction: column;
+        justify-content: center;
         gap: 0.3rem;
     }
-    
+
     .header-title {
         font-size: 1.4rem;
         margin-right: 1.5rem;
     }
-    
+
     .user-role {
         font-size: 0.8rem;
     }
-    
+
     .navigation {
         gap: 0.5rem;
         justify-content: center;
     }
-    
-    .navigation .nav-btn {
-        padding: 0.5rem 1rem !important;
-        font-size: 0.9rem !important;
-    }
-    
+
     .reports-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .reports-container {
-        padding: 1rem;
     }
 }
 
 @media (max-width: 480px) {
     .header {
         padding: 0.4rem 0.8rem;
+        gap: 0.5rem;
     }
-    
-    .header-left, .header-right {
-        flex-direction: column;
-        justify-content: center;
-        gap: 0.3rem;
-    }
-    
-    .header-right {
-        gap: 0.2rem;
-    }
-    
+
     .header-title {
         font-size: 1.2rem;
         margin-right: 1rem;
     }
-    
+
     .user-role {
         font-size: 0.75rem;
     }
-    
+
     .navigation {
         gap: 0.3rem;
         justify-content: center;
     }
-    
-    .navigation .nav-btn {
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.8rem !important;
-    }
-    
+
     .reports-container {
         padding: 0.8rem;
     }
-    
+
     .reports-title {
         font-size: 1.5rem;
     }
-    
+
     .chart-container {
         height: 250px;
     }
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    background-color: #f5f5f5;
-    color: #333;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    overflow-x: hidden;
 }

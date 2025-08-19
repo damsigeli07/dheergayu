@@ -15,13 +15,12 @@
         <button class="nav-btn active">Reports</button>
       </nav>
     </div>
+
     <div class="header-right">
-      <img src="images/dheergayu.png" alt="Dheergayu Logo" class="logo">
+      <img src="images/dheergayu.png" alt="Dheergayu Logo" class="logo" />
       <h1 class="header-title">Dheergayu</h1>
       <div class="user-section">
-        <div class="user-icon">
-          <div class="user-icon">👤</div>
-        </div>
+        <div class="user-icon">👤</div>
         <span class="user-role">Doctor</span>
       </div>
     </div>

@@ -1,0 +1,318 @@
+/* Reset and base styles ---------------------------------------*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  color: #333;
+}
+
+/* Header (unified style) --------------------------------------*/
+.header {
+  background: linear-gradient(135deg, #37a762 0%, #41ac62 25%, #7ba05b 75%, #9d7448 100%);
+  color: white;
+  padding: 0.2rem 1rem;
+  min-height: 70px;                    
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  z-index: 1;
+}
+
+.navigation .nav-btn,
+.navigation a.nav-btn {
+  background: none;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
+  text-decoration: none;
+  border-radius: 5px;
+  font-family: inherit;
+}
+
+.navigation .nav-btn.active {
+  background: rgba(255,255,255,0.2);
+}
+
+.navigation .nav-btn:not(.active):hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 1;
+}
+
+.logo {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.header-title {
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  background: linear-gradient(45deg, #ffffff, #f0f8f4);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-right: 2rem;
+}
+
+.user-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.user-icon {
+  background: linear-gradient(145deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
+  border: 1px solid rgba(255,255,255,0.2);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.user-icon:hover {
+  background: linear-gradient(145deg, rgba(255,255,255,0.35), rgba(255,255,255,0.2));
+  transform: scale(1.05);
+}
+
+.user-role {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Main content -------------------------------------------------*/
+.main-content {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Dashboard grid (unchanged/trimmed) */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 22px;
+  margin-top: 20px;
+}
+
+/* ... (card styles remain exactly as you have them) ... */
+
+
+.card {
+    background: #fff;
+    border-radius: 10px;
+    border: 2px solid #e4e8df;
+    padding: 22px 25px 20px 25px;
+    box-sizing: border-box;
+    min-height: 125px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.card.green {
+    border-color: #709e71;
+    background: #f1faf1;
+}
+
+.card.yellow {
+    border-color: #ffd37b;
+    background: #fff8e0;
+}
+
+.card.blue {
+    border-color: #60a3d8;
+    background: #eaf7ff;
+}
+
+.card.purple {
+    border-color: #dbb1e8;
+    background: #f5efff;
+}
+
+.card .title {
+    font-size: 1.15em;
+    margin-bottom: 3px;
+    font-weight: 600;
+}
+
+.card.green .title {
+    color: #4b6e52;
+}
+
+.card.yellow .title {
+    color: #d19700;
+}
+
+.card.blue .title {
+    color: #3b8bd7;
+}
+
+.card.purple .title {
+    color: #8036c1;
+}
+
+.card .value {
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 4px;
+    margin-top: 3px;
+    color: #2c3e50;
+}
+
+.card.green .value {
+    color: #2E7D32;
+}
+
+.card.yellow .value {
+    color: #F57C00;
+}
+
+.card.blue .value {
+    color: #1976D2;
+}
+
+.card.purple .value {
+    color: #7B1FA2;
+}
+
+.system-status {
+    margin-top: 6px;
+}
+
+.system-status span {
+    display: inline-block;
+    margin-right: 16px;
+    font-weight: 500;
+}
+
+.system-status .ok {
+    color: #4baf50;
+}
+
+.system-status .warn {
+    color: #d19700;
+    text-decoration: underline; 
+    cursor: pointer;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 0.8rem;
+        padding: 1rem;
+    }
+    
+    .header-title {
+        font-size: 1.5rem;
+        margin-right: 0;
+    }
+    
+    .navigation {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 1rem;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header {
+        padding: 0.8rem 1rem;
+    }
+    
+    .header-title {
+        font-size: 1.3rem;
+    }
+    
+    .navigation {
+        padding: 0.8rem;
+    }
+    
+    .nav-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .main-content {
+        padding: 15px;
+    }
+    
+    .card {
+        padding: 18px 20px 15px 20px;
+    }
+    
+    .card .title {
+        font-size: 1.1em;
+    }
+    
+    .card .value {
+        font-size: 1.8em;
+    }
+}
