@@ -1,0 +1,283 @@
+/* Reset and Base --------------------------------------------------*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* ===========================
+     Unified Header
+=========================== */
+.header {
+    background: linear-gradient(135deg, #37a762 0%, #41ac62 25%, #7ba05b 75%, #9d7448 100%);
+    color: white;
+    min-height: 70px;
+    padding: 0.1rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15),
+                0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 1;
+}
+
+.logo {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.header-title {
+    font-family: "Palatino Linotype","Book Antiqua",Palatino,serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    background: linear-gradient(45deg,#ffffff,#f0f8f4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-right: 2rem;
+}
+
+.user-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.user-icon {
+  background: linear-gradient(145deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
+  border: 1px solid rgba(255,255,255,0.2);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  transform: translateY(4px);
+}
+
+.user-icon:hover {
+  background: linear-gradient(145deg, rgba(255,255,255,0.35), rgba(255,255,255,0.2));
+  transform: scale(1.05);
+}
+
+.user-role {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ===========================
+     Navigation
+=========================== */
+.navigation {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    z-index: 1;
+}
+
+.navigation .nav-btn,
+.navigation a.nav-btn {
+    background: none;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.3s;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ✅ Ensure <button> inherits the same font */
+button.nav-btn {
+    font-family: inherit;
+}
+
+.navigation .nav-btn.active {
+    background: rgba(255,255,255,0.2);
+}
+
+.navigation .nav-btn:not(.active):hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* ===========================
+     Content Container
+=========================== */
+.container {
+    background: white;
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100vh;
+}
+
+.content {
+    padding: 1.5rem 2rem;
+}
+
+.top-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Search Area */
+.search-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-input {
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 250px;
+}
+
+.search-btn {
+    background: #7A9B6A;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+    height: 42px;
+}
+
+/* ===========================
+     Table
+=========================== */
+.table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.appointments-table th {
+    background: #f8f9fa;
+    color: #5D4E37;
+    padding: 18px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.appointments-table td {
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #666;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.appointments-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 5px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+}
+
+.reschedule-btn { background: #ff9500; color: white; }
+.edit-btn       { background: #007bff; color: white; }
+.delete-btn     { background: #dc3545; color: white; }
+
+.reschedule-btn:hover { background:#e6850e; }
+.edit-btn:hover       { background:#0056b3; }
+.delete-btn:hover     { background:#c82333; }
+
+/* ===========================
+     Responsive
+=========================== */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.6rem;
+    }
+
+    .navigation {
+        justify-content: center;
+    }
+
+    .navigation .nav-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .content {
+        padding: 15px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navigation .nav-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .header-title {
+        font-size: 1.4rem;
+    }
+
+    .action-btn {
+        padding: 3px 6px;
+        min-width: 55px;
+        font-size: 9px;
+    }
+}

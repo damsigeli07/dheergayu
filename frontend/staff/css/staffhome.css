@@ -10,7 +10,7 @@ body {
     color: #333;
 }
 
-/* Header Styles */
+/* Header Styles - ribbon style */
 .header {
     
     background: linear-gradient(135deg, #37a762 0%, #41ac62 25%, #7ba05b 75%, #9d7448 100%);
@@ -177,215 +177,141 @@ body {
     margin: 0 auto;
 }
 
-/* Search Container */
-.search-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 30px;
+/* Dashboard Layout */
+.dashboard-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
 }
 
-.search-box {
-    position: relative;
-    width: 300px;
+/* Info Sections */
+.info-section {
+    background-color: #fefefe;
+    border-radius: 6px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
 }
 
-.search-icon {
+.info-section h3 {
+    color: #8B7355;
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.treatment-list, .product-list {
+    list-style: none;
+    padding-left: 20px;
+}
+
+.treatment-list li:before,
+.product-list li:before {
+    content: "•";
+    color: #8B7355;
     position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: -15px;
+}
+
+.treatment-list li, .product-list li {
+    margin-bottom: 5px;
+    font-size: 14px;
     color: #666;
+    position: relative;
 }
 
-.search-input {
-    width: 100%;
-    padding: 10px 15px 10px 35px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    font-size: 14px;
-    outline: none;
+/* Schedule Section */
+.schedule-section {
+    background-color: #f8f6f3;
+    border: 1px solid #d4d0c8;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
-.search-input:focus {
-    border-color: #7a9b57;
-    box-shadow: 0 0 0 3px rgba(122, 155, 87, 0.1);
-}
-
-/* Table Styles */
-.table-container {
+.schedule-content {
     background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0ddd6;
+    border-radius: 4px;
+    padding: 12px;
 }
 
-.appointments-table {
-    width: 100%;
-    border-collapse: collapse;
+.schedule-item {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #555;
 }
 
-.appointments-table th {
-    background-color: #fafbfc;
-    padding: 18px 20px;
-    text-align: left;
-    font-weight: 600;
-    color: #5a5a5a;
-    border-bottom: 2px solid #e5e7eb;
-    font-size: 14px;
+.schedule-item .time {
+    font-weight: bold;
+    color: #333;
 }
 
-.appointments-table td {
-    padding: 18px 20px;
-    border-bottom: 1px solid #e5e7eb;
-    font-size: 14px;
-    color: #4a5568;
+.schedule-item .description {
+    color: #666;
+    margin-top: 2px;
 }
 
-.appointments-table tr:hover {
-    background-color: #f7f9fc;
+/* Actions Section */
+.actions-section {
+    background-color: #f8f6f3;
+    border: 1px solid #d4d0c8;
+    border-radius: 6px;
+    padding: 15px;
 }
 
-/* Actions Column */
-.actions {
+.action-buttons {
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    align-items: center;
 }
 
-/* Button Styles */
-.btn-start {
+.action-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.action-btn.primary {
     background-color: #7a9b57;
     color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background-color 0.3s;
 }
 
-.btn-start:hover {
-    background-color: #6b8a4a;
+.action-btn.primary:hover {
+    background-color: #5a7a37;
 }
 
-.btn-view, .btn-edit {
-    background-color: #e2e8f0;
-    color: #4a5568;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: background-color 0.3s;
-}
-
-.btn-view:hover, .btn-edit:hover {
-    background-color: #cbd5e0;
-}
-
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
-    .main-content {
-        padding: 15px;
+    .dashboard-content {
+        grid-template-columns: 1fr;
     }
     
     .header {
-        padding: 0.5rem 1rem;
-    }
-    
-    .header-left, .header-right {
         flex-direction: column;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-    
-    .header-right {
-        gap: 0.3rem;
+        gap: 0.8rem;
     }
     
     .header-title {
-        font-size: 1.4rem;
-        margin-right: 1.5rem;
-    }
-    
-    .user-role {
-        font-size: 0.8rem;
+        font-size: 1.5rem;
     }
     
     .navigation {
-        gap: 0.5rem;
+        flex-wrap: wrap;
         justify-content: center;
     }
     
-    .navigation .nav-btn {
-        padding: 0.5rem 1rem !important;
-        font-size: 0.9rem !important;
+    .action-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
     }
     
-    .actions {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .btn-start, .btn-view, .btn-edit {
-        width: 100%;
-        text-align: center;
-    }
-    
-    .search-box {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    .header {
-        padding: 0.4rem 0.8rem;
-    }
-    
-    .header-left, .header-right {
-        flex-direction: column;
-        justify-content: center;
-        gap: 0.3rem;
-    }
-    
-    .header-right {
-        gap: 0.2rem;
-    }
-    
-    .header-title {
-        font-size: 1.2rem;
-        margin-right: 1rem;
-    }
-    
-    .user-role {
-        font-size: 0.75rem;
-    }
-    
-    .navigation {
-        gap: 0.3rem;
-        justify-content: center;
-    }
-    
-    .navigation .nav-btn {
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.8rem !important;
-    }
-    
-    .main-content {
-        padding: 10px;
-    }
-    
-    .appointments-table th,
-    .appointments-table td {
-        padding: 12px 15px;
-        font-size: 13px;
-    }
-    
-    .btn-start, .btn-view, .btn-edit {
-        padding: 8px 15px;
-        font-size: 12px;
+    .action-btn {
+        flex: 1;
+        min-width: 120px;
     }
 }
