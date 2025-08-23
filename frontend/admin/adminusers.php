@@ -33,6 +33,8 @@ $users = [
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard - Users</title>
+    <link rel="stylesheet" href="../css_common/header.css">
+    <script src="../js_common/header.js"></script>
     <link rel="stylesheet" type="text/css" href="css/adminusers.css?v=1.2">
 </head>
 <body>
@@ -41,18 +43,22 @@ $users = [
 <header class="header">
     <nav class="navigation">
         <a href="admindashboard.php" class="nav-btn">Home</a>
-        <a href="admininventory.php" class="nav-btn">Inventory</a>
+        <button class="nav-btn">Inventory</button>
         <a href="adminappointment.php" class="nav-btn">Appointments</a>
         <a href="adminusers.php" class="nav-btn active">Users</a>
-        <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
+        <button class="nav-btn">Treatment Schedule</button>
     </nav>
     <div class="header-right">
         <img src="images/dheergayu.png" class="logo" alt="Logo">
         <h1 class="header-title">Dheergayu</h1>
         <div class="user-section">
-            <div class="user-icon">👤</div>
-            <span class="user-role">Administrator</span>
-        </div>
+                <div class="user-icon" id="user-icon">👤</div>
+                <span class="user-role">Admin</span>
+                <!-- Dropdown -->
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="../patient/login.php" class="logout-btn">Logout</a>
+                </div>
+            </div> 
     </div>
 </header>
 
