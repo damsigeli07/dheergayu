@@ -74,10 +74,11 @@
                 <p>Not a Patient?</p>
             </div>
             <div class="login-link">
-                <div class="user-link"><a href="/../../dheergayu/frontend/doctor/doctordashboard.php">Doctor</a></div>|
-                <div class="user-link"><a href="/../../dheergayu/frontend/pharmacist/pharmacisthome.php">Pharmacist</a></div>|
+                <div class="user-link"><a href="/../../dheergayu/frontend/doctor/doctordashboard.php">Doctor</a></div> |
+                <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Admin</a></div> |
+                <div class="user-link"><a href="/../../dheergayu/frontend/pharmacist/pharmacisthome.php">Pharmacist</a></div> |
                 <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Staff</a></div>|
-                <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Admin</a></div>
+                
             </div>
         </div>
     </div>
