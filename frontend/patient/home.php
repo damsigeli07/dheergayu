@@ -23,101 +23,129 @@
             <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
         </div>
     </header>
-    <div class="slideshow-container">
-        <div class="mySlides fade">
-            <img src="img/ayurveda-home-1.jpg" alt="img" width="100%">
+
+    <main class="hero-section">
+        <div class="floating-circles">
+            <div class="circle circle1">
+                <img src="img/ayurveda-home-3.jpg" alt="Ayurvedic herbs and wellness">
+            </div>
+            
+            <div class="circle circle2">
+                <img src="img/ayurveda-home-4.jpg" alt="Herbal medicine ingredients">
+            </div>
+            
+            <div class="circle circle3">
+                <img src="img/ayurveda-home-2.jpg">
+            </div>
+            
+            <div class="circle circle4">
+                <img src="img/ayurveda-home-1.jpg">
+            </div>
+        </div>
+
+        <div class="hero-box">
+            <img src="img/dheergayu.png" alt="logo" width="80px" height="80px">
+            <h1>Natural Healing Journey</h1>
+            <p>Discover the power of traditional wellness through natural remedies, herbal medicine, and holistic healing practices</p>
+            <a href="#services" class="cta-button">Explore Our Services</a>
+        </div>
+    </main>
+        <div class="gallery">
+            <div class="gallery-item" onclick="showDetails('herbs')">
+                <div class="image-container">
+                    <img src="img/herbal-medicines.jpg" alt="herbal-medicines">
+                </div>
+                <div class="content">
+                    <h4>Natural Herbal Remedies</h4>
+                    <p>Discover the healing power of ancient herbs, carefully prepared with mortar and pestle, enriched with honey and essential oils.</p>
+                    <button class="learn-more">Learn More</button>
+                </div>
+            </div>
+
+            <div class="gallery-item" onclick="showDetails('spa')">
+                <div class="image-container">
+                    <img src="img/health-treatments.jpg" alt="health-treatments">
+                </div>
+                <div class="content">
+                    <h4>Therapeutic Treatments</h4>
+                    <p>Experience authentic Ayurvedic spa therapies with herbal oils, healing potions, and traditional wellness practices.</p>
+                    <button class="learn-more">Book Session</button>
+                </div>
+            </div>
+
+            <div class="gallery-item" onclick="showDetails('wellness')">
+                <div class="image-container">
+                    <img src="img/herbal-product.jpg" alt="natural-products">
+                </div>
+                <div class="content">
+                    <h4>Natural Wellness Products</h4>
+                    <p>Handcrafted essential oils, herbal soaps, and therapeutic products made with organic ingredients and traditional methods.</p>
+                    <button class="learn-more">Shop Now</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="slideshow-container">
-        <div class="mySlides fade">
-            <img src="img/ayurveda-home-2.jpg" alt="img" width="100%">
-        </div>
-    </div>
-
-    <div class="slideshow-container">
-        <div class="mySlides fade">
-            <img src="img/ayurveda-home-3.jpg" alt="img" width="100%">
-        </div>
-    </div>
-
-    <div class="slideshow-container">
-        <div class="mySlides fade">
-            <img src="img/ayurveda-home-4.jpg" alt="img" width="100%">
-        </div>
-    </div>
-    <br>
-
-<div style="text-align:center">
-  <span class="dot"></span> 
-  <span class="dot"></span> 
-  <span class="dot"></span> 
-</div>
-    
-
-        <h1 class="main-title">Our Ayurvedic Treatments</h1>
-        <div class="sub-title">🌿 Ayurveda Treatments – Heal Naturally, Live Fully</div>
-        <center>
-        <div class="paragrapgh">Are you dealing with a health issue and can’t seem to find its root cause?
-        Have you tried conventional treatments, only to watch the symptoms return?
-        Do you feel drained, run-down, or wish you could strengthen your immunity and feel vibrant again?</div>
-
-        <div class="paragrapgh">Welcome to The Ayurvedic Clinic – where ancient wisdom meets modern care.</div>
-
-        <div class="paragrapgh">For over 25 years, we’ve helped people restore balance, energy, and long-lasting wellness through the time-honoured science of Ayurveda. Our approach is holistic and personalised, caring for your mind, body, and spirit—because true health is about harmony, not just the absence of illness.</div>
-        </center>
-        </div>
-        <div class="floating-chat">
-            <div class="chat-button" onclick="openChat('WhatsApp')" title="WhatsApp">💬</div>
-            <div class="chat-button facebook" onclick="openChat('Facebook')" title="Facebook">📘</div>
-            <div class="chat-button twitter" onclick="openChat('Twitter')" title="Twitter">🐦</div>
-            <div class="chat-button instagram" onclick="openChat('Instagram')" title="Instagram">📷</div>
-            <div class="chat-button linkedin" onclick="openChat('LinkedIn')" title="LinkedIn">💼</div>
-        </div>
+        
+        <section class="description-section">
+            <div class="description-container">
+                <div class="section-subtitle">Ancient Wisdom Meets Modern Care</div>
+                <h1 class="main-title">Where Ancient Traditions Meet Holistic Healing</h1>
+                <p class="description-text">
+                    Discover serenity at Dheergayu, your trusted Ayurvedic wellness center. Rooted in age-old Ayurvedic traditions, we offer tailored wellness programs, from rejuvenation to stress relief. Indulge in personalized treatments, tranquil spaces and nourishing therapies as you embark on a transformative journey to harmonize your mind, body and spirit.
+                </p>
+                <button class="fact-sheet-btn" onclick="navigateTo('About')">Book Now</button>
+            </div>
+        </section>
 
         <footer class="footer">
-            <div class="footer-container">
-                <div class="footer-section">
-                    <h3>DHEERGAYU MENU</h3>
-                    <ul>
-                        <li><a href="#" onclick="navigateTo('Home')">Home</a></li>
-                        <li><a href="#" onclick="navigateTo('About us')">About us</a></li>
-                        <li><a href="#" onclick="navigateTo('Treatments')">Treatments</a></li>
-                        <li><a href="#" onclick="navigateTo('Contact Us')">Contact Us</a></li>
-                        <li><a href="#" onclick="navigateTo('Products')">Products</a></li>
-                    </ul>
-                </div>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Dheergayu Ayurveda</h3>
+                <ul>
+                    <li><a href="#" onclick="navigateTo('Home')">Home</a></li>
+                    <li><a href="#" onclick="navigateTo('Accommodation')">Accommodation</a></li>
+                    <li><a href="#" onclick="navigateTo('Offers')">Offers</a></li>
+                    <li><a href="#" onclick="navigateTo('Treatments')">Treatments</a></li>
+                    <li><a href="#" onclick="navigateTo('Dining')">Dining</a></li>
+                    <li><a href="#" onclick="navigateTo('Experiences')">Experiences</a></li>
+                    <li><a href="#" onclick="navigateTo('Facilities')">Facilities</a></li>
+                </ul>
+            </div>
 
-                <div class="footer-section">
-                    <h3>CONTACT DETAILS</h3>
-                    <div class="contact-info">
-                        <p><strong>ADDRESS</strong></p>
-                        <p>GENERAL NUMBERS</p>
-                        <p>+94 25 8858500</p>
-                    </div>
-                </div>
-
-                <div class="footer-section">
-                    <h3>FOLLOW US</h3>
-                    <div class="social-links">
-                        <a href="#" class="social-link facebook" onclick="openSocial('Facebook')">📘</a>
-                        <a href="#" class="social-link twitter" onclick="openSocial('Twitter')">🐦</a>
-                        <a href="#" class="social-link google" onclick="openSocial('Google')">🔍</a>
-                        <a href="#" class="social-link whatsapp" onclick="openSocial('WhatsApp')">💬</a>
-                        <a href="#" class="social-link linkedin" onclick="openSocial('LinkedIn')">💼</a>
-                    </div>
+            <div class="footer-section">
+                <h3>Get in Touch</h3>
+                <div class="contact-info">
+                    <p><strong>Dheergayu Ayurveda Center</strong></p>
+                    <p><strong><img src="img/email.jpg" alt="email" width="27px" height="17px"></strong> info@dheergayu.com</p>
+                    <p><strong><img src="img/call.jpg" alt="call" width="19px" height="15px"></strong> +94 25 8858500</p>
                 </div>
             </div>
 
-            <div class="footer-bottom">
-                © 2024 DHEERGAYU • Traditional Ayurveda Healthcare<br>
-                <a href="#" onclick="navigateTo('Privacy Policy')" style="color: #8B4513; text-decoration: none;">Privacy Policy</a> |
-                <a href="#" onclick="navigateTo('Terms of Service')" style="color: #8B4513; text-decoration: none;">Terms of Service</a> |
-                <a href="#" onclick="navigateTo('Site Map')" style="color: #8B4513; text-decoration: none;">Site Map</a>
+            <div class="footer-section">
+                <h3>Stay Connected with Ayurveda</h3>
+                <p style="color: #666; margin-bottom: 20px;">Subscribe to our newsletter for wellness tips and updates</p>
+                <div class="social-links">
+                    <a href="#"  onclick="openSocial('Facebook')"><img src="img/fb.jpg" alt="fb" width="27px" height="19px"></a>
+                    <a href="#"  onclick="openSocial('Twitter')"><img src="img/x.jpg" alt="x" width="27px" height="19px"></a>
+                    <a href="#"  onclick="openSocial('Youtube')"><img src="img/youtube.jpg" alt="youtube" width="27px" height="19px"></a>
+                </div>
             </div>
-        </footer>
+        </div>
+
+        <div class="footer-bottom">
+            © 2024 Dheergayu Ayurveda. All rights reserved.<br>
+            Website Designed and Developed by <a href="#">eMarketing.lk</a><br>
+            <a href="#" onclick="navigateTo('Privacy Policy')">Privacy Policy</a> |
+            <a href="#" onclick="navigateTo('Terms of Service')">Terms And Condition</a> |
+            <a href="#" onclick="navigateTo('Site Map')">Sitemap</a>
+        </div>
+    </footer>
 
         <script>
+
+            
 let slideIndex = 0;
 showSlides();
 
@@ -183,19 +211,7 @@ function showSlides() {
                 button.style.animationDelay = `${index * 0.1}s`;
             });
 
-            // Add CSS for floating animation
-            const style = document.createElement('style');
-            style.textContent = `
-            @keyframes float {
-                0%, 100% { transform: translateY(0px); }
-                50% { transform: translateY(-5px); }
-            }
-            
-            .chat-button {
-                animation: float 3s ease-in-out infinite;
-            }
-        `;
-            document.head.appendChild(style);
+           
         </script>
 </body>
 

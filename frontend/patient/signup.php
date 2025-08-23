@@ -69,8 +69,14 @@
                 <button type="submit" class="submit-btn">SIGN UP</button>
             </form>
 
-            <div class="login-link">
+            <div class="signup-link">
                 Already have an account? <a href="login.php">Log In</a>
+                <p>Not a Patient?</p>
+            </div>
+            <div class="login-link">
+                <div class="user-link"><a href="/../../dheergayu/frontend/doctor/doctordashboard.php">Doctor</a></div>|
+                <div class="user-link"><a href="/../../dheergayu/frontend/pharmacist/pharmacisthome.php">Pharmacist</a></div>|
+                <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Staff</a></div>|
             </div>
         </div>
     </div>
