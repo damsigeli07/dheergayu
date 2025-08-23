@@ -16,14 +16,44 @@
             </nav>
         </div>
         <div class="header-right">
-            <button class="nav-btn active">Home</button>
+            <a href="home.php" class="nav-btn">Home</a>
             <a href="channeling.php" class="nav-btn">Consultations</a>
             <a href="treatment.php" class="nav-btn">Our Treatments</a>
             <a href="products.php" class="nav-btn">Our Products</a>
             <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
         </div>
     </header>
-    <img src="img/ayurveda-home-2.jpg" alt="img" width="100%">
+    <div class="slideshow-container">
+        <div class="mySlides fade">
+            <img src="img/ayurveda-home-1.jpg" alt="img" width="100%">
+        </div>
+    </div>
+
+    <div class="slideshow-container">
+        <div class="mySlides fade">
+            <img src="img/ayurveda-home-2.jpg" alt="img" width="100%">
+        </div>
+    </div>
+
+    <div class="slideshow-container">
+        <div class="mySlides fade">
+            <img src="img/ayurveda-home-3.jpg" alt="img" width="100%">
+        </div>
+    </div>
+
+    <div class="slideshow-container">
+        <div class="mySlides fade">
+            <img src="img/ayurveda-home-4.jpg" alt="img" width="100%">
+        </div>
+    </div>
+    <br>
+
+<div style="text-align:center">
+  <span class="dot"></span> 
+  <span class="dot"></span> 
+  <span class="dot"></span> 
+</div>
+    
 
         <h1 class="main-title">Our Ayurvedic Treatments</h1>
         <div class="sub-title">🌿 Ayurveda Treatments – Heal Naturally, Live Fully</div>
@@ -35,7 +65,7 @@
         <div class="paragrapgh">Welcome to The Ayurvedic Clinic – where ancient wisdom meets modern care.</div>
 
         <div class="paragrapgh">For over 25 years, we’ve helped people restore balance, energy, and long-lasting wellness through the time-honoured science of Ayurveda. Our approach is holistic and personalised, caring for your mind, body, and spirit—because true health is about harmony, not just the absence of illness.</div>
-    </center>
+        </center>
         </div>
         <div class="floating-chat">
             <div class="chat-button" onclick="openChat('WhatsApp')" title="WhatsApp">💬</div>
@@ -88,6 +118,40 @@
         </footer>
 
         <script>
+let slideIndex = 0;
+showSlides();
+
+function showSlides() {
+  let i;
+  let slides = document.getElementsByClassName("fade"); // Changed from "mySlides" to "fade"
+  let dots = document.getElementsByClassName("dot");
+  
+  // Hide all slides first
+  for (i = 0; i < slides.length; i++) {
+    slides[i].style.display = "none";  
+  }
+  
+  slideIndex++;
+  if (slideIndex > slides.length) {
+    slideIndex = 1;
+  }
+  
+  // Remove active class from all dots
+  for (i = 0; i < dots.length; i++) {
+    dots[i].className = dots[i].className.replace(" active", "");
+  }
+  
+  // Show current slide and mark corresponding dot as active
+  if (slides.length > 0) {
+    slides[slideIndex-1].style.display = "block";  
+  }
+  if (dots.length > 0) {
+    dots[slideIndex-1].className += " active";
+  }
+  
+  setTimeout(showSlides, 3000); // Change image every 3 seconds
+}
+
             function navigateTo(page) {
                 alert(`Navigating to: ${page}`);
             }

@@ -15,11 +15,11 @@
             </nav>
         </div>
         <div class="header-right">
-            <button class="nav-btn active">Home</button>
-                <a href="channeling.php" class="nav-btn">Consultations</a>
-                <a href="treatment.php" class="nav-btn">Our Treatments</a>
-                <a href="products.php" class="nav-btn">Our Products</a>
-                <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+            <a href="home.php" class="nav-btn">Home</a>
+            <a href="channeling.php" class="nav-btn">Consultations</a>
+            <a href="treatment.php" class="nav-btn">Our Treatments</a>
+            <a href="products.php" class="nav-btn">Our Products</a>
+            <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
         </div>
     </header>
 
@@ -42,7 +42,7 @@
                                 <option value="Treatment3">Respiratory Disorders</option>
                                 <option value="Treatment3">Arthritise</option>
                                 <option value="Treatment3">ENT Disorders</option>
-                                <option value="Treatment3">Neurological Diseases and Paralysis</option>
+                                <optihttpdhttpdon value="Treatment3">Neurological Diseases and Paralysis</optihttpdhttpdon>
                                 <option value="Treatment3">Dislocation Features of Joints & Bones</option>
                                 <option value="Treatment3">Osteoporosis</option>
                                 <option value="Treatment3">Anxiety, Stress and Depression</option>

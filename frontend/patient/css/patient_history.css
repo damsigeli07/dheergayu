@@ -13,7 +13,7 @@
 .header {
     background: linear-gradient(135deg, #8B7355, #A0916B);
     color: white;
-    padding: 1.5rem 2rem;
+    padding:  0.8rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
