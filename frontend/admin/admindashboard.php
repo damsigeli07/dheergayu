@@ -16,6 +16,8 @@ $ordersValue           = 8450;
 <head>
   <meta charset="UTF-8" />
   <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="../css_common/header.css">
+  <script src="../js_common/header.js"></script>
   <link rel="stylesheet" href="css/admindashboard.css?v=1.2" />
 </head>
 <body>
@@ -32,9 +34,13 @@ $ordersValue           = 8450;
          <img src="../staff/images/dheergayu.png" class="logo" alt="Logo" />
          <h1 class="header-title">Dheergayu</h1>
          <div class="user-section">
-            <div class="user-icon">👤</div>
-            <span class="user-role">Administrator</span>
-         </div>
+                <div class="user-icon" id="user-icon">👤</div>
+                <span class="user-role">Admin</span>
+                <!-- Dropdown -->
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="../patient/login.php" class="logout-btn">Logout</a>
+                </div>
+            </div> 
       </div>
   </header>
     

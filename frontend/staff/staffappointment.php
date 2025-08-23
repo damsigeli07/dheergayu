@@ -45,6 +45,8 @@ $appointments = array(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Appointments - Ayurvedic System</title>
+    <link rel="stylesheet" href="../css_common/header.css">
+    <script src="../js_common/header.js"></script>
     <link rel="stylesheet" href="css/staffappointment.css?v=1.1">
     <script>
         function searchTable() {
@@ -91,9 +93,14 @@ $appointments = array(
             <img src="images/dheergayu.png" alt="Dheergayu Logo" class="logo">
             <h1 class="header-title">Dheergayu</h1>
             <div class="user-section">
-                <div class="user-icon">👤</div>
+                <div class="user-icon" id="user-icon">👤</div>
                 <span class="user-role">Staff</span>
-            </div>
+                <!-- Dropdown -->
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="../patient/login.php" class="logout-btn">Logout</a>
+                </div>
+            </div> 
+
         </div>
     </header>
 

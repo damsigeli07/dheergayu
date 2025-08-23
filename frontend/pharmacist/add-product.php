@@ -82,8 +82,9 @@
             cursor: pointer;
             border: none;
             transition: all 0.3s ease;
-            text-decoration: none;
+            text-decoration: none; /* removes underline from <a> */
             text-align: center;
+            display: inline-block;
         }
 
         .btn-submit {
@@ -128,16 +129,28 @@
             font-size: 0.9rem;
         }
 
+        .image-preview {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
         .image-preview img {
             max-width: 200px;
             max-height: 200px;
             border-radius: 8px;
-            margin-top: 1rem;
+            object-fit: contain;
         }
 
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .btn-submit, .btn-cancel {
+                width: 100%;
             }
         }
     </style>
