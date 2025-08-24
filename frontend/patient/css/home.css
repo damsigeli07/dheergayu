@@ -82,7 +82,7 @@
             margin: 0 auto;
             padding: 4rem 2rem;
             position: relative;
-            min-height: 1200px;
+            min-height: 1100px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -94,21 +94,21 @@
     backdrop-filter: blur(8px);            /* Frosted glass effect */
     border-radius: 20px;                   /* Curved edges */
     padding: 2rem 3rem;
-    width: 60%;
-    max-width: 600px;
+    width: 68%;
+    max-width: 770px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.2);
     text-align: center;
     z-index: 20; /* Make sure it's above circles */
     position: relative;
 }
 .hero-box h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     color: #585a58;
     margin-bottom: 1rem;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
 }
 .hero-box p {
-    font-size: 1.4rem;
+    font-size: 1.7rem;
     color: rgba(94, 93, 93, 0.9);
     margin-bottom: 1.5rem;
 }
@@ -166,46 +166,32 @@
 
         .circle1 {
             border: #94754b 4px solid;
-            width: 480px;
-            height: 480px;
-            top: 9%;
-            left: 5%;
+            width: 680px;
+            height: 680px;
+            top: -7%;
+            left: -7%;
             animation-delay: 0s;
         }
 
         .circle2 {
-            border: #4a7c59 4px solid;
-            width: 600px;
-            height: 600px;
-            top: 12%;
-            right: 8%;
-            animation-delay: 1s;
-        }
-
-        .circle3 {
             border: #94754b 4px solid;
-            width: 360px;
-            height: 360px;
-            bottom: 6%;
-            left: 20%;
+            width: 500px;
+            height: 500px;
+            bottom: -2%;
+            left: 2%;
             animation-delay: 2s;
         }
 
-        .circle4 {
+        .circle3 {
             border: #4a7c59 3px solid;
-            width: 250px;
-            height: 250px;
-            bottom: 2%;
-            right: 12%;
+            width: 850px;
+            height: 850px;
+            bottom: 5%;
+            right: -4%;
             animation-delay: 3s;
         }
-/* @keyframes circleFloat {
-  0%   { transform: translateY(0); }
-  33%  { transform: translateY(-40px) rotate(2deg); }
-  66%  { transform: translateY(35px) rotate(-1deg); }
- 
-} */
- @keyframes circleFloat {
+
+        @keyframes circleFloat {
   0%, 100% { transform: translateY(0px); }
   50%      { transform: translateY(-10px); }
 }
@@ -249,7 +235,7 @@
     display: flex;
     flex-direction: row;   /* Default: image left, text right */
     align-items: stretch;
-    margin: 130px;
+    margin: 100px;
 }
 
 .gallery-item:nth-child(even) {
@@ -259,7 +245,7 @@
 .image-container {
     flex: 1;
     overflow: hidden;
-    height: 350px;
+    height: 400px;
      position: relative;
     background: linear-gradient(135deg, #e8f5e8, #d4eed4);
     display: flex;
