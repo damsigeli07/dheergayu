@@ -50,7 +50,7 @@
         <div class="gallery">
             <div class="gallery-item" onclick="showDetails('herbs')">
                 <div class="image-container">
-                    <img src="img/herbal-medicines.jpg" alt="herbal-medicines">
+                    <img src="img/ayurveda-home-3.jpg" alt="herbal-medicines">
                 </div>
                 <div class="content">
                     <h4>Natural Herbal Remedies</h4>
