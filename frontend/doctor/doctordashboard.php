@@ -61,8 +61,6 @@
                             <button class="btn-start">Start Consultation</button></a>
                             <a href="appointmentview.php">
                             <button class="btn-view">View</button></a>
-                            <a href="appointmentedit.php">
-                            <button class="btn-edit">Edit</button></a>
                         </td>
                     </tr>
                     <tr>
@@ -73,9 +71,7 @@
                             <a href="doctorconsultform.php">
                             <button class="btn-start">Start Consultation</button></a>
                             <a href="appointmentview.php">
-                            <button class="btn-view">View</button></a>
-                            <a href="appointmentedit.php">
-                            <button class="btn-edit">Edit</button></a>
+                            <button class="btn-view">View</button></a>    
                         </td>
                     </tr>
                     <tr>
@@ -87,8 +83,6 @@
                             <button class="btn-start">Start Consultation</button></a>
                             <a href="appointmentview.php">
                             <button class="btn-view">View</button></a>
-                            <a href="appointmentedit.php">
-                            <button class="btn-edit">Edit</button></a>
                         </td>
                     </tr>
                     <tr>
@@ -100,8 +94,6 @@
                             <button class="btn-start">Start Consultation</button>
                             <a href="appointmentview.php">
                             <button class="btn-view">View</button></a>
-                            <a href="appointmentedit.php">
-                            <button class="btn-edit">Edit</button></a>
                         </td>
                     </tr>
                     <tr>
@@ -113,8 +105,6 @@
                             <button class="btn-start">Start Consultation</button>
                             <a href="appointmentview.php">
                             <button class="btn-view">View</button></a>
-                            <a href="appointmentedit.php">
-                            <button class="btn-edit">Edit</button></a>
                         </td>
                     </tr>
                 </tbody>
