@@ -30,9 +30,8 @@
 
     
     <div class="actions">
-      <a href = "appointmentedit.php"> 
-      <button class="btn" >Edit</button> </a>
-      <button class="btn btn-secondary">Back to Dashboard</button>
+      <a href = "doctordashboard.php">
+      <button class="btn btn-secondary">Back to Dashboard</button></a>
     </div>
   </div>
 </body>
