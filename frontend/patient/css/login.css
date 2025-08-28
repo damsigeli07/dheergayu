@@ -49,19 +49,26 @@
             font-weight: 600;
             font-size: 7px;
         }
-        .user-link {
-            background: #94754b;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 2px;
-            font-size: 0.3rem;
-            font-weight: 200;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            text-align: center;
-        }
+.user-link a {
+    display: inline-block;
+    background: #94754b;
+    color: white;
+    padding: 6px 14px;   /* smaller padding */
+    border-radius: 4px;  /* slightly rounded */
+    font-size: 0.85rem;  /* smaller text */
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+}
+
+.user-link a:hover {
+    background: #6f5738;
+}
+
+
 .header {
     background: linear-gradient(135deg, #8B7355, #A0916B);
     color: white;

@@ -75,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="user-link"><a href="/../../dheergayu/frontend/admin/admindashboard.php">Admin</a></div> |
                 <div class="user-link"><a href="/../../dheergayu/frontend/pharmacist/pharmacisthome.php">Pharmacist</a></div> |
                 <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Staff</a></div>
-                
+
         </div>
     </div>
 </div>

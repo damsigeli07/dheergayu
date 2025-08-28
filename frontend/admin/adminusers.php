@@ -43,10 +43,10 @@ $users = [
 <header class="header">
     <nav class="navigation">
         <a href="admindashboard.php" class="nav-btn">Home</a>
-        <button class="nav-btn">Inventory</button>
+        <a href="admininventory.php" class="nav-btn">Inventory</a>
         <a href="adminappointment.php" class="nav-btn">Appointments</a>
         <a href="adminusers.php" class="nav-btn active">Users</a>
-        <button class="nav-btn">Treatment Schedule</button>
+        <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
     </nav>
     <div class="header-right">
         <img src="images/dheergayu.png" class="logo" alt="Logo">

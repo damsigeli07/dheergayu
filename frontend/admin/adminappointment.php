@@ -23,10 +23,10 @@ $appointments = [
   <header class="header">
     <nav class="navigation">
       <a href="admindashboard.php" class="nav-btn">Home</a>
-      <button class="nav-btn">Inventory</button>
+      <a href="admininventory.php" class="nav-btn">Inventory</a>
       <button class="nav-btn active">Appointments</button>
       <a href="adminusers.php" class="nav-btn">Users</a>
-      <button class="nav-btn">Treatment Schedule</button>
+      <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
     </nav>
     <div class="header-right">
       <img src="../staff/images/dheergayu.png" class="logo" alt="Logo" />

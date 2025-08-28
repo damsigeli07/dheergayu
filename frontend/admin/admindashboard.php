@@ -25,10 +25,10 @@ $ordersValue           = 8450;
   <header class="header">
       <nav class="navigation">
           <button class="nav-btn active">Home</button>
-          <button class="nav-btn">Inventory</button>
+          <a href="admininventory.php" class="nav-btn">Inventory</a>
           <a href="adminappointment.php" class="nav-btn">Appointments</a>
           <a href="adminusers.php" class="nav-btn">Users</a>
-          <button class="nav-btn">Treatment Schedule</button>
+          <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
       </nav>
       <div class="header-right">
          <img src="../staff/images/dheergayu.png" class="logo" alt="Logo" />
