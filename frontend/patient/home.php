@@ -27,24 +27,21 @@
     <main class="hero-section">
         <div class="floating-circles">
             <div class="circle circle1">
-                <img src="img/ayurveda-home-3.jpg" alt="Ayurvedic herbs and wellness">
+                <img src="img/ayurveda-home-4.jpg" alt="Ayurvedic herbs and wellness">
             </div>
             
             <div class="circle circle2">
-                <img src="img/ayurveda-home-4.jpg" alt="Herbal medicine ingredients">
+                <img src="img/ayurveda-home-6.jpg">
             </div>
             
             <div class="circle circle3">
-                <img src="img/ayurveda-home-2.jpg">
+                <img src="img/ayurveda-home_1.jpg" alt="home-1">
             </div>
-            
-            <div class="circle circle4">
-                <img src="img/ayurveda-home-1.jpg">
-            </div>
+
         </div>
 
         <div class="hero-box">
-            <img src="img/dheergayu.png" alt="logo" width="80px" height="80px">
+            <img src="img/dheergayu.png" alt="logo" width="100px" height="100px">
             <h1>Natural Healing Journey</h1>
             <p>Discover the power of traditional wellness through natural remedies, herbal medicine, and holistic healing practices</p>
             <a href="#services" class="cta-button">Explore Our Services</a>
@@ -53,7 +50,7 @@
         <div class="gallery">
             <div class="gallery-item" onclick="showDetails('herbs')">
                 <div class="image-container">
-                    <img src="img/herbal-medicines.jpg" alt="herbal-medicines">
+                    <img src="img/ayurveda-home-3.jpg" alt="herbal-medicines">
                 </div>
                 <div class="content">
                     <h4>Natural Herbal Remedies</h4>
