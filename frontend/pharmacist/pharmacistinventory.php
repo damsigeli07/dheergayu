@@ -16,6 +16,7 @@
                 <button class="nav-btn active">Inventory</button>
                 <a href="pharmacistorders.php" class="nav-btn">Orders</a>
                 <a href="pharmacistreports.php" class="nav-btn">Reports</a>
+                <a href="pharmacistsuppliers.php" class="nav-btn">Supplier Info</a>
             </nav>
         </div>
         <div class="header-right">
@@ -26,9 +27,10 @@
             <span class="user-role">Pharmacist</span>
 
             <!-- Dropdown -->
-            <div class="user-dropdown" id="user-dropdown">
-                <a href="../patient/login.php" class="logout-btn">Logout</a>
-            </div>
+        <div class="user-dropdown" id="user-dropdown">
+            <a href="pharmacistprofile.php" class="profile-btn">Profile</a>
+            <a href="../patient/login.php" class="logout-btn">Logout</a>
+        </div>
         </div>
     </header>
 

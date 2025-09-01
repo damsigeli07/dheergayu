@@ -4,13 +4,7 @@
 
 /* Header container */
 .header {
-  background: linear-gradient(
-    135deg,
-    #37a762 0%,
-    #41ac62 25%,
-    #7ba05b 75%,
-    #9d7448 100%
-  );
+  background: #5d9b57;  /* Changed from gradient to single color */
   color: white;
   padding: 0.3rem 1rem;
   display: flex;
@@ -163,7 +157,9 @@
   display: none; /* hidden by default */
   z-index: 1000;
 }
-.user-dropdown a.logout-btn {
+
+/* Dropdown links */
+.user-dropdown a {
   display: block;
   padding: 0.7rem 1.2rem;
   color: #333;
@@ -173,8 +169,29 @@
   text-align: left;
   transition: background 0.2s ease, color 0.2s ease;
 }
+
+/* Logout button */
+.user-dropdown a.logout-btn {
+  background-color: #fff;
+  color: #333;
+  border-radius: 0;
+}
+
 .user-dropdown a.logout-btn:hover {
-  background: #37a762;
+  background-color: #37a762; /* green hover */
+  color: #fff;
+  border-radius: 6px;
+}
+
+/* Profile button (optional) */
+.user-dropdown a.profile-btn {
+  background-color: #fff;
+  color: #333;
+  border-radius: 0;
+}
+
+.user-dropdown a.profile-btn:hover {
+  background-color: #37a762;
   color: #fff;
   border-radius: 6px;
 }

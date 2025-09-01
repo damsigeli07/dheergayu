@@ -96,9 +96,11 @@ foreach ($treatments as $treatment) {
             <div class="user-section">
                 <div class="user-icon" id="user-icon">👤</div>
                 <span class="user-role">Admin</span>
-                <div class="user-dropdown" id="user-dropdown">
-                    <a href="../patient/login.php" class="logout-btn">Logout</a>
-                </div>
+                <!-- Dropdown -->
+        <div class="user-dropdown" id="user-dropdown">
+            <a href="pharmacistprofile.php" class="profile-btn">Profile</a>
+            <a href="../patient/login.php" class="logout-btn">Logout</a>
+        </div>
             </div>
         </div>
     </header>
