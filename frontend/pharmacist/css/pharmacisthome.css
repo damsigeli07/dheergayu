@@ -209,6 +209,8 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
+    text-decoration: none;   /* ✅ Removes underline */
+    display: inline-block;   /* ✅ Makes links behave like buttons */
 }
 
 .action-btn.primary {
@@ -217,7 +219,7 @@ body {
 }
 
 .action-btn.primary:hover {
-    background-color: #7a9b57;
+    background-color: #6b8b4b;
     transform: translateY(-1px);
 }
 

@@ -17,21 +17,23 @@
                 <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
                 <a href="pharmacistorders.php" class="nav-btn">Orders</a>
                 <a href="pharmacistreports.php" class="nav-btn">Reports</a>
+                <a href="pharmacistsuppliers.php" class="nav-btn">Supplier Info</a>
             </nav>
         </div>
         <div class="header-right">
             <img src="images/dheergayu.png" alt="Dheergayu Logo" class="logo">
             <h1 class="header-title">Dheergayu</h1>
             <div class="user-section">
-            <div class="user-icon" id="user-icon">👤</div>
-            <span class="user-role">Pharmacist</span>
+                <div class="user-icon" id="user-icon">👤</div>
+                <span class="user-role">Pharmacist</span>
 
-            <!-- Dropdown -->
-            <div class="user-dropdown" id="user-dropdown">
-                <a href="../patient/login.php" class="logout-btn">Logout</a>
-            </div>
+        <!-- Dropdown -->
+        <div class="user-dropdown" id="user-dropdown">
+            <a href="pharmacistprofile.php" class="profile-btn">Profile</a>
+            <a href="../patient/login.php" class="logout-btn">Logout</a>
         </div>
 
+            </div>
         </div>
     </header>
 
@@ -99,17 +101,6 @@
                 <div class="next-priority">
                     <h4 class="priority-title">Next Priority:</h4>
                     <p class="priority-text">Oil Massage preparations for 2:00 PM session</p>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="actions-section">
-                <h3 class="actions-title">Quick Actions</h3>
-                <div class="actions-grid">
-                    <button class="action-btn primary">View Inventory</button>
-                    <button class="action-btn secondary">Manage Orders</button>
-                    <button class="action-btn tertiary">Stock Reports</button>
-                    <button class="action-btn tertiary">Supplier Info</button>
                 </div>
             </div>
         </div>

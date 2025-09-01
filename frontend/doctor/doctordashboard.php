@@ -25,9 +25,10 @@
                 <div class="user-icon" id="user-icon">👤</div>
                 <span class="user-role">Doctor</span>
             <!-- Dropdown -->
-            <div class="user-dropdown" id="user-dropdown">
-                <a href="../patient/login.php" class="logout-btn">Logout</a>
-            </div>
+        <div class="user-dropdown" id="user-dropdown">
+            <a href="pharmacistprofile.php" class="profile-btn">Profile</a>
+            <a href="../patient/login.php" class="logout-btn">Logout</a>
+        </div>
 
         </div>
     </header>
