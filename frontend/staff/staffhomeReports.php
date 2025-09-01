@@ -37,9 +37,11 @@ if (!empty($searchQuery)) {
     <header class="header">
         <div class="header-left">
             <nav class="navigation">
-                <a href="staffhome.php" class="nav-btn active">Home</a>
+                <a href="staffhome.php" class="nav-btn">Home</a>
                 <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
                 <a href="staffappointment.php" class="nav-btn">Appointment</a>
+                <a href="staffhomeTreatmentSuggestion.php" class="nav-btn">Treatment Suggestion</a>
+                <a href="staffhomeReports.php" class="nav-btn active">Reports</a>
             </nav>
         </div>
         <div class="header-right">

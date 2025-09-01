@@ -87,6 +87,8 @@ $appointments = array(
                 <a href="staffhome.php" class="nav-btn">Home</a>
                 <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
                 <button class="nav-btn active">Appointment</button>
+                <a href="staffhomeTreatmentSuggestion.php" class="nav-btn">Treatment Suggestion</a>
+                <a href="staffhomeReports.php" class="nav-btn">Reports</a>
             </nav>
         </div>
         <div class="header-right">
