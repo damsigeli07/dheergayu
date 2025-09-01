@@ -41,6 +41,8 @@ $requiredProducts = [
                 <button class="nav-btn active">Home</button>
                 <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
                 <a href="staffappointment.php" class="nav-btn">Appointment</a>
+                <a href="staffhomeTreatmentSuggestion.php" class="nav-btn">Treatment Suggestion</a>
+                <a href="staffhomeReports.php" class="nav-btn">Reports</a>
             </nav>
         </div>
         <div class="header-right">
@@ -97,14 +99,6 @@ $requiredProducts = [
                                 <span class="description"><?php echo $item['type']; ?></span>
                             </div>
                         <?php endforeach; ?>
-                    </div>
-                </div>
-
-                <div class="actions-section">
-                    <h3>Quick Actions</h3>
-                    <div class="action-buttons">
-                        <button class="action-btn primary" onclick="window.location.href='staffhomeTreatmentSuggestion.php'">Treatment Suggestion</button>
-                        <button class="action-btn primary" onclick="window.location.href='staffhomeReports.php'">Reports</button>
                     </div>
                 </div>
             </div>
