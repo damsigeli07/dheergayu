@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="../css_common/header.css">
   <script src="../js_common/header.js"></script>
   <link rel="stylesheet" href="css/doctorreport.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
   <header class="header">
@@ -34,10 +36,16 @@
   </header>
 
   <div class="report-container">
+
     <header>
       <h1>Doctor Report</h1>
-      <p>Report generated on August 10, 2025</p>
-    </header>
+
+      <section class="graph-section" style="margin-top: 40px;">
+  <h2 style="text-align:center; color:#8B7355;">Monthly Appointments</h2>
+  <canvas id="appointmentsChart" style="max-width:100%; height:400px;"></canvas>
+</section>
+
+      </header>
 
     <!-- Summary Cards -->
     <section class="summary-grid">
@@ -63,5 +71,42 @@
       <button class="generate-btn">Generate Report</button>
     </div>
   </div>
+
+  <script>
+  const ctx = document.getElementById('appointmentsChart').getContext('2d');
+
+  const appointmentsChart = new Chart(ctx, {
+    type: 'bar', // Bar chart
+    data: {
+      labels: ['Aug 1', 'Aug 2', 'Aug 3', 'Aug 4', 'Aug 5', 'Aug 6', 'Aug 7', 'Aug 8', 'Aug 9', 'Aug 10'],
+      datasets: [{
+        label: 'Appointments',
+        data: [18, 22, 15, 20, 19, 25, 21, 23, 17, 30],
+        backgroundColor: '#84a939ff'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: 'Appointments per Day'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Number of Appointments' }
+        },
+        x: {
+          title: { display: true, text: 'Date' }
+        }
+      }
+    }
+  });
+</script>
+
+
 </body>
 </html>
