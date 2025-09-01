@@ -98,9 +98,9 @@
                 </div>
 
                 <div class="button-container">
-                    <button type="button" class="btn btn-secondary">Save</button>
+                    <button type="submit" class="btn btn-secondary">Save</button>
                     <button type="submit" class="btn btn-primary">Send to Pharmacy</button>
-                    <button type="button" class="btn btn-tertiary">Print</button>
+                    <button type="submit" class="btn btn-tertiary">Print</button>
                 </div>
             </form>
         </div>
@@ -121,5 +121,73 @@
         echo "<script>alert('Form submitted successfully!');</script>";
     }
     ?>
+
+    <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        // Prevent default submission
+        e.preventDefault();
+
+        // Get form values
+        const patientName = document.getElementById('patient_name').value.trim();
+        const age = document.getElementById('age').value.trim();
+        const gender = document.getElementById('gender').value;
+        const consultationHistory = document.getElementById('consultation_history').value.trim();
+        const diagnosis = document.getElementById('diagnosis').value.trim();
+        const prescribedProducts = document.getElementById('prescribed_products').value.trim();
+        const recommendedTreatment = document.getElementById('recommended_treatment').value.trim();
+
+        // Validation flags
+        let errors = [];
+
+        // Validate Patient Name
+        if (patientName === '') {
+            errors.push("Patient's name is required.");
+        } else if (!/^[A-Za-z ]{2,50}$/.test(patientName)) {
+            errors.push("Patient's name should contain only letters and spaces (2-50 chars).");
+        }
+
+        // Validate Age
+        if (age === '') {
+            errors.push("Age is required.");
+        } else if (isNaN(age) || age <= 0 || age > 120) {
+            errors.push("Enter a valid age between 1 and 120.");
+        }
+
+        // Validate Gender
+        if (gender === '') {
+            errors.push("Please select a gender.");
+        }
+
+        // Validate Consultation History
+        if (consultationHistory.length < 0) {
+            errors.push("Consultation history should be at least 5 characters.");
+        }
+
+        // Validate Diagnosis
+        if (diagnosis.length < 0) {
+            errors.push("Diagnosis is required.");
+        }
+
+        // Validate Prescribed Products
+        if (prescribedProducts.length < 0) {
+            errors.push("Prescribed products are required.");
+        }
+
+        // Validate Recommended Treatment
+        if (recommendedTreatment.length < 0) {
+            errors.push("Recommended treatment is required.");
+        }
+
+        // Show errors if any
+        if (errors.length > 0) {
+            alert(errors.join("\n"));
+            return false;
+        }
+
+        // If validation passes, submit form
+        this.submit();
+    });
+</script>
+
 </body>
 </html>
