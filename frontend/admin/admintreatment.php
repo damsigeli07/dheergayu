@@ -98,7 +98,7 @@ foreach ($treatments as $treatment) {
                 <span class="user-role">Admin</span>
                 <!-- Dropdown -->
         <div class="user-dropdown" id="user-dropdown">
-            <a href="pharmacistprofile.php" class="profile-btn">Profile</a>
+            <a href="adminprofile.php" class="profile-btn">Profile</a>
             <a href="../patient/login.php" class="logout-btn">Logout</a>
         </div>
             </div>
@@ -178,8 +178,9 @@ foreach ($treatments as $treatment) {
 
         <!-- Add New Treatment Button -->
         <div class="add-treatment-section">
-            <button class="btn btn-add" onclick="addNewTreatment()">+ Add New Treatment</button>
+            <a href="addnewtreatment.php" class="btn btn-add">+ Add New Treatment</a>
         </div>
+
 
         <!-- Treatments Table -->
         <div class="treatments-table-container">

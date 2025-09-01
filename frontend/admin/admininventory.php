@@ -145,7 +145,7 @@ foreach ($inventoryData as $item) {
                 <span class="user-role">Admin</span>
                 <!-- Dropdown -->
         <div class="user-dropdown" id="user-dropdown">
-            <a href="pharmacistprofile.php" class="profile-btn">Profile</a>
+            <a href="adminprofile.php" class="profile-btn">Profile</a>
             <a href="../patient/login.php" class="logout-btn">Logout</a>
         </div>
             </div>
