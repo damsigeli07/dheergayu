@@ -159,22 +159,22 @@
         }
 
         // Validate Consultation History
-        if (consultationHistory.length < 0) {
-            errors.push("Consultation history should be at least 5 characters.");
+        if (consultationHistory.length < 2) {
+            errors.push("Consultation history must be at least 2 characters long.");
         }
 
         // Validate Diagnosis
-        if (diagnosis.length < 0) {
+        if (diagnosis.length < 1) {
             errors.push("Diagnosis is required.");
         }
 
         // Validate Prescribed Products
-        if (prescribedProducts.length < 0) {
+        if (prescribedProducts.length < 1) {
             errors.push("Prescribed products are required.");
         }
 
         // Validate Recommended Treatment
-        if (recommendedTreatment.length < 0) {
+        if (recommendedTreatment.length < 1) {
             errors.push("Recommended treatment is required.");
         }
 
