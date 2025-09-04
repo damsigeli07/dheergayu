@@ -29,6 +29,7 @@ $ordersValue           = 8450;
           <a href="adminappointment.php" class="nav-btn">Appointments</a>
           <a href="adminusers.php" class="nav-btn">Users</a>
           <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
+          <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
       </nav>
       <div class="header-right">
          <img src="../staff/images/dheergayu.png" class="logo" alt="Logo" />
