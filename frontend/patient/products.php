@@ -19,7 +19,7 @@
             <a href="channeling.php" class="nav-btn">Consultations</a>
             <a href="treatment.php" class="nav-btn">Our Treatments</a>
             <a href="products.php" class="nav-btn">Our Products</a>
-            <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+            <a href="login.php" class="nav-btn"><u>Login</u></a>
         </div>
     </header>
 
@@ -63,7 +63,7 @@
             <!-- Product 3 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="img/siddhalepa.jpg" alt="Siddhalepa Balm" class="product-img">
+                    <img src="img/siddhalepa.png" alt="Siddhalepa Balm" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Siddhalepa Balm</h3>
