@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <a href="channeling.php" class="nav-btn">Consultations</a>
             <a href="treatment.php" class="nav-btn">Our Treatments</a>
             <a href="products.php" class="nav-btn">Our Products</a>
-            <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+            <a href="login.php" class="nav-btn"><u>Login</u></a>
         </div>
     </header>
 
