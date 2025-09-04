@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Product - Pharmacist Dashboard</title>
+    <title>Add New Product - Admin Dashboard</title>
     <link rel="stylesheet" href="css/inventory-styles.css">
-    
 
     <style>
         body {
@@ -48,7 +47,7 @@
             color: #333;
         }
 
-        .form-input {
+        .form-input, .form-textarea {
             width: 100%;
             padding: 0.8rem;
             border: 1px solid #ddd;
@@ -57,16 +56,15 @@
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .form-input:focus {
+        .form-input:focus, .form-textarea:focus {
             outline: none;
             border-color: #7a9b57;
             box-shadow: 0 0 0 3px rgba(122,155,87,0.1);
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
         }
 
         .form-actions {
@@ -84,7 +82,7 @@
             cursor: pointer;
             border: none;
             transition: all 0.3s ease;
-            text-decoration: none; /* removes underline from <a> */
+            text-decoration: none;
             text-align: center;
             display: inline-block;
         }
@@ -144,12 +142,6 @@
             object-fit: contain;
         }
 
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
         @media (max-width: 480px) {
             .btn-submit, .btn-cancel {
                 width: 100%;
@@ -158,41 +150,30 @@
     </style>
 </head>
 <body>
-    <!-- Main Content -->
     <main class="main-content">
         <div class="add-product-form">
             <h2 class="form-title">Add New Product</h2>
             
             <form action="process-add-product.php" method="POST" enctype="multipart/form-data">
+                <!-- Product Name -->
                 <div class="form-group">
                     <label for="product-name" class="form-label">Product Name</label>
                     <input type="text" id="product-name" name="product_name" class="form-input" required placeholder="Enter product name">
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="product-price" class="form-label">Price (Rs.)</label>
-                        <input type="number" id="product-price" name="product_price" class="form-input" required min="0" step="0.01" placeholder="Enter price">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-quantity" class="form-label">Quantity in Stock</label>
-                        <input type="number" id="product-quantity" name="product_quantity" class="form-input" required min="0" placeholder="Enter quantity">
-                    </div>
+                <!-- Product Price -->
+                <div class="form-group">
+                    <label for="product-price" class="form-label">Price (Rs.)</label>
+                    <input type="number" id="product-price" name="product_price" class="form-input" required min="0" step="0.01" placeholder="Enter price">
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="product-manufacture" class="form-label">Manufacturing Date</label>
-                        <input type="date" id="product-manufacture" name="product_manufacture" class="form-input" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-expiry" class="form-label">Expiry Date</label>
-                        <input type="date" id="product-expiry" name="product_expiry" class="form-input" required>
-                    </div>
+                <!-- Product Description -->
+                <div class="form-group">
+                    <label for="product-description" class="form-label">Description</label>
+                    <textarea id="product-description" name="product_description" class="form-textarea" required placeholder="Enter product description"></textarea>
                 </div>
 
+                <!-- Product Image -->
                 <div class="form-group">
                     <label class="form-label">Product Image</label>
                     <div class="image-upload" onclick="document.getElementById('product-image').click()">
@@ -205,9 +186,10 @@
                     </div>
                 </div>
 
+                <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="submit" class="btn-submit">Add Product</button>
-                    <a href="pharmacistinventory.php" class="btn-cancel">Cancel</a>
+                    <a href="admininventory.php" class="btn-cancel">Cancel</a>
                 </div>
             </form>
         </div>
@@ -228,6 +210,5 @@
             }
         });
     </script>
-    <script src="js/add-product-validation.js"></script>
 </body>
 </html>

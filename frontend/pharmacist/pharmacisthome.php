@@ -17,7 +17,6 @@
                 <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
                 <a href="pharmacistorders.php" class="nav-btn">Orders</a>
                 <a href="pharmacistreports.php" class="nav-btn">Reports</a>
-                <a href="pharmacistsuppliers.php" class="nav-btn">Supplier Info</a>
             </nav>
         </div>
         <div class="header-right">
