@@ -47,17 +47,18 @@
                         <li>No artificial additives or chemicals</li>
                         <li>Customized formulations for individual needs</li>
                     </ul>
-                    <div class="section-image">
+                </div>
+                <div class="section-image">
                     <img src="img/herbal-product.jpg">
                 </div>
-                </div>
-                
             </div>
         </section>
 
         <section class="section">
             <div class="section-content reverse">
-                <
+                <div class="section-image">
+                    <img src="img/ayurveda-home-6.jpg">
+                </div>
                 <div class="section-text">
                     <h2 class="section-title">Healing Tea Blends</h2>
                     <p class="section-description">
@@ -69,12 +70,9 @@
                         <li>Immune system strengthening</li>
                         <li>Sleep quality improvement</li>
                         <li>Anti-inflammatory properties</li>
-                    </ul>
-                    <div class="section-image">
-                    <img src="img/ayurveda-home-6.jpg">
+                    </ul>                
                 </div>
-                  
-                </div>
+                
             </div>
         </section>
 
@@ -92,11 +90,11 @@
                         <li>Fair trade partnerships with growers</li>
                         <li>Seasonal freshness guaranteed</li>
                     </ul>
-                  <div class="section-image">
+                  
+                </div>
+                <div class="section-image">
                     <img src="img/ayurveda-home-5.jpg">
                 </div>
-                </div>
-                
             </div>
         </section>
     </div>
