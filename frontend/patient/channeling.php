@@ -27,27 +27,14 @@
         <div class="doctor-card">
             <div class="doctor-header">
                 <div class="doctor-name">Channeling Form</div>
-                <div class="date-display">9TH MAY 2025</div>
+                <!-- <div class="date-display">9TH MAY 2025</div> -->
             </div>
 
             <div class="booking-content">
                 <div class="left-section">
                     <div class="availability-section">
                         <div class="card">
-                            <h3 class="section-title">Treatment Type</h3>
-                            <select id="traetment" name="treatment" required>
-                                <option value="Treatment1">Asthma</option>
-                                <option value="Treatment2">Diabetes</option>
-                                <option value="Treatment3">Skin Diseases</option>
-                                <option value="Treatment3">Respiratory Disorders</option>
-                                <option value="Treatment3">Arthritise</option>
-                                <option value="Treatment3">ENT Disorders</option>
-                                <optihttpdhttpdon value="Treatment3">Neurological Diseases and Paralysis</optihttpdhttpdon>
-                                <option value="Treatment3">Dislocation Features of Joints & Bones</option>
-                                <option value="Treatment3">Osteoporosis</option>
-                                <option value="Treatment3">Anxiety, Stress and Depression</option>
-                                <option value="Treatment3">Cholesterol</option>
-                            </select>
+                            
                             <h3 class="section-title">Select Doctor</h3>
                             <select id="doctor" name="doctor" required>
                                 <option value="Doctor1">Dr. L.M.Perera</option>

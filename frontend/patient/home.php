@@ -44,7 +44,7 @@
             <img src="img/dheergayu.png" alt="logo" width="100px" height="100px">
             <h1>Natural Healing Journey</h1>
             <p>Discover the power of traditional wellness through natural remedies, herbal medicine, and holistic healing practices</p>
-            <a href="#services" class="cta-button">Explore Our Services</a>
+            <a href="treatment.php" class="cta-button">Explore Our Services</a>
         </div>
     </main>
         <div class="gallery">
@@ -55,7 +55,7 @@
                 <div class="content">
                     <h4>Natural Herbal Remedies</h4>
                     <p>Discover the healing power of ancient herbs, carefully prepared with mortar and pestle, enriched with honey and essential oils.</p>
-                    <button class="learn-more">Learn More</button>
+                    <a href= "learn_more.php" class="learn-more">Learn More</a>
                 </div>
             </div>
 
@@ -66,7 +66,7 @@
                 <div class="content">
                     <h4>Therapeutic Treatments</h4>
                     <p>Experience authentic Ayurvedic spa therapies with herbal oils, healing potions, and traditional wellness practices.</p>
-                    <button class="learn-more">Book Session</button>
+                    <a href="channeling.php" class="learn-more">Book Session</a>
                 </div>
             </div>
 
@@ -77,7 +77,7 @@
                 <div class="content">
                     <h4>Natural Wellness Products</h4>
                     <p>Handcrafted essential oils, herbal soaps, and therapeutic products made with organic ingredients and traditional methods.</p>
-                    <button class="learn-more">Shop Now</button>
+                    <a href="products.php" class="learn-more">Shop Now</a>
                 </div>
             </div>
 
