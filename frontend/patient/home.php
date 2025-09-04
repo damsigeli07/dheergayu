@@ -20,7 +20,7 @@
             <a href="channeling.php" class="nav-btn">Consultations</a>
             <a href="treatment.php" class="nav-btn">Our Treatments</a>
             <a href="products.php" class="nav-btn">Our Products</a>
-            <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+            <a href="login.php" class="nav-btn"><u>Login</u></a>
         </div>
     </header>
 
@@ -92,7 +92,7 @@
                 <p class="description-text">
                     Discover serenity at Dheergayu, your trusted Ayurvedic wellness center. Rooted in age-old Ayurvedic traditions, we offer tailored wellness programs, from rejuvenation to stress relief. Indulge in personalized treatments, tranquil spaces and nourishing therapies as you embark on a transformative journey to harmonize your mind, body and spirit.
                 </p>
-                <button class="fact-sheet-btn" onclick="navigateTo('About')">Book Now</button>
+                <button class="fact-sheet-btn" onclick="window.location.href='login.php'">Book Now</button>
             </div>
         </section>
 
@@ -115,7 +115,7 @@
                 <h3>Get in Touch</h3>
                 <div class="contact-info">
                     <p><strong>Dheergayu Ayurveda Center</strong></p>
-                    <p><strong><img src="img/email.jpg" alt="email" width="27px" height="17px"></strong> info@dheergayu.com</p>
+                    <p><strong><img src="img/email.jpg" alt="email" width="27px" height="17px"></strong> infodheergayu@gmail.com</p>
                     <p><strong><img src="img/call.jpg" alt="call" width="19px" height="15px"></strong> +94 25 8858500</p>
                 </div>
             </div>
