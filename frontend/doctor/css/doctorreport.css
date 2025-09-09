@@ -91,8 +91,8 @@ body {
 .generate-btn {
   background-color: #7a9b57;
   color: white;
-  font-size: 16px;
-  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-family: 'Arial', sans-serif;
   padding: 12px 24px;
   border: none;
   border-radius: 8px;
@@ -181,6 +181,7 @@ body {
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(122, 155, 87, 0.3);
+  
 }
 
 .btn-generate:hover {
@@ -271,7 +272,31 @@ body {
   }
   
   .generate-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 14px;
   }
 }
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 160px;
+  color: white;
+  font-family: Arial, sans-serif;
+  
+}
+
+.btn-back {
+  background-color: #777;
+  
+}
+
+.btn-back:hover {
+  background-color: #777;
+  
+}
+

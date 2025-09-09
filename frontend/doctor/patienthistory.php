@@ -68,13 +68,20 @@
         </div>
 
         <div class="search-buttons">
-          <button type="submit" class="btn btn-search" id="btn-search">
-             Search History
-          </button>
-          <button type="button" class="btn btn-clear" id="btn-clear">
-            Clear
-          </button>
-        </div>
+  <div class="left-buttons">
+    <button type="button" class="btn btn-back" onclick="window.location.href='doctordashboard.php'">
+      Back to Dashboard
+    </button>
+  </div>
+  <div class="right-buttons">
+    <button type="submit" class="btn btn-search" id="btn-search">
+       Search History
+    </button>
+    <button type="button" class="btn btn-clear" id="btn-clear">
+      Clear
+    </button>
+  </div>
+</div>
       </form>
     </div>
 

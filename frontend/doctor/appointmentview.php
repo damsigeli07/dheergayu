@@ -17,17 +17,6 @@
       <p><strong>Email:</strong> john@example.com</p>
     </div>
 
-    <div class="card">
-      <h3>🩺 Consultation History</h3>
-      <div class="history-entry">
-        <p><strong>Date:</strong> 2024-03-15</p>
-        <p><strong>Diagnosis:</strong> Chronic back pain</p>
-        <p><strong>Treatment:</strong> Oil Massage Therapy</p>
-        <p><strong>Products:</strong> Herbal Oil, Anti-inflammatory tablets</p>
-        <p><strong>Notes:</strong> Apply warm compress twice daily</p>
-      </div>
-    </div>
-
     
     <div class="actions">
       <a href = "doctordashboard.php">
