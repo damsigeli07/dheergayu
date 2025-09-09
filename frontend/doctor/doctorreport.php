@@ -44,6 +44,11 @@
   <h2 style="text-align:center; color:#8B7355;">Monthly Appointments</h2>
   <canvas id="appointmentsChart" style="max-width:100%; height:400px;"></canvas>
 </section>
+      <section class="graph-section" style="margin-top: 40px;">
+  <h2 style="text-align:center; color:#8B7355;">Monthly Income</h2>
+  <canvas id="incomeChart" style="max-width:100%; height:400px;"></canvas>
+</section>
+
 
       </header>
 
@@ -68,6 +73,7 @@
 
     <!-- Generate Report Button -->
     <div class="button-container">
+      <button type="button" class="btn btn-back" onclick="window.location.href='doctordashboard.php'">Back to Dashboard</button>
       <button class="generate-btn">Generate Report</button>
     </div>
   </div>
@@ -105,6 +111,40 @@
       }
     }
   });
+
+  const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+
+const incomeChart = new Chart(incomeCtx, {
+  type: 'bar',
+  data: {
+    labels: ['Aug 1', 'Aug 2', 'Aug 3', 'Aug 4', 'Aug 5', 'Aug 6', 'Aug 7', 'Aug 8', 'Aug 9', 'Aug 10'],
+    datasets: [{
+      label: 'Income (Rs.)',
+      data: [10000, 13000, 10500, 12750, 11100, 14200, 12900, 13500, 11900, 15750],
+      backgroundColor: '#84a939ff'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Income per Day'
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Income (Rs.)' }
+      },
+      x: {
+        title: { display: true, text: 'Date' }
+      }
+    }
+  }
+});
+
 </script>
 
 

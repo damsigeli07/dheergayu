@@ -85,6 +85,7 @@ body {
     font-size: 14px;
     background-color: #fafafa;
     transition: border-color 0.3s ease;
+    font-family: Arial, sans-serif;
 }
 
 .form-group input:focus,
@@ -100,15 +101,107 @@ body {
     resize: vertical;
 }
 
-.form-group select {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
+/* --- Prescribed Products: Search + Cart Style --- */
+.product-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: stretch;
 }
 
+.product-selector input[type="text"]{
+    flex: 3;
+    padding:10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+}
+.product-selector input[type="number"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  flex: 1;
+}
+
+.product-selector button {
+  background-color: #856e52;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: Arial, sans-serif;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.product-selector button:hover {
+  background-color: #6F5B42;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-family: Arial, sans-serif;
+  table-layout: fixed;
+}
+
+.product-table th,
+.product-table td {
+  border: 1px solid #ddd;
+  padding: 12px 15px;
+  text-align: center;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.product-table th {
+  background-color: #f0f0f0;
+  color: #666;
+  font-size: 14px;
+  letter-spacing: 0.25px;
+  font-weight: 600;
+}
+
+.product-table th:nth-child(1),
+.product-table td:nth-child(1) {
+    width: 50%;      
+    text-align: left; 
+}
+
+
+.product-table th:nth-child(2),
+.product-table td:nth-child(2) {
+    width: 20%;    
+    text-align: center; 
+}
+
+.product-table th:nth-child(3),
+.product-table td:nth-child(3) {
+    width: 20%;       
+    text-align: center; 
+}
+
+.remove-btn {
+  background-color: #d9534f;
+  color: black;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.remove-btn:hover {
+  background-color: #c9302c;
+}
+
+/* --- Right Side --- */
 .auto-filled-section {
     background-color: #e8f5e8;
     padding: 20px;
@@ -156,11 +249,12 @@ body {
 
 .checklist-item {
     color: #666;
-    font-size: 13px;
+    font-size: 12px;
     margin-bottom: 8px;
     padding-left: 5px;
 }
 
+/* --- Buttons --- */
 .button-container {
     display: flex;
     gap: 15px;
@@ -176,6 +270,7 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     min-width: 120px;
+    color: white !important;
 }
 
 .btn-secondary {
@@ -205,7 +300,19 @@ body {
     background-color: #7a5a12;
 }
 
-/* Responsive Design */
+.btn-back {
+  background-color: #777 !important; 
+  color: white!important;
+}
+
+.btn-back:hover {
+  background-color: #777 !important; 
+  color: white !important;
+}
+
+
+
+/* Responsive */
 @media (max-width: 768px) {
     .main-content {
         flex-direction: column;
@@ -233,19 +340,43 @@ body {
         width: 100%;
         max-width: 200px;
     }
+
+    .product-selector {
+        flex-direction: column;
+        gap: 10px;
+
+
+    }
+
+        
+    .product-selector input[type="text"],
+    .product-selector input[type="number"],
+    .product-selector button {
+        width: 100%;
+    }
+    
+    /* Mobile table adjustments */
+    .product-table th,
+    .product-table td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .product-table th:nth-child(1),
+    .product-table td:nth-child(1) {
+        width: 50%;
+    }
+    
+    .product-table th:nth-child(2),
+    .product-table td:nth-child(2) {
+        width: 25%;
+    }
+    
+    .product-table th:nth-child(3),
+    .product-table td:nth-child(3) {
+        width: 25%;
+    }
 }
 
-@media (max-width: 480px) {
-    .form-container {
-        padding: 15px;
-    }
-    
-    .header {
-        padding: 15px;
-    }
-    
-    .header h1 {
-        font-size: 18px;
-        letter-spacing: 1px;
-    }
-}
+
+

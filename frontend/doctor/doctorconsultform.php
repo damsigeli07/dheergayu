@@ -40,18 +40,43 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="consultation_history">Patient's previous consultation history</label>
-                            <textarea id="consultation_history" name="consultation_history" placeholder="Previous consultation details..."></textarea>
-                        </div>
-
-                        <div class="form-group">
                             <label for="diagnosis">Diagnosis</label>
                             <textarea id="diagnosis" name="diagnosis" placeholder="Enter diagnosis..."></textarea>
                         </div>
 
+                        <!-- Prescribed Products -->
                         <div class="form-group">
-                            <label for="prescribed_products">Prescribed Products</label>
-                            <textarea id="prescribed_products" name="prescribed_products" placeholder="Enter prescribed medicines..."></textarea>
+                            <label for="product_search">Prescribed Products</label>
+                            
+                            <div class="product-selector">
+                                <input type="text" id="product_search" placeholder="Search product..." list="product_list">
+                                <datalist id="product_list">
+                                    <option value="Neem Oil (Av: 45 bottles)">
+                                    <option value="Triphala Tablets (Av: 100 bottles)">
+                                    <option value="Ashwagandha Powder (Av: 25 packets)">
+                                    <option value="Brahmi Powder (Av: 12 packets)">
+                                    <option value="Chyawanprash (Av: 8 jars)">
+                                    <option value="Nirgundi Oil (Av: 120 bottles)">
+                                    <option value="Oinda Thailaya (Av: 80 bottles)">
+                                    <option value="Herbal Pain Oil (Av: 67 bottles)">
+                                    <option value="Steam Hurbs (Av: 276 packets)">                
+                                </datalist>
+                                
+                                <input type="number" id="product_qty" min="1" placeholder="Qty">
+                                <button type="button" id="add_product">Add</button>
+                            </div>
+
+                            <!-- Hidden initially -->
+                            <table class="product-table" id="cart_table" style="display:none;">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                        <th>Remove</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="product_list_table"></tbody>
+                            </table>
                         </div>
 
                         <div class="form-group">
@@ -71,7 +96,7 @@
                             
                             <div class="info-group">
                                 <strong>Patient No:</strong>
-                                <div class="info-value">P001234</div>
+                                <div class="info-value">P018</div>
                             </div>
 
                             <div class="info-group">
@@ -98,6 +123,7 @@
                 </div>
 
                 <div class="button-container">
+                    <button type="button" class="btn btn-back" onclick="window.location.href='doctordashboard.php'">Back to Dashboard</button>
                     <button type="submit" class="btn btn-secondary">Save</button>
                     <button type="submit" class="btn btn-primary">Send to Pharmacy</button>
                     <button type="submit" class="btn btn-tertiary">Print</button>
@@ -106,88 +132,70 @@
         </div>
     </div>
 
-    <?php
-    if ($_POST) {
-        // Handle form submission
-        $patient_name = $_POST['patient_name'] ?? '';
-        $age = $_POST['age'] ?? '';
-        $gender = $_POST['gender'] ?? '';
-        $consultation_history = $_POST['consultation_history'] ?? '';
-        $diagnosis = $_POST['diagnosis'] ?? '';
-        $prescribed_products = $_POST['prescribed_products'] ?? '';
-        $recommended_treatment = $_POST['recommended_treatment'] ?? '';
-        $notes = $_POST['notes'] ?? '';
-        
-        echo "<script>alert('Form submitted successfully!');</script>";
-    }
-    ?>
-
     <script>
-    document.querySelector('form').addEventListener('submit', function(e) {
-        // Prevent default submission
-        e.preventDefault();
+    // Add products to cart table
+    document.getElementById("add_product").addEventListener("click", function() {
+        let product = document.getElementById("product_search").value.trim();
+        let qty = document.getElementById("product_qty").value.trim();
 
-        // Get form values
+        if (product === "" || qty === "" || qty <= 0) {
+            alert("Please enter product and valid quantity.");
+            return;
+        }
+
+        let table = document.getElementById("product_list_table");
+        let cartTable = document.getElementById("cart_table");
+
+        // Show table if first item
+        cartTable.style.display = "table";
+
+        let row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${product}</td>
+            <td>${qty}</td>
+            <td><button type="button" class="remove-btn"> X </button></td>
+        `;
+
+        row.querySelector(".remove-btn").addEventListener("click", function() {
+            row.remove();
+            if (table.children.length === 0) {
+                cartTable.style.display = "none"; // hide if empty
+            }
+        });
+
+        table.appendChild(row);
+
+        document.getElementById("product_search").value = "";
+        document.getElementById("product_qty").value = "";
+    });
+
+    // Simple form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let errors = [];
+
         const patientName = document.getElementById('patient_name').value.trim();
         const age = document.getElementById('age').value.trim();
         const gender = document.getElementById('gender').value;
-        const consultationHistory = document.getElementById('consultation_history').value.trim();
         const diagnosis = document.getElementById('diagnosis').value.trim();
-        const prescribedProducts = document.getElementById('prescribed_products').value.trim();
-        const recommendedTreatment = document.getElementById('recommended_treatment').value.trim();
+        const treatment = document.getElementById('recommended_treatment').value.trim();
+        const products = document.querySelectorAll('#product_list_table tr');
 
-        // Validation flags
-        let errors = [];
+        if (patientName.length < 2) errors.push("Patient name must be at least 2 characters.");
+        if (age === "" || age <= 0) errors.push("Enter a valid age.");
+        if (gender === "") errors.push("Please select gender.");
+        if (diagnosis === "") errors.push("Diagnosis is required.");
+        if (products.length < 1) errors.push("Add at least one prescribed product.");
+        if (treatment === "") errors.push("Recommended treatment is required.");
 
-        // Validate Patient Name
-        if (patientName === '') {
-            errors.push("Patient's name is required.");
-        } else if (!/^[A-Za-z ]{2,50}$/.test(patientName)) {
-            errors.push("Patient's name should contain only letters and spaces (2-50 chars).");
-        }
-
-        // Validate Age
-        if (age === '') {
-            errors.push("Age is required.");
-        } else if (isNaN(age) || age <= 0 || age > 120) {
-            errors.push("Enter a valid age between 1 and 120.");
-        }
-
-        // Validate Gender
-        if (gender === '') {
-            errors.push("Please select a gender.");
-        }
-
-        // Validate Consultation History
-        if (consultationHistory.length < 2) {
-            errors.push("Consultation history must be at least 2 characters long.");
-        }
-
-        // Validate Diagnosis
-        if (diagnosis.length < 1) {
-            errors.push("Diagnosis is required.");
-        }
-
-        // Validate Prescribed Products
-        if (prescribedProducts.length < 1) {
-            errors.push("Prescribed products are required.");
-        }
-
-        // Validate Recommended Treatment
-        if (recommendedTreatment.length < 1) {
-            errors.push("Recommended treatment is required.");
-        }
-
-        // Show errors if any
         if (errors.length > 0) {
             alert(errors.join("\n"));
             return false;
         }
+        alert("Saved Successfully");
 
-        // If validation passes, submit form
         this.submit();
     });
-</script>
-
+    </script>
 </body>
 </html>

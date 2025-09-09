@@ -77,7 +77,29 @@ body {
   margin-top: 20px;
   display: flex;
   gap: 15px;
+  justify-content: space-between;
+  align-items: center;
 }
+.left-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.right-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+/* Back to Dashboard button styling */
+.btn-back {
+  background-color: #777;
+  color: white;
+}
+
+.btn-back:hover {
+  background-color: #777;
+}
+
 
 .btn {
   cursor: pointer;
@@ -282,6 +304,12 @@ body {
   .search-buttons {
     flex-direction: column;
     gap: 10px;
+    align-items: stretch;
+  }
+
+  .left-buttons,
+  .right-buttons {
+    width: 100%;
   }
   
   .btn {
