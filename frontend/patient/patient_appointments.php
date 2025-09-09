@@ -87,7 +87,7 @@
                                 </div>
                             </div>
                             <div class="appointment-actions">
-                                <button class="action-btn btn-primary" onclick="viewDetails('APP001')">View Details</button>
+
                                 <button class="action-btn btn-secondary" onclick="reschedule('APP001')">Reschedule</button>
                                 <button class="action-btn btn-danger" onclick="cancelAppointment('APP001')">Cancel</button>
                             </div>
@@ -117,7 +117,7 @@
                                 </div>
                             </div>
                             <div class="appointment-actions">
-                                <button class="action-btn btn-primary" onclick="viewDetails('APP002')">View Details</button>
+
                                 <button class="action-btn btn-secondary" onclick="reschedule('APP002')">Reschedule</button>
                                 <button class="action-btn btn-danger" onclick="cancelAppointment('APP002')">Cancel</button>
                             </div>
@@ -147,7 +147,6 @@
                                 </div>
                             </div>
                             <div class="appointment-actions">
-                                <button class="action-btn btn-primary" onclick="viewDetails('APP003')">View Details</button>
                                 <button class="action-btn btn-danger" onclick="cancelAppointment('APP003')">Cancel Request</button>
                             </div>
                         </div>
