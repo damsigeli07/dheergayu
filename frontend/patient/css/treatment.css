@@ -69,7 +69,22 @@
     border-bottom: none;
     border-radius: 5px;
 }
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
 
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
 
 .header-title {
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
