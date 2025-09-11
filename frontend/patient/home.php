@@ -45,7 +45,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <a href="home.php" class="nav-btn">Home</a>
                 <a href="before_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Our Treatments</a>
                 <a href="products.php" class="nav-btn">Our Products</a>
-                <a href="login.php" class="nav-btn"><u>Login</u></a>
+                <a href="login.php" class="nav-btn">Login</a>
             <?php endif; ?>
         </div>
     </header>
