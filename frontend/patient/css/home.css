@@ -137,6 +137,7 @@
             font-size: 14px;
             transition: background 0.3s ease;
             border-bottom: 1px solid #f0f0f0;
+            text-decoration: none;
         }
 
         .dropdown-item:last-child {
@@ -400,6 +401,7 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            text-decoration: none;
         }
 
         .fact-sheet-btn:hover {

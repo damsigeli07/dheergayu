@@ -31,22 +31,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="css/login.css?v=<?php echo time(); ?>">
 </head>
 <body>
-<!-- Header -->
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <img src="img/dheergayu.png" alt="Dheergayu Logo" class="logo">
-                <h1 class="header-title">Dheergayu</h1>
-            </nav>
-        </div>
-        <div>
-            <a href="home.php" class="nav-btn">Home</a>
-            <a href="channeling.php" class="nav-btn">Consultations</a>
-            <a href="treatment.php" class="nav-btn">Our Treatments</a>
-            <a href="products.php" class="nav-btn">Our Products</a>
-            <a href="login.php" class="nav-btn"><u>Login</u></a>
-        </div>
-    </header>
 
 <div class="form-container-main">
     <div class="container">
