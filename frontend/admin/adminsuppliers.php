@@ -114,10 +114,10 @@
         <div class="header-left">
             <nav class="navigation">
                 <a href="admindashboard.php" class="nav-btn">Home</a>
-                <a href="admininventory.php" class="nav-btn">Inventory</a>
+                <a href="admininventory.php" class="nav-btn">Products</a>
                 <a href="adminappointment.php" class="nav-btn">Appointments</a>
                 <a href="adminusers.php" class="nav-btn">Users</a>
-                <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
+                <a href="admintreatment.php" class="nav-btn">Treatments</a>
                 <button class="nav-btn active">Supplier Info</button>
             </nav>
         </div>
@@ -154,8 +154,6 @@
                         <th>Contact Person</th>
                         <th>Phone</th>
                         <th>Email</th>
-                        <th>Products Supplied</th>
-                        <th>Address</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -165,8 +163,6 @@
                         <td>Mr. Sunil Perera</td>
                         <td>071 123 4567</td>
                         <td>sunil@herbalsupplies.lk</td>
-                        <td>Paspanguwa Pack, Asamodagam Spirit</td>
-                        <td>Colombo 03</td>
                         <td class="action-buttons">
                             <button class="btn-edit">Edit</button>
                             <button class="btn-delete">Delete</button>
@@ -177,8 +173,6 @@
                         <td>Mrs. Nadeesha Silva</td>
                         <td>077 987 6543</td>
                         <td>nadeesha@ayutraders.lk</td>
-                        <td>Siddhalepa Balm, Dashamoolarishta</td>
-                        <td>Kandy</td>
                         <td class="action-buttons">
                             <button class="btn-edit">Edit</button>
                             <button class="btn-delete">Delete</button>
@@ -189,8 +183,6 @@
                         <td>Mr. Amal Fernando</td>
                         <td>076 555 8899</td>
                         <td>amal@naturalextracts.lk</td>
-                        <td>Kothalahimbutu Capsules, Neem Oil</td>
-                        <td>Galle</td>
                         <td class="action-buttons">
                             <button class="btn-edit">Edit</button>
                             <button class="btn-delete">Delete</button>

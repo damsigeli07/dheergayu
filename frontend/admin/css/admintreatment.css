@@ -28,73 +28,83 @@ body {
 
 .overview-card {
     background: white;
-    border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .overview-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-}
-
-.overview-card.total {
-    border-left-color: #17a2b8;
-}
-
-.overview-card.active {
-    border-left-color: #28a745;
-}
-
-.overview-card.inactive {
-    border-left-color: #6c757d;
-}
-
-.overview-card.revenue {
-    border-left-color: #ffc107;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 .overview-icon {
-    font-size: 2rem;
-    margin-bottom: 1rem;
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .overview-content h3 {
-    color: #555;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: #333;
     margin-bottom: 0.5rem;
 }
 
 .overview-number {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.overview-card.total .overview-number {
-    color: #17a2b8;
-}
-
-.overview-card.active .overview-number {
-    color: #28a745;
-}
-
-.overview-card.inactive .overview-number {
-    color: #6c757d;
-}
-
-.overview-card.revenue .overview-number {
-    color: #ffc107;
+    color: #333;
+    margin: 0;
+    line-height: 1;
 }
 
 .overview-desc {
-    color: #666;
     font-size: 0.85rem;
+    color: #666;
+    margin: 0.25rem 0 0 0;
+}
+
+/* Card Color Variants */
+.overview-card.total {
+    border-left: 4px solid #17a2b8;
+}
+
+.overview-card.total .overview-icon {
+    background-color: rgba(23, 162, 184, 0.1);
+}
+
+.overview-card.active {
+    border-left: 4px solid #28a745;
+}
+
+.overview-card.active .overview-icon {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.overview-card.inactive {
+    border-left: 4px solid #6c757d;
+}
+
+.overview-card.inactive .overview-icon {
+    background-color: rgba(108, 117, 125, 0.1);
+}
+
+.overview-card.revenue {
+    border-left: 4px solid #ffc107;
+}
+
+.overview-card.revenue .overview-icon {
+    background-color: rgba(255, 193, 7, 0.1);
 }
 
 /* Search and Filter Section */
@@ -412,6 +422,23 @@ body {
     .treatment-overview {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1rem;
+    }
+
+    .overview-card {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .overview-icon {
+        font-size: 2rem;
+        width: 50px;
+        height: 50px;
+    }
+
+    .overview-number {
+        font-size: 1.5rem;
     }
     
     .search-filter-section {

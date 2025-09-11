@@ -32,9 +32,11 @@ body {
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .overview-card:hover {
@@ -43,29 +45,59 @@ body {
 }
 
 .overview-card.critical { border-left-color: #dc3545; }
-.overview-card.warning { border-left-color: #ffc107; }
-.overview-card.alert { border-left-color: #fd7e14; }
-.overview-card.total { border-left-color: #28a745; }
+.overview-card.critical .overview-icon {
+    background-color: rgba(220, 20, 60, 0.1);
+}
 
-.overview-icon { font-size: 2rem; margin-bottom: 1rem; }
+.overview-card.warning { border-left-color: #ffc107; }
+.overview-card.warning .overview-icon {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.overview-card.alert { border-left-color: #fd7e14; }
+.overview-card.alert .overview-icon {
+    background-color: rgba(253, 126, 20, 0.1);
+}
+
+.overview-card.total { border-left-color: #28a745; }
+.overview-card.total .overview-icon {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.overview-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
 .overview-content h3 {
-    color: #555;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: #333;
     margin-bottom: 0.5rem;
 }
+
 .overview-number {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    color: #333;
+    margin: 0;
+    line-height: 1;
 }
 .overview-card.critical .overview-number { color: #dc3545; }
 .overview-card.warning .overview-number { color: #ffc107; }
 .overview-card.alert .overview-number { color: #fd7e14; }
 .overview-card.total .overview-number { color: #28a745; }
-.overview-desc { color: #666; font-size: 0.85rem; }
+.overview-desc {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0.25rem 0 0 0;
+}
 
 /* Search Container */
 .search-container {
