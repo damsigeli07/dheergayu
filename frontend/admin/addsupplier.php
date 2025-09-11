@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Supplier - Admin Dashboard</title>
+    <link rel="stylesheet" href="../css_common/header.css">
+    <script src="../js_common/header.js"></script>
     <style>
         /* Reset & Base Styles */
         * {
@@ -116,6 +118,32 @@
     </style>
 </head>
 <body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <nav class="navigation">
+                <a href="admindashboard.php" class="nav-btn">Home</a>
+                <a href="admininventory.php" class="nav-btn">Products</a>
+                <a href="adminappointment.php" class="nav-btn">Appointments</a>
+                <a href="adminusers.php" class="nav-btn">Users</a>
+                <a href="admintreatment.php" class="nav-btn">Treatments</a>
+                <a href="adminsuppliers.php" class="nav-btn active">Supplier Info</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <img src="images/dheergayu.png" alt="Dheergayu Logo" class="logo">
+            <h1 class="header-title">Dheergayu</h1>
+            <div class="user-section">
+                <div class="user-icon" id="user-icon">👤</div>
+                <span class="user-role">Admin</span>
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="adminprofile.php" class="profile-btn">Profile</a>
+                    <a href="../patient/login.php" class="logout-btn">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
     <main class="main-content">
         <div class="add-supplier-form">
             <h2 class="form-title">Add New Supplier</h2>
@@ -139,25 +167,6 @@
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" id="email" name="email" class="form-input" required placeholder="Enter email address">
-                </div>
-
-                <div class="form-group">
-                    <label for="products" class="form-label">Products Supplied</label>
-                    <select id="products" name="products[]" class="form-input" multiple required>
-                        <option value="Paspanguwa Pack">Paspanguwa Pack</option>
-                        <option value="Asamodagam Spirit">Asamodagam Spirit</option>
-                        <option value="Siddhalepa Balm">Siddhalepa Balm</option>
-                        <option value="Dashamoolarishta">Dashamoolarishta</option>
-                        <option value="Kothalahimbutu Capsules">Kothalahimbutu Capsules</option>
-                        <option value="Neem Oil">Neem Oil</option>
-                        <option value="Herbal Tea">Herbal Tea</option>
-                        <option value="Ayurvedic Ointment">Ayurvedic Ointment</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="address" class="form-label">Address</label>
-                    <input type="text" id="address" name="address" class="form-input" required placeholder="Enter address">
                 </div>
 
                 <div class="form-actions">

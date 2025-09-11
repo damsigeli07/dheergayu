@@ -1,4 +1,8 @@
-/* Reset and Base Styles */
+/* ===========================
+   PHARMACIST ORDERS PAGE
+   =========================== */
+
+/* Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -7,12 +11,11 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f5f5;
+    background: #f5f5f5;
     color: #333;
     line-height: 1.6;
 }
 
-/* Main Content */
 .main-content {
     max-width: 1400px;
     margin: 0 auto;
@@ -20,111 +23,188 @@ body {
     width: 100%;
 }
 
-/* Orders Container */
-.orders-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+.section-title {
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #8B7355;
 }
 
-/* Table Container */
-.table-container {
-    overflow-x: auto;
+/* Header Navigation */
+.header .navigation .nav-btn {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    text-decoration: none;
+}
+
+.header .navigation .nav-btn.active {
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.header .navigation .nav-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
 }
 
 /* Orders Table */
 .orders-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.95rem;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.orders-table th {
-    background-color: #f8f9fa;
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    color: #495057;
-    border-bottom: 2px solid #e9ecef;
-}
-
+.orders-table th,
 .orders-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #e9ecef;
+    padding: 12px;
+    border: 1px solid #ccc;
+    text-align: center;
     vertical-align: top;
 }
 
-.orders-table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
+.orders-table th {
+    background-color: #ffffff;  /* Header boxes white */
+    color: #5f5d5d;             /* Light grey text */
+    font-weight: 600;
+    text-transform: none;       /* Do not capitalize fully */
 }
 
-.orders-table tbody tr:hover {
-    background-color: #f1f3f4;
+/* Medicines Prescribed Styling */
+.orders-table td:nth-child(3) {
+    text-align: left;
 }
 
-/* Status Buttons */
-.status-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
+.orders-table td .medicine-item {
+    display: block;
+    margin-bottom: 4px;
     font-weight: 500;
+}
+
+/* ===========================
+   ACTION BUTTONS
+   =========================== */
+.btn-action {
+    background-color: #37a762;   /* Green base */
+    color: #fff;
+    padding: 8px 16px;           /* Slightly bigger */
+    font-size: 0.95rem;          /* Adjust font size */
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;          /* Rounded corners */
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);  /* Soft shadow */
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    background-color: #2e8c50;   /* Darker green on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.btn-action:active {
+    transform: translateY(0);    /* Reset lift on click */
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* Dispatched Checkbox */
+.dispense-status {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+}
+
+.close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+#receiptTable th,
+#receiptTable td {
+    padding: 8px;
+    border: 1px solid #ccc;
     text-align: center;
-    display: inline-block;
-    min-width: 80px;
 }
 
-.status-btn.pending   { background-color:#ffc107; color:#856404; }
-.status-btn.paid      { background-color:#28a745; color:white; }
-.status-btn.preparing { background-color:#17a2b8; color:white; }
-.status-btn.cancelled { background-color:#dc3545; color:white; }
-
-/* Summary Bar */
-.summary-bar {
-    background: linear-gradient(135deg, #7a9b57, #6b8a4a);
-    color: white;
-    padding: 1.5rem 2rem;
+/* Product Card Style Example (for reference in prescriptions) */
+.medicine-card {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
     gap: 1rem;
-}
-
-.summary-left  { display:flex; gap:2rem; flex-wrap:wrap; }
-.summary-item  { font-size:0.95rem; font-weight:500; }
-.summary-right { font-size:1.1rem; font-weight:600; }
-
-.revenue {
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 1rem;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: #fdf8f2;
     border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
-/* Responsive Design */
-@media (max-width:1024px) {
-    .main-content       { padding:1.5rem; }
-    .orders-table       { font-size:0.9rem; }
-    .orders-table th,
-    .orders-table td    { padding:0.8rem; }
-    .summary-left       { gap:1.5rem; }
+.medicine-card .medicine-name {
+    font-weight: 500;
+    color: #5f5d5d;
 }
 
-@media (max-width:768px) {
-    .main-content       { padding:1rem; }
-    .orders-table       { font-size:0.85rem; }
-    .orders-table th,
-    .orders-table td    { padding:0.6rem; }
-    .summary-bar        { padding:1rem; flex-direction:column; text-align:center; }
-    .summary-left       { justify-content:center; gap:1rem; }
+.medicine-card .medicine-qty {
+    font-weight: 600;
+    color: #8B7355;
 }
 
-@media (max-width:480px) {
-    .main-content       { padding:0.8rem; }
-    .orders-table       { font-size:0.8rem; }
+/* Responsive */
+@media (max-width: 1024px) {
     .orders-table th,
-    .orders-table td    { padding:0.5rem; }
-    .status-btn         { padding:0.3rem 0.6rem; font-size:0.75rem; }
-    .summary-item       { font-size:0.85rem; }
-    .revenue            { font-size:0.9rem; }
+    .orders-table td {
+        padding: 8px;
+    }
+    .btn-action {
+        padding: 4px 10px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .orders-table th,
+    .orders-table td {
+        padding: 6px;
+    }
+    .btn-action {
+        padding: 3px 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.8rem;
+    }
+    .orders-table th,
+    .orders-table td {
+        padding: 5px;
+    }
+    .btn-action {
+        padding: 2px 6px;
+        font-size: 12px;
+    }
 }

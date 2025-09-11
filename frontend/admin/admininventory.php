@@ -1,9 +1,86 @@
+<?php
+// Sample data for demonstration
+$products = [
+    ["name"=>"Asamodagam", "image"=>"images/asamodagam.jpg"],
+    ["name"=>"Bala Thailaya", "image"=>"images/Bala Thailaya.png"],
+    ["name"=>"Dashamoolarishta", "image"=>"images/Dashamoolarishta.jpeg"],
+    ["name"=>"Kothalahimbutu Capsules", "image"=>"images/Kothalahimbutu Capsules.jpeg"],
+    ["name"=>"Neem Oil", "image"=>"images/Neem Oil.jpg"],
+    ["name"=>"Nirgundi Oil", "image"=>"images/Nirgundi Oil.jpg"],
+    ["name"=>"Paspanguwa", "image"=>"images/paspanguwa.jpeg"],
+    ["name"=>"Pinda Thailaya", "image"=>"images/Pinda Thailaya.jpeg"],
+    ["name"=>"Siddhalepa", "image"=>"images/siddhalepa.png"],
+];
+
+// Sample inventory batches (normally fetched from DB) - Multiple batches per product
+$inventoryBatches = [
+    ["product"=>"Asamodagam", "quantity"=>12, "mfd"=>"2024-01-01", "exp"=>"2026-01-01", "batch_number"=>"ASM001", "supplier"=>"Herbal Supplies Co."],
+    ["product"=>"Bala Thailaya", "quantity"=>8, "mfd"=>"2024-06-15", "exp"=>"2026-06-15", "batch_number"=>"BLT001", "supplier"=>"Ayurvedic Traders"],
+    ["product"=>"Dashamoolarishta", "quantity"=>18, "mfd"=>"2024-02-10", "exp"=>"2026-02-10", "batch_number"=>"DMR001", "supplier"=>"Natural Extracts Ltd."],
+    ["product"=>"Kothalahimbutu Capsules", "quantity"=>6, "mfd"=>"2024-01-20", "exp"=>"2026-01-20", "batch_number"=>"KHC001", "supplier"=>"Herbal Supplies Co."],
+    ["product"=>"Neem Oil", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"NEO001", "supplier"=>"Natural Extracts Ltd."],
+    ["product"=>"Nirgundi Oil", "quantity"=>22, "mfd"=>"2024-03-05", "exp"=>"2026-03-05", "batch_number"=>"NRO001", "supplier"=>"Ayurvedic Traders"],
+    ["product"=>"Paspanguwa", "quantity"=>20, "mfd"=>"2024-03-10", "exp"=>"2026-03-10", "batch_number"=>"PSP001", "supplier"=>"Herbal Supplies Co."],
+    ["product"=>"Pinda Thailaya", "quantity"=>14, "mfd"=>"2024-01-25", "exp"=>"2026-01-25", "batch_number"=>"PTL001", "supplier"=>"Natural Extracts Ltd."],
+    ["product"=>"Siddhalepa", "quantity"=>25, "mfd"=>"2024-01-15", "exp"=>"2026-01-15", "batch_number"=>"SDP001", "supplier"=>"Ayurvedic Traders"],
+    // Additional batches to show total quantities
+    ["product"=>"Siddhalepa", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"SDP002", "supplier"=>"Herbal Supplies Co."],
+    ["product"=>"Asamodagam", "quantity"=>8, "mfd"=>"2024-03-01", "exp"=>"2026-03-01", "batch_number"=>"ASM002", "supplier"=>"Natural Extracts Ltd."],
+    ["product"=>"Neem Oil", "quantity"=>10, "mfd"=>"2024-01-10", "exp"=>"2026-01-10", "batch_number"=>"NEO002", "supplier"=>"Ayurvedic Traders"]
+];
+
+// Calculate total quantities per product
+$inventoryData = [];
+foreach($inventoryBatches as $batch) {
+    $productName = $batch['product'];
+    if(!isset($inventoryData[$productName])) {
+        $inventoryData[$productName] = [
+            'product' => $productName,
+            'total_quantity' => 0,
+            'batches' => [],
+            'earliest_exp' => $batch['exp']
+        ];
+    }
+    $inventoryData[$productName]['total_quantity'] += $batch['quantity'];
+    $inventoryData[$productName]['batches'][] = $batch;
+    
+    // Keep track of earliest expiry date
+    if($batch['exp'] < $inventoryData[$productName]['earliest_exp']) {
+        $inventoryData[$productName]['earliest_exp'] = $batch['exp'];
+    }
+}
+
+// Calculate stock statistics
+$criticalStockCount = 0;
+$lowStockCount = 0;
+$expiringSoonCount = 0;
+$today = new DateTime();
+$ninetyDaysFromNow = (new DateTime())->add(new DateInterval('P90D'));
+
+foreach($inventoryData as $item) {
+    // Critical stock (total quantity <= 5)
+    if($item['total_quantity'] <= 5) {
+        $criticalStockCount++;
+    }
+    // Low stock (total quantity <= 15)
+    elseif($item['total_quantity'] <= 15) {
+        $lowStockCount++;
+    }
+    
+    // Expiring soon (within 90 days) - check earliest expiry
+    $expDate = new DateTime($item['earliest_exp']);
+    if($expDate <= $ninetyDaysFromNow) {
+        $expiringSoonCount++;
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory - Admin Dashboard</title>
+    <title>Products - Admin Dashboard</title>
     <link rel="stylesheet" href="../css_common/header.css">
     <script src="../js_common/header.js"></script>
     <link rel="stylesheet" href="css/admininventory.css">
@@ -13,10 +90,10 @@
         <div class="header-left">
             <nav class="navigation">
                 <a href="admindashboard.php" class="nav-btn">Home</a>
-                <button class="nav-btn active">Inventory</button>
+                <button class="nav-btn active">Products</button>
                 <a href="adminappointment.php" class="nav-btn">Appointments</a>
                 <a href="adminusers.php" class="nav-btn">Users</a>
-                <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
+                <a href="admintreatment.php" class="nav-btn">Treatments</a>
                 <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
             </nav>
         </div>
@@ -37,6 +114,45 @@
     </header>
 
     <main class="main-content">
+
+        <!-- Inventory Overview Cards -->
+        <div class="inventory-overview">
+            <div class="overview-card critical">
+                <div class="overview-icon">⚠️</div>
+                <div class="overview-content">
+                    <h3>Critical Stock</h3>
+                    <p class="overview-number"><?= $criticalStockCount ?></p>
+                    <p class="overview-desc">Items need immediate attention</p>
+                </div>
+            </div>
+            
+            <div class="overview-card warning">
+                <div class="overview-icon">📉</div>
+                <div class="overview-content">
+                    <h3>Low Stock</h3>
+                    <p class="overview-number"><?= $lowStockCount ?></p>
+                    <p class="overview-desc">Items running low</p>
+                </div>
+            </div>
+            
+            <div class="overview-card alert">
+                <div class="overview-icon">⏰</div>
+                <div class="overview-content">
+                    <h3>Expiring Soon</h3>
+                    <p class="overview-number"><?= $expiringSoonCount ?></p>
+                    <p class="overview-desc">Within 90 days</p>
+                </div>
+            </div>
+            
+            <div class="overview-card total">
+                <div class="overview-icon">📦</div>
+                <div class="overview-content">
+                    <h3>Total Products</h3>
+                    <p class="overview-number"><?= count($inventoryData) ?></p>
+                    <p class="overview-desc">In inventory</p>
+                </div>
+            </div>
+        </div>
 
         <!-- Search Bar -->
         <div class="search-container">
