@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="css/signup.css?v=<?php echo time(); ?>">
 </head>
 <body>
-<!-- Header -->
+<!-- Header 
     <header class="header">
         <div class="header-left">
             <nav class="navigation">
@@ -23,6 +23,7 @@
             <a href="login.php" class="nav-btn"><u>Login</u></a>
         </div>
     </header>
+    -->
 <div class="form-container-main">
     <div class="container">
         <div class="title">

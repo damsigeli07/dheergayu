@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <h1 class="header-title">Dheergayu</h1>
             </nav>
         </div>
-        <div class="header-right">
+        <div>
             <a href="home.php" class="nav-btn">Home</a>
             <a href="channeling.php" class="nav-btn">Consultations</a>
             <a href="treatment.php" class="nav-btn">Our Treatments</a>
@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             Login to your account
         </div>
         <div class="form-container">
-            <form id="loginForm" method="POST" action="login.php">
+            <form id="loginForm" method="POST" action=".php">
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" placeholder="Enter your email address" required>

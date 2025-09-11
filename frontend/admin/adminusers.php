@@ -41,14 +41,16 @@ $users = [
 
 <!-- Header -->
 <header class="header">
-    <nav class="navigation">
-        <a href="admindashboard.php" class="nav-btn">Home</a>
-        <a href="admininventory.php" class="nav-btn">Inventory</a>
-        <a href="adminappointment.php" class="nav-btn">Appointments</a>
-        <a href="adminusers.php" class="nav-btn active">Users</a>
-        <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>
-        <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
-    </nav>
+    <div class="header-left">
+        <nav class="navigation">
+            <a href="admindashboard.php" class="nav-btn">Home</a>
+            <a href="admininventory.php" class="nav-btn">Products</a>
+            <a href="adminappointment.php" class="nav-btn">Appointments</a>
+            <a href="adminusers.php" class="nav-btn active">Users</a>
+            <a href="admintreatment.php" class="nav-btn">Treatments</a>
+            <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
+        </nav>
+    </div>
     <div class="header-right">
         <img src="images/dheergayu.png" class="logo" alt="Logo">
         <h1 class="header-title">Dheergayu</h1>

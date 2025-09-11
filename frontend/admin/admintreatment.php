@@ -84,7 +84,7 @@ foreach ($treatments as $treatment) {
         <div class="header-left">
             <nav class="navigation">
                 <a href="admindashboard.php" class="nav-btn">Home</a>
-                <a href="admininventory.php" class="nav-btn">Inventory</a>
+                <a href="admininventory.php" class="nav-btn">Products</a>
                 <a href="adminappointment.php" class="nav-btn">Appointments</a>
                 <a href="adminusers.php" class="nav-btn">Users</a>
                 <a href="admintreatment.php" class="nav-btn">Treatment Schedule</a>

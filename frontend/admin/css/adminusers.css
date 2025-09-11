@@ -5,8 +5,9 @@
     box-sizing: border-box;
 }
 
+
 body {
-    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f0f2f5;
     color: #333;
 }
@@ -95,6 +96,7 @@ tbody tr:hover {
     padding: 12px 24px;
     border: none;
     cursor: pointer;
+    font-weight: bold;
 }
 
 .add-btn:hover {
