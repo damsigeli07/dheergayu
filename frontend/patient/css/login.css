@@ -16,12 +16,27 @@
 
         .container {
             background: white;
+            position: relative;
             border-radius: 15px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
             overflow: hidden;
             width: 100%;
             max-width: 400px;
             animation: fadeInUp 0.8s ease-out;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            text-decoration: none;
+            color: #999;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #333;
         }
 
         @keyframes fadeInUp {

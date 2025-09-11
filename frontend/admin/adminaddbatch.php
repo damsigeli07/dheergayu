@@ -230,7 +230,7 @@ $selectedProduct = isset($_GET['product']) ? $_GET['product'] : '';
 
                 <div class="form-actions">
                     <button type="submit" class="btn-submit">Add Batch</button>
-                    <a href="admininventory.php" class="btn-cancel">Cancel</a>
+                    <a href="../pharmacist/pharmacistinventory.php" class="btn-cancel">Cancel</a>
                 </div>
             </form>
         </div>
