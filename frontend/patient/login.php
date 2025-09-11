@@ -34,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <div class="form-container-main">
     <div class="container">
+        <a href="home.php" class="close-btn" aria-label="Close">×</a>
         <div class="form_header">
             Login to your account
         </div>
@@ -45,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
         
         <div class="form-container">
-            <form id="loginForm" method="POST" action=".php">
+            <form id="loginForm" method="POST" action="login.php">
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" placeholder="Enter your email address" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">

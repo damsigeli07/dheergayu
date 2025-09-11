@@ -10,6 +10,7 @@
 
 <div class="form-container-main">
     <div class="container">
+        <a href="home.php" class="close-btn" aria-label="Close">×</a>
         <div class="title">
             Let's get your account set up
         </div>

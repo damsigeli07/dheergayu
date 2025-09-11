@@ -44,12 +44,27 @@
         }
         .container {
             background: white;
+            position: relative;
             border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             width: 100%;
             max-width: 450px;
             animation: slideUp 0.6s ease-out;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            text-decoration: none;
+            color: #999;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #333;
         }
 
         @keyframes slideUp {
