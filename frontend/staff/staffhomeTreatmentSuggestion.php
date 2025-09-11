@@ -1,11 +1,11 @@
 <?php
 // Sample data - In a real application, this would come from a database
 $patients = [
-    ['patient_no' => '1001', 'patient_name' => 'Arjun Patel', 'treatment' => 'Oil Massage', 'suggestion' => 'Sensitive skin. Medium Level massage- For 20 minutes'],
-    ['patient_no' => '1002', 'patient_name' => 'Priya Sharma', 'treatment' => 'Steam Therapy', 'suggestion' => 'For 15 minutes'],
+    ['patient_no' => '1001', 'patient_name' => 'Arjun Patel', 'treatment' => 'Udwarthana', 'suggestion' => 'Sensitive skin. Medium Level massage- For 20 minutes'],
+    ['patient_no' => '1002', 'patient_name' => 'Priya Sharma', 'treatment' => 'Nasya Karma', 'suggestion' => 'For 15 minutes'],
     ['patient_no' => '1008', 'patient_name' => 'Ravi Kumar', 'treatment' => 'Shirodhara', 'suggestion' => 'No'],
-    ['patient_no' => '1010', 'patient_name' => 'Maya Singh', 'treatment' => 'Oil Massage', 'suggestion' => 'High Level massage- For 30 minutes'],
-    ['patient_no' => '1012', 'patient_name' => 'Suresh Reddy', 'treatment' => 'Steam Therapy', 'suggestion' => 'For 30 minutes'],
+    ['patient_no' => '1010', 'patient_name' => 'Maya Singh', 'treatment' => 'Udwarthana', 'suggestion' => 'High Level massage- For 30 minutes'],
+    ['patient_no' => '1012', 'patient_name' => 'Suresh Reddy', 'treatment' => 'Nasya Karma', 'suggestion' => 'For 30 minutes'],
     ['patient_no' => '1030', 'patient_name' => 'Deepa Nair', 'treatment' => 'Shirodhara', 'suggestion' => 'No']
 ];
 
@@ -38,7 +38,7 @@ if (!empty($searchQuery)) {
     <header class="header">
         <div class="header-left">
             <nav class="navigation">
-                <button class="nav-btn">Home</button> <!-- Home active -->
+                <a href="staffhome.php" class="nav-btn">Home</a>
                 <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
                 <a href="staffappointment.php" class="nav-btn">Appointment</a>
                 <a href="staffhomeTreatmentSuggestion.php" class="nav-btn active">Treatment Suggestion</a>
