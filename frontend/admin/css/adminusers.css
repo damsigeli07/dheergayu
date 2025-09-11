@@ -19,6 +19,79 @@ body {
     margin: 0 auto;
 }
 
+/* User Overview Cards */
+.user-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.overview-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: 0.3s ease;
+}
+
+.overview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.overview-icon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.overview-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.overview-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    line-height: 1;
+}
+
+.overview-desc {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0.25rem 0 0 0;
+}
+
+/* Overview Card Colors */
+.overview-card.total .overview-icon {
+    background-color: #e3f2fd;
+}
+
+.overview-card.staff .overview-icon {
+    background-color: #f3e5f5;
+}
+
+.overview-card.doctors .overview-icon {
+    background-color: #e8f5e8;
+}
+
+.overview-card.patients .overview-icon {
+    background-color: #fff3e0;
+}
+
 .content-box {
     background: #fff;
     border-radius: 10px;
