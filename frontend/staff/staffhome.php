@@ -1,20 +1,31 @@
 <?php
 // Sample data - In a real application, this would come from a database
-$totalPatients = 6;
+$totalPatients = 15;
 $treatments = [
-    'Oil Massage' => 3,
-    'Steam Therapy' => 2,
-    'Shirodhara' => 1
+    'Udwarthana' => 3,
+    'Nasya Karma' => 2,
+    'Shirodhara' => 2,
+    'Basti' => 1,
+    'Panchakarma Detox' => 4,
+    'Vashpa Sweda' => 1,
+    'Abhyanga Massage' => 1,
+    'Elakizhi' => 1,
 ];
 
 $todaySchedule = [
     ['time' => '9:00 AM - 11:00 AM', 'type' => 'Morning Session'],
     ['time' => '2:00 PM - 5:00 PM', 'type' => 'Afternoon Session'],
     ['time' => '', 'type' => 'Staff on Duty:'],
-    ['time' => '', 'type' => 'Therapist A - Oil Massage'],
-    ['time' => '', 'type' => 'Therapist B - Steam Therapy'],
+    ['time' => '', 'type' => 'Therapist A - Udwarthana'],
+    ['time' => '', 'type' => 'Therapist B - Nasya Karma'],
     ['time' => '', 'type' => 'Therapist C - Shirodhara'],
-    ['time' => '', 'type' => 'Total Staff: 3']
+    ['time' => '', 'type' => 'Therapist D - Basti'],
+    ['time' => '', 'type' => 'Therapist E - Panchakarma Detox'],
+    ['time' => '', 'type' => 'Therapist F - Vashpa Sweda'],
+    ['time' => '', 'type' => 'Therapist G - Abhyanga Massage'],
+    ['time' => '', 'type' => 'Therapist H - Elakizhi'],
+    ['time' => '', 'type' => 'Therapist I - Receptionist'],
+    ['time' => '', 'type' => 'Total Staff: 9']
 ];
 
 $requiredProducts = [
@@ -73,15 +84,6 @@ $requiredProducts = [
                     <ul class="treatment-list">
                         <?php foreach ($treatments as $treatment => $count): ?>
                             <li><?php echo $treatment; ?> - <?php echo $count; ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-
-                <div class="info-section">
-                    <h3>Required Products for today:</h3>
-                    <ul class="product-list">
-                        <?php foreach ($requiredProducts as $product => $quantity): ?>
-                            <li><?php echo $product; ?> - <?php echo $quantity; ?></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>

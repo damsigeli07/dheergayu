@@ -4,43 +4,106 @@ $treatments = array(
     array(
         'patient_no' => '1001',
         'patient_name' => 'Arjun Patel',
-        'treatment_type' => 'Oil Massage',
-        'date_time' => 'March 20, 2024 - 10:00 AM',
+        'treatment_type' => 'Udwarthana',
+        'date_time' => 'March 20, 2026 - 10:00 AM',
         'status' => 'Completed'
+    ),
+    array(
+        'patient_no' => '1001',
+        'patient_name' => 'Melissa Fernando',
+        'treatment_type' => 'Vashpa Sweda',
+        'date_time' => 'March 20, 2026 - 10:00 AM',
+        'status' => 'Completed'
+    ),
+    array(
+        'patient_no' => '1025',
+        'patient_name' => 'Sumana Bandara',
+        'treatment_type' => 'Panchakarma Detox',
+        'date_time' => 'March 20, 2026 - 10:30 AM',
+        'status' => 'Completed'
+    ),
+    array(
+        'patient_no' => '1005',
+        'patient_name' => 'Noora Fathi',
+        'treatment_type' => 'Elakizhi',
+        'date_time' => 'March 20, 2026 - 10:30 AM',
+        'status' => 'Completed'
+    ),
+    array(
+        'patient_no' => '1019',
+        'patient_name' => 'Kingsley Tissera',
+        'treatment_type' => 'Shirodhara',
+        'date_time' => 'March 20, 2026 - 11:00 AM',
+        'status' => 'Pending'
     ),
     array(
         'patient_no' => '1002',
         'patient_name' => 'Priya Sharma',
-        'treatment_type' => 'Steam Therapy',
-        'date_time' => 'March 20, 2024 - 11:30 AM',
+        'treatment_type' => 'Nasya Karma',
+        'date_time' => 'March 20, 2026 - 11:30 AM',
+        'status' => 'Completed'
+    ),
+    array(
+        'patient_no' => '1000',
+        'patient_name' => 'John Alexa',
+        'treatment_type' => 'Udwarthana',
+        'date_time' => 'March 20, 2026 - 12:00 AM',
+        'status' => 'Completed'
+    ),
+    array(
+        'patient_no' => '1017',
+        'patient_name' => 'Andrea Devidpulle',
+        'treatment_type' => 'Panchakarma Detox',
+        'date_time' => 'March 20, 2026 - 12:30 AM',
         'status' => 'Completed'
     ),
     array(
         'patient_no' => '1008',
         'patient_name' => 'Ravi Kumar',
         'treatment_type' => 'Shirodhara',
-        'date_time' => 'March 20, 2024 - 2:00 PM',
+        'date_time' => 'March 20, 2026 - 02:00 PM',
         'status' => 'Pending'
+    ),
+    array(
+        'patient_no' => '1008',
+        'patient_name' => 'Riyaz Veero',
+        'treatment_type' => 'Abhyanga Massage',
+        'date_time' => 'March 20, 2026 - 02:00 PM',
+        'status' => 'Pending'
+    ),
+    array(
+        'patient_no' => '1022',
+        'patient_name' => 'Elani Fernando',
+        'treatment_type' => 'Panchakarma Detox',
+        'date_time' => 'March 20, 2026 - 02:30 PM',
+        'status' => 'Completed'
     ),
     array(
         'patient_no' => '1010',
         'patient_name' => 'Maya Singh',
-        'treatment_type' => 'Oil Massage',
-        'date_time' => 'March 20, 2024 - 3:30 PM',
+        'treatment_type' => 'Udwarthana',
+        'date_time' => 'March 20, 2026 - 03:30 PM',
         'status' => 'In Progress'
     ),
     array(
         'patient_no' => '1012',
         'patient_name' => 'Suresh Reddy',
-        'treatment_type' => 'Steam Therapy',
-        'date_time' => 'March 20, 2024 - 4:00 PM',
+        'treatment_type' => 'Nasya Karma',
+        'date_time' => 'March 20, 2026 - 04:00 PM',
         'status' => 'Pending'
+    ),
+    array(
+        'patient_no' => '1035',
+        'patient_name' => 'Nicola Muller',
+        'treatment_type' => 'Panchakarma Detox',
+        'date_time' => 'March 20, 2026 - 04:30 PM',
+        'status' => 'Completed'
     ),
     array(
         'patient_no' => '1030',
         'patient_name' => 'Deepa Nair',
-        'treatment_type' => 'Shirodhara',
-        'date_time' => 'March 20, 2024 - 5:00 PM',
+        'treatment_type' => 'Basti',
+        'date_time' => 'March 20, 2026 - 05:00 PM',
         'status' => 'Pending'
     )
 );
