@@ -1,3 +1,12 @@
+<?php
+session_start();
+
+// Get user information from login session
+$userType = $_SESSION['user_type'] ?? 'Patient';
+$userName = $_SESSION['user_name'] ?? '';
+$userEmail = $_SESSION['user_email'] ?? '';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,7 +78,7 @@
                     <form id="channelingForm">
                         <div class="form-group">
                             <label for="patientName">Name</label>
-                            <input type="text" id="patientName" name="patientName" placeholder="Enter your full name" required>
+                            <input type="text" id="patientName" name="patientName" placeholder="Enter your full name" value="<?php echo htmlspecialchars($userName); ?>" required>
                         </div>
 
                         <div class="form-group">
@@ -89,7 +98,7 @@
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                            <input type="email" id="email" name="email" placeholder="Enter your email address" value="<?php echo htmlspecialchars($userEmail); ?>" required>
                         </div>
 
                         <div class="form-group">
@@ -234,6 +243,38 @@
                 this.style.borderColor = '#5CB85C';
             } else {
                 this.style.borderColor = '#e1e5e9';
+            }
+        });
+
+        // Profile dropdown functions
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function showMyProfile() {
+            window.location.href = 'patient_profile.php';
+        }
+
+        function showMyAppointments() {
+            window.location.href = 'patient_appointments.php';
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'logout.php';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.profile-btn')) {
+                const dropdowns = document.getElementsByClassName('profile-dropdown');
+                for (let dropdown of dropdowns) {
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                }
             }
         });
     </script>
