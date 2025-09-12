@@ -14,12 +14,19 @@
                 <h1 class="header-title">Dheergayu</h1>
             </nav>
         </div>
-        <div class="header-right">
-            <a href="home.php" class="nav-btn">Home</a>
-            <a href="channeling.php" class="nav-btn">Consultations</a>
-            <a href="treatment.php" class="nav-btn">Our Treatments</a>
-            <a href="products.php" class="nav-btn">Our Products</a>
-            <a href="login.php" class="nav-btn"><u>Login</u></a>
+        <div class="header-right" id="headerRight">
+                <a href="home.php" class="nav-btn">Home</a>
+                <a href="channeling.php" class="nav-btn" onclick="handleChanneling()">Consultations</a>
+                <a href="after_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
+                <div class="profile-container">
+                    <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="patient_profile.php" class="dropdown-item" onclick="showMyProfile()">My Profile</a>
+                        <a href="patient_appointments.php" class="dropdown-item" onclick="showMyAppointments()">My Appointments</a>
+                        <a href="logout.php" class="dropdown-item" onclick="logout()">Logout</a>
+                    </div>
+                </div>
+                <span style="margin-left: 10px; font-size: 0.9em;"><?php echo htmlspecialchars($userType); ?></span>
         </div>
     </header>
 
