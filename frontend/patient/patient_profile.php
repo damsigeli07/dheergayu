@@ -454,8 +454,7 @@
         });
     </script>
 </body>
-</html>="profile-avatar">
-                    👤
+</html>
                     <div class="avatar-upload" title="Change Photo">
                         📷
                     </div>

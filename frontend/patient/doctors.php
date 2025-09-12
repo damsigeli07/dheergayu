@@ -55,9 +55,9 @@
                             <span class="tag">Joint Pain Treatment</span>
                         </div>
                     </div>
-                    <button class="book-appointment-btn" onclick="bookAppointment('Dr. L.M. Perera')">
+                    <!-- <button class="book-appointment-btn" onclick="bookAppointment('Dr. L.M. Perera')">
                         Book Consultation
-                    </button>
+                    </button> -->
                 </div>
             </div>
 
@@ -86,9 +86,9 @@
                             <span class="tag">Prenatal Care</span>
                         </div>
                     </div>
-                    <button class="book-appointment-btn" onclick="bookAppointment('Dr. K. Jayawardena')">
+                    <!-- <button class="book-appointment-btn" onclick="bookAppointment('Dr. K. Jayawardena')">
                         Book Consultation
-                    </button>
+                    </button> -->
                 </div>
             </div>
 
@@ -117,9 +117,9 @@
                             <span class="tag">Autoimmune Conditions</span>
                         </div>
                     </div>
-                    <button class="book-appointment-btn" onclick="bookAppointment('Dr. A.T. Gunarathne')">
+                    <!-- <button class="book-appointment-btn" onclick="bookAppointment('Dr. A.T. Gunarathne')">
                         Book Consultation
-                    </button>
+                    </button> -->
                 </div>
             </div>
         </div>
