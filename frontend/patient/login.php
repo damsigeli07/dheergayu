@@ -1,25 +1,82 @@
 <?php
 session_start();
 
+// Include database connection
+require_once("../../backend/db_connect.php");
+
+$error_message = '';
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = $_POST['email'] ?? '';
+    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
     $password = $_POST['password'] ?? '';
 
-    // For demo purpose only (you'll use a database later)
-    if ($email == "test@example.com" && $password == "1234") {
-        // Set session variables
-        $_SESSION['logged_in'] = true;
-        $_SESSION['user_email'] = $email;
-        $_SESSION['user_type'] = 'patient'; // You can determine this from database
-        $_SESSION['user_name'] = 'Test User'; // Get from database
-        
-        // Redirect to home page
-        header("Location: home.php");
-        exit();
+    if (empty($email) || empty($password)) {
+        $error_message = "Please enter both email and password.";
     } else {
-        $error_message = "Invalid credentials. Please try again.";
+        // 1) Try patients table
+        $stmt = $conn->prepare("SELECT id, first_name, last_name, password FROM patients WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($password, $row['password'])) {
+                $_SESSION['logged_in'] = true;
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['user_email'] = $email;
+                $_SESSION['user_type'] = 'patient';
+                $_SESSION['user_name'] = $row['first_name'] . ' ' . $row['last_name'];
+                $_SESSION['role'] = 'Patient';
+                $_SESSION['name'] = $_SESSION['user_name'];
+
+                header("Location: home.php");
+                exit();
+            }
+        }
+
+        // 2) Try users table
+        $stmt = $conn->prepare("SELECT id, first_name, last_name, password, role FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($password, $row['password'])) {
+                $_SESSION['logged_in'] = true;
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['user_email'] = $email;
+                $_SESSION['user_type'] = strtolower($row['role']);
+                $_SESSION['user_name'] = $row['first_name'] . ' ' . $row['last_name'];
+                $_SESSION['role'] = $row['role'];
+                $_SESSION['name'] = $_SESSION['user_name'];
+
+                switch (strtolower($row['role'])) {
+                    case 'admin':
+                        header("Location: ../admin/admindashboard.php");
+                        break;
+                    case 'doctor':
+                        header("Location: ../doctor/doctordashboard.php");
+                        break;
+                    case 'staff':
+                        header("Location: ../staff/staffhome.php");
+                        break;
+                    case 'pharmacist':
+                        header("Location: ../pharmacist/pharmacisthome.php");
+                        break;
+                    default:
+                        header("Location: home.php");
+                        break;
+                }
+                exit();
+            }
+        }
+
+        // If neither matched
+        $error_message = "Invalid email or password.";
     }
 }
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -39,9 +96,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             Login to your account
         </div>
         
-        <?php if (isset($error_message)): ?>
+        <?php if (!empty($error_message)): ?>
             <div class="error-message" style="color: red; text-align: center; margin: 10px 0; padding: 10px; background: #ffe6e6; border-radius: 5px;">
                 <?php echo htmlspecialchars($error_message); ?>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (isset($_GET['success']) && $_GET['success'] === 'signup_complete'): ?>
+            <div class="success-message" style="color: green; text-align: center; margin: 10px 0; padding: 10px; background: #e6ffe6; border-radius: 5px;">
+                Account created successfully! Please login with your credentials.
             </div>
         <?php endif; ?>
         
@@ -69,14 +132,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div class="signup-link">
                 Don't have an account? <a href="signup.php">SIGN UP</a>
-                <p>Not a Patient?</p>
-            </div>
-            
-            <div class="login-link">
-                <div class="user-link"><a href="/../../dheergayu/frontend/doctor/doctordashboard.php">Doctor</a></div> |
-                <div class="user-link"><a href="/../../dheergayu/frontend/admin/admindashboard.php">Admin</a></div> |
-                <div class="user-link"><a href="/../../dheergayu/frontend/pharmacist/pharmacisthome.php">Pharmacist</a></div> |
-                <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Staff</a></div>
             </div>
         </div>
     </div>

@@ -1,70 +1,5 @@
 <?php
-// Sample users
-$users = [
-    [
-        'name' => 'Amesh',
-        'role' => 'Admin',
-        'email' => 'amesh@gmail.com',
-        'phone' => '0743402455',
-        'status' => 'Active',
-        'reg_date' => '19-07-2025'
-    ],
-    [
-        'name' => 'Dr. Nimal',
-        'role' => 'Doctor',
-        'email' => 'nimal.doctor@gmail.com',
-        'phone' => '0712345678',
-        'status' => 'Active',
-        'reg_date' => '10-06-2025'
-    ],
-    [
-        'name' => 'Saman Perera',
-        'role' => 'Patient',
-        'email' => 'saman.patient@gmail.com',
-        'phone' => '0729876543',
-        'status' => 'Active',
-        'reg_date' => '05-08-2025'
-    ],
-    [
-        'name' => 'Dr. Sarah',
-        'role' => 'Doctor',
-        'email' => 'sarah.doctor@gmail.com',
-        'phone' => '0711111111',
-        'status' => 'Active',
-        'reg_date' => '15-06-2025'
-    ],
-    [
-        'name' => 'Priya Silva',
-        'role' => 'Patient',
-        'email' => 'priya.patient@gmail.com',
-        'phone' => '0722222222',
-        'status' => 'Active',
-        'reg_date' => '20-07-2025'
-    ],
-    [
-        'name' => 'Kamal Perera',
-        'role' => 'Pharmacist',
-        'email' => 'kamal.pharmacist@gmail.com',
-        'phone' => '0733333333',
-        'status' => 'Active',
-        'reg_date' => '12-06-2025'
-    ],
-    [
-        'name' => 'Nimali Fernando',
-        'role' => 'Staff',
-        'email' => 'nimali.staff@gmail.com',
-        'phone' => '0744444444',
-        'status' => 'Active',
-        'reg_date' => '08-07-2025'
-    ]
-];
-
-// Calculate user statistics
-$totalUsers = count($users);
-$doctors = count(array_filter($users, fn($u) => $u['role'] === 'Doctor'));
-$patients = count(array_filter($users, fn($u) => $u['role'] === 'Patient'));
-$staff = count(array_filter($users, fn($u) => in_array($u['role'], ['Admin', 'Staff', 'Pharmacist'])));
-
+// frontend/admin/adminusers.php
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -93,26 +28,24 @@ $staff = count(array_filter($users, fn($u) => in_array($u['role'], ['Admin', 'St
         <img src="images/dheergayu.png" class="logo" alt="Logo">
         <h1 class="header-title">Dheergayu</h1>
         <div class="user-section">
-                <div class="user-icon" id="user-icon">👤</div>
-                <span class="user-role">Admin</span>
-                <!-- Dropdown -->
-        <div class="user-dropdown" id="user-dropdown">
-            <a href="adminprofile.php" class="profile-btn">Profile</a>
-            <a href="../patient/login.php" class="logout-btn">Logout</a>
-        </div>
-            </div> 
+            <div class="user-icon" id="user-icon">👤</div>
+            <span class="user-role">Admin</span>
+            <div class="user-dropdown" id="user-dropdown">
+                <a href="adminprofile.php" class="profile-btn">Profile</a>
+                <a href="../patient/login.php" class="logout-btn">Logout</a>
+            </div>
+        </div> 
     </div>
 </header>
 
 <!-- Main Content -->
 <main class="main-content">
-    <!-- User Overview Cards -->
-    <div class="user-overview">
+    <div class="user-overview" id="overview">
         <div class="overview-card total">
             <div class="overview-icon">👥</div>
             <div class="overview-content">
                 <h3>Total Users</h3>
-                <div class="overview-number"><?= $totalUsers ?></div>
+                <div class="overview-number" id="totalUsers">0</div>
                 <div class="overview-desc">All registered users</div>
             </div>
         </div>
@@ -121,7 +54,7 @@ $staff = count(array_filter($users, fn($u) => in_array($u['role'], ['Admin', 'St
             <div class="overview-icon">👨‍💼</div>
             <div class="overview-content">
                 <h3>Staff Members</h3>
-                <div class="overview-number"><?= $staff ?></div>
+                <div class="overview-number" id="staffCount">0</div>
                 <div class="overview-desc">Admin, Staff & Pharmacists</div>
             </div>
         </div>
@@ -130,7 +63,7 @@ $staff = count(array_filter($users, fn($u) => in_array($u['role'], ['Admin', 'St
             <div class="overview-icon">👨‍⚕️</div>
             <div class="overview-content">
                 <h3>Doctors</h3>
-                <div class="overview-number"><?= $doctors ?></div>
+                <div class="overview-number" id="doctorCount">0</div>
                 <div class="overview-desc">Medical professionals</div>
             </div>
         </div>
@@ -139,7 +72,7 @@ $staff = count(array_filter($users, fn($u) => in_array($u['role'], ['Admin', 'St
             <div class="overview-icon">🏥</div>
             <div class="overview-content">
                 <h3>Patients</h3>
-                <div class="overview-number"><?= $patients ?></div>
+                <div class="overview-number" id="patientCount">0</div>
                 <div class="overview-desc">Registered patients</div>
             </div>
         </div>
@@ -158,26 +91,54 @@ $staff = count(array_filter($users, fn($u) => in_array($u['role'], ['Admin', 'St
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
-            <?php foreach ($users as $u): ?>
-                <tr>
-                    <td><?= htmlspecialchars($u['name']) ?></td>
-                    <td><?= htmlspecialchars($u['role']) ?></td>
-                    <td><?= htmlspecialchars($u['email']) ?></td>
-                    <td><?= htmlspecialchars($u['phone']) ?></td>
-                    <td class="status active"><?= htmlspecialchars($u['status']) ?></td>
-                    <td><?= htmlspecialchars($u['reg_date']) ?></td>
-                    <td>
-                        <button class="edit-btn">Edit</button>
-                        <button class="del-btn">Delete</button>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+            <tbody id="userTableBody">
+                <!-- Users will load here dynamically -->
             </tbody>
         </table>
         <a href="adminaddnewuser.php"><button class="add-btn">+ Add New User</button></a>
     </div>
 </main>
+
+<script>
+// Fetch users from backend
+fetch('../../backend/admin/admin_users.php')
+    .then(response => response.json())
+    .then(users => {
+        const tbody = document.getElementById('userTableBody');
+        let total = users.length;
+        let doctors = 0, patients = 0, staff = 0;
+
+        users.forEach(u => {
+            if (u.role === 'Doctor') doctors++;
+            else if (u.role === 'Patient') patients++;
+            else if (['Admin', 'Staff', 'Pharmacist'].includes(u.role)) staff++;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${u.name}</td>
+                <td>${u.role}</td>
+                <td>${u.email}</td>
+                <td>${u.phone}</td>
+                <td class="status ${u.status?.toLowerCase() || 'active'}">${u.status || 'Active'}</td>
+                <td>${u.reg_date || '-'}</td>
+                <td>
+                    <button class="edit-btn">Edit</button>
+                    <button class="del-btn">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('totalUsers').textContent = total;
+        document.getElementById('doctorCount').textContent = doctors;
+        document.getElementById('patientCount').textContent = patients;
+        document.getElementById('staffCount').textContent = staff;
+    })
+    .catch(error => {
+        console.error('Error fetching users:', error);
+        alert('Error loading users from database!');
+    });
+</script>
 
 </body>
 </html>

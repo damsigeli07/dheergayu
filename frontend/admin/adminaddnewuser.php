@@ -10,18 +10,21 @@
     <div class="main-container">
         <h2>Add New User</h2>
 
-        <form id="addUserForm">
-            <label for="name">Name <span>*</span></label>
-            <input type="text" id="name" name="name" required placeholder="Enter full name">
+        <form id="addUserForm" method="POST" action="../../backend/admin/add_user.php">
+            <label for="firstName">First Name <span>*</span></label>
+            <input type="text" id="firstName" name="first_name" required>
+
+            <label for="lastName">Last Name <span>*</span></label>
+            <input type="text" id="lastName" name="last_name" required>
 
             <label for="password">Password <span>*</span></label>
-            <input type="password" id="password" name="password" required placeholder="Enter password">
+            <input type="password" id="password" name="password" required>
 
             <label for="email">Email <span>*</span></label>
-            <input type="email" id="email" name="email" required placeholder="example@email.com">
+            <input type="email" id="email" name="email" required>
 
             <label for="phone">Phone <span>*</span></label>
-            <input type="text" id="phone" name="phone" required placeholder="Enter 10-digit phone number">
+            <input type="text" id="phone" name="phone" required>
 
             <label for="role">Role <span>*</span></label>
             <select id="role" name="role" required>
@@ -29,10 +32,11 @@
                 <option value="Pharmacist">Pharmacist</option>
                 <option value="Doctor">Doctor</option>
                 <option value="Staff">Staff</option>
+                <option value="Admin">Admin</option>
             </select>
 
             <label class="checkbox-label">
-                <input type="checkbox" id="verified" name="verified">
+                <input type="checkbox" id="verified" name="verified" required>
                 Certification is verified
             </label>
 
@@ -42,30 +46,5 @@
             </div>
         </form>
     </div>
-
-    <script>
-        document.getElementById("addUserForm").addEventListener("submit", function(e) {
-            const phone = document.getElementById("phone").value.trim();
-            const verified = document.getElementById("verified").checked;
-
-            // Phone validation: must be 10 digits (only numbers)
-            const phoneRegex = /^[0-9]{10}$/;
-            if (!phoneRegex.test(phone)) {
-                alert("Phone number must be exactly 10 digits.");
-                e.preventDefault();
-                return;
-            }
-
-            // Certification checkbox validation
-            if (!verified) {
-                alert("Certification must be verified before submission.");
-                e.preventDefault();
-                return;
-            }
-
-            // If all validations pass
-            alert("Form submitted successfully! (No backend)");
-        });
-    </script>
 </body>
 </html>

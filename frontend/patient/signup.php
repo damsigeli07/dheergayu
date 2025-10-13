@@ -1,3 +1,9 @@
+<?php
+// Check if there's a status message
+$success = $_GET['success'] ?? '';
+$error   = $_GET['error'] ?? '';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,35 +17,52 @@
 <div class="form-container-main">
     <div class="container">
         <a href="home.php" class="close-btn" aria-label="Close">×</a>
-        <div class="title">
-            Let's get your account set up
-        </div>
+        <div class="title">Let's get your account set up</div>
+
+        <?php if ($error === 'password_mismatch'): ?>
+            <script>alert('Passwords do not match!');</script>
+        <?php elseif ($error === 'already_exists'): ?>
+            <script>alert('Email or NIC already registered!');</script>
+        <?php elseif ($error === 'database_error'): ?>
+            <script>alert('Database error! Please try again later.');</script>
+        <?php elseif ($success === 'signup_complete'): ?>
+            <script>
+                alert('Signup successful! Redirecting to login page.');
+                window.location.href = 'login.php';
+            </script>
+        <?php endif; ?>
+
         <div class="form-container">
-            <form id="signupForm">
+            <form id="signupForm" method="POST" action="../../backend/patient/patient_signup.php">
                 <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" placeholder="Enter your full name" required>
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="first_name" placeholder="Enter your first name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="last_name" placeholder="Enter your last name" required>
                 </div>
 
                 <div class="form-group">
                     <label for="dob">Date of Birth</label>
-                    <input type="date" id="dob" class="date-input" required>
+                    <input type="date" id="dob" name="dob" required>
                 </div>
 
                 <div class="form-group">
                     <label for="nic">NIC</label>
-                    <input type="text" id="nic" placeholder="Enter your NIC number" required>
+                    <input type="text" id="nic" name="nic" placeholder="Enter your NIC number" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Enter your email address" required>
+                    <input type="email" id="email" name="email" placeholder="Enter your email address" required>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-field">
-                        <input type="password" id="password" placeholder="Create a strong password" required>
+                        <input type="password" id="password" name="password" placeholder="Create a strong password" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('password')">👁</button>
                     </div>
                 </div>
@@ -47,75 +70,25 @@
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="password-field">
-                        <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+                        <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm your password" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">👁</button>
                     </div>
                 </div>
 
                 <button type="submit" class="submit-btn">SIGN UP</button>
             </form>
-
-            <div class="signup-link">
-                Already have an account? <a href="login.php">Log In</a>
-                <p>Not a Patient?</p>
-            </div>
-            <div class="login-link">
-                <div class="user-link"><a href="/../../dheergayu/frontend/doctor/doctordashboard.php">Doctor</a></div> |
-                <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Admin</a></div> |
-                <div class="user-link"><a href="/../../dheergayu/frontend/pharmacist/pharmacisthome.php">Pharmacist</a></div> |
-                <div class="user-link"><a href="/../../dheergayu/frontend/staff/staffhome.php">Staff</a></div>|
-                
-            </div>
         </div>
     </div>
 </div>
-    <script>
-        function togglePassword(fieldId) {
-            const field = document.getElementById(fieldId);
-            const toggle = field.nextElementSibling;
-            
-            if (field.type === 'password') {
-                field.type = 'text';
-                toggle.textContent = '🙈';
-            } else {
-                field.type = 'password';
-                toggle.textContent = '👁';
-            }
-        }
 
-        function showLoginPage() {
-            alert('Redirecting to login page...');
-        }
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const toggle = field.nextElementSibling;
+    if (field.type === 'password') { field.type = 'text'; toggle.textContent = '🙈'; }
+    else { field.type = 'password'; toggle.textContent = '👁'; }
+}
+</script>
 
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                alert('Passwords do not match!');
-                return;
-            }
-            
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters long!');
-                return;
-            }
-            
-            alert('Account created successfully! Please check your email for verification.');
-        });
-
-        // Add smooth focus animations
-        document.querySelectorAll('input, select').forEach(element => {
-            element.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-            });
-            
-            element.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
-        });
-    </script>
 </body>
 </html>
