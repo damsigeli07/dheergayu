@@ -33,7 +33,8 @@
             <div class="doctor-card">
                 <div class="availability-indicator">Available</div>
                 <div class="doctor-image">
-                    
+
+                <img src="img/doctor1.jpg" alt="Dr. L.M. Perera" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
                     <h2 class="doctor-name">Dr. L.M. Perera</h2>
@@ -64,7 +65,7 @@
             <div class="doctor-card">
                 <div class="availability-indicator limited">Limited Slots</div>
                 <div class="doctor-image">
-                    
+                    <img src="img/doctor2.jpg" alt="Dr. K. Jayawardena" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
                     <h2 class="doctor-name">Dr. K. Jayawardena</h2>
@@ -95,7 +96,7 @@
             <div class="doctor-card">
                 <div class="availability-indicator">Available</div>
                 <div class="doctor-image">
-                    
+                    <img src="img/doctor3.jpg" alt="Dr. A.T. Gunarathne" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
                     <h2 class="doctor-name">Dr. A.T. Gunarathne</h2>

@@ -38,68 +38,50 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Left Column -->
-        <div class="left-column">
-            <h2 class="section-title">Products to prepare for:</h2>
+        <!-- Main Content -->
+        <div class="main-dashboard">
+            <h2 class="section-title">Patient Orders Summary</h2>
             
-            <div class="popular-treatment">
-                <h3 class="subsection-title">Today's In-Popular Treatment (From Staff)</h3>
-            </div>
-
-            <!-- Orders Section -->
-            <div class="orders-section">
-                <h3 class="orders-title">Orders to prepare today: 8</h3>
-                <ul class="orders-list">
-                    <li>• Herbal Pain Relief Oil - 3 bottles</li>
-                    <li>• Anti-inflammatory Tablets - 5 packs</li>
-                    <li>• Neem Paste - 2 containers</li>
-                </ul>
-            </div>
-
-            <!-- Low Stock Alert -->
-            <div class="alert-section">
-                <div class="alert-header">
-                    <span class="alert-icon">⚠</span>
-                    <h3 class="alert-title">Low Stock Alerts!</h3>
-                </div>
-                <div class="alert-content">
-                    <p class="critical-items-label">Critical Items:</p>
-                    <ul class="critical-items-list">
-                        <li>• Turmeric Powder - Only 2 kg remaining</li>
-                        <li>• Ayurvedic Massage Oil - 1 bottle left</li>
-                        <li>• Herbal Steam Herbs - 3 packets remaining</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="right-column">
-            <!-- Today's Summary -->
-            <div class="summary-section">
-                <h3 class="summary-title">Today's Summary</h3>
-                <div class="summary-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Total Orders:</span>
-                        <span class="stat-value">8</span>
+            <div class="orders-overview">
+                <div class="overview-card">
+                    <h3 class="card-title">Current Orders</h3>
+                    <div class="order-item">
+                        <span class="consultation-id">Consultation #101</span>
+                        <span class="patient-name">John Doe</span>
+                        <div class="medicines">
+                            <span class="medicine">Paspanguwa Pack x2</span>
+                            <span class="medicine">Asamodagam Spirit x1</span>
+                        </div>
+                        <span class="status pending">Pending</span>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Completed:</span>
-                        <span class="stat-value">3</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">In Progress:</span>
-                        <span class="stat-value">2</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Pending:</span>
-                        <span class="stat-value">3</span>
+                    <div class="order-item">
+                        <span class="consultation-id">Consultation #102</span>
+                        <span class="patient-name">Jane Smith</span>
+                        <div class="medicines">
+                            <span class="medicine">Siddhalepa Balm x1</span>
+                            <span class="medicine">Dashamoolarishta x2</span>
+                        </div>
+                        <span class="status pending">Pending</span>
                     </div>
                 </div>
-
-                <div class="next-priority">
-                    <h4 class="priority-title">Next Priority:</h4>
-                    <p class="priority-text">Oil Massage preparations for 2:00 PM session</p>
+                
+                <div class="inventory-alerts">
+                    <div class="alert-item">
+                        <h4 class="alert-title">⚠️ Low Stock Items</h4>
+                        <ul class="alert-list">
+                            <li>Turmeric Powder - 2 kg remaining</li>
+                            <li>Ayurvedic Massage Oil - 1 bottle left</li>
+                            <li>Herbal Steam Herbs - 3 packets</li>
+                        </ul>
+                    </div>
+                    <div class="alert-item">
+                        <h4 class="alert-title">⏰ Expiring Soon</h4>
+                        <ul class="alert-list">
+                            <li>Neem Paste - Expires in 5 days</li>
+                            <li>Herbal Tea Mix - Expires in 7 days</li>
+                            <li>Medicated Oil - Expires in 10 days</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
