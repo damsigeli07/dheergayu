@@ -142,15 +142,7 @@
         const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
         const userType = '<?php echo htmlspecialchars($userType); ?>';
 
-        function handleTreatmentNavigation() {
-            if (isLoggedIn) {
-                // Navigate to after login treatment page (with appointment booking)
-                window.location.href = 'after_login_treatment.php';
-            } else {
-                // Navigate to before login treatment page (information only)
-                window.location.href = 'before_login_treatment.php';
-            }
-        }
+
 
         function toggleProfileDropdown() {
             const dropdown = document.getElementById('profileDropdown');
