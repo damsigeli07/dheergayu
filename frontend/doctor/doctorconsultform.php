@@ -18,9 +18,15 @@
                     <div class="left-section">
                         <h2>Consultation Form</h2>
                         
-                        <div class="form-group">
-                            <label for="patient_name">Patient's Name</label>
-                            <input type="text" id="patient_name" name="patient_name" placeholder="Enter patient's name">
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="patient_first_name">First Name</label>
+                                <input type="text" id="patient_first_name" name="patient_first_name" placeholder="Enter first name">
+                            </div>
+                            <div class="form-group half">
+                                <label for="patient_last_name">Last Name</label>
+                                <input type="text" id="patient_last_name" name="patient_last_name" placeholder="Enter last name">
+                            </div>
                         </div>
 
                         <div class="form-row">
@@ -174,14 +180,16 @@
         e.preventDefault();
         let errors = [];
 
-        const patientName = document.getElementById('patient_name').value.trim();
+        const patientFirstName = document.getElementById('patient_first_name').value.trim();
+        const patientLastName = document.getElementById('patient_last_name').value.trim();
         const age = document.getElementById('age').value.trim();
         const gender = document.getElementById('gender').value;
         const diagnosis = document.getElementById('diagnosis').value.trim();
         const treatment = document.getElementById('recommended_treatment').value.trim();
         const products = document.querySelectorAll('#product_list_table tr');
 
-        if (patientName.length < 2) errors.push("Patient name must be at least 2 characters.");
+        if (patientFirstName.length < 2) errors.push("Patient first name must be at least 2 characters.");
+        if (patientLastName.length < 2) errors.push("Patient last name must be at least 2 characters.");
         if (age === "" || age <= 0) errors.push("Enter a valid age.");
         if (gender === "") errors.push("Please select gender.");
         if (diagnosis === "") errors.push("Diagnosis is required.");
