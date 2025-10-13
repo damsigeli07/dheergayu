@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dheergayu - My Appointments</title>
-    <link rel="stylesheet" href="dheergayu/public/assets/css/Patient/patient_appointments.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/patient_appointments.css?v=<?php echo time(); ?>">
 </head>
 
 <body>

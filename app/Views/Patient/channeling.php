@@ -19,7 +19,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
     <header class="header">
         <div class="header-left">
             <nav class="navigation">
-                <img src="/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
+                <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
                 <h1 class="header-title">Dheergayu</h1>
             </nav>
         </div>
