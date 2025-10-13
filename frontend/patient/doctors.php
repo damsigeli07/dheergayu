@@ -55,9 +55,7 @@
                             <span class="tag">Joint Pain Treatment</span>
                         </div>
                     </div>
-                    <!-- <button class="book-appointment-btn" onclick="bookAppointment('Dr. L.M. Perera')">
-                        Book Consultation
-                    </button> -->
+         
                 </div>
             </div>
 
@@ -86,9 +84,6 @@
                             <span class="tag">Prenatal Care</span>
                         </div>
                     </div>
-                    <!-- <button class="book-appointment-btn" onclick="bookAppointment('Dr. K. Jayawardena')">
-                        Book Consultation
-                    </button> -->
                 </div>
             </div>
 
@@ -117,9 +112,7 @@
                             <span class="tag">Autoimmune Conditions</span>
                         </div>
                     </div>
-                    <!-- <button class="book-appointment-btn" onclick="bookAppointment('Dr. A.T. Gunarathne')">
-                        Book Consultation
-                    </button> -->
+
                 </div>
             </div>
         </div>
@@ -129,37 +122,76 @@
             <p class="cta-text">
                 Book a consultation with one of our experienced doctors today and discover how Ayurveda can transform your health and wellbeing.
             </p>
-            <a href="channeling.php" class="cta-button" onclick="handleGeneralBooking()">Book Your Appointment</a>
+            <button class="cta-button" onclick="handleBookNow()">Book Your Appointment</button>
+        </div>
+    </div>
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>Login Required</h2>
+            <p>Please login to book appointments and access our services.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="goToLogin()">Login Now</button>
+                <button class="modal-btn secondary" onclick="closeLoginModal()">Cancel</button>
+            </div>
         </div>
     </div>
 
     <script>
-        function bookAppointment(doctorName) {
-            // Check if user is logged in (this would come from your backend in real implementation)
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            
+        // Get login state from PHP
+        const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+        const userType = '<?php echo htmlspecialchars($userType); ?>';
+
+        function handleTreatmentNavigation() {
             if (isLoggedIn) {
-                // Navigate to channeling page with pre-selected doctor
-                window.location.href = `channeling.php?doctor=${encodeURIComponent(doctorName)}`;
+                // Navigate to after login treatment page (with appointment booking)
+                window.location.href = 'after_login_treatment.php';
             } else {
-                // Show login required message
-                if (confirm(`Please login to book an appointment with ${doctorName}.\n\nWould you like to go to the login page now?`)) {
-                    window.location.href = 'login.php';
-                }
+                // Navigate to before login treatment page (information only)
+                window.location.href = 'before_login_treatment.php';
             }
         }
 
-        function handleGeneralBooking() {
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-            
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        function handleBookNow() {
+            if (isLoggedIn) {
+                // Navigate to channeling page
+                window.location.href = 'channeling.php';
+            } else {
+                // Show login modal
+                document.getElementById('loginModal').style.display = 'block';
+            }
+        }
+
+        function handleChanneling() {
             if (isLoggedIn) {
                 window.location.href = 'channeling.php';
             } else {
-                if (confirm('Please login to book appointments.\n\nWould you like to go to the login page now?')) {
-                    window.location.href = 'login.php';
-                }
+                document.getElementById('loginModal').style.display = 'block';
             }
         }
+
+        function handleExploreServices() {
+            // Navigate to doctors info page
+            window.location.href = 'doctors.php';
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function goToLogin() {
+            window.location.href = 'login.php';
+        }
+
+
+
+
+
 
         // Add smooth scroll animation for cards
         window.addEventListener('load', function() {
