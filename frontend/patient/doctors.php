@@ -83,7 +83,7 @@
                             <span class="tag">Hormonal Balance</span>
                             <span class="tag">Prenatal Care</span>
                         </div>
-
+                    </div>
                 </div>
             </div>
 
