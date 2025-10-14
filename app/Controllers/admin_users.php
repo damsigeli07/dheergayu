@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . "/../../config/db_connect.php");
+require_once(__DIR__ . "/../../config/config.php");
 
 // Fetch all users
 $sql = "SELECT id, CONCAT(first_name, ' ', last_name) AS name, role, email, phone, status, reg_date FROM users";
