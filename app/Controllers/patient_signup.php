@@ -1,6 +1,6 @@
 <?php
 // Include database connection
-require_once("../../backend/db_connect.php"); // adjust path if needed
+require_once(__DIR__ . "/../../config/config.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validate passwords match
     if ($password !== $confirm_pw) {
-        header("Location: ../../frontend/patient/signup.php?error=password_mismatch");
+        header("Location: /dheergayu/app/Views/Patient/signup.php?error=password_mismatch");
         exit();
     }
 
@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($stmt->num_rows > 0) {
         $stmt->close();
-        header("Location: ../../frontend/patient/signup.php?error=already_exists");
+        header("Location: /dheergayu/app/Views/Patient/signup.php?error=already_exists");
         exit();
     }
     $stmt->close();
@@ -41,17 +41,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($stmt->execute()) {
         $stmt->close();
         $conn->close();
-        header("Location: ../../frontend/patient/signup.php?success=signup_complete");
+        header("Location: /dheergayu/app/Views/Patient/signup.php?success=signup_complete");
         exit();
     } else {
         $stmt->close();
         $conn->close();
-        header("Location: ../../frontend/patient/signup.php?error=database_error");
+        header("Location: /dheergayu/app/Views/Patient/signup.php?error=database_error");
         exit();
     }
 
 } else {
-    header("Location: ../../frontend/patient/signup.php");
+    header("Location: /dheergayu/app/Views/Patient/signup.php");
     exit();
 }
 ?>

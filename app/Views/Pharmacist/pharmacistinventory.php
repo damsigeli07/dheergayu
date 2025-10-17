@@ -108,16 +108,16 @@ foreach ($overview as $row) {
         <thead>
             <tr>
                 <th>Image</th>
-                <th>Product</th>
+                <th>Medicine</th>
                     <th>Total Quantity</th>
                     <th>Earliest Expiry</th>
                     <th>Batches</th>
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="inventoryTableBody">
                 <?php foreach($overview as $item): ?>
-                <tr>
+                <tr data-product="<?= htmlspecialchars($item['product']) ?>">
                 <?php $img = product_image_for($item['product']); ?>
                 <td><img src="<?= $img ?>" alt="<?= htmlspecialchars($item['product']) ?>" class="prod-img"></td>
                     <td><?= htmlspecialchars($item['product']) ?></td>
@@ -130,8 +130,8 @@ foreach ($overview as $row) {
                         <?php endif; ?>
                     </td>
                     
-                    <td><?= $item['earliest_exp'] ? htmlspecialchars($item['earliest_exp']) : '-' ?></td>
-                    <td><?= (int)$item['batches_count'] ?> batch<?= (int)$item['batches_count'] > 1 ? 'es' : '' ?></td>
+                    <td class="earliest-expiry"><?= $item['earliest_exp'] ? htmlspecialchars($item['earliest_exp']) : '-' ?></td>
+                    <td class="batches-count"><?= (int)$item['batches_count'] ?> batch<?= (int)$item['batches_count'] > 1 ? 'es' : '' ?></td>
                     <td>
                         <button class="btn-add-batch" onclick="addBatch('<?= htmlspecialchars($item['product']) ?>')">Add Batch</button>
                         <button class="btn-batches" onclick="viewBatches('<?= htmlspecialchars($item['product']) ?>')">View Batches</button>
@@ -167,6 +167,7 @@ foreach ($overview as $row) {
                 <div class="add-batch-form">
                 <form id="editBatchForm">
                     <input type="hidden" name="product_id" id="edit_product_id">
+                    <input type="hidden" id="edit_product_name_hidden">
                     <div class="form-group">
                         <label for="edit_product_name">Product</label>
                         <input type="text" id="edit_product_name" class="form-input" readonly>
@@ -260,22 +261,11 @@ foreach ($overview as $row) {
                     <div class="form-group">
                         <label for="supplier">Supplier *</label>
                         <select name="supplier" id="supplier" class="form-input" required>
-                            <option value="">Select supplier</option>
                             <option value="Herbal Supplies Co.">Herbal Supplies Co.</option>
                             <option value="Ayurvedic Traders">Ayurvedic Traders</option>
                             <option value="Natural Extracts Ltd.">Natural Extracts Ltd.</option>
                         </select>
                         <small class="form-help">Select the supplier for this batch</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <select name="status" id="status" class="form-input">
-                            <option value="Good">Good</option>
-                            <option value="Expiring Soon">Expiring Soon</option>
-                            <option value="Expired">Expired</option>
-                        </select>
-                        <small class="form-help">Current status of this batch (auto-calculated based on dates)</small>
                     </div>
 
                     <div class="form-actions">
@@ -425,6 +415,7 @@ foreach ($overview as $row) {
             if (!batch) { alert('Batch not found'); return; }
             document.getElementById('edit_product_id').value = productId;
             document.getElementById('edit_product_name').value = productName;
+            document.getElementById('edit_product_name_hidden').value = productName;
             document.getElementById('edit_batch_number').value = batch.batch_number;
             document.getElementById('edit_quantity').value = batch.quantity;
             document.getElementById('edit_mfd').value = batch.mfd;
@@ -450,8 +441,9 @@ foreach ($overview as $row) {
             const data = await res.json();
             if (data.success) {
                 alert('✅ Batch deleted');
-                            viewBatches(productName);
-                        } else {
+                viewBatches(productName);
+                await updateMainTableQuantity(productName);
+            } else {
                 alert('❌ Delete failed');
             }
         }
@@ -472,6 +464,63 @@ foreach ($overview as $row) {
             }
 }
 
+        // Calculate status based on expiry date
+        function calculateStatus(expDate) {
+            const today = new Date();
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(today.getDate() + 30);
+            
+            const expDateObj = new Date(expDate);
+            
+            if (expDateObj < today) {
+                return 'Expired';
+            } else if (expDateObj <= thirtyDaysFromNow) {
+                return 'Expiring Soon';
+            }
+            return 'Good';
+        }
+
+        // Update main table quantity after edit/delete
+        async function updateMainTableQuantity(productName) {
+            const productId = productNameToId[productName];
+            try {
+                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                const data = await res.json();
+                const rows = data.data || [];
+                
+                let totalQty = 0;
+                let earliestExp = null;
+                
+                rows.forEach(b => {
+                    totalQty += Number(b.quantity || 0);
+                    if (b.exp) {
+                        if (!earliestExp || new Date(b.exp) < new Date(earliestExp)) {
+                            earliestExp = b.exp;
+                        }
+                    }
+                });
+                
+                // Update the main table row
+                const row = document.querySelector(`tr[data-product="${productName}"]`);
+                if (row) {
+                    row.querySelector('.total-quantity').textContent = totalQty;
+                    row.querySelector('.earliest-expiry').textContent = earliestExp || '-';
+                    row.querySelector('.batches-count').textContent = `${rows.length} batch${rows.length > 1 ? 'es' : ''}`;
+                    
+                    // Update stock warning
+                    const quantityCell = row.querySelector('.quantity-cell');
+                    const warningSpan = quantityCell.querySelector('.stock-warning');
+                    if (warningSpan) warningSpan.remove();
+                    
+                    if (totalQty <= 5) {
+                        quantityCell.innerHTML += '<span class="stock-warning critical">Critical</span>';
+                    } else if (totalQty <= 15) {
+                        quantityCell.innerHTML += '<span class="stock-warning low">Low</span>';
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
         // Handle add-batch form submit via API
         document.getElementById('addBatchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -479,20 +528,22 @@ foreach ($overview as $row) {
             const productId = productNameToId[productName];
             if (!productId) { alert('❌ Invalid product'); return; }
             const formEl = e.target;
+            const expDate = formEl.exp.value;
+            const autoStatus = calculateStatus(expDate);
             const payload = new FormData();
             payload.append('product_id', productId);
             payload.append('batch_number', formEl.batch_number.value);
             payload.append('quantity', formEl.quantity.value);
             payload.append('mfd', formEl.mfd.value);
-            payload.append('exp', formEl.exp.value);
+            payload.append('exp', expDate);
             payload.append('supplier', formEl.supplier.value);
-            payload.append('status', formEl.status.value);
+            payload.append('status', autoStatus);
             const res = await fetch('/dheergayu/public/api/batches/create', { method: 'POST', body: payload });
             const data = await res.json();
             if (data.success) {
                 alert('✅ Batch added');
                 closeAddBatchModal();
-                location.reload();
+                await updateMainTableQuantity(productName);
             } else {
                 alert('❌ Failed to add batch');
             }
@@ -512,7 +563,6 @@ foreach ($overview as $row) {
             if (n.includes('nirgundi') && n.includes('oil')) return 'NRO';
             if (n.includes('pinda') && n.includes('thailaya')) return 'PTL';
             if (n.includes('bala') && n.includes('thailaya')) return 'BLT';
-            // fallback: first 3 consonants/letters
             return (name.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0,3) || 'BAT');
         }
 
@@ -544,6 +594,7 @@ foreach ($overview as $row) {
 
         document.getElementById('editBatchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            const productName = document.getElementById('edit_product_name_hidden').value;
             const payload = new FormData();
             payload.append('product_id', document.getElementById('edit_product_id').value);
             payload.append('batch_number', document.getElementById('edit_batch_number').value);
@@ -557,8 +608,8 @@ foreach ($overview as $row) {
             if (data.success) {
                 alert('✅ Batch updated');
                 closeEditBatchModal();
-                const name = document.getElementById('edit_product_name').value;
-                viewBatches(name);
+                viewBatches(productName);
+                await updateMainTableQuantity(productName);
             } else {
                 alert('❌ Update failed');
             }

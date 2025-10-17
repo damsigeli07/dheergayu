@@ -1,4 +1,5 @@
 <?php
+require_once(__DIR__ . "/../../config/config.php");
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $first = trim($_POST['first_name']);
     $last = trim($_POST['last_name']);
@@ -21,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->close();
     $conn->close();
 } else {
-    header("Location: ../../frontend/admin/adminaddnewuser.php");
+    header("Location: /dheergayu/app/View/admin/adminaddnewuser.php");
     exit;
 }
 ?>

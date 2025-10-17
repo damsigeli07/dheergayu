@@ -10,7 +10,7 @@
     <div class="main-container">
         <h2>Add New User</h2>
 
-        <form id="addUserForm" method="POST" action="../../app/Controllers/add_user.php">
+        <form id="addUserForm" method="POST" action="/dheergayu/app/Controllers/add_user.php">
             <label for="firstName">First Name <span>*</span></label>
             <input type="text" id="firstName" name="first_name" required>
 
