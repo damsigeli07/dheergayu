@@ -40,41 +40,40 @@
     <header>
       <h1>Doctor Report</h1>
 
+      <section class="summary-grid">
+  <div class="card green">
+    <h3>Appointments This Month</h3>
+    <p>185</p>
+    <span>Up to August 10</span>
+  </div>
+  <div class="card yellow">
+    <h3>Total Patients</h3>
+    <p>230</p>
+    <span>Unique patients this month</span>
+  </div>
+  <div class="card purple">
+    <h3>Today's Income</h3>
+    <p>Rs. 15,750</p>
+    <span>From completed appointments</span>
+  </div>
+</section>
+
       <section class="graph-section" style="margin-top: 40px;">
   <h2 style="text-align:center; color:#8B7355;">Monthly Appointments</h2>
-  <canvas id="appointmentsChart" style="max-width:100%; height:400px;"></canvas>
+  <canvas id="appointmentsChart" style="max-width:100%; height:250px;"></canvas>
 </section>
       <section class="graph-section" style="margin-top: 40px;">
   <h2 style="text-align:center; color:#8B7355;">Monthly Income</h2>
-  <canvas id="incomeChart" style="max-width:100%; height:400px;"></canvas>
+  <canvas id="incomeChart" style="max-width:100%; height:250px;"></canvas>
 </section>
 
 
       </header>
 
-    <!-- Summary Cards -->
-    <section class="summary-grid">
-      <div class="card green">
-        <h3>Appointments This Month</h3>
-        <p>185</p>
-        <span>Up to August 10</span>
-      </div>
-      <div class="card yellow">
-        <h3>Total Patients</h3>
-        <p>230</p>
-        <span>Unique patients this month</span>
-      </div>
-      <div class="card purple">
-        <h3>Today's Income</h3>
-        <p>Rs. 15,750</p>
-        <span>From completed appointments</span>
-      </div>
-    </section>
-
     <!-- Generate Report Button -->
     <div class="button-container">
       <button type="button" class="btn btn-back" onclick="window.location.href='doctordashboard.php'">Back to Dashboard</button>
-      <button class="generate-btn">Generate Report</button>
+      <button class="generate-btn" onclick="generatePDF()">Generate Report</button>
     </div>
   </div>
 
@@ -88,8 +87,9 @@
       datasets: [{
         label: 'Appointments',
         data: [18, 22, 15, 20, 19, 25, 21, 23, 17, 30],
-        backgroundColor: '#84a939ff'
-      }]
+        backgroundColor: '#84a939ff',
+        barPercentage: 0.6
+    }]
     },
     options: {
       responsive: true,
@@ -121,7 +121,8 @@ const incomeChart = new Chart(incomeCtx, {
     datasets: [{
       label: 'Income (Rs.)',
       data: [10000, 13000, 10500, 12750, 11100, 14200, 12900, 13500, 11900, 15750],
-      backgroundColor: '#84a939ff'
+      backgroundColor: '#84a939ff',
+      barPercentage: 0.6
     }]
   },
   options: {
@@ -147,6 +148,11 @@ const incomeChart = new Chart(incomeCtx, {
 
 </script>
 
+<script>
+function generatePDF() {
+  window.print();
+}
+</script>
 
 </body>
 </html>
