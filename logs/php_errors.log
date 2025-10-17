@@ -1,6 +1,0 @@
-[17-Oct-2025 08:46:18 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in D:\Apache24\Apache-24\htdocs\dheergayu\app\Models\AppointmentModel.php:30
-Stack trace:
-#0 D:\Apache24\Apache-24\htdocs\dheergayu\app\Models\AppointmentModel.php(30): mysqli_stmt->bind_param('iisssssidsss', 3, 1, '2025-10-18', '10:00', 'Test Patient', 'test@example.co...', '1234567890', 30, 'Female', 1500.0, 'Pending', 'onsite', 'Pending')
-#1 D:\Apache24\Apache-24\htdocs\dheergayu\public\api\book-consultation.php(136): AppointmentModel->bookConsultation(3, 1, '2025-10-18', '10:00', 'Test Patient', 'test@example.co...', '1234567890', 30, 'Female', 'onsite')
-#2 {main}
-  thrown in D:\Apache24\Apache-24\htdocs\dheergayu\app\Models\AppointmentModel.php on line 30

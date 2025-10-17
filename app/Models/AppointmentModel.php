@@ -1,6 +1,5 @@
 <?php
 // app/Models/AppointmentModel.php
-// FIXED - Variables passed by reference
 
 class AppointmentModel {
     private $conn;
@@ -9,108 +8,71 @@ class AppointmentModel {
         $this->conn = $conn;
     }
 
+    // CREATE: Book consultation (channeling)
     public function bookConsultation($patient_id, $doctor_id, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $payment_method) {
         $consultation_fee = 1500.00;
         $status = 'Pending';
         $payment_status = 'Pending';
-
-        $sql = "
-            INSERT INTO consultations 
-            (patient_id, doctor_id, appointment_date, appointment_time, patient_name, email, phone, age, gender, consultation_fee, status, payment_method, payment_status) 
+        
+                // Get doctor name
+        $doctor_stmt = $this->conn->prepare("SELECT name FROM doctors WHERE id = ?");
+        $doctor_stmt->bind_param("i", $doctor_id);
+        $doctor_stmt->execute();
+        $doctor_result = $doctor_stmt->get_result()->fetch_assoc();
+        $doctor_name = $doctor_result['name'] ?? 'Unknown Doctor';
+        $doctor_stmt->close();
+        
+        $stmt = $this->conn->prepare("
+            INSERT INTO consultations (patient_id, doctor_id, appointment_date, appointment_time, patient_name, email, phone, age, gender, consultation_fee, status, payment_method, payment_status) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ";
+        ");
         
-        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("iisssssisiss", $patient_id, $doctor_id, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $consultation_fee, $status, $payment_method, $payment_status);
         
-        if (!$stmt) {
-            throw new Exception('Prepare failed: ' . $this->conn->error);
+        if ($stmt->execute()) {
+            $id = $stmt->insert_id;
+            $stmt->close();
+            return $id;
         }
-
-        // Pass variables by reference - this is critical for bind_param
-        $stmt->bind_param(
-            "iisssssidsss",
-            $patient_id,
-            $doctor_id,
-            $appointment_date,
-            $appointment_time,
-            $patient_name,
-            $email,
-            $phone,
-            $age,
-            $gender,
-            $consultation_fee,
-            $status,
-            $payment_method,
-            $payment_status
-        );
-
-        if (!$stmt->execute()) {
-            throw new Exception('Execute failed: ' . $stmt->error);
-        }
-
-        $consultation_id = $stmt->insert_id;
         $stmt->close();
-        
-        return $consultation_id;
+        return false;
     }
 
+    // CREATE: Book treatment
     public function bookTreatment($patient_id, $treatment_type, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $payment_method) {
         $treatment_fee = 2000.00;
         $status = 'Pending';
         $payment_status = 'Pending';
         
-        $sql = "
-            INSERT INTO treatments 
-            (patient_id, treatment_type, appointment_date, appointment_time, patient_name, email, phone, age, gender, treatment_fee, status, payment_method, payment_status) 
+        $stmt = $this->conn->prepare("
+            INSERT INTO treatments (patient_id, treatment_type, appointment_date, appointment_time, patient_name, email, phone, age, gender, treatment_fee, status, payment_method, payment_status) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ";
+        ");
         
-        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("isssssssisiss", $patient_id, $treatment_type, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $treatment_fee, $status, $payment_method, $payment_status);
         
-        if (!$stmt) {
-            throw new Exception('Prepare failed: ' . $this->conn->error);
+        if ($stmt->execute()) {
+            $id = $stmt->insert_id;
+            $stmt->close();
+            return $id;
         }
-
-        $stmt->bind_param(
-            "isssssidsss",
-            $patient_id,
-            $treatment_type,
-            $appointment_date,
-            $appointment_time,
-            $patient_name,
-            $email,
-            $phone,
-            $age,
-            $gender,
-            $treatment_fee,
-            $status,
-            $payment_method,
-            $payment_status
-        );
-
-        if (!$stmt->execute()) {
-            throw new Exception('Execute failed: ' . $stmt->error);
-        }
-
-        $treatment_id = $stmt->insert_id;
         $stmt->close();
-        
-        return $treatment_id;
+        return false;
     }
 
+    // READ: Get patient consultations
     public function getConsultations($patient_id) {
         $stmt = $this->conn->prepare("
-            SELECT c.*, d.name as doctor_name 
-            FROM consultations c
-            LEFT JOIN doctors d ON c.doctor_id = d.id
-            WHERE c.patient_id = ? 
-            ORDER BY c.appointment_date DESC
+            SELECT * FROM consultations 
+            WHERE patient_id = ? 
+            ORDER BY appointment_date DESC
         ");
         $stmt->bind_param("i", $patient_id);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    // READ: Get patient treatments
     public function getTreatments($patient_id) {
         $stmt = $this->conn->prepare("
             SELECT * FROM treatments 
@@ -122,6 +84,7 @@ class AppointmentModel {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    // READ: Get all appointments for patient
     public function getAllAppointments($patient_id) {
         $consultations = $this->getConsultations($patient_id);
         $treatments = $this->getTreatments($patient_id);
@@ -131,6 +94,7 @@ class AppointmentModel {
         ];
     }
 
+    // READ: Get consultation by ID
     public function getConsultationById($id) {
         $stmt = $this->conn->prepare("SELECT * FROM consultations WHERE id = ?");
         $stmt->bind_param("i", $id);
@@ -140,6 +104,7 @@ class AppointmentModel {
         return $result;
     }
 
+    // READ: Get treatment by ID
     public function getTreatmentById($id) {
         $stmt = $this->conn->prepare("SELECT * FROM treatments WHERE id = ?");
         $stmt->bind_param("i", $id);
@@ -149,6 +114,7 @@ class AppointmentModel {
         return $result;
     }
 
+    // UPDATE: Confirm payment and update status
     public function confirmPayment($id, $type, $transaction_id = null) {
         $table = ($type === 'consultation') ? 'consultations' : 'treatments';
         $payment_status = 'Completed';
@@ -167,6 +133,7 @@ class AppointmentModel {
         return $result;
     }
 
+    // UPDATE: Cancel appointment
     public function cancelAppointment($id, $type) {
         $table = ($type === 'consultation') ? 'consultations' : 'treatments';
         $status = 'Cancelled';
@@ -178,6 +145,7 @@ class AppointmentModel {
         return $result;
     }
 
+    // DELETE: Remove appointment (if needed)
     public function deleteAppointment($id, $type) {
         $table = ($type === 'consultation') ? 'consultations' : 'treatments';
         
@@ -188,12 +156,14 @@ class AppointmentModel {
         return $result;
     }
 
+    // READ: Get doctors list
     public function getDoctors() {
         $stmt = $this->conn->prepare("SELECT id, name, specialty, consultation_fee FROM doctors WHERE is_available = TRUE");
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    // READ: Get available time slots
     public function getAvailableSlots($date) {
         $slots = ['08:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
         
