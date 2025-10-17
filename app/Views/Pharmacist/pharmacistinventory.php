@@ -1,76 +1,67 @@
 <?php
-// Sample data for demonstration
-$products = [
-    ["name"=>"Asamodagam", "image"=>"images/asamodagam.jpg"],
-    ["name"=>"Bala Thailaya", "image"=>"images/Bala Thailaya.png"],
-    ["name"=>"Dashamoolarishta", "image"=>"images/Dashamoolarishta.jpeg"],
-    ["name"=>"Kothalahimbutu Capsules", "image"=>"images/Kothalahimbutu Capsules.jpeg"],
-    ["name"=>"Neem Oil", "image"=>"images/Neem Oil.jpg"],
-    ["name"=>"Nirgundi Oil", "image"=>"images/Nirgundi Oil.jpg"],
-    ["name"=>"Paspanguwa", "image"=>"images/paspanguwa.jpeg"],
-    ["name"=>"Pinda Thailaya", "image"=>"images/Pinda Thailaya.jpeg"],
-    ["name"=>"Siddhalepa", "image"=>"images/siddhalepa.png"],
-];
+require_once __DIR__ . '/../../../core/bootloader.php';
 
-// Sample inventory batches (normally fetched from DB) - Multiple batches per product
-$inventoryBatches = [
-    ["product"=>"Asamodagam", "quantity"=>12, "mfd"=>"2024-01-01", "exp"=>"2026-01-01", "batch_number"=>"ASM001", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Bala Thailaya", "quantity"=>8, "mfd"=>"2024-06-15", "exp"=>"2026-06-15", "batch_number"=>"BLT001", "supplier"=>"Ayurvedic Traders"],
-    ["product"=>"Dashamoolarishta", "quantity"=>18, "mfd"=>"2024-02-10", "exp"=>"2026-02-10", "batch_number"=>"DMR001", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Kothalahimbutu Capsules", "quantity"=>6, "mfd"=>"2024-01-20", "exp"=>"2026-01-20", "batch_number"=>"KHC001", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Neem Oil", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"NEO001", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Nirgundi Oil", "quantity"=>22, "mfd"=>"2024-03-05", "exp"=>"2026-03-05", "batch_number"=>"NRO001", "supplier"=>"Ayurvedic Traders"],
-    ["product"=>"Paspanguwa", "quantity"=>20, "mfd"=>"2024-03-10", "exp"=>"2026-03-10", "batch_number"=>"PSP001", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Pinda Thailaya", "quantity"=>14, "mfd"=>"2024-01-25", "exp"=>"2026-01-25", "batch_number"=>"PTL001", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Siddhalepa", "quantity"=>25, "mfd"=>"2024-01-15", "exp"=>"2026-01-15", "batch_number"=>"SDP001", "supplier"=>"Ayurvedic Traders"],
-    // Additional batches to show total quantities
-    ["product"=>"Siddhalepa", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"SDP002", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Asamodagam", "quantity"=>8, "mfd"=>"2024-03-01", "exp"=>"2026-03-01", "batch_number"=>"ASM002", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Neem Oil", "quantity"=>10, "mfd"=>"2024-01-10", "exp"=>"2026-01-10", "batch_number"=>"NEO002", "supplier"=>"Ayurvedic Traders"]
-];
+use App\Models\BatchModel;
 
-// Calculate total quantities per product
-$inventoryData = [];
-foreach($inventoryBatches as $batch) {
-    $productName = $batch['product'];
-    if(!isset($inventoryData[$productName])) {
-        $inventoryData[$productName] = [
-            'product' => $productName,
-            'total_quantity' => 0,
-            'batches' => [],
-            'earliest_exp' => $batch['exp']
-        ];
-    }
-    $inventoryData[$productName]['total_quantity'] += $batch['quantity'];
-    $inventoryData[$productName]['batches'][] = $batch;
-    
-    // Keep track of earliest expiry date
-    if($batch['exp'] < $inventoryData[$productName]['earliest_exp']) {
-        $inventoryData[$productName]['earliest_exp'] = $batch['exp'];
-    }
+$model = new BatchModel();
+
+// Products and image mapping (by product name)
+$productRows = $model->getProducts();
+$productNameToId = [];
+foreach ($productRows as $row) {
+    $productNameToId[$row['name']] = (int)$row['id'];
 }
 
-// Calculate stock statistics
+ 
+
+function product_image_for(string $name): string {
+    $n = strtolower($name);
+    if (strpos($n, 'asamodagam') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/asamodagam.jpg';
+    }
+    if (strpos($n, 'paspanguwa') !== false || strpos($n, 'pasapanguwa') !== false || strpos($n, 'pasanguwa') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/paspanguwa.jpeg';
+    }
+    if (strpos($n, 'siddhalepa') !== false || strpos($n, 'sidhalepa') !== false || strpos($n, 'siddalepa') !== false || strpos($n, 'siddphalepa') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/siddhalepa.png';
+    }
+    if (strpos($n, 'bala') !== false && strpos($n, 'thailaya') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/Bala Thailaya.png';
+    }
+    if (strpos($n, 'dashamoolarishta') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/Dashamoolarishta.jpeg';
+    }
+    if (strpos($n, 'kothalahimbutu') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/Kothalahimbutu Capsules.jpeg';
+    }
+    if (strpos($n, 'neem') !== false && strpos($n, 'oil') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/Neem Oil.jpg';
+    }
+    if (strpos($n, 'nirgundi') !== false && strpos($n, 'oil') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/Nirgundi Oil.jpg';
+    }
+    if (strpos($n, 'pinda') !== false && strpos($n, 'thailaya') !== false) {
+        return '/dheergayu/public/assets/images/Pharmacist/Pinda Thailaya.jpeg';
+    }
+    return '/dheergayu/public/assets/images/Pharmacist/dheergayu.png';
+}
+
+// Inventory overview from DB
+$overview = $model->getInventoryOverview();
+
+// Stock statistics
 $criticalStockCount = 0;
 $lowStockCount = 0;
 $expiringSoonCount = 0;
 $today = new DateTime();
 $ninetyDaysFromNow = (new DateTime())->add(new DateInterval('P90D'));
-
-foreach($inventoryData as $item) {
-    // Critical stock (total quantity <= 5)
-    if($item['total_quantity'] <= 5) {
-        $criticalStockCount++;
-    }
-    // Low stock (total quantity <= 15)
-    elseif($item['total_quantity'] <= 15) {
-        $lowStockCount++;
-    }
-    
-    // Expiring soon (within 90 days) - check earliest expiry
-    $expDate = new DateTime($item['earliest_exp']);
-    if($expDate <= $ninetyDaysFromNow) {
-        $expiringSoonCount++;
+foreach ($overview as $row) {
+    $qty = (int)$row['total_quantity'];
+    if ($qty <= 5) { $criticalStockCount++; }
+    elseif ($qty <= 15) { $lowStockCount++; }
+    if (!empty($row['earliest_exp'])) {
+        $expDate = new DateTime($row['earliest_exp']);
+        if ($expDate <= $ninetyDaysFromNow) { $expiringSoonCount++; }
     }
 }
 ?>
@@ -84,6 +75,7 @@ foreach($inventoryData as $item) {
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Pharmacist/pharmacistinventory.css">
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Pharmacist/addbatch.css">
 </head>
 <body>
 <header class="header">
@@ -118,37 +110,31 @@ foreach($inventoryData as $item) {
                 <th>Image</th>
                 <th>Product</th>
                     <th>Total Quantity</th>
-                    <th>Reduce</th>
                     <th>Earliest Expiry</th>
                     <th>Batches</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-                <?php foreach($inventoryData as $item): ?>
+                <?php foreach($overview as $item): ?>
                 <tr>
-                    <?php 
-                        $prod = array_filter($products, fn($p)=>$p['name']==$item['product']);
-                $prod = array_values($prod)[0];
-            ?>
-                <td><img src="<?= $prod['image'] ?>" alt="<?= $prod['name'] ?>" class="prod-img"></td>
-                    <td><?= $item['product'] ?></td>
+                <?php $img = product_image_for($item['product']); ?>
+                <td><img src="<?= $img ?>" alt="<?= htmlspecialchars($item['product']) ?>" class="prod-img"></td>
+                    <td><?= htmlspecialchars($item['product']) ?></td>
                     <td class="quantity-cell">
-                        <span class="total-quantity"><?= $item['total_quantity'] ?></span>
-                        <?php if($item['total_quantity'] <= 5): ?>
+                        <span class="total-quantity"><?= (int)$item['total_quantity'] ?></span>
+                        <?php if((int)$item['total_quantity'] <= 5): ?>
                             <span class="stock-warning critical">Critical</span>
-                        <?php elseif($item['total_quantity'] <= 15): ?>
+                        <?php elseif((int)$item['total_quantity'] <= 15): ?>
                             <span class="stock-warning low">Low</span>
                         <?php endif; ?>
                     </td>
-                    <td class="reduce-cell">
-                        <button class="btn-reduce-stock" onclick="reduceStock('<?= $item['product'] ?>')" title="Reduce Stock for Order">−</button>
-                    </td>
-                    <td><?= $item['earliest_exp'] ?></td>
-                    <td><?= count($item['batches']) ?> batch<?= count($item['batches']) > 1 ? 'es' : '' ?></td>
+                    
+                    <td><?= $item['earliest_exp'] ? htmlspecialchars($item['earliest_exp']) : '-' ?></td>
+                    <td><?= (int)$item['batches_count'] ?> batch<?= (int)$item['batches_count'] > 1 ? 'es' : '' ?></td>
                     <td>
-                        <button class="btn-add-batch" onclick="addBatch('<?= $item['product'] ?>')">Add Batch</button>
-                        <button class="btn-batches" onclick="viewBatches('<?= $item['product'] ?>')">View Batches</button>
+                        <button class="btn-add-batch" onclick="addBatch('<?= htmlspecialchars($item['product']) ?>')">Add Batch</button>
+                        <button class="btn-batches" onclick="viewBatches('<?= htmlspecialchars($item['product']) ?>')">View Batches</button>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -170,90 +156,193 @@ foreach($inventoryData as $item) {
         </div>
     </div>
 
+    <!-- Edit Batch Modal -->
+    <div id="editBatchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Batch</h3>
+                <span class="close" onclick="closeEditBatchModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="add-batch-form">
+                <form id="editBatchForm">
+                    <input type="hidden" name="product_id" id="edit_product_id">
+                    <div class="form-group">
+                        <label for="edit_product_name">Product</label>
+                        <input type="text" id="edit_product_name" class="form-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_batch_number">Batch Number</label>
+                        <input type="text" name="batch_number" id="edit_batch_number" class="form-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_quantity">Quantity *</label>
+                        <input type="number" name="quantity" id="edit_quantity" class="form-input" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_mfd">Manufacturing Date *</label>
+                        <input type="date" name="mfd" id="edit_mfd" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_exp">Expiry Date *</label>
+                        <input type="date" name="exp" id="edit_exp" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_supplier">Supplier *</label>
+                        <select name="supplier" id="edit_supplier" class="form-input" required>
+                            <option value="Herbal Supplies Co.">Herbal Supplies Co.</option>
+                            <option value="Ayurvedic Traders">Ayurvedic Traders</option>
+                            <option value="Natural Extracts Ltd.">Natural Extracts Ltd.</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_status">Status</label>
+                        <select name="status" id="edit_status" class="form-input">
+                            <option value="Good">Good</option>
+                            <option value="Expiring Soon">Expiring Soon</option>
+                            <option value="Expired">Expired</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">Save Changes</button>
+                        <button type="button" class="btn-cancel" onclick="closeEditBatchModal()">Cancel</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Batch Modal -->
+    <div id="addBatchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Batch</h3>
+                <span class="close" onclick="closeAddBatchModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="add-batch-form">
+                <form id="addBatchForm">
+                    <div class="form-group">
+                        <label for="product">Product *</label>
+                        <select name="product" id="product" class="form-input" required>
+                            <option value="">Select Product</option>
+                            <?php foreach($productRows as $p): ?>
+                            <option value="<?= htmlspecialchars($p['name']) ?>"><?= htmlspecialchars($p['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="batch_number">Batch Number *</label>
+                        <input type="text" name="batch_number" id="batch_number" class="form-input" required placeholder="e.g., ASM001, BLT002">
+                        <small class="form-help">Unique identifier for this batch</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantity">Quantity *</label>
+                        <input type="number" name="quantity" id="quantity" class="form-input" min="1" required placeholder="Enter quantity">
+                        <small class="form-help">Number of units in this batch</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mfd">Manufacturing Date *</label>
+                        <input type="date" name="mfd" id="mfd" class="form-input" required>
+                        <small class="form-help">Date when this batch was manufactured</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exp">Expiry Date *</label>
+                        <input type="date" name="exp" id="exp" class="form-input" required>
+                        <small class="form-help">Date when this batch expires</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="supplier">Supplier *</label>
+                        <select name="supplier" id="supplier" class="form-input" required>
+                            <option value="">Select supplier</option>
+                            <option value="Herbal Supplies Co.">Herbal Supplies Co.</option>
+                            <option value="Ayurvedic Traders">Ayurvedic Traders</option>
+                            <option value="Natural Extracts Ltd.">Natural Extracts Ltd.</option>
+                        </select>
+                        <small class="form-help">Select the supplier for this batch</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" id="status" class="form-input">
+                            <option value="Good">Good</option>
+                            <option value="Expiring Soon">Expiring Soon</option>
+                            <option value="Expired">Expired</option>
+                        </select>
+                        <small class="form-help">Current status of this batch (auto-calculated based on dates)</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">Add Batch</button>
+                        <button type="button" class="btn-cancel" onclick="closeAddBatchModal()">Cancel</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script>
-        // Sample batch data (in real app, this would come from database)
-        const batchData = {
-            <?php foreach($inventoryData as $item): ?>
-            "<?= $item['product'] ?>": [
-                <?php foreach($item['batches'] as $batch): ?>
-                {
-                    quantity: <?= $batch['quantity'] ?>,
-                    mfd: "<?= $batch['mfd'] ?>",
-                    exp: "<?= $batch['exp'] ?>",
-                    batch_number: "<?= isset($batch['batch_number']) ? $batch['batch_number'] : 'N/A' ?>",
-                    supplier: "<?= isset($batch['supplier']) ? $batch['supplier'] : 'N/A' ?>"
-                },
-                <?php endforeach; ?>
-            ],
-            <?php endforeach; ?>
-        };
+        const productNameToId = <?= json_encode($productNameToId) ?>;
 
         function addBatch(productName) {
-            // Redirect to add batch page with pre-selected product
-            window.location.href = `../admin/adminaddbatch.php?product=${encodeURIComponent(productName)}`;
+            openAddBatchModal(productName);
         }
 
-        function reduceStock(productName) {
-            const currentQuantity = document.querySelector(`tr:has(td:contains('${productName}')) .total-quantity`).textContent;
-            const reduceAmount = prompt(
-                `Reduce Stock for Order\n\nProduct: ${productName}\nCurrent Quantity: ${currentQuantity}\n\nEnter quantity to reduce:`,
-                '1'
-            );
-            
-            if (reduceAmount !== null && reduceAmount !== '') {
-                const amount = parseInt(reduceAmount);
-                if (isNaN(amount) || amount < 0) {
-                    alert('❌ Please enter a valid quantity (0 or higher)');
-                    return;
-                }
-                
-                if (amount > parseInt(currentQuantity)) {
-                    alert('❌ Cannot reduce more than available stock!');
-                    return;
-                }
-                
-                if (confirm(`Reduce ${amount} units from ${productName}?\n\nCurrent: ${currentQuantity}\nAfter reduction: ${parseInt(currentQuantity) - amount}`)) {
-                    // Update the display
-                    const quantityElement = document.querySelector(`tr:has(td:contains('${productName}')) .total-quantity`);
-                    const newQuantity = parseInt(currentQuantity) - amount;
-                    quantityElement.textContent = newQuantity;
-                    
-                    // Update stock warnings
-                    const row = quantityElement.closest('tr');
-                    const warningSpan = row.querySelector('.stock-warning');
-                    if (warningSpan) {
-                        warningSpan.remove();
-                    }
-                    
-                    if (newQuantity <= 5) {
-                        quantityElement.insertAdjacentHTML('afterend', '<span class="stock-warning critical">Critical</span>');
-                    } else if (newQuantity <= 15) {
-                        quantityElement.insertAdjacentHTML('afterend', '<span class="stock-warning low">Low</span>');
-                    }
-                    
-                    alert(`✅ Stock reduced successfully!\n${productName}: ${currentQuantity} → ${newQuantity}`);
-                    console.log(`Stock reduced: ${productName} - ${amount} units (${currentQuantity} → ${newQuantity})`);
+        function openAddBatchModal(productName) {
+            const modal = document.getElementById('addBatchModal');
+            const productSelect = document.getElementById('product');
+            // Set default dates
+            const mfdInput = document.getElementById('mfd');
+            mfdInput.valueAsDate = new Date();
+            if (productName) {
+                for (const option of productSelect.options) {
+                    option.selected = option.value === productName;
                 }
             }
+            // Suggest next batch number
+            suggestNextBatchNumber();
+            modal.style.display = 'block';
         }
 
-        function viewBatches(productName) {
+        function closeAddBatchModal() {
+            document.getElementById('addBatchModal').style.display = 'none';
+        }
+
+        
+
+        async function viewBatches(productName) {
             const modal = document.getElementById('batchModal');
             const modalTitle = document.getElementById('modalTitle');
             const batchDetails = document.getElementById('batchDetails');
             
             modalTitle.textContent = `Batch Details - ${productName}`;
-            
-            if (batchData[productName]) {
+            const productId = productNameToId[productName];
+            let rows = [];
+            if (productId) {
+                try {
+                    const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                    const data = await res.json();
+                    rows = data.data || [];
+                } catch (e) { console.error(e); }
+            }
+
+            if (rows.length > 0) {
                 let html = `
                     <div class="batch-summary">
                         <div class="summary-card">
                             <h4>Total Quantity</h4>
-                            <span class="total-qty">${batchData[productName].reduce((sum, batch) => sum + batch.quantity, 0)}</span>
+                            <span class="total-qty">${rows.reduce((sum, b) => sum + Number(b.quantity || 0), 0)}</span>
                         </div>
                         <div class="summary-card">
                             <h4>Total Batches</h4>
-                            <span class="total-batches">${batchData[productName].length}</span>
+                            <span class="total-batches">${rows.length}</span>
                         </div>
                     </div>
                     
@@ -273,13 +362,13 @@ foreach($inventoryData as $item) {
                             <tbody>
                 `;
                 
-                batchData[productName].forEach((batch, index) => {
+                rows.forEach((batch, index) => {
                     const expDate = new Date(batch.exp);
                     const today = new Date();
                     const thirtyDaysFromNow = new Date();
                     thirtyDaysFromNow.setDate(today.getDate() + 30);
                     
-                    let status = 'Good';
+                    let status = batch.status || 'Good';
                     let statusClass = 'status-good';
                     
                     if (expDate < today) {
@@ -299,7 +388,7 @@ foreach($inventoryData as $item) {
                             <td>${batch.supplier}</td>
                             <td><span class="status-badge ${statusClass}">${status}</span></td>
                             <td>
-                                <button class="btn-edit-batch" onclick="editBatch('${productName}', '${batch.batch_number}')">Edit</button>
+                                <button class="btn-edit-batch" onclick="openEditBatchModal('${productName}', '${batch.batch_number}')">Edit</button>
                                 <button class="btn-delete-batch" onclick="deleteBatch('${productName}', '${batch.batch_number}')">Delete</button>
                             </td>
                         </tr>
@@ -324,76 +413,156 @@ foreach($inventoryData as $item) {
             document.getElementById('batchModal').style.display = 'none';
         }
 
-        function editBatch(productName, batchNumber) {
-            // Find the batch data
-            const batch = batchData[productName].find(b => b.batch_number === batchNumber);
-            
-            if (batch) {
-                const newQuantity = prompt(
-                    `Edit Batch: ${batchNumber}\n\nProduct: ${productName}\nCurrent quantity: ${batch.quantity}\n\nEnter new quantity:`,
-                    batch.quantity
-                );
-                
-                if (newQuantity !== null && newQuantity !== '') {
-                    const qty = parseInt(newQuantity);
-                    if (isNaN(qty) || qty < 0) {
-                        alert('❌ Please enter a valid quantity (0 or higher)');
-                        return;
-                    }
-                    
-                    if (confirm(`Update batch ${batchNumber}?\n\nProduct: ${productName}\nOld quantity: ${batch.quantity}\nNew quantity: ${qty}`)) {
-                        // Update the batch data
-                        batch.quantity = qty;
-                        
-                        // Refresh the modal to show updated data
-                        viewBatches(productName);
-                        
-                        alert(`✅ Batch ${batchNumber} updated successfully!\nNew quantity: ${qty}`);
-                        console.log(`Batch ${batchNumber} updated: ${productName} - ${qty} units`);
-                    }
-                }
-            }
+        async function openEditBatchModal(productName, batchNumber) {
+            const productId = productNameToId[productName];
+            let batch = null;
+            try {
+                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                const data = await res.json();
+                const rows = data.data || [];
+                batch = rows.find(b => String(b.batch_number) === String(batchNumber));
+            } catch (e) { console.error(e); }
+            if (!batch) { alert('Batch not found'); return; }
+            document.getElementById('edit_product_id').value = productId;
+            document.getElementById('edit_product_name').value = productName;
+            document.getElementById('edit_batch_number').value = batch.batch_number;
+            document.getElementById('edit_quantity').value = batch.quantity;
+            document.getElementById('edit_mfd').value = batch.mfd;
+            document.getElementById('edit_exp').value = batch.exp;
+            document.getElementById('edit_supplier').value = batch.supplier;
+            document.getElementById('edit_status').value = batch.status || 'Good';
+            document.getElementById('editBatchModal').style.display = 'block';
         }
 
-        function deleteBatch(productName, batchNumber) {
-            // Find the batch data
-            const batch = batchData[productName].find(b => b.batch_number === batchNumber);
-            
-            if (batch) {
-                const confirmMessage = `Delete Batch: ${batchNumber}\n\nProduct: ${productName}\nQuantity: ${batch.quantity}\nManufacturing Date: ${batch.mfd}\nExpiry Date: ${batch.exp}\nSupplier: ${batch.supplier}\n\n⚠️ This action cannot be undone!\n\nAre you sure you want to delete this batch?`;
-                
-                if (confirm(confirmMessage)) {
-                    // Remove the batch from the data
-                    const batchIndex = batchData[productName].findIndex(b => b.batch_number === batchNumber);
-                    if (batchIndex > -1) {
-                        batchData[productName].splice(batchIndex, 1);
-                        
-                        // If no batches left for this product, remove the product
-                        if (batchData[productName].length === 0) {
-                            delete batchData[productName];
-                        }
-                        
-                        // Refresh the modal to show updated data
-                        if (batchData[productName] && batchData[productName].length > 0) {
+        function closeEditBatchModal() {
+            document.getElementById('editBatchModal').style.display = 'none';
+        }
+
+        
+
+        async function deleteBatch(productName, batchNumber) {
+            const productId = productNameToId[productName];
+            if (!confirm(`Delete Batch: ${batchNumber}\n\nProduct: ${productName}\n\nThis action cannot be undone. Proceed?`)) return;
+            const form = new FormData();
+            form.append('product_id', productId);
+            form.append('batch_number', batchNumber);
+            const res = await fetch('/dheergayu/public/api/batches/delete', { method: 'POST', body: form });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Batch deleted');
                             viewBatches(productName);
                         } else {
-                            closeModal();
-                        }
-                        
-                        alert(`✅ Batch ${batchNumber} deleted successfully!`);
-                        console.log(`Batch ${batchNumber} deleted: ${productName}`);
-                    }
-                }
+                alert('❌ Delete failed');
             }
         }
 
         // Close modal when clicking outside of it
         window.onclick = function(event) {
             const modal = document.getElementById('batchModal');
+            const addModal = document.getElementById('addBatchModal');
             if (event.target == modal) {
                 modal.style.display = 'none';
             }
+            if (event.target == addModal) {
+                addModal.style.display = 'none';
+            }
+            const editModal = document.getElementById('editBatchModal');
+            if (event.target == editModal) {
+                editModal.style.display = 'none';
+            }
 }
+
+        // Handle add-batch form submit via API
+        document.getElementById('addBatchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const productName = document.getElementById('product').value;
+            const productId = productNameToId[productName];
+            if (!productId) { alert('❌ Invalid product'); return; }
+            const formEl = e.target;
+            const payload = new FormData();
+            payload.append('product_id', productId);
+            payload.append('batch_number', formEl.batch_number.value);
+            payload.append('quantity', formEl.quantity.value);
+            payload.append('mfd', formEl.mfd.value);
+            payload.append('exp', formEl.exp.value);
+            payload.append('supplier', formEl.supplier.value);
+            payload.append('status', formEl.status.value);
+            const res = await fetch('/dheergayu/public/api/batches/create', { method: 'POST', body: payload });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Batch added');
+                closeAddBatchModal();
+                location.reload();
+            } else {
+                alert('❌ Failed to add batch');
+            }
+        });
+
+        // =============================
+        // Batch number auto-suggest
+        // =============================
+        function getPrefixForProduct(name) {
+            const n = name.toLowerCase();
+            if (n.includes('asamodagam')) return 'ASM';
+            if (n.includes('paspanguwa') || n.includes('pasapanguwa') || n.includes('pasanguwa')) return 'PSP';
+            if (n.includes('siddhalepa') || n.includes('sidhalepa') || n.includes('siddalepa') || n.includes('siddphalepa')) return 'SDP';
+            if (n.includes('dashamoolarishta')) return 'DMR';
+            if (n.includes('kothalahimbutu')) return 'KHC';
+            if (n.includes('neem') && n.includes('oil')) return 'NEO';
+            if (n.includes('nirgundi') && n.includes('oil')) return 'NRO';
+            if (n.includes('pinda') && n.includes('thailaya')) return 'PTL';
+            if (n.includes('bala') && n.includes('thailaya')) return 'BLT';
+            // fallback: first 3 consonants/letters
+            return (name.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0,3) || 'BAT');
+        }
+
+        async function suggestNextBatchNumber() {
+            const productName = document.getElementById('product').value;
+            if (!productName) return;
+            const productId = productNameToId[productName];
+            const prefix = getPrefixForProduct(productName);
+            let maxNum = 0;
+            try {
+                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                const data = await res.json();
+                const rows = data.data || [];
+                rows.forEach(b => {
+                    const m = String(b.batch_number || '').match(/^(\D+)(\d{1,})$/);
+                    if (m) {
+                        const existingPrefix = m[1].toUpperCase();
+                        const num = parseInt(m[2], 10) || 0;
+                        if (existingPrefix === prefix && num > maxNum) maxNum = num;
+                    }
+                });
+            } catch (e) { console.error(e); }
+            const nextNum = String(maxNum + 1).padStart(3, '0');
+            document.getElementById('batch_number').value = `${prefix}${nextNum}`;
+        }
+
+        // Recompute suggestion when product changes in add form
+        document.getElementById('product').addEventListener('change', suggestNextBatchNumber);
+
+        document.getElementById('editBatchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = new FormData();
+            payload.append('product_id', document.getElementById('edit_product_id').value);
+            payload.append('batch_number', document.getElementById('edit_batch_number').value);
+            payload.append('quantity', document.getElementById('edit_quantity').value);
+            payload.append('mfd', document.getElementById('edit_mfd').value);
+            payload.append('exp', document.getElementById('edit_exp').value);
+            payload.append('supplier', document.getElementById('edit_supplier').value);
+            payload.append('status', document.getElementById('edit_status').value);
+            const res = await fetch('/dheergayu/public/api/batches/update', { method: 'POST', body: payload });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Batch updated');
+                closeEditBatchModal();
+                const name = document.getElementById('edit_product_name').value;
+                viewBatches(name);
+            } else {
+                alert('❌ Update failed');
+            }
+        });
 </script>
 </body>
 </html>
