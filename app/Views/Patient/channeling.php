@@ -1,20 +1,33 @@
 <?php
 session_start();
 
-// Get user information from login session
-$userType = $_SESSION['user_type'] ?? 'Patient';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
+
+
+$model = new AppointmentModel($conn);
+$doctors = $model->getDoctors();
+
 $userName = $_SESSION['user_name'] ?? '';
 $userEmail = $_SESSION['user_email'] ?? '';
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dheergayu - Channeling</title>
+    <title>Dheergayu - Book Consultation</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/channeling.css?v=<?php echo time(); ?>">
 </head>
+
 <body>
     <header class="header">
         <div class="header-left">
@@ -23,260 +36,311 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 <h1 class="header-title">Dheergayu</h1>
             </nav>
         </div>
-        <div class="header-right" id="headerRight">
-                <a href="home.php" class="nav-btn">Home</a>
-                <a href="channeling.php" class="nav-btn" onclick="handleChanneling()">Consultations</a>
-                <a href="after_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
-                <div class="profile-container">
-                    <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
-                    <div class="profile-dropdown" id="profileDropdown">
-                        <a href="patient_profile.php" class="dropdown-item" onclick="showMyProfile()">My Profile</a>
-                        <a href="patient_appointments.php" class="dropdown-item" onclick="showMyAppointments()">My Appointments</a>
-                        <a href="logout.php" class="dropdown-item" onclick="logout()">Logout</a>
-                    </div>
+        <div class="header-right">
+            <a href="home.php" class="nav-btn">Home</a>
+            <a href="channeling.php" class="nav-btn">Consultations</a>
+            <a href="treatment.php" class="nav-btn">Treatments</a>
+            <div class="profile-container">
+                <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <a href="patient_profile.php" class="dropdown-item">My Profile</a>
+                    <a href="patient_appointments.php" class="dropdown-item">My Appointments</a>
+                    <a href="logout.php" class="dropdown-item">Logout</a>
                 </div>
-                <span style="margin-left: 10px; font-size: 0.9em;"><?php echo htmlspecialchars($userType); ?></span>
+            </div>
         </div>
     </header>
 
     <div class="container">
         <div class="doctor-card">
             <div class="doctor-header">
-                <div class="doctor-name">Channeling Form</div>
-                <!-- <div class="date-display">9TH MAY 2025</div> -->
+                <div class="doctor-name">Book Consultation</div>
             </div>
 
             <div class="booking-content">
                 <div class="left-section">
-                    <div class="availability-section">
-                        <div class="card">
-                            
-                            <h3 class="section-title">Select Doctor</h3>
-                            <select id="doctor" name="doctor" required>
-                                <option value="Doctor1">Dr. L.M.Perera</option>
-                                <option value="Doctor2">Dr. K.Jayawardena</option>
-                                <option value="Doctor3">Dr. A.T.Gunarathne</option>
-                            </select>
-                            <div class="form-group">
-                                <label for="appointmentDate">Date</label>
-                                <input type="date" id="appointmentDate" name="appointmentDate" required>
-                            </div>
-                            <h3 class="section-title">Available Slots</h3>
-                            <div class="availability-grid">
-                                <button class="time-slot" onclick="selectTimeSlot(this, '8:00 AM')">8:00 AM</button>
-                                <button class="time-slot" onclick="selectTimeSlot(this, '10:00 AM')">10:00 AM</button>
-                                <button class="time-slot" onclick="selectTimeSlot(this, '11:00 AM')">11:00 AM</button>
-                                <button class="time-slot" onclick="selectTimeSlot(this, '1:00 PM')">1:00 PM</button>
-                                <button class="time-slot" onclick="selectTimeSlot(this, '3:00 PM')">3:00 PM</button>
-                                <button class="time-slot" onclick="selectTimeSlot(this, '4:00 PM')">4:00 PM</button>
-                            </div>
+                    <div class="card">
+                        <h3 class="section-title">Select Doctor</h3>
+                        <select id="doctorSelect" name="doctor" required onchange="updateSummary()">
+                            <option value="">-- Choose Doctor --</option>
+                            <?php foreach ($doctors as $doctor): ?>
+                                <option value="<?php echo $doctor['id']; ?>" data-name="<?php echo $doctor['name']; ?>" data-fee="<?php echo $doctor['consultation_fee']; ?>">
+                                    <?php echo $doctor['name']; ?> - <?php echo $doctor['specialty']; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <div class="form-group">
+                            <label for="appointmentDate">Date</label>
+                            <input type="date" id="appointmentDate" name="appointmentDate" required onchange="updateSummary()">
+                        </div>
+
+                        <h3 class="section-title">Available Slots</h3>
+                        <div class="availability-grid" id="slotsContainer">
+                            <p style="padding: 20px; color: #999;">Select a date first</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="right-section">
-                    <form id="channelingForm">
+                    <form id="consultationForm">
                         <div class="form-group">
-                            <label for="patientName">Name</label>
-                            <input type="text" id="patientName" name="patientName" placeholder="Enter your full name" value="<?php echo htmlspecialchars($userName); ?>" required>
+                            <label for="patientName">Full Name</label>
+                            <input type="text" id="patientName" name="patient_name" value="<?php echo htmlspecialchars($userName); ?>" required>
                         </div>
 
                         <div class="form-group">
                             <label for="age">Age</label>
-                            <input type="number" id="age" name="age" placeholder="Age" min="1" max="120" required>
+                            <input type="number" id="age" name="age" min="1" max="120" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="gender">Gender</label>
+                            <label for="gender">Gender *</label>
                             <select id="gender" name="gender" required>
-                                <option value="">Select gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" placeholder="Enter your email address" value="<?php echo htmlspecialchars($userEmail); ?>" required>
+                            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($userEmail); ?>" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="contactNumber">Contact Number</label>
-                            <input type="text" id="contactNumber" name="contactNumber" placeholder="Enter your contact number" required>
+                            <label for="phone">Phone</label>
+                            <input type="text" id="phone" name="phone" placeholder="0712345678" required>
                         </div>
 
-                        <button type="submit" class="book-btn" id="bookBtn">Book Appointment</button>
+                        <button type="submit" class="book-btn" id="bookBtn" disabled>Book Consultation</button>
                     </form>
                 </div>
+            </div>
+        </div>
+
+        <!-- Summary Panel -->
+        <div class="card summary-card">
+            <h3 class="section-title">Summary</h3>
+            <div id="summaryContent">
+                <p style="color: #999;">Fill in details to see summary</p>
             </div>
         </div>
     </div>
 
     <script>
+        // Fixed JavaScript for channeling.php
         let selectedTimeSlot = '';
+        let appointmentDate = document.getElementById('appointmentDate');
 
-        function selectTimeSlot(button, timeSlot) {
-            // Remove selected class from all time slots
-            document.querySelectorAll('.time-slot').forEach(slot => {
-                slot.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked slot
-            button.classList.add('selected');
-            selectedTimeSlot = timeSlot;
-            
-            // Enable book button if time slot is selected
-            updateBookButton();
-        }
+        appointmentDate.min = new Date().toISOString().split('T')[0];
 
-        function updateBookButton() {
-            const bookBtn = document.getElementById('bookBtn');
-            if (selectedTimeSlot) {
-                bookBtn.disabled = false;
-                bookBtn.textContent = `Book for ${selectedTimeSlot}`;
-            } else {
-                bookBtn.disabled = true;
-                bookBtn.textContent = 'Select Time Slot';
-            }
-        }
-
-        function showUserMenu() {
-            alert('User menu options:\n• Profile\n• My Appointments\n• Settings\n• Logout');
-        }
-
-        // Format contact number input
-        document.getElementById('contactNumber').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 10) {
-                if (value.length > 3 && value.length <= 6) {
-                    value = value.replace(/(\d{3})(\d+)/, '$1-$2');
-                } else if (value.length > 6) {
-                    value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+        appointmentDate.addEventListener('change', function() {
+            if (this.value) {
+                const doctorSelect = document.getElementById('doctorSelect');
+                if (doctorSelect.value) {
+                    loadAvailableSlots(this.value);
                 }
-                e.target.value = value;
             }
         });
 
-        document.getElementById('channelingForm').addEventListener('submit', function(e) {
+        // Also load slots when doctor changes
+        document.getElementById('doctorSelect').addEventListener('change', function() {
+            const dateValue = appointmentDate.value;
+            if (dateValue) {
+                loadAvailableSlots(dateValue);
+            }
+            updateSummary();
+        });
+
+        function loadAvailableSlots(date) {
+            const container = document.getElementById('slotsContainer');
+            container.innerHTML = '<p style="padding: 20px; color: #999;">Loading slots...</p>';
+
+            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Slots response:', data); // Debug
+                    if (data.slots && data.slots.length > 0) {
+                        container.innerHTML = data.slots.map(slot =>
+                            `<button type="button" class="time-slot" onclick="selectSlot(this, '${slot}')">${formatTime(slot)}</button>`
+                        ).join('');
+                    } else {
+                        container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    container.innerHTML = '<p style="padding: 20px; color: #f44336;">Error loading slots</p>';
+                });
+        }
+
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const h = parseInt(hours);
+            const period = h >= 12 ? 'PM' : 'AM';
+            const displayHours = h % 12 || 12;
+            return `${displayHours}:${minutes} ${period}`;
+        }
+
+        function selectSlot(button, slot) {
+            document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
+            button.classList.add('selected');
+            selectedTimeSlot = slot;
+            updateSummary();
+            checkFormValidity();
+        }
+
+        function updateSummary() {
+            const doctorSelect = document.getElementById('doctorSelect');
+            const selectedOption = doctorSelect.options[doctorSelect.selectedIndex];
+            const doctorName = selectedOption.dataset.name || '';
+            const fee = selectedOption.dataset.fee || '';
+            const date = document.getElementById('appointmentDate').value;
+
+            let summary = '<p style="color: #999;">Fill in details to see summary</p>';
+            if (doctorName && date && selectedTimeSlot) {
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                summary = `
+            <div style="color: #333;">
+                <p><strong>Doctor:</strong> ${doctorName}</p>
+                <p><strong>Date:</strong> ${formattedDate}</p>
+                <p><strong>Time:</strong> ${formatTime(selectedTimeSlot)}</p>
+                <p><strong>Fee:</strong> Rs ${fee}</p>
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+                <p style="color: #5CB85C; font-weight: 600;">Ready to book</p>
+            </div>
+        `;
+            }
+            document.getElementById('summaryContent').innerHTML = summary;
+        }
+
+        function checkFormValidity() {
+            const doctorSelect = document.getElementById('doctorSelect');
+            const appointmentDate = document.getElementById('appointmentDate');
+            const patientName = document.getElementById('patientName');
+            const age = document.getElementById('age');
+            const gender = document.getElementById('gender');
+            const email = document.getElementById('email');
+            const phone = document.getElementById('phone');
+            const bookBtn = document.getElementById('bookBtn');
+
+            // Check if all required fields are filled
+            const doctorValid = doctorSelect.value.trim() !== '';
+            const dateValid = appointmentDate.value.trim() !== '';
+            const timeValid = selectedTimeSlot !== '';
+            const nameValid = patientName.value.trim() !== '';
+            const ageValid = age.value.trim() !== '' && parseInt(age.value) > 0;
+            const genderValid = gender.value.trim() !== '' && gender.value !== 'Select';
+            const emailValid = email.value.trim() !== '';
+            const phoneValid = phone.value.trim() !== '';
+
+            const allValid = doctorValid && dateValid && timeValid && nameValid &&
+                ageValid && genderValid && emailValid && phoneValid;
+
+            console.log('Form validation:', {
+                doctor: doctorValid,
+                date: dateValid,
+                time: timeValid,
+                name: nameValid,
+                age: ageValid,
+                gender: genderValid,
+                email: emailValid,
+                phone: phoneValid,
+                allValid: allValid
+            });
+
+            bookBtn.disabled = !allValid;
+
+            if (allValid) {
+                bookBtn.style.opacity = '1';
+                bookBtn.style.cursor = 'pointer';
+            } else {
+                bookBtn.style.opacity = '0.5';
+                bookBtn.style.cursor = 'not-allowed';
+            }
+        }
+
+        // Add event listeners to all form fields
+        document.querySelectorAll('#consultationForm input, #consultationForm select').forEach(field => {
+            field.addEventListener('change', checkFormValidity);
+            field.addEventListener('input', checkFormValidity);
+        });
+
+        // Form submission
+        document.getElementById('consultationForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             if (!selectedTimeSlot) {
-                alert('Please select a time slot!');
+                alert('Please select a time slot');
                 return;
             }
-            
+
+            const doctorSelect = document.getElementById('doctorSelect');
+            if (!doctorSelect.value) {
+                alert('Please select a doctor');
+                return;
+            }
+
+            const bookBtn = document.getElementById('bookBtn');
+            bookBtn.disabled = true;
+            bookBtn.textContent = 'Booking...';
+
             const formData = new FormData(this);
-            const bookingData = {
-                doctor: 'Dr. <Name>',
-                date: '9TH MAY 2025',
-                timeSlot: selectedTimeSlot,
-                patientName: formData.get('patientName'),
-                age: formData.get('age'),
-                gender: formData.get('gender'),
-                email: formData.get('email'),
-                contactNumber: formData.get('contactNumber')
-            };
-            
-            // Simulate booking process
-            const btn = document.getElementById('bookBtn');
-            btn.textContent = 'BOOKING...';
-            btn.disabled = true;
-            
-            setTimeout(() => {
-                alert('Appointment booked successfully!\n\nBooking Details:\n' +
-                      `Doctor: ${bookingData.doctor}\n` +
-                      `Date: ${bookingData.date}\n` +
-                      `Time: ${bookingData.timeSlot}\n` +
-                      `Patient: ${bookingData.patientName}\n` +
-                      '\nYou will receive a confirmation email shortly.');
-                
-                // Reset form
-                this.reset();
-                selectedTimeSlot = '';
-                document.querySelectorAll('.time-slot').forEach(slot => {
-                    slot.classList.remove('selected');
-                });
-                updateBookButton();
-            }, 2000);
-        });
+            formData.append('doctor_id', doctorSelect.value);
+            formData.append('appointment_date', document.getElementById('appointmentDate').value);
+            formData.append('appointment_time', selectedTimeSlot);
+            formData.append('payment_method', 'onsite');
 
-        // Initialize the book button state
-        updateBookButton();
+            console.log('Submitting consultation booking...'); // Debug
 
-        // Add real-time form validation
-        const requiredFields = ['patientName', 'age', 'gender', 'email', 'contactNumber'];
-        
-        requiredFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            field.addEventListener('input', function() {
-                validateField(this);
-            });
-        });
-
-        function validateField(field) {
-            if (field.value.trim()) {
-                field.style.borderColor = '#5CB85C';
-            } else {
-                field.style.borderColor = '#e1e5e9';
-            }
-        }
-
-        // Email validation
-        document.getElementById('email').addEventListener('input', function() {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (this.value && !emailRegex.test(this.value)) {
-                this.style.borderColor = '#dc3545';
-            } else if (this.value) {
-                this.style.borderColor = '#5CB85C';
-            } else {
-                this.style.borderColor = '#e1e5e9';
-            }
-        });
-
-        // Age validation
-        document.getElementById('age').addEventListener('input', function() {
-            const age = parseInt(this.value);
-            if (age < 1 || age > 120) {
-                this.style.borderColor = '#dc3545';
-            } else if (this.value) {
-                this.style.borderColor = '#5CB85C';
-            } else {
-                this.style.borderColor = '#e1e5e9';
-            }
-        });
-
-        // Profile dropdown functions
-        function toggleProfileDropdown() {
-            const dropdown = document.getElementById('profileDropdown');
-            dropdown.classList.toggle('show');
-        }
-
-        function showMyProfile() {
-            window.location.href = 'patient_profile.php';
-        }
-
-        function showMyAppointments() {
-            window.location.href = 'patient_appointments.php';
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'logout.php';
-            }
-        }
-
-        // Close dropdown when clicking outside
-        window.addEventListener('click', function(event) {
-            if (!event.target.matches('.profile-btn')) {
-                const dropdowns = document.getElementsByClassName('profile-dropdown');
-                for (let dropdown of dropdowns) {
-                    if (dropdown.classList.contains('show')) {
-                        dropdown.classList.remove('show');
+            fetch('/dheergayu/public/api/book-consultation.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Response:', data); // Debug
+                    if (data.success) {
+                        alert('Consultation booked successfully!');
+                        window.location.href = 'patient_appointments.php';
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to book consultation'));
+                        bookBtn.disabled = false;
+                        bookBtn.textContent = 'Book Consultation';
                     }
+                })
+                .catch(err => {
+                    console.error('Booking error:', err);
+                    alert('Error: ' + err.message);
+                    bookBtn.disabled = false;
+                    bookBtn.textContent = 'Book Consultation';
+                });
+        });
+
+        function toggleProfileDropdown() {
+            document.getElementById('profileDropdown').classList.toggle('show');
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.profile-btn')) {
+                const dropdown = document.getElementById('profileDropdown');
+                if (dropdown && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
                 }
             }
         });
+
+        // Initial check
+        checkFormValidity();
     </script>
 </body>
+
 </html>

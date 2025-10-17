@@ -3,7 +3,7 @@
 
 $servername = "localhost";
 $username   = "root";
-$password   = ""; // leave empty if root has no password
+$password   = "damsi20#20"; // leave empty if root has no password
 $dbname     = "dheergayu_db";
 
 // Create connection

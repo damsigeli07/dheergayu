@@ -1,4 +1,5 @@
 <?php
+// core/Database.php
 namespace Core;
 
 use mysqli;

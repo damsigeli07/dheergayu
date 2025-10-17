@@ -1,4 +1,5 @@
 <?php
+// core/Controller.php
 namespace Core;
 
 class Controller {

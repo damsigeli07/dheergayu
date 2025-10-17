@@ -1,0 +1,16 @@
+
+========== 2025-10-17 08:46:18 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [doctor_id] => 1
+    [appointment_date] => 2025-10-18
+    [appointment_time] => 10:00
+    [patient_name] => Test Patient
+    [email] => test@example.com
+    [phone] => 1234567890
+    [age] => 30
+    [gender] => Female
+    [payment_method] => onsite
+)

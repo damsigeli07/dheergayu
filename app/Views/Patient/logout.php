@@ -1,4 +1,8 @@
+
 <?php
+//logout.php
+
+
 session_start();
 
 // Destroy all session data

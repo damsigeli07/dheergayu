@@ -1,8 +1,30 @@
 <?php
 session_start();
 
-// Get user information from login session
-$userType = $_SESSION['user_type'] ?? 'Patient';
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
+
+
+$model = new AppointmentModel($conn);
+
+$treatments = [
+    'Asthma' => 'Respiratory condition management',
+    'Diabetes' => 'Blood sugar management therapy',
+    'Skin Diseases' => 'Dermatological treatments',
+    'Respiratory Disorders' => 'Breathing improvement therapy',
+    'Arthritis' => 'Joint pain relief treatment',
+    'ENT Disorders' => 'Ear, nose, and throat therapy',
+    'Neurological Diseases' => 'Nervous system treatment',
+    'Osteoporosis' => 'Bone strengthening therapy',
+    'Stress and Depression' => 'Mental wellness treatment',
+    'Cholesterol' => 'Heart health management'
+];
+
 $userName = $_SESSION['user_name'] ?? '';
 $userEmail = $_SESSION['user_email'] ?? '';
 ?>
@@ -13,14 +35,11 @@ $userEmail = $_SESSION['user_email'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dheergayu - Treatment Appointment</title>
-
+    <title>Dheergayu - Book Treatment</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/treatment.css?v=<?php echo time(); ?>">
-
 </head>
 
 <body>
-
     <header class="header">
         <div class="header-left">
             <nav class="navigation">
@@ -28,510 +47,225 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 <h1 class="header-title">Dheergayu</h1>
             </nav>
         </div>
-        <div class="header-right" id="headerRight">
-                <a href="home.php" class="nav-btn">Home</a>
-                <a href="channeling.php" class="nav-btn" onclick="handleChanneling()">Consultations</a>
-                <a href="after_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
-                <div class="profile-container">
-                    <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
-                    <div class="profile-dropdown" id="profileDropdown">
-                        <a href="patient_profile.php" class="dropdown-item" onclick="showMyProfile()">My Profile</a>
-                        <a href="patient_appointments.php" class="dropdown-item" onclick="showMyAppointments()">My Appointments</a>
-                        <a href="logout.php" class="dropdown-item" onclick="logout()">Logout</a>
-                    </div>
+        <div class="header-right">
+            <a href="home.php" class="nav-btn">Home</a>
+            <a href="channeling.php" class="nav-btn">Consultations</a>
+            <a href="treatment.php" class="nav-btn">Treatments</a>
+            <div class="profile-container">
+                <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <a href="patient_profile.php" class="dropdown-item">My Profile</a>
+                    <a href="patient_appointments.php" class="dropdown-item">My Appointments</a>
+                    <a href="logout.php" class="dropdown-item">Logout</a>
                 </div>
-                <span style="margin-left: 10px; font-size: 0.9em;"><?php echo htmlspecialchars($userType); ?></span>
+            </div>
         </div>
     </header>
 
-    <div class="treatments-container">
+    <div class="container">
         <div class="page-header">
-            <h1 class="main-title">Our Ayurvedic Treatments</h1>
-            <p class="treatments-subtitle">Discover our range of traditional Ayurvedic treatments for holistic wellness</p>
+            <h1 class="main-title">Book Ayurvedic Treatment</h1>
         </div>
 
-        <div class="treatments-grid">
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/asthma.png" alt="asthma" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Asthma</h3>
-                    <p class="treatment-description">Traditional full-body massage using warm herbal oils</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Reduces stress and anxiety</li>
-                            <li>Improves blood circulation</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/diabetes.jpg" alt="diabetes" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Diabetes</h3>
-                    <p class="treatment-description">Continuous flow of warm oil on the forehead</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Calms the mind</li>
-                            <li>Reduces stress</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/skin_diseases.jpg" alt="skin diseases" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Skin Diseases</h3>
-                    <p class="treatment-description">Complete detoxification and rejuvenation therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Deep detoxification</li>
-                            <li>Restores body balance</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/respiratory_disorders.jpg" alt="respiratory disorders" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Respiratory Disorders</h3>
-                    <p class="treatment-description">Nasal administration of herbal oils</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Clears nasal passages</li>
-                            <li>Improves breathing</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/arthritis.jpg" alt="arthritis" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Arthritis</h3>
-                    <p class="treatment-description">Specialized treatment for lower back pain</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Reduces back pain</li>
-                            <li>Reduces stiffness</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/ENT_disorders.jpg" alt="ENT disorders" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">ENT Disorders</h3>
-                    <p class="treatment-description">Herbal powder massage for body toning</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Improves skin texture</li>
-                            <li>Helps with weight management</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/paralysis.jpg" alt="paralysis" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Neurological Diseases and Paralysis</h3>
-                    <p class="treatment-description">Traditional Ayurvedic foot massage</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/bone_disorders.png" alt="bone disorders" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Dislocation Features of Joints & Bones</h3>
-                    <p class="treatment-description">Energy point therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/osteoporosis.png" alt="osteoporosis" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Osteoporosis</h3>
-                    <p class="treatment-description">Energy point therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/Stress.png">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Anxiety, Stress and Depression</h3>
-                    <p class="treatment-description">Energy point therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/cholesterol.png" alt="cholesterol" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Cholesterol</h3>
-                    <p class="treatment-description">Energy point therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <h3 class="section-title">Treatment Type</h3>
-                <select id="traetment" name="treatment" required>
-                    <option value="Treatment1">Asthma</option>
-                    <option value="Treatment2">Diabetes</option>
-                    <option value="Treatment3">Skin Diseases</option>
-                    <option value="Treatment3">Respiratory Disorders</option>
-                    <option value="Treatment3">Arthritise</option>
-                    <option value="Treatment3">ENT Disorders</option>
-                    <optihttpdhttpdon value="Treatment3">Neurological Diseases and Paralysis</optihttpdhttpdon>
-                    <option value="Treatment3">Dislocation Features of Joints & Bones</option>
-                    <option value="Treatment3">Osteoporosis</option>
-                    <option value="Treatment3">Anxiety, Stress and Depression</option>
-                    <option value="Treatment3">Cholesterol</option>
-                </select>
-
-
-            <div class="form-group">
-                <label for="appointmentDate">Date</label>
-                <input type="date" id="appointmentDate" name="appointmentDate" required>
-            </div>
-
-            <h3 class="section-title">Available Slots</h3>
-            <div class="availability-grid">
-                <button class="time-slot" onclick="selectTimeSlot(this, '8:00 AM')">8:00 AM</button>
-                <button class="time-slot" onclick="selectTimeSlot(this, '10:00 AM')">10:00 AM</button>
-                <button class="time-slot" onclick="selectTimeSlot(this, '11:00 AM')">11:00 AM</button>
-                <button class="time-slot" onclick="selectTimeSlot(this, '1:00 PM')">1:00 PM</button>
-                <button class="time-slot" onclick="selectTimeSlot(this, '3:00 PM')">3:00 PM</button>
-                <button class="time-slot" onclick="selectTimeSlot(this, '4:00 PM')">4:00 PM</button>
-            </div>
-
-
-        </div>
-
-        <!-- Patient Information -->
-        <div class="card">
-            <h3 class="section-title">Patient Information</h3>
-
-            <form id="appointmentForm">
-                <div class="form-group">
-                    <label for="patientName">Name</label>
-                    <input type="text" id="patientName" name="patientName" placeholder="Enter patient name" value="<?php echo htmlspecialchars($userName); ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Enter email address" value="<?php echo htmlspecialchars($userEmail); ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="age">Age</label>
-                    <input type="number" id="age" name="age" placeholder="Enter age" min="1" max="120" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="gender">Gender</label>
-                    <select id="gender" name="gender" required>
-                        <option value="">Select gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
+        <div class="booking-content">
+            <div class="left-section">
+                <div class="card">
+                    <h3 class="section-title">Select Treatment</h3>
+                    <select id="treatmentSelect" name="treatment" required onchange="updateSummary()">
+                        <option value="">-- Choose Treatment --</option>
+                        <?php foreach ($treatments as $name => $description): ?>
+                            <option value="<?php echo $name; ?>" data-description="<?php echo $description; ?>">
+                                <?php echo $name; ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
-                </div>
 
-                <div class="form-group">
-                    <label for="contactNo">Contact No</label>
-                    <input type="text" id="contactNo" name="contactNo" placeholder="Enter contact number" required>
-                </div>
+                    <div class="form-group">
+                        <label for="treatmentDate">Date</label>
+                        <input type="date" id="treatmentDate" name="treatmentDate" required onchange="updateSummary()">
+                    </div>
 
-                <div class="form-group">
-                    <label for="medicalHistory">Medical History (Optional)</label>
-                    <textarea id="medicalHistory" name="medicalHistory" rows="4" placeholder="Brief medical history or current concerns..."></textarea>
-                </div>
-
-                <div class="action-buttons">
-                    <button type="button" class="save-btn" onclick="saveDraft()">Save Draft</button>
-                    <button type="submit" class="continue-btn" id="continueBtn" disabled>Continue</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Summary/Info Panel -->
-        <div class="card">
-            <h3 class="section-title">Appointment Summary</h3>
-
-            <div id="appointmentSummary">
-                <div style="color: #666; text-align: center; padding: 20px;">
-                    Select treatment type and time slot to see summary
+                    <h3 class="section-title">Available Slots</h3>
+                    <div class="availability-grid" id="slotsContainer">
+                        <p style="padding: 20px; color: #999;">Select a date first</p>
+                    </div>
                 </div>
             </div>
 
-            <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #5CB85C;">
-                <h4 style="color: #2d5a2d; margin-bottom: 10px;">Important Notes:</h4>
-                <ul style="color: #2d5a2d; font-size: 13px; line-height: 1.5; padding-left: 15px;">
-                    <li>Please arrive 15 minutes before your appointment</li>
-                    <li>Bring any previous medical reports</li>
-                    <li>Wear comfortable clothing</li>
-                    <li>Avoid heavy meals 2 hours before treatment</li>
-                </ul>
+            <div class="right-section">
+                <form id="treatmentForm">
+                    <div class="form-group">
+                        <label for="patientName">Full Name</label>
+                        <input type="text" id="patientName" name="patient_name" value="<?php echo htmlspecialchars($userName); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" min="1" max="120" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender *</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($userEmail); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="text" id="phone" name="phone" placeholder="0712345678" required>
+                    </div>
+
+                    <button type="submit" class="book-btn" id="bookBtn" disabled>Book Treatment</button>
+                </form>
             </div>
         </div>
 
+        <!-- Summary Panel -->
+        <div class="card summary-card">
+            <h3 class="section-title">Summary</h3>
+            <div id="summaryContent">
+                <p style="color: #999;">Fill in details to see summary</p>
+            </div>
+        </div>
+    </div>
 
-        <script>
-            let selectedTimeSlot = '';
-            let selectedTreatment = '';
+    <script>
+        let selectedTimeSlot = '';
+        let treatmentDate = document.getElementById('treatmentDate');
 
-            function showUserMenu() {
-                alert('User menu options:\n• Profile\n• My Appointments\n• Settings\n• Logout');
+        treatmentDate.min = new Date().toISOString().split('T')[0];
+
+        treatmentDate.addEventListener('change', function() {
+            if (this.value) {
+                loadAvailableSlots(this.value);
             }
+        });
 
-            function selectTimeSlot(button, timeSlot) {
-                // Remove selected class from all time slots
-                document.querySelectorAll('.time-slot').forEach(slot => {
-                    slot.classList.remove('selected');
+        function loadAvailableSlots(date) {
+            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('slotsContainer');
+                    if (data.slots && data.slots.length > 0) {
+                        container.innerHTML = data.slots.map(slot =>
+                            `<button type="button" class="time-slot" onclick="selectSlot(this, '${slot}')">${formatTime(slot)}</button>`
+                        ).join('');
+                    } else {
+                        container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available</p>';
+                    }
                 });
+        }
 
-                // Add selected class to clicked slot
-                button.classList.add('selected');
-                selectedTimeSlot = timeSlot;
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const h = parseInt(hours);
+            const period = h >= 12 ? 'PM' : 'AM';
+            const displayHours = h % 12 || 12;
+            return `${displayHours}:${minutes} ${period}`;
+        }
 
-                updateSummary();
-                validateForm();
-            }
+        function selectSlot(button, slot) {
+            document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
+            button.classList.add('selected');
+            selectedTimeSlot = slot;
+            updateSummary();
+            checkFormValidity();
+        }
 
-            function updateSummary() {
-                const summaryDiv = document.getElementById('appointmentSummary');
-                const treatmentSelect = document.getElementById('treatmentType');
-                const dateInput = document.getElementById('appointmentDate');
+        function updateSummary() {
+            const treatmentSelect = document.getElementById('treatmentSelect');
+            const selectedOption = treatmentSelect.options[treatmentSelect.selectedIndex];
+            const treatmentName = selectedOption.value || '';
+            const description = selectedOption.dataset.description || '';
+            const date = document.getElementById('treatmentDate').value;
 
-                if (selectedTreatment || selectedTimeSlot || dateInput.value) {
-                    summaryDiv.innerHTML = `
+            let summary = '<p style="color: #999;">Fill in details to see summary</p>';
+            if (treatmentName && date && selectedTimeSlot) {
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                summary = `
                     <div style="color: #333;">
-                        ${selectedTreatment ? `<p><strong>Treatment:</strong> ${selectedTreatment}</p>` : ''}
-                        ${dateInput.value ? `<p><strong>Date:</strong> ${new Date(dateInput.value).toLocaleDateString()}</p>` : ''}
-                        ${selectedTimeSlot ? `<p><strong>Time:</strong> ${selectedTimeSlot}</p>` : ''}
-                        ${selectedTreatment ? `<p style="color: #5CB85C; font-weight: 600; margin-top: 15px;">Estimated Duration: 60-90 minutes</p>` : ''}
+                        <p><strong>Treatment:</strong> ${treatmentName}</p>
+                        <p><strong>Description:</strong> ${description}</p>
+                        <p><strong>Date:</strong> ${formattedDate}</p>
+                        <p><strong>Time:</strong> ${formatTime(selectedTimeSlot)}</p>
+                        <p><strong>Duration:</strong> 60-90 minutes</p>
+                        <p><strong>Fee:</strong> Rs 2,000</p>
+                        <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+                        <p style="color: #5CB85C; font-weight: 600;">Ready to book</p>
                     </div>
                 `;
-                } else {
-                    summaryDiv.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">Select treatment type and time slot to see summary</div>';
-                }
+            }
+            document.getElementById('summaryContent').innerHTML = summary;
+        }
+
+        function checkFormValidity() {
+            const form = document.getElementById('treatmentForm');
+            const fields = ['patientName', 'age', 'gender', 'email', 'phone'];
+            const allFilled = fields.every(id => document.getElementById(id).value.trim());
+            document.getElementById('bookBtn').disabled = !(allFilled && selectedTimeSlot);
+        }
+
+        document.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('change', checkFormValidity);
+            field.addEventListener('input', checkFormValidity);
+        });
+
+        document.getElementById('treatmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!selectedTimeSlot) {
+                alert('Please select a time slot');
+                return;
             }
 
-            function validateForm() {
-                const form = document.getElementById('appointmentForm');
-                const continueBtn = document.getElementById('continueBtn');
-                const requiredFields = form.querySelectorAll('[required]');
+            const treatmentSelect = document.getElementById('treatmentSelect');
+            const formData = new FormData(this);
+            formData.append('treatment_type', treatmentSelect.value);
+            formData.append('appointment_date', document.getElementById('treatmentDate').value);
+            formData.append('appointment_time', selectedTimeSlot);
+            formData.append('payment_method', 'onsite');
 
-                let allValid = selectedTimeSlot && selectedTreatment;
-
-                requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        allValid = false;
+            fetch('/dheergayu/public/api/book-treatment.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Treatment booked successfully!');
+                        window.location.href = 'patient_appointments.php';
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to book'));
                     }
-                });
+                })
+                .catch(err => alert('Error: ' + err));
+        });
 
-                continueBtn.disabled = !allValid;
+        function toggleProfileDropdown() {
+            document.getElementById('profileDropdown').classList.toggle('show');
+        }
 
-                if (allValid) {
-                    continueBtn.textContent = 'Continue to Payment';
-                } else {
-                    continueBtn.textContent = 'Complete All Fields';
-                }
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.profile-btn')) {
+                document.getElementById('profileDropdown').classList.remove('show');
             }
-
-            function saveDraft() {
-                alert('Appointment draft saved successfully!');
-            }
-
-            // Treatment type change handler
-            document.getElementById('treatmentType').addEventListener('change', function() {
-                selectedTreatment = this.options[this.selectedIndex].text;
-                updateSummary();
-                validateForm();
-            });
-
-            // Date change handler
-            document.getElementById('appointmentDate').addEventListener('change', function() {
-                updateSummary();
-                validateForm();
-            });
-
-            // Set minimum date to today
-            document.getElementById('appointmentDate').min = new Date().toISOString().split('T')[0];
-
-            // Form submission
-            document.getElementById('appointmentForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                if (!selectedTimeSlot) {
-                    alert('Please select a time slot!');
-                    return;
-                }
-
-                if (!selectedTreatment) {
-                    alert('Please select a treatment type!');
-                    return;
-                }
-
-                const formData = new FormData(this);
-                const appointmentData = {
-                    treatment: selectedTreatment,
-                    date: formData.get('appointmentDate'),
-                    timeSlot: selectedTimeSlot,
-                    patientName: formData.get('patientName'),
-                    email: formData.get('email'),
-                    age: formData.get('age'),
-                    gender: formData.get('gender'),
-                    contactNo: formData.get('contactNo'),
-                    medicalHistory: formData.get('medicalHistory')
-                };
-
-                // Simulate processing
-                const btn = document.getElementById('continueBtn');
-                btn.textContent = 'PROCESSING...';
-                btn.disabled = true;
-
-                setTimeout(() => {
-                    alert('Appointment details confirmed!\n\nProceeding to payment...');
-                }, 1500);
-            });
-
-            // Real-time validation for required fields
-            const requiredFields = document.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                field.addEventListener('input', function() {
-                    validateField(this);
-                    validateForm();
-                });
-            });
-
-            function validateField(field) {
-                if (field.value.trim()) {
-                    field.style.borderColor = '#5CB85C';
-                } else {
-                    field.style.borderColor = '#e1e5e9';
-                }
-            }
-
-            // Format contact number
-            document.getElementById('contactNo').addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length <= 10) {
-                    if (value.length > 3 && value.length <= 6) {
-                        value = value.replace(/(\d{3})(\d+)/, '$1-$2');
-                    } else if (value.length > 6) {
-                        value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
-                    }
-                    e.target.value = value;
-                }
-            });
-
-            // Email validation
-            document.getElementById('email').addEventListener('input', function() {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (this.value && !emailRegex.test(this.value)) {
-                    this.style.borderColor = '#dc3545';
-                } else if (this.value) {
-                    this.style.borderColor = '#5CB85C';
-                } else {
-                    this.style.borderColor = '#e1e5e9';
-                }
-            });
-
-            // Age validation
-            document.getElementById('age').addEventListener('input', function() {
-                const age = parseInt(this.value);
-                if (age < 1 || age > 120) {
-                    this.style.borderColor = '#dc3545';
-                } else if (this.value) {
-                    this.style.borderColor = '#5CB85C';
-                } else {
-                    this.style.borderColor = '#e1e5e9';
-                }
-            });
-
-            // Auto-capitalize patient name
-            document.getElementById('patientName').addEventListener('input', function() {
-                this.value = this.value.replace(/\b\w/g, l => l.toUpperCase());
-            });
-
-            // Initialize form validation on page load
-            validateForm();
-
-            // Profile dropdown functions
-            function toggleProfileDropdown() {
-                const dropdown = document.getElementById('profileDropdown');
-                dropdown.classList.toggle('show');
-            }
-
-            function showMyProfile() {
-                window.location.href = 'patient_profile.php';
-            }
-
-            function showMyAppointments() {
-                window.location.href = 'patient_appointments.php';
-            }
-
-            function logout() {
-                if (confirm('Are you sure you want to logout?')) {
-                    window.location.href = 'logout.php';
-                }
-            }
-
-            // Close dropdown when clicking outside
-            window.addEventListener('click', function(event) {
-                if (!event.target.matches('.profile-btn')) {
-                    const dropdowns = document.getElementsByClassName('profile-dropdown');
-                    for (let dropdown of dropdowns) {
-                        if (dropdown.classList.contains('show')) {
-                            dropdown.classList.remove('show');
-                        }
-                    }
-                }
-            });
-        </script>
+        });
+    </script>
 </body>
 
 </html>

@@ -1,3 +1,19 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
+
+$model = new AppointmentModel($conn);
+$patient_id = $_SESSION['user_id'];
+$appointments = $model->getAllAppointments($patient_id);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +22,6 @@
     <title>Dheergayu - My Appointments</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/patient_appointments.css?v=<?php echo time(); ?>">
 </head>
-
 <body>
     <header class="header">
         <div class="header-left">
@@ -23,216 +38,176 @@
     <div class="container">
         <div class="page-header">
             <h1 class="page-title">My Appointments</h1>
-            <p class="page-subtitle">Manage your consultations and treatment appointments</p>
+            <p class="page-subtitle">Manage your consultations and treatments</p>
         </div>
 
         <div class="appointments-container">
             <div class="appointments-tabs">
                 <button class="tab-btn active" onclick="showTab('upcoming')">
-                    Upcoming
-                    <span class="tab-badge">3</span>
+                    Upcoming <span class="tab-badge"><?php echo countUpcoming($appointments); ?></span>
                 </button>
                 <button class="tab-btn" onclick="showTab('completed')">Completed</button>
                 <button class="tab-btn" onclick="showTab('cancelled')">Cancelled</button>
-                <button class="tab-btn" onclick="showTab('all')">All Appointments</button>
             </div>
 
             <div class="tab-content">
-                <!-- Filter Section -->
-                <div class="filter-section">
-                    <div class="filter-group">
-                        <label class="filter-label">Type</label>
-                        <select class="filter-select" id="typeFilter">
-                            <option value="">All Types</option>
-                            <option value="consultation">Consultation</option>
-                            <option value="treatment">Treatment</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Doctor</label>
-                        <select class="filter-select" id="doctorFilter">
-                            <option value="">All Doctors</option>
-                            <option value="dr-perera">Dr. L.M. Perera</option>
-                            <option value="dr-jayawardena">Dr. K. Jayawardena</option>
-                            <option value="dr-gunarathne">Dr. A.T. Gunarathne</option>
-                        </select>
-                    </div>
-                    <input type="text" class="search-box" placeholder="Search appointments..." id="searchBox">
+                <!-- Upcoming Appointments -->
+                <div id="upcoming-tab" class="tab-panel" style="display: block;">
+                    <?php 
+                    $upcoming = getUpcomingAppointments($appointments);
+                    if (empty($upcoming)): 
+                    ?>
+                        <div class="empty-state">
+                            <h3>No Upcoming Appointments</h3>
+                            <p>Book your first consultation or treatment today</p>
+                            <div style="margin-top: 20px;">
+                                <a href="channeling.php" class="book-btn">Book Consultation</a>
+                                <a href="after_login_treatment.php" class="book-btn">Book Treatment</a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="appointments-list">
+                            <?php foreach ($upcoming as $apt): ?>
+                                <?php 
+                                $type = $apt['type'] ?? (isset($apt['treatment_type']) ? 'treatment' : 'consultation');
+                                $isConsultation = $type === 'consultation' || !isset($apt['treatment_type']);
+                                ?>
+                                <div class="appointment-card <?php echo $type; ?>">
+                                    <div class="appointment-header">
+                                        <div class="appointment-type <?php echo $type; ?>">
+                                            <?php echo ucfirst($type); ?>
+                                        </div>
+                                        <div class="appointment-status status-<?php echo strtolower($apt['status']); ?>">
+                                            <?php echo $apt['status']; ?>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-details">
+                                        <?php if ($isConsultation): ?>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Doctor</span>
+                                                <span class="detail-value"><?php echo $apt['doctor_name'] ?? 'N/A'; ?></span>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Treatment</span>
+                                                <span class="detail-value"><?php echo $apt['treatment_type'] ?? 'N/A'; ?></span>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Date & Time</span>
+                                            <span class="detail-value">
+                                                <?php echo date('M d, Y - h:i A', strtotime($apt['appointment_date'] . ' ' . $apt['appointment_time'])); ?>
+                                            </span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Fee</span>
+                                            <span class="detail-value">Rs <?php echo number_format($apt['consultation_fee'] ?? $apt['treatment_fee'] ?? 0, 2); ?></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Payment Status</span>
+                                            <span class="detail-value" style="color: <?php echo $apt['payment_status'] === 'Completed' ? '#28a745' : '#ff9800'; ?>;">
+                                                <?php echo $apt['payment_status'] ?? 'Pending'; ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="appointment-actions">
+                                        <?php if ($apt['payment_status'] !== 'Completed'): ?>
+                                            <button class="action-btn btn-primary" onclick="payNow(<?php echo $apt['id']; ?>, '<?php echo $type; ?>')">
+                                                Pay Now
+                                            </button>
+                                        <?php endif; ?>
+                                        <button class="action-btn btn-danger" onclick="cancelAppointment(<?php echo $apt['id']; ?>, '<?php echo $type; ?>')">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
-                <!-- Upcoming Appointments Tab -->
-                <div id="upcoming-tab" class="tab-panel">
-                    <div class="appointments-list">
-                        <div class="appointment-card consultation">
-                            <div class="appointment-header">
-                                <div class="appointment-type consultation">Consultation</div>
-                                <div class="appointment-status status-confirmed">Confirmed</div>
-                            </div>
-                            <div class="appointment-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Doctor</span>
-                                    <span class="detail-value">Dr. L.M. Perera</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Date & Time</span>
-                                    <span class="detail-value">March 25, 2024 - 10:00 AM</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Type</span>
-                                    <span class="detail-value">Follow-up Consultation</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Fee</span>
-                                    <span class="detail-value">Rs 1,500</span>
-                                </div>
-                            </div>
-                            <div class="appointment-actions">
-
-                                <button class="action-btn btn-secondary" onclick="reschedule('APP001')">Reschedule</button>
-                                <button class="action-btn btn-danger" onclick="cancelAppointment('APP001')">Cancel</button>
-                            </div>
-                        </div>
-
-                        <div class="appointment-card treatment">
-                            <div class="appointment-header">
-                                <div class="appointment-type treatment">Treatment</div>
-                                <div class="appointment-status status-confirmed">Confirmed</div>
-                            </div>
-                            <div class="appointment-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Treatment</span>
-                                    <span class="detail-value">Panchakarma Therapy</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Date & Time</span>
-                                    <span class="detail-value">March 28, 2024 - 2:00 PM</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Duration</span>
-                                    <span class="detail-value">90 minutes</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Session</span>
-                                    <span class="detail-value">Session 1 of 5</span>
-                                </div>
-                            </div>
-                            <div class="appointment-actions">
-
-                                <button class="action-btn btn-secondary" onclick="reschedule('APP002')">Reschedule</button>
-                                <button class="action-btn btn-danger" onclick="cancelAppointment('APP002')">Cancel</button>
-                            </div>
-                        </div>
-
-                        <div class="appointment-card consultation">
-                            <div class="appointment-header">
-                                <div class="appointment-type consultation">Consultation</div>
-                                <div class="appointment-status status-pending">Pending Confirmation</div>
-                            </div>
-                            <div class="appointment-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Doctor</span>
-                                    <span class="detail-value">Dr. K. Jayawardena</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Date & Time</span>
-                                    <span class="detail-value">April 2, 2024 - 3:30 PM</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Type</span>
-                                    <span class="detail-value">Initial Consultation</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Fee</span>
-                                    <span class="detail-value">Rs 2,000</span>
-                                </div>
-                            </div>
-                            <div class="appointment-actions">
-                                <button class="action-btn btn-danger" onclick="cancelAppointment('APP003')">Cancel Request</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Completed Appointments Tab -->
+                <!-- Completed Appointments -->
                 <div id="completed-tab" class="tab-panel" style="display: none;">
-                    <div class="appointments-list">
-                        <div class="appointment-card consultation">
-                            <div class="appointment-header">
-                                <div class="appointment-type consultation">Consultation</div>
-                                <div class="appointment-status status-completed">Completed</div>
-                            </div>
-                            <div class="appointment-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Doctor</span>
-                                    <span class="detail-value">Dr. L.M. Perera</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Date & Time</span>
-                                    <span class="detail-value">March 15, 2024 - 10:30 AM</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Diagnosis</span>
-                                    <span class="detail-value">Chronic back pain, muscle tension</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Fee Paid</span>
-                                    <span class="detail-value">Rs 1,500</span>
-                                </div>
-                            </div>
-                            <div class="appointment-actions">
-                                <button class="action-btn btn-primary" onclick="viewDetails('APP004')">View Details</button>
-                                <button class="action-btn btn-success" onclick="viewPrescription('APP004')">View Prescription</button>
-                                <button class="action-btn btn-secondary" onclick="bookFollowUp('APP004')">Book Follow-up</button>
-                            </div>
+                    <?php 
+                    $completed = getCompletedAppointments($appointments);
+                    if (empty($completed)): 
+                    ?>
+                        <div class="empty-state">
+                            <h3>No Completed Appointments</h3>
                         </div>
-
-                        <div class="appointment-card treatment">
-                            <div class="appointment-header">
-                                <div class="appointment-type treatment">Treatment</div>
-                                <div class="appointment-status status-completed">Completed</div>
-                            </div>
-                            <div class="appointment-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Treatment</span>
-                                    <span class="detail-value">Oil Massage Therapy</span>
+                    <?php else: ?>
+                        <div class="appointments-list">
+                            <?php foreach ($completed as $apt): ?>
+                                <?php 
+                                $type = $apt['type'] ?? (isset($apt['treatment_type']) ? 'treatment' : 'consultation');
+                                $isConsultation = $type === 'consultation' || !isset($apt['treatment_type']);
+                                ?>
+                                <div class="appointment-card <?php echo $type; ?>">
+                                    <div class="appointment-header">
+                                        <div class="appointment-type <?php echo $type; ?>">
+                                            <?php echo ucfirst($type); ?>
+                                        </div>
+                                        <div class="appointment-status status-completed">Completed</div>
+                                    </div>
+                                    <div class="appointment-details">
+                                        <?php if ($isConsultation): ?>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Doctor</span>
+                                                <span class="detail-value"><?php echo $apt['doctor_name'] ?? 'N/A'; ?></span>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="detail-item">
+                                                <span class="detail-label">Treatment</span>
+                                                <span class="detail-value"><?php echo $apt['treatment_type'] ?? 'N/A'; ?></span>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Date</span>
+                                            <span class="detail-value">
+                                                <?php echo date('M d, Y', strtotime($apt['appointment_date'])); ?>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Date & Time</span>
-                                    <span class="detail-value">March 18, 2024 - 4:00 PM</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Duration</span>
-                                    <span class="detail-value">45 minutes</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Notes</span>
-                                    <span class="detail-value">Session completed successfully</span>
-                                </div>
-                            </div>
-                            <div class="appointment-actions">
-                                <button class="action-btn btn-primary" onclick="viewDetails('APP005')">View Details</button>
-                                <button class="action-btn btn-secondary" onclick="bookSimilar('APP005')">Book Similar</button>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
 
-                <!-- Cancelled Appointments Tab -->
+                <!-- Cancelled Appointments -->
                 <div id="cancelled-tab" class="tab-panel" style="display: none;">
-                    <div class="empty-state">
-                        <h3>No Cancelled Appointments</h3>
-                        <p>You haven't cancelled any appointments recently.</p>
-                    </div>
-                </div>
-
-                <!-- All Appointments Tab -->
-                <div id="all-tab" class="tab-panel" style="display: none;">
-                    <div class="appointments-list">
-                        <!-- This would contain all appointments from all tabs -->
-                        <p style="text-align: center; color: #666; padding: 20px;">
-                            Showing all appointments from all categories...
-                        </p>
-                    </div>
+                    <?php 
+                    $cancelled = getCancelledAppointments($appointments);
+                    if (empty($cancelled)): 
+                    ?>
+                        <div class="empty-state">
+                            <h3>No Cancelled Appointments</h3>
+                        </div>
+                    <?php else: ?>
+                        <div class="appointments-list">
+                            <?php foreach ($cancelled as $apt): ?>
+                                <?php 
+                                $type = $apt['type'] ?? (isset($apt['treatment_type']) ? 'treatment' : 'consultation');
+                                ?>
+                                <div class="appointment-card <?php echo $type; ?>">
+                                    <div class="appointment-header">
+                                        <div class="appointment-type <?php echo $type; ?>">
+                                            <?php echo ucfirst($type); ?>
+                                        </div>
+                                        <div class="appointment-status status-cancelled">Cancelled</div>
+                                    </div>
+                                    <div class="appointment-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Date</span>
+                                            <span class="detail-value">
+                                                <?php echo date('M d, Y', strtotime($apt['appointment_date'])); ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -242,12 +217,12 @@
         </div>
     </div>
 
-    <!-- Cancellation Modal -->
+    <!-- Cancel Modal -->
     <div id="cancelModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCancelModal()">&times;</span>
             <h3>Cancel Appointment</h3>
-            <p>Are you sure you want to cancel this appointment? This action cannot be undone.</p>
+            <p>Are you sure you want to cancel this appointment?</p>
             <div class="modal-buttons">
                 <button class="action-btn btn-danger" onclick="confirmCancel()">Yes, Cancel</button>
                 <button class="action-btn btn-secondary" onclick="closeCancelModal()">Keep Appointment</button>
@@ -255,172 +230,126 @@
         </div>
     </div>
 
-    <!-- Reschedule Modal -->
-    <div id="rescheduleModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeRescheduleModal()">&times;</span>
-            <h3>Reschedule Appointment</h3>
-            <p>Please contact our office to reschedule your appointment or use the online booking system.</p>
-            <div class="modal-buttons">
-                <button class="action-btn btn-primary" onclick="goToBooking()">Online Booking</button>
-                <button class="action-btn btn-secondary" onclick="contactOffice()">Contact Office</button>
-                <button class="action-btn btn-secondary" onclick="closeRescheduleModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         let currentCancelId = null;
+        let currentCancelType = null;
 
         function showTab(tabName) {
-            // Hide all tab panels
-            const tabPanels = document.querySelectorAll('.tab-panel');
-            tabPanels.forEach(panel => {
-                panel.style.display = 'none';
-            });
+            document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
-            // Remove active class from all tab buttons
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            tabButtons.forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected tab panel
-            const selectedPanel = document.getElementById(tabName + '-tab');
-            if (selectedPanel) {
-                selectedPanel.style.display = 'block';
-            }
-            
-            // Add active class to clicked button
+            document.getElementById(tabName + '-tab').style.display = 'block';
             event.target.classList.add('active');
         }
 
-        function viewDetails(appointmentId) {
-            alert(`Viewing details for appointment ${appointmentId}`);
-            // In real implementation, this would show a detailed view of the appointment
-        }
-
-        function reschedule(appointmentId) {
-            document.getElementById('rescheduleModal').style.display = 'block';
-        }
-
-        function cancelAppointment(appointmentId) {
-            currentCancelId = appointmentId;
+        function cancelAppointment(id, type) {
+            currentCancelId = id;
+            currentCancelType = type;
             document.getElementById('cancelModal').style.display = 'block';
         }
 
         function confirmCancel() {
-            if (currentCancelId) {
-                alert(`Appointment ${currentCancelId} has been cancelled successfully.`);
-                // In real implementation, this would update the appointment status
-                closeCancelModal();
-                // Refresh the page or update the UI
-                location.reload();
-            }
+            const formData = new FormData();
+            formData.append('id', currentCancelId);
+            formData.append('type', currentCancelType);
+
+            fetch('/dheergayu/public/api/cancel-appointment.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Appointment cancelled successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to cancel'));
+                }
+            });
+            closeCancelModal();
         }
 
         function closeCancelModal() {
             document.getElementById('cancelModal').style.display = 'none';
             currentCancelId = null;
+            currentCancelType = null;
         }
 
-        function closeRescheduleModal() {
-            document.getElementById('rescheduleModal').style.display = 'none';
+        function payNow(id, type) {
+            window.location.href = `payment.php?appointment_id=${id}&type=${type}`;
         }
 
-        function viewPrescription(appointmentId) {
-            alert(`Viewing prescription for appointment ${appointmentId}\n\nPrescription Details:\n\n1. Herbal pain relief oil\n   - Apply twice daily\n   - Massage gently for 10 minutes\n\n2. Anti-inflammatory tablets\n   - Take 1 tablet after meals\n   - Twice daily for 10 days\n\nNext visit: As needed`);
-        }
-
-        function bookFollowUp(appointmentId) {
-            if (confirm('Would you like to book a follow-up appointment?')) {
-                window.location.href = 'channeling.php?followup=' + appointmentId;
-            }
-        }
-
-        function bookSimilar(appointmentId) {
-            if (confirm('Would you like to book a similar treatment?')) {
-                window.location.href = 'treatment.php?similar=' + appointmentId;
-            }
-        }
-
-        function goToBooking() {
-            window.location.href = 'channeling.php';
-        }
-
-        function contactOffice() {
-            alert('Contact Information:\n\nPhone: +94 25 8858500\nEmail: infodheergayu@gmail.com\n\nOffice Hours:\nMonday - Friday: 8:00 AM - 6:00 PM\nSaturday: 8:00 AM - 2:00 PM');
-        }
-
-        // Filter functionality
-        document.getElementById('typeFilter').addEventListener('change', filterAppointments);
-        document.getElementById('doctorFilter').addEventListener('change', filterAppointments);
-        document.getElementById('searchBox').addEventListener('input', filterAppointments);
-
-        function filterAppointments() {
-            const typeFilter = document.getElementById('typeFilter').value;
-            const doctorFilter = document.getElementById('doctorFilter').value;
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            
-            const appointmentCards = document.querySelectorAll('.appointment-card');
-            
-            appointmentCards.forEach(card => {
-                let showCard = true;
-                
-                // Type filter
-                if (typeFilter && !card.classList.contains(typeFilter)) {
-                    showCard = false;
-                }
-                
-                // Doctor filter
-                if (doctorFilter && showCard) {
-                    const doctorName = card.querySelector('.detail-value').textContent.toLowerCase();
-                    if (!doctorName.includes(doctorFilter.replace('dr-', '').replace('-', '.'))) {
-                        showCard = false;
-                    }
-                }
-                
-                // Search filter
-                if (searchTerm && showCard) {
-                    const cardText = card.textContent.toLowerCase();
-                    if (!cardText.includes(searchTerm)) {
-                        showCard = false;
-                    }
-                }
-                
-                card.style.display = showCard ? 'block' : 'none';
-            });
-        }
-
-        // Close modals when clicking outside
-        window.addEventListener('click', function(event) {
-            const cancelModal = document.getElementById('cancelModal');
-            const rescheduleModal = document.getElementById('rescheduleModal');
-            
-            if (event.target === cancelModal) {
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('cancelModal');
+            if (e.target === modal) {
                 closeCancelModal();
             }
-            if (event.target === rescheduleModal) {
-                closeRescheduleModal();
-            }
-        });
-
-        // Initialize with upcoming tab active
-        window.addEventListener('load', function() {
-            // Add animation to appointment cards
-            const cards = document.querySelectorAll('.appointment-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    card.style.transition = 'all 0.5s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
         });
     </script>
 </body>
 </html>
-                
+
+<?php
+function countUpcoming($appointments) {
+    $count = 0;
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') $count++;
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') $count++;
+    }
+    return $count;
+}
+
+function getUpcomingAppointments($appointments) {
+    $upcoming = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') {
+            $apt['type'] = 'consultation';
+            $upcoming[] = $apt;
+        }
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') {
+            $apt['type'] = 'treatment';
+            $upcoming[] = $apt;
+        }
+    }
+    usort($upcoming, fn($a, $b) => strtotime($a['appointment_date']) <=> strtotime($b['appointment_date']));
+    return $upcoming;
+}
+
+function getCompletedAppointments($appointments) {
+    $completed = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        if ($apt['status'] === 'Completed') {
+            $apt['type'] = 'consultation';
+            $completed[] = $apt;
+        }
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        if ($apt['status'] === 'Completed') {
+            $apt['type'] = 'treatment';
+            $completed[] = $apt;
+        }
+    }
+    return $completed;
+}
+
+function getCancelledAppointments($appointments) {
+    $cancelled = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        if ($apt['status'] === 'Cancelled') {
+            $apt['type'] = 'consultation';
+            $cancelled[] = $apt;
+        }
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        if ($apt['status'] === 'Cancelled') {
+            $apt['type'] = 'treatment';
+            $cancelled[] = $apt;
+        }
+    }
+    return $cancelled;
+}
+?>
