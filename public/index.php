@@ -5,6 +5,8 @@ require_once __DIR__ . '/../core/bootloader.php';
 require_once __DIR__ . '/../core/Core.php';
 
 use Core\Core;
+use App\Controllers\BatchController;
+use App\Controllers\TreatmentController;
 
 $router = new Core();
 
@@ -21,6 +23,20 @@ $router->get('/admin/users', fn() => require __DIR__ . '/../app/Views/Admin/admi
 
 // API endpoints
 $router->get('/api/admin/users', fn() => require __DIR__ . '/../app/Controllers/admin_users.php');
+
+// Pharmacist inventory/batch API
+$router->get('/api/batches', [BatchController::class, 'list']);
+$router->get('/api/batches/by-product', [BatchController::class, 'batches']);
+$router->post('/api/batches/create', [BatchController::class, 'create']);
+$router->post('/api/batches/update', [BatchController::class, 'update']);
+$router->post('/api/batches/delete', [BatchController::class, 'delete']);
+
+// Treatments API
+$router->get('/api/treatments', [TreatmentController::class, 'index']);
+$router->get('/api/treatments/show', [TreatmentController::class, 'show']);
+$router->post('/api/treatments/create', [TreatmentController::class, 'create']);
+$router->post('/api/treatments/update', [TreatmentController::class, 'update']);
+$router->post('/api/treatments/delete', [TreatmentController::class, 'delete']);
 
 $router->run();
 

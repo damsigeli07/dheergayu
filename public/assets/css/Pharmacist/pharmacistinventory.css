@@ -370,6 +370,81 @@ body {
     to { opacity: 1; }
 }
 
+/* ===========================
+   ADD BATCH FORM (Modal)
+   =========================== */
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #7a9b57;
+    box-shadow: 0 0 0 3px rgba(122,155,87,0.1);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.btn-submit, .btn-cancel {
+    padding: 0.7rem 1.6rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
+}
+
+.btn-submit {
+    background-color: #7a9b57;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #6B8E23;
+}
+
+.btn-cancel {
+    background-color: #DC143C;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background-color: #B91C3C;
+}
+
 @keyframes slideIn {
     from { 
         opacity: 0;
