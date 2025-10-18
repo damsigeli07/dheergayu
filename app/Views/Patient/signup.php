@@ -33,7 +33,7 @@ $error   = $_GET['error'] ?? '';
         <?php endif; ?>
 
         <div class="form-container">
-            <form id="signupForm" method="POST" action="../../backend/patient/patient_signup.php">
+            <form id="signupForm" method="POST" action="/dheergayu/app/Controllers/patient_signup.php">
                 <div class="form-group">
                     <label for="firstName">First Name</label>
                     <input type="text" id="firstName" name="first_name" placeholder="Enter your first name" required>

@@ -1,68 +1,21 @@
 <?php
-// Sample treatment data - This should come from a database(Backend)
-$treatments = array(
-    array(
-        'treatment_id' => '1',
-        'treatment_name' => 'Abhyanga',
-        'description' => 'Full body oil massage',
-        'duration' => '60 min',
-        'price' => 'Rs. 5000',
-        'status' => 'Active'
-    ),
-    array(
-        'treatment_id' => '2',
-        'treatment_name' => 'Shirodhara',
-        'description' => 'Oil therapy for mind',
-        'duration' => '45 min',
-        'price' => 'Rs. 7000',
-        'status' => 'Inactive'
-    ),
-    array(
-        'treatment_id' => '3',
-        'treatment_name' => 'Panchakarma',
-        'description' => 'Detoxification therapy',
-        'duration' => '90 min',
-        'price' => 'Rs. 9000',
-        'status' => 'Active'
-    ),
-    array(
-        'treatment_id' => '4',
-        'treatment_name' => 'Udvartana',
-        'description' => 'Herbal powder massage',
-        'duration' => '45 min',
-        'price' => 'Rs. 3500',
-        'status' => 'Active'
-    ),
-    array(
-        'treatment_id' => '5',
-        'treatment_name' => 'Nasya',
-        'description' => 'Nasal therapy',
-        'duration' => '30 min',
-        'price' => 'Rs. 2500',
-        'status' => 'Active'
-    ),
-    array(
-        'treatment_id' => '6',
-        'treatment_name' => 'Basti',
-        'description' => 'Enema therapy',
-        'duration' => '75 min',
-        'price' => 'Rs. 8000',
-        'status' => 'Inactive'
-    )
-);
+require_once __DIR__ . '/../../../core/bootloader.php';
+
+use App\Models\TreatmentModel;
+
+$model = new TreatmentModel();
+$treatments = $model->getAll();
 
 // Calculate statistics
 $totalTreatments = count($treatments);
 $activeTreatments = 0;
 $inactiveTreatments = 0;
-$totalRevenue = 0;
+$totalRevenue = 0.0;
 
 foreach ($treatments as $treatment) {
-    if ($treatment['status'] === 'Active') {
+    if (($treatment['status'] ?? '') === 'Active') {
         $activeTreatments++;
-        // Extract price number for revenue calculation
-        $price = (int) preg_replace('/[^0-9]/', '', $treatment['price']);
-        $totalRevenue += $price;
+        $totalRevenue += (float)($treatment['price'] ?? 0);
     } else {
         $inactiveTreatments++;
     }
@@ -207,17 +160,17 @@ foreach ($treatments as $treatment) {
                             </td>
                             <td class="treatment-description"><?= htmlspecialchars($treatment['description']) ?></td>
                             <td class="duration"><?= htmlspecialchars($treatment['duration']) ?></td>
-                            <td class="price"><?= htmlspecialchars($treatment['price']) ?></td>
+                            <td class="price">Rs. <?= htmlspecialchars(number_format((float)$treatment['price'], 2)) ?></td>
                             <td class="status">
                                 <span class="status-badge <?= strtolower($treatment['status']) ?>">
                                     <?= htmlspecialchars($treatment['status']) ?>
                                 </span>
                             </td>
                             <td class="actions">
-                                <button class="action-btn edit-btn" onclick="editTreatment('<?= $treatment['treatment_id'] ?>')">
+                                <button class="action-btn edit-btn" onclick="openEditTreatment(<?= (int)$treatment['treatment_id'] ?>)">
                                     ✏️ Edit
                                 </button>
-                                <button class="action-btn delete-btn" onclick="deleteTreatment('<?= $treatment['treatment_id'] ?>')">
+                                <button class="action-btn delete-btn" onclick="deleteTreatment(<?= (int)$treatment['treatment_id'] ?>)">
                                     🗑️ Delete
                                 </button>
                             </td>
@@ -277,20 +230,33 @@ foreach ($treatments as $treatment) {
             });
         }
 
-        // Add new treatment functionality
-        function addNewTreatment() {
-            alert('Add new treatment functionality would be implemented here. This would open a form to add new treatments.');
+        async function openEditTreatment(id) {
+            const res = await fetch(`/dheergayu/public/api/treatments/show?id=${id}`);
+            const data = await res.json();
+            const item = data.data;
+            if (!item) { alert('Not found'); return; }
+            const params = new URLSearchParams({
+                treatment_id: item.treatment_id,
+                treatment_name: item.treatment_name,
+                description: item.description || '',
+                duration: item.duration,
+                price: item.price,
+                status: item.status
+            });
+            window.location.href = `addnewtreatment.php?${params.toString()}`;
         }
 
-        // Edit treatment functionality
-        function editTreatment(treatmentId) {
-            alert('Edit treatment ' + treatmentId + ' functionality would be implemented here. This would open an edit form.');
-        }
-
-        // Delete treatment functionality
-        function deleteTreatment(treatmentId) {
-            if (confirm('Are you sure you want to delete this treatment? This action cannot be undone.')) {
-                alert('Delete treatment ' + treatmentId + ' functionality would be implemented here. This would remove the treatment from the system.');
+        async function deleteTreatment(id) {
+            if (!confirm('Are you sure you want to delete this treatment? This action cannot be undone.')) return;
+            const form = new FormData();
+            form.append('treatment_id', id);
+            const res = await fetch('/dheergayu/public/api/treatments/delete', { method: 'POST', body: form });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Treatment deleted');
+                location.reload();
+            } else {
+                alert('Delete failed');
             }
         }
 
