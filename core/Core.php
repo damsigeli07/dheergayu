@@ -1,4 +1,5 @@
 <?php
+// core/Core.php
 namespace Core;
 
 class Core {

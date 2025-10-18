@@ -30,7 +30,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <!-- After login navigation -->
                 <a href="home.php" class="nav-btn">Home</a>
                 <a href="channeling.php" class="nav-btn" onclick="handleChanneling()">Consultations</a>
-                <a href="after_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
+                <a href="treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
                 <div class="profile-container">
                     <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
                     <div class="profile-dropdown" id="profileDropdown">
@@ -122,7 +122,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     <li><a href="#" onclick="navigateTo('Home')">Home</a></li>
                     <li><a href="#" onclick="navigateTo('Accommodation')">Accommodation</a></li>
                     <li><a href="#" onclick="navigateTo('Offers')">Offers</a></li>
-                    <li><a href="#" onclick="handleTreatmentNavigation()">Treatments</a></li>
+                    <li><a href="#" onclick="navigateTo('Treatments')">Treatments</a></li>
                     <li><a href="#" onclick="navigateTo('Dining')">Dining</a></li>
                     <li><a href="#" onclick="navigateTo('Experiences')">Experiences</a></li>
                     <li><a href="#" onclick="navigateTo('Facilities')">Facilities</a></li>
@@ -133,8 +133,8 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <h3>Get in Touch</h3>
                 <div class="contact-info">
                     <p><strong>Dheergayu Ayurveda Center</strong></p>
-                    <p><strong>📧</strong> infodheergayu@gmail.com</p>
-                    <p><strong>📞</strong> +94 25 8858500</p>
+                    <p><img src="/dheergayu/public/assets/images/Patient/email.jpg" alt="email" width="27px" height="17px" style="vertical-align: middle; margin-right: 8px;"> info@dheergayu.com</p>
+                    <p><img src="/dheergayu/public/assets/images/Patient/call.jpg" alt="call" width="19px" height="15px" style="vertical-align: middle; margin-right: 8px;"> +94 25 8858500</p>
                 </div>
             </div>
 
@@ -142,9 +142,15 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <h3>Stay Connected with Ayurveda</h3>
                 <p style="color: #666; margin-bottom: 20px;">Subscribe to our newsletter for wellness tips and updates</p>
                 <div class="social-links">
-                    <a href="#" onclick="openSocial('Facebook')">📘</a>
-                    <a href="#" onclick="openSocial('Twitter')">🐦</a>
-                    <a href="#" onclick="openSocial('Youtube')">📺</a>
+                    <a href="#" onclick="openSocial('Facebook')">
+                        <img src="/dheergayu/public/assets/images/Patient/fb.jpg" alt="Facebook" width="27px" height="19px">
+                    </a>
+                    <a href="#" onclick="openSocial('Twitter')">
+                        <img src="/dheergayu/public/assets/images/Patient/x.jpg" alt="Twitter" width="27px" height="19px">
+                    </a>
+                    <a href="#" onclick="openSocial('Youtube')">
+                        <img src="/dheergayu/public/assets/images/Patient/youtube.jpg" alt="Youtube" width="27px" height="19px">
+                    </a>
                 </div>
             </div>
         </div>
@@ -158,7 +164,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
         </div>
     </footer>
 
-    <!-- Login Required Model -->
+    <!-- Login Required Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLoginModal()">&times;</span>
@@ -178,10 +184,8 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
 
         function handleTreatmentNavigation() {
             if (isLoggedIn) {
-                // Navigate to after login treatment page (with appointment booking)
-                window.location.href = 'after_login_treatment.php';
+                window.location.href = 'treatment.php';
             } else {
-                // Navigate to before login treatment page (information only)
                 window.location.href = 'before_login_treatment.php';
             }
         }
@@ -193,10 +197,8 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
 
         function handleBookNow() {
             if (isLoggedIn) {
-                // Navigate to channeling page
                 window.location.href = 'channeling.php';
             } else {
-                // Show login modal
                 document.getElementById('loginModal').style.display = 'block';
             }
         }
@@ -210,7 +212,6 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
         }
 
         function handleExploreServices() {
-            // Navigate to doctors info page
             window.location.href = 'doctors.php';
         }
 
