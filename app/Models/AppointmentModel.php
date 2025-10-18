@@ -10,24 +10,18 @@ class AppointmentModel {
 
     // CREATE: Book consultation (channeling)
     public function bookConsultation($patient_id, $doctor_id, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $payment_method) {
-        $consultation_fee = 1500.00;
+        $consultation_fee = 2000.00;
         $status = 'Pending';
         $payment_status = 'Pending';
         
-                // Get doctor name
-        $doctor_stmt = $this->conn->prepare("SELECT name FROM doctors WHERE id = ?");
-        $doctor_stmt->bind_param("i", $doctor_id);
-        $doctor_stmt->execute();
-        $doctor_result = $doctor_stmt->get_result()->fetch_assoc();
-        $doctor_name = $doctor_result['name'] ?? 'Unknown Doctor';
-        $doctor_stmt->close();
+        $doctor_name = $this->getDoctorName($doctor_id);
         
         $stmt = $this->conn->prepare("
-            INSERT INTO consultations (patient_id, doctor_id, appointment_date, appointment_time, patient_name, email, phone, age, gender, consultation_fee, status, payment_method, payment_status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO consultations (patient_id, doctor_id, doctor_name, appointment_date, appointment_time, patient_name, email, phone, age, gender, consultation_fee, status, payment_method, payment_status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
-        $stmt->bind_param("iisssssisiss", $patient_id, $doctor_id, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $consultation_fee, $status, $payment_method, $payment_status);
+        $stmt->bind_param("iissssssidssss", $patient_id, $doctor_id, $doctor_name, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $consultation_fee, $status, $payment_method, $payment_status);
         
         if ($stmt->execute()) {
             $id = $stmt->insert_id;
@@ -40,7 +34,7 @@ class AppointmentModel {
 
     // CREATE: Book treatment
     public function bookTreatment($patient_id, $treatment_type, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $payment_method) {
-        $treatment_fee = 2000.00;
+        $treatment_fee = $this->getTreatmentFee($treatment_type);
         $status = 'Pending';
         $payment_status = 'Pending';
         
@@ -49,7 +43,7 @@ class AppointmentModel {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
-        $stmt->bind_param("isssssssisiss", $patient_id, $treatment_type, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $treatment_fee, $status, $payment_method, $payment_status);
+        $stmt->bind_param("isssssssdssss", $patient_id, $treatment_type, $appointment_date, $appointment_time, $patient_name, $email, $phone, $age, $gender, $treatment_fee, $status, $payment_method, $payment_status);
         
         if ($stmt->execute()) {
             $id = $stmt->insert_id;
@@ -114,6 +108,26 @@ class AppointmentModel {
         return $result;
     }
 
+    // Helper: Get doctor name
+    private function getDoctorName($doctor_id) {
+        $stmt = $this->conn->prepare("SELECT name FROM doctors WHERE id = ?");
+        $stmt->bind_param("i", $doctor_id);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $result ? $result['name'] : 'Unknown Doctor';
+    }
+
+    // Helper: Get treatment fee from treatment_list
+    private function getTreatmentFee($treatment_name) {
+        $stmt = $this->conn->prepare("SELECT price FROM treatment_list WHERE treatment_name = ?");
+        $stmt->bind_param("s", $treatment_name);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $result ? $result['price'] : 2000.00;
+    }
+
     // UPDATE: Confirm payment and update status
     public function confirmPayment($id, $type, $transaction_id = null) {
         $table = ($type === 'consultation') ? 'consultations' : 'treatments';
@@ -140,6 +154,17 @@ class AppointmentModel {
         
         $stmt = $this->conn->prepare("UPDATE $table SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $status, $id);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    // UPDATE: Update appointment date and time
+    public function updateAppointment($id, $type, $date, $time) {
+        $table = ($type === 'consultation') ? 'consultations' : 'treatments';
+        
+        $stmt = $this->conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ? WHERE id = ?");
+        $stmt->bind_param("ssi", $date, $time, $id);
         $result = $stmt->execute();
         $stmt->close();
         return $result;

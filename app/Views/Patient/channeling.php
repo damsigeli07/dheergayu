@@ -9,21 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
 
-
 $model = new AppointmentModel($conn);
-
-$treatments = [
-    'Asthma' => 'Respiratory condition management',
-    'Diabetes' => 'Blood sugar management therapy',
-    'Skin Diseases' => 'Dermatological treatments',
-    'Respiratory Disorders' => 'Breathing improvement therapy',
-    'Arthritis' => 'Joint pain relief treatment',
-    'ENT Disorders' => 'Ear, nose, and throat therapy',
-    'Neurological Diseases' => 'Nervous system treatment',
-    'Osteoporosis' => 'Bone strengthening therapy',
-    'Stress and Depression' => 'Mental wellness treatment',
-    'Cholesterol' => 'Heart health management'
-];
 
 $userName = $_SESSION['user_name'] ?? '';
 $userEmail = $_SESSION['user_email'] ?? '';
@@ -35,7 +21,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dheergayu - Book Treatment</title>
+    <title>Dheergayu - Book Consultation</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/treatment.css?v=<?php echo time(); ?>">
 </head>
 
@@ -49,7 +35,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
         </div>
         <div class="header-right">
             <a href="home.php" class="nav-btn">Home</a>
-            <a href="channeling.php" class="nav-btn">Consultations</a>
+            <a href="channeling.php" class="nav-btn active">Consultations</a>
             <a href="treatment.php" class="nav-btn">Treatments</a>
             <div class="profile-container">
                 <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
@@ -70,19 +56,11 @@ $userEmail = $_SESSION['user_email'] ?? '';
         <div class="booking-content">
             <div class="left-section">
                 <div class="card">
-                    <h3 class="section-title">Select Consultation</h3>
-                    <select id="treatmentSelect" name="treatment" required onchange="updateSummary()">
-                        <option value="">-- Choose Consultation --</option>
-                        <?php foreach ($treatments as $name => $description): ?>
-                            <option value="<?php echo $name; ?>" data-description="<?php echo $description; ?>">
-                                <?php echo $name; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <h3 class="section-title">Select Date & Time</h3>
 
                     <div class="form-group">
-                        <label for="treatmentDate">Date</label>
-                        <input type="date" id="treatmentDate" name="treatmentDate" required onchange="updateSummary()">
+                        <label for="consultationDate">Consultation Date</label>
+                        <input type="date" id="consultationDate" name="consultationDate" required onchange="updateSummary()">
                     </div>
 
                     <h3 class="section-title">Available Slots</h3>
@@ -93,45 +71,48 @@ $userEmail = $_SESSION['user_email'] ?? '';
             </div>
 
             <div class="right-section">
-                <form id="treatmentForm">
-                    <div class="form-group">
-                        <label for="patientName">Full Name</label>
-                        <input type="text" id="patientName" name="patient_name" value="<?php echo htmlspecialchars($userName); ?>" required>
-                    </div>
+                <div class="card">
+                    <h3 class="section-title">Patient Information</h3>
+                    <form id="consultationForm">
+                        <div class="form-group">
+                            <label for="patientName">Full Name *</label>
+                            <input type="text" id="patientName" name="patient_name" value="<?php echo htmlspecialchars($userName); ?>" required>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="age">Age</label>
-                        <input type="number" id="age" name="age" min="1" max="120" required>
-                    </div>
+                        <div class="form-group">
+                            <label for="age">Age *</label>
+                            <input type="number" id="age" name="age" min="1" max="120" required>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="gender">Gender *</label>
-                        <select id="gender" name="gender" required>
-                            <option value="">-- Select Gender --</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label for="gender">Gender *</label>
+                            <select id="gender" name="gender" required>
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($userEmail); ?>" required>
-                    </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($userEmail); ?>" required>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="phone">Phone</label>
-                        <input type="text" id="phone" name="phone" placeholder="0712345678" required>
-                    </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="text" id="phone" name="phone" placeholder="0712345678" required>
+                        </div>
 
-                    <button type="submit" class="book-btn" id="bookBtn" disabled>Book Treatment</button>
-                </form>
+                        <button type="submit" class="book-btn" id="bookBtn" disabled>Book Consultation</button>
+                    </form>
+                </div>
             </div>
         </div>
 
         <!-- Summary Panel -->
         <div class="card summary-card">
-            <h3 class="section-title">Summary</h3>
+            <h3 class="section-title">Booking Summary</h3>
             <div id="summaryContent">
                 <p style="color: #999;">Fill in details to see summary</p>
             </div>
@@ -140,11 +121,11 @@ $userEmail = $_SESSION['user_email'] ?? '';
 
     <script>
         let selectedTimeSlot = '';
-        let treatmentDate = document.getElementById('treatmentDate');
+        let consultationDate = document.getElementById('consultationDate');
 
-        treatmentDate.min = new Date().toISOString().split('T')[0];
+        consultationDate.min = new Date().toISOString().split('T')[0];
 
-        treatmentDate.addEventListener('change', function() {
+        consultationDate.addEventListener('change', function() {
             if (this.value) {
                 loadAvailableSlots(this.value);
             }
@@ -160,7 +141,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
                             `<button type="button" class="time-slot" onclick="selectSlot(this, '${slot}')">${formatTime(slot)}</button>`
                         ).join('');
                     } else {
-                        container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available</p>';
+                        container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
                     }
                 });
         }
@@ -182,14 +163,10 @@ $userEmail = $_SESSION['user_email'] ?? '';
         }
 
         function updateSummary() {
-            const treatmentSelect = document.getElementById('treatmentSelect');
-            const selectedOption = treatmentSelect.options[treatmentSelect.selectedIndex];
-            const treatmentName = selectedOption.value || '';
-            const description = selectedOption.dataset.description || '';
-            const date = document.getElementById('treatmentDate').value;
+            const date = document.getElementById('consultationDate').value;
 
             let summary = '<p style="color: #999;">Fill in details to see summary</p>';
-            if (treatmentName && date && selectedTimeSlot) {
+            if (date && selectedTimeSlot) {
                 const dateObj = new Date(date);
                 const formattedDate = dateObj.toLocaleDateString('en-US', {
                     weekday: 'long',
@@ -199,14 +176,13 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 });
                 summary = `
                     <div style="color: #333;">
-                        <p><strong>Treatment:</strong> ${treatmentName}</p>
-                        <p><strong>Description:</strong> ${description}</p>
+                        <p><strong>Service:</strong> Ayurvedic Consultation</p>
                         <p><strong>Date:</strong> ${formattedDate}</p>
                         <p><strong>Time:</strong> ${formatTime(selectedTimeSlot)}</p>
-                        <p><strong>Duration:</strong> 60-90 minutes</p>
-                        <p><strong>Fee:</strong> Rs 2,000</p>
+                        <p><strong>Duration:</strong> 30-45 minutes</p>
+                        <p><strong>Consultation Fee:</strong> Rs 2,000.00</p>
                         <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
-                        <p style="color: #5CB85C; font-weight: 600;">Ready to book</p>
+                        <p style="color: #5CB85C; font-weight: 700; font-size: 15px;">✓ Ready to book</p>
                     </div>
                 `;
             }
@@ -214,7 +190,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
         }
 
         function checkFormValidity() {
-            const form = document.getElementById('treatmentForm');
+            const form = document.getElementById('consultationForm');
             const fields = ['patientName', 'age', 'gender', 'email', 'phone'];
             const allFilled = fields.every(id => document.getElementById(id).value.trim());
             document.getElementById('bookBtn').disabled = !(allFilled && selectedTimeSlot);
@@ -225,7 +201,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
             field.addEventListener('input', checkFormValidity);
         });
 
-        document.getElementById('treatmentForm').addEventListener('submit', function(e) {
+        document.getElementById('consultationForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
             if (!selectedTimeSlot) {
@@ -233,10 +209,9 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 return;
             }
 
-            const treatmentSelect = document.getElementById('treatmentSelect');
             const formData = new FormData(this);
-            formData.append('treatment_type', treatmentSelect.value);
-            formData.append('appointment_date', document.getElementById('treatmentDate').value);
+            formData.append('treatment_type', 'General Consultation');
+            formData.append('appointment_date', document.getElementById('consultationDate').value);
             formData.append('appointment_time', selectedTimeSlot);
             formData.append('payment_method', 'onsite');
 
@@ -247,10 +222,10 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Treatment booked successfully!');
+                        alert('Consultation booked successfully!');
                         window.location.href = 'patient_appointments.php';
                     } else {
-                        alert('Error: ' + (data.error || 'Failed to book'));
+                        alert('Error: ' + (data.error || 'Failed to book consultation'));
                     }
                 })
                 .catch(err => alert('Error: ' + err));

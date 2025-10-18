@@ -47,6 +47,7 @@
                             <li>Reduces stress and anxiety</li>
                             <li>Improves blood circulation</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 2,500.00</h4>
                     </div>
                 </div>
             </div>
@@ -67,6 +68,7 @@
                             <li>Deep detoxification</li>
                             <li>Restores body balance</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 9,000.00</h4>
                     </div>
                 </div>
             </div>
@@ -86,6 +88,7 @@
                             <li>Clears nasal passages</li>
                             <li>Improves breathing</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 3,500.00</h4>
                     </div>
                 </div>
             </div>
@@ -105,6 +108,7 @@
                             <li>Reduces back pain</li>
                             <li>Reduces stiffness</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 7,000.00</h4>
                     </div>
                 </div>
             </div>
@@ -125,6 +129,7 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 5,000.00</h4>
                     </div>
                 </div>
             </div>
@@ -144,6 +149,7 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 5,000.00</h4>
                     </div>
                 </div>
             </div>
@@ -163,6 +169,7 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 7,000.00</h4>
                     </div>
                 </div>
             </div>
@@ -181,6 +188,7 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="price-title">Price - Rs. 3,500.00</h4>
                     </div>
                 </div>
             </div>

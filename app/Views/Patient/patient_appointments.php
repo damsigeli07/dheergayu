@@ -43,16 +43,41 @@ $appointments = $model->getAllAppointments($patient_id);
 
         <div class="appointments-container">
             <div class="appointments-tabs">
-                <button class="tab-btn active" onclick="showTab('upcoming')">
+                <button class="tab-btn active" onclick="showTab('all')">
+                    All Appointments <span class="tab-badge"><?php echo countAll($appointments); ?></span>
+                </button>
+                <button class="tab-btn" onclick="showTab('upcoming')">
                     Upcoming <span class="tab-badge"><?php echo countUpcoming($appointments); ?></span>
                 </button>
-                <button class="tab-btn" onclick="showTab('completed')">Completed</button>
                 <button class="tab-btn" onclick="showTab('cancelled')">Cancelled</button>
             </div>
 
             <div class="tab-content">
+                <!-- All Appointments -->
+                <div id="all-tab" class="tab-panel" style="display: block;">
+                    <?php 
+                    $all = getAllAppointments($appointments);
+                    if (empty($all)): 
+                    ?>
+                        <div class="empty-state">
+                            <h3>No Appointments</h3>
+                            <p>Book your first consultation or treatment today</p>
+                            <div style="margin-top: 20px;">
+                                <a href="channeling.php" class="book-btn">Book Consultation</a>
+                                <a href="treatment.php" class="book-btn">Book Treatment</a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="appointments-list">
+                            <?php foreach ($all as $apt): ?>
+                                <?php renderAppointmentCard($apt, $conn); ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <!-- Upcoming Appointments -->
-                <div id="upcoming-tab" class="tab-panel" style="display: block;">
+                <div id="upcoming-tab" class="tab-panel" style="display: none;">
                     <?php 
                     $upcoming = getUpcomingAppointments($appointments);
                     if (empty($upcoming)): 
@@ -62,113 +87,13 @@ $appointments = $model->getAllAppointments($patient_id);
                             <p>Book your first consultation or treatment today</p>
                             <div style="margin-top: 20px;">
                                 <a href="channeling.php" class="book-btn">Book Consultation</a>
-                                <a href="after_login_treatment.php" class="book-btn">Book Treatment</a>
+                                <a href="treatment.php" class="book-btn">Book Treatment</a>
                             </div>
                         </div>
                     <?php else: ?>
                         <div class="appointments-list">
                             <?php foreach ($upcoming as $apt): ?>
-                                <?php 
-                                $type = $apt['type'] ?? (isset($apt['treatment_type']) ? 'treatment' : 'consultation');
-                                $isConsultation = $type === 'consultation' || !isset($apt['treatment_type']);
-                                ?>
-                                <div class="appointment-card <?php echo $type; ?>">
-                                    <div class="appointment-header">
-                                        <div class="appointment-type <?php echo $type; ?>">
-                                            <?php echo ucfirst($type); ?>
-                                        </div>
-                                        <div class="appointment-status status-<?php echo strtolower($apt['status']); ?>">
-                                            <?php echo $apt['status']; ?>
-                                        </div>
-                                    </div>
-                                    <div class="appointment-details">
-                                        <?php if ($isConsultation): ?>
-                                            <div class="detail-item">
-                                                <span class="detail-label">Doctor</span>
-                                                <span class="detail-value"><?php echo $apt['doctor_name'] ?? 'N/A'; ?></span>
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="detail-item">
-                                                <span class="detail-label">Treatment</span>
-                                                <span class="detail-value"><?php echo $apt['treatment_type'] ?? 'N/A'; ?></span>
-                                            </div>
-                                        <?php endif; ?>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Date & Time</span>
-                                            <span class="detail-value">
-                                                <?php echo date('M d, Y - h:i A', strtotime($apt['appointment_date'] . ' ' . $apt['appointment_time'])); ?>
-                                            </span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Fee</span>
-                                            <span class="detail-value">Rs <?php echo number_format($apt['consultation_fee'] ?? $apt['treatment_fee'] ?? 0, 2); ?></span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Payment Status</span>
-                                            <span class="detail-value" style="color: <?php echo $apt['payment_status'] === 'Completed' ? '#28a745' : '#ff9800'; ?>;">
-                                                <?php echo $apt['payment_status'] ?? 'Pending'; ?>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="appointment-actions">
-                                        <?php if ($apt['payment_status'] !== 'Completed'): ?>
-                                            <button class="action-btn btn-primary" onclick="payNow(<?php echo $apt['id']; ?>, '<?php echo $type; ?>')">
-                                                Pay Now
-                                            </button>
-                                        <?php endif; ?>
-                                        <button class="action-btn btn-danger" onclick="cancelAppointment(<?php echo $apt['id']; ?>, '<?php echo $type; ?>')">
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Completed Appointments -->
-                <div id="completed-tab" class="tab-panel" style="display: none;">
-                    <?php 
-                    $completed = getCompletedAppointments($appointments);
-                    if (empty($completed)): 
-                    ?>
-                        <div class="empty-state">
-                            <h3>No Completed Appointments</h3>
-                        </div>
-                    <?php else: ?>
-                        <div class="appointments-list">
-                            <?php foreach ($completed as $apt): ?>
-                                <?php 
-                                $type = $apt['type'] ?? (isset($apt['treatment_type']) ? 'treatment' : 'consultation');
-                                $isConsultation = $type === 'consultation' || !isset($apt['treatment_type']);
-                                ?>
-                                <div class="appointment-card <?php echo $type; ?>">
-                                    <div class="appointment-header">
-                                        <div class="appointment-type <?php echo $type; ?>">
-                                            <?php echo ucfirst($type); ?>
-                                        </div>
-                                        <div class="appointment-status status-completed">Completed</div>
-                                    </div>
-                                    <div class="appointment-details">
-                                        <?php if ($isConsultation): ?>
-                                            <div class="detail-item">
-                                                <span class="detail-label">Doctor</span>
-                                                <span class="detail-value"><?php echo $apt['doctor_name'] ?? 'N/A'; ?></span>
-                                            </div>
-                                        <?php else: ?>
-                                            <div class="detail-item">
-                                                <span class="detail-label">Treatment</span>
-                                                <span class="detail-value"><?php echo $apt['treatment_type'] ?? 'N/A'; ?></span>
-                                            </div>
-                                        <?php endif; ?>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Date</span>
-                                            <span class="detail-value">
-                                                <?php echo date('M d, Y', strtotime($apt['appointment_date'])); ?>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <?php renderAppointmentCard($apt, $conn); ?>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -186,25 +111,7 @@ $appointments = $model->getAllAppointments($patient_id);
                     <?php else: ?>
                         <div class="appointments-list">
                             <?php foreach ($cancelled as $apt): ?>
-                                <?php 
-                                $type = $apt['type'] ?? (isset($apt['treatment_type']) ? 'treatment' : 'consultation');
-                                ?>
-                                <div class="appointment-card <?php echo $type; ?>">
-                                    <div class="appointment-header">
-                                        <div class="appointment-type <?php echo $type; ?>">
-                                            <?php echo ucfirst($type); ?>
-                                        </div>
-                                        <div class="appointment-status status-cancelled">Cancelled</div>
-                                    </div>
-                                    <div class="appointment-details">
-                                        <div class="detail-item">
-                                            <span class="detail-label">Date</span>
-                                            <span class="detail-value">
-                                                <?php echo date('M d, Y', strtotime($apt['appointment_date'])); ?>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <?php renderAppointmentCard($apt, $conn); ?>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
@@ -214,6 +121,38 @@ $appointments = $model->getAllAppointments($patient_id);
 
         <div style="text-align: center; margin-top: 30px;">
             <a href="channeling.php" class="book-new-btn">Book New Appointment</a>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3>Edit Appointment</h3>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <input type="hidden" id="editType">
+                <div class="form-group">
+                    <label for="editDate">Date</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTime">Time</label>
+                    <select id="editTime" required>
+                        <option value="">Select Time</option>
+                        <option value="08:00">08:00 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="14:00">02:00 PM</option>
+                        <option value="15:00">03:00 PM</option>
+                        <option value="16:00">04:00 PM</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="action-btn btn-primary">Save Changes</button>
+                    <button type="button" class="action-btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -241,6 +180,44 @@ $appointments = $model->getAllAppointments($patient_id);
             document.getElementById(tabName + '-tab').style.display = 'block';
             event.target.classList.add('active');
         }
+
+        function editAppointment(id, type, date, time) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editType').value = type;
+            document.getElementById('editDate').value = date;
+            document.getElementById('editTime').value = time;
+            document.getElementById('editDate').min = new Date().toISOString().split('T')[0];
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('id', document.getElementById('editId').value);
+            formData.append('type', document.getElementById('editType').value);
+            formData.append('date', document.getElementById('editDate').value);
+            formData.append('time', document.getElementById('editTime').value);
+
+            fetch('/dheergayu/public/api/update-appointment.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Appointment updated successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to update'));
+                }
+            });
+            closeEditModal();
+        });
 
         function cancelAppointment(id, type) {
             currentCancelId = id;
@@ -280,16 +257,127 @@ $appointments = $model->getAllAppointments($patient_id);
         }
 
         window.addEventListener('click', function(e) {
-            const modal = document.getElementById('cancelModal');
-            if (e.target === modal) {
-                closeCancelModal();
-            }
+            const editModal = document.getElementById('editModal');
+            const cancelModal = document.getElementById('cancelModal');
+            if (e.target === editModal) closeEditModal();
+            if (e.target === cancelModal) closeCancelModal();
         });
     </script>
 </body>
 </html>
 
 <?php
+function getTreatmentPrice($conn, $treatment_type) {
+    // Normalize treatment names for database matching
+    $treatment_map = [
+        'Asthma' => 'Abhyanga',
+        'Diabetes' => 'Abhyanga',
+        'Skin Diseases' => 'Shirodhara',
+        'Respiratory Disorders' => 'Shirodhara',
+        'Arthritis' => 'Panchakarma',
+        'ENT Disorders' => 'Udvartana',
+        'Neurological Diseases' => 'Panchakarma',
+        'Osteoporosis' => 'Vashpa Sweda',
+        'Stress and Depression' => 'Shirodhara',
+        'Cholesterol' => 'Nasya'
+    ];
+    
+    // Check if it's directly a treatment from treatment_list
+    $stmt = $conn->prepare("SELECT price FROM treatment_list WHERE treatment_name = ?");
+    $stmt->bind_param("s", $treatment_type);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    if ($result) {
+        return $result['price'];
+    }
+    
+    // If not found, try mapped treatment
+    if (isset($treatment_map[$treatment_type])) {
+        $mapped_name = $treatment_map[$treatment_type];
+        $stmt = $conn->prepare("SELECT price FROM treatment_list WHERE treatment_name = ?");
+        $stmt->bind_param("s", $mapped_name);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        if ($result) {
+            return $result['price'];
+        }
+    }
+    
+    return 2000.00;
+}
+
+function renderAppointmentCard($apt, $conn) {
+    $type = $apt['type'];
+    $isConsultation = $type === 'consultation';
+    $status = $apt['status'];
+    
+    // Get fee
+    if ($isConsultation) {
+        $fee = 2000;
+    } else {
+        $fee = getTreatmentPrice($conn, $apt['treatment_type']);
+    }
+    
+    echo '<div class="appointment-card ' . $type . '">';
+    echo '<div class="appointment-header">';
+    echo '<div class="appointment-type ' . $type . '">' . ucfirst($type) . '</div>';
+    echo '<div class="appointment-status status-' . strtolower($status) . '">' . $status . '</div>';
+    echo '</div>';
+    echo '<div class="appointment-details">';
+    
+    if ($isConsultation) {
+        echo '<div class="detail-item">';
+        echo '<span class="detail-label">Doctor</span>';
+        echo '<span class="detail-value">' . ($apt['doctor_name'] ?? 'General Consultation') . '</span>';
+        echo '</div>';
+    } else {
+        echo '<div class="detail-item">';
+        echo '<span class="detail-label">Treatment</span>';
+        echo '<span class="detail-value">' . ($apt['treatment_type'] ?? 'N/A') . '</span>';
+        echo '</div>';
+    }
+    
+    echo '<div class="detail-item">';
+    echo '<span class="detail-label">Date & Time</span>';
+    echo '<span class="detail-value">' . date('M d, Y - h:i A', strtotime($apt['appointment_date'] . ' ' . $apt['appointment_time'])) . '</span>';
+    echo '</div>';
+    
+    echo '<div class="detail-item">';
+    echo '<span class="detail-label">Fee</span>';
+    echo '<span class="detail-value">Rs ' . number_format($fee, 2) . '</span>';
+    echo '</div>';
+    
+    if ($status !== 'Cancelled') {
+        echo '<div class="detail-item">';
+        echo '<span class="detail-label">Payment Status</span>';
+        $paymentColor = ($apt['payment_status'] ?? 'Pending') === 'Completed' ? '#28a745' : '#ff9800';
+        echo '<span class="detail-value" style="color: ' . $paymentColor . ';">' . ($apt['payment_status'] ?? 'Pending') . '</span>';
+        echo '</div>';
+    }
+    
+    echo '</div>';
+    
+    if ($status !== 'Cancelled') {
+        echo '<div class="appointment-actions">';
+        if (($apt['payment_status'] ?? 'Pending') !== 'Completed') {
+            echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Pay Now</button>';
+        }
+        echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\')">Edit</button>';
+        echo '<button class="action-btn btn-danger" onclick="cancelAppointment(' . $apt['id'] . ', \'' . $type . '\')">Cancel</button>';
+        echo '</div>';
+    }
+    
+    echo '</div>';
+}
+
+function countAll($appointments) {
+    return count($appointments['consultations'] ?? []) + count($appointments['treatments'] ?? []);
+}
+
 function countUpcoming($appointments) {
     $count = 0;
     foreach ($appointments['consultations'] ?? [] as $apt) {
@@ -299,6 +387,20 @@ function countUpcoming($appointments) {
         if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') $count++;
     }
     return $count;
+}
+
+function getAllAppointments($appointments) {
+    $all = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        $apt['type'] = 'consultation';
+        $all[] = $apt;
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        $apt['type'] = 'treatment';
+        $all[] = $apt;
+    }
+    usort($all, fn($a, $b) => strtotime($b['appointment_date']) <=> strtotime($a['appointment_date']));
+    return $all;
 }
 
 function getUpcomingAppointments($appointments) {
@@ -317,23 +419,6 @@ function getUpcomingAppointments($appointments) {
     }
     usort($upcoming, fn($a, $b) => strtotime($a['appointment_date']) <=> strtotime($b['appointment_date']));
     return $upcoming;
-}
-
-function getCompletedAppointments($appointments) {
-    $completed = [];
-    foreach ($appointments['consultations'] ?? [] as $apt) {
-        if ($apt['status'] === 'Completed') {
-            $apt['type'] = 'consultation';
-            $completed[] = $apt;
-        }
-    }
-    foreach ($appointments['treatments'] ?? [] as $apt) {
-        if ($apt['status'] === 'Completed') {
-            $apt['type'] = 'treatment';
-            $completed[] = $apt;
-        }
-    }
-    return $completed;
 }
 
 function getCancelledAppointments($appointments) {

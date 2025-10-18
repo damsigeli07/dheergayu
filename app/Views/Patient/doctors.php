@@ -34,7 +34,7 @@
                 <div class="availability-indicator">Available</div>
                 <div class="doctor-image">
 
-                <img src="/dheergayu/public/assets/images/Patient/doctor1.jpg" alt="Dr. L.M. Perera" class="doctor-photo">
+                <img src="/dheergayu/public/assets/images/Patient/dummy.png" alt="Dr. L.M. Perera" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
                     <h2 class="doctor-name">Dr. L.M. Perera</h2>
@@ -63,7 +63,7 @@
             <div class="doctor-card">
                 <div class="availability-indicator limited">Limited Slots</div>
                 <div class="doctor-image">
-                    <img src="/dheergayu/public/assets/images/Patient/doctor2.jpg" alt="Dr. K. Jayawardena" class="doctor-photo">
+                    <img src="/dheergayu/public/assets/images/Patient/dummy.png" alt="Dr. K. Jayawardena" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
                     <h2 class="doctor-name">Dr. K. Jayawardena</h2>
@@ -91,7 +91,7 @@
             <div class="doctor-card">
                 <div class="availability-indicator">Available</div>
                 <div class="doctor-image">
-                    <img src="/dheergayu/public/assets/images/Patient/doctor3.jpg" alt="Dr. A.T. Gunarathne" class="doctor-photo">
+                    <img src="/dheergayu/public/assets/images/Patient/dummy.png" alt="Dr. A.T. Gunarathne" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
                     <h2 class="doctor-name">Dr. A.T. Gunarathne</h2>
