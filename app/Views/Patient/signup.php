@@ -25,6 +25,8 @@ $error   = $_GET['error'] ?? '';
             <script>alert('Email or NIC already registered!');</script>
         <?php elseif ($error === 'database_error'): ?>
             <script>alert('Database error! Please try again later.');</script>
+        <?php elseif ($error === 'invalid_dob'): ?>
+            <script>alert('Date of birth must be between 1925 and 2007!');</script>
         <?php elseif ($success === 'signup_complete'): ?>
             <script>
                 alert('Signup successful! Redirecting to login page.');
@@ -33,7 +35,7 @@ $error   = $_GET['error'] ?? '';
         <?php endif; ?>
 
         <div class="form-container">
-            <form id="signupForm" method="POST" action="../../backend/patient/patient_signup.php">
+            <form id="signupForm" method="POST" action="/dheergayu/app/Controllers/patient_signup.php" onsubmit="validateDOB(event)">
                 <div class="form-group">
                     <label for="firstName">First Name</label>
                     <input type="text" id="firstName" name="first_name" placeholder="Enter your first name" required>
@@ -47,6 +49,7 @@ $error   = $_GET['error'] ?? '';
                 <div class="form-group">
                     <label for="dob">Date of Birth</label>
                     <input type="date" id="dob" name="dob" required>
+                    <small id="dobError" class="error-message" style="color: red; display: none; font-size: 12px; margin-top: 5px;">Date must be between 1925 and 2007</small>
                 </div>
 
                 <div class="form-group">
@@ -71,7 +74,7 @@ $error   = $_GET['error'] ?? '';
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="password-field">
                         <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm your password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">👁</button>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">🙈</button>
                     </div>
                 </div>
 
@@ -85,9 +88,57 @@ $error   = $_GET['error'] ?? '';
 function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
     const toggle = field.nextElementSibling;
-    if (field.type === 'password') { field.type = 'text'; toggle.textContent = '🙈'; }
-    else { field.type = 'password'; toggle.textContent = '👁'; }
+    if (field.type === 'password') { 
+        field.type = 'text'; 
+        toggle.textContent = '🙈'; 
+    }
+    else { 
+        field.type = 'password'; 
+        toggle.textContent = '👁'; 
+    }
 }
+
+function validateDOB(event) {
+    const dobInput = document.getElementById('dob').value;
+    const dobError = document.getElementById('dobError');
+    
+    if (!dobInput) {
+        dobError.style.display = 'none';
+        return true;
+    }
+    
+    const dob = new Date(dobInput);
+    const year = dob.getFullYear();
+    
+    if (year < 1925 || year > 2007) {
+        dobError.style.display = 'block';
+        event.preventDefault();
+        return false;
+    }
+    
+    dobError.style.display = 'none';
+    return true;
+}
+
+// Real-time validation as user changes the date
+document.getElementById('dob').addEventListener('change', function() {
+    const dobInput = this.value;
+    const dobError = document.getElementById('dobError');
+    
+    if (!dobInput) {
+        dobError.style.display = 'none';
+        return;
+    }
+    
+    const dob = new Date(dobInput);
+    const year = dob.getFullYear();
+    
+    if (year < 1925 || year > 2007) {
+        dobError.style.display = 'block';
+    } else {
+        dobError.style.display = 'none';
+    }
+});
 </script>
 
 </body>

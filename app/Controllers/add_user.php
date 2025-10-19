@@ -1,5 +1,5 @@
-c
-
+<?php
+require_once(__DIR__ . "/../../config/config.php");
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $first = trim($_POST['first_name']);
     $last = trim($_POST['last_name']);
@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->bind_param("ssssssss", $first, $last, $role, $email, $phone, $password, $status, $reg_date);
 
     if ($stmt->execute()) {
-        echo "<script>alert('User added successfully!'); window.location.href='../../frontend/admin/adminusers.php';</script>";
+        echo "<script>alert('User added successfully!'); window.location.href='/dheergayu/app/Controllers/admin_users.php';</script>";
     } else {
         echo "<script>alert('Error adding user.'); window.history.back();</script>";
     }
@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->close();
     $conn->close();
 } else {
-    header("Location: ../../frontend/admin/adminaddnewuser.php");
+    header("Location: /dheergayu/app/View/admin/adminaddnewuser.php");
     exit;
 }
 ?>

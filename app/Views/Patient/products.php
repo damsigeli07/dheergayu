@@ -87,7 +87,7 @@
             <!-- Product 5 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Kothalahimbutu Capsules.jpeg" alt="Kothalahimbutu Capsules" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Patient/Kothalahimbutu_Capsules.jpeg" alt="Kothalahimbutu Capsules" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">KothalahimbutuCapsules</h3>
@@ -100,7 +100,7 @@
             <!-- Product 6 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Neem Oil.jpg" alt="Neem Oil" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Patient/Neem_Oil.jpg" alt="Neem Oil" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Neem Oil</h3>
@@ -113,7 +113,7 @@
             <!-- Product 7 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Pinda Thailaya.jpeg" alt="Pinda Thailaya" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Patient/Pinda_Thailaya.jpeg" alt="Pinda Thailaya" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Pinda Thailaya</h3>
@@ -126,7 +126,7 @@
             <!-- Product 8 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Nirgundi Oil.jpg" alt="Nirgundi Oil" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Patient/Nirgundi_Oil.jpg" alt="Nirgundi Oil" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Nirgundi Oil</h3>

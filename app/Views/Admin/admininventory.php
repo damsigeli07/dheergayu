@@ -1,15 +1,15 @@
 <?php
 // Sample data for demonstration
 $products = [
-    ["name"=>"Asamodagam", "image"=>"images/asamodagam.jpg"],
-    ["name"=>"Bala Thailaya", "image"=>"images/Bala Thailaya.png"],
-    ["name"=>"Dashamoolarishta", "image"=>"images/Dashamoolarishta.jpeg"],
-    ["name"=>"Kothalahimbutu Capsules", "image"=>"images/Kothalahimbutu Capsules.jpeg"],
-    ["name"=>"Neem Oil", "image"=>"images/Neem Oil.jpg"],
-    ["name"=>"Nirgundi Oil", "image"=>"images/Nirgundi Oil.jpg"],
-    ["name"=>"Paspanguwa", "image"=>"images/paspanguwa.jpeg"],
-    ["name"=>"Pinda Thailaya", "image"=>"images/Pinda Thailaya.jpeg"],
-    ["name"=>"Siddhalepa", "image"=>"images/siddhalepa.png"],
+    ["name"=>"Asamodagam", "image"=>"/dheergayu/public/assets/images/Admin/asamodagam.jpg"],
+    ["name"=>"Bala Thailaya", "image"=>"/dheergayu/public/assets/images/Admin/Bala Thailaya.png"],
+    ["name"=>"Dashamoolarishta", "image"=>"/dheergayu/public/assets/images/Admin/Dashamoolarishta.jpeg"],
+    ["name"=>"Kothalahimbutu Capsules", "image"=>"/dheergayu/public/assets/images/Admin/Kothalahimbutu Capsules.jpeg"],
+    ["name"=>"Neem Oil", "image"=>"/dheergayu/public/assets/images/Admin/Neem Oil.jpg"],
+    ["name"=>"Nirgundi Oil", "image"=>"/dheergayu/public/assets/images/Admin/Nirgundi Oil.jpg"],
+    ["name"=>"Paspanguwa", "image"=>"/dheergayu/public/assets/images/Admin/paspanguwa.jpeg"],
+    ["name"=>"Pinda Thailaya", "image"=>"/dheergayu/public/assets/images/Admin/Pinda Thailaya.jpeg"],
+    ["name"=>"Siddhalepa", "image"=>"/dheergayu/public/assets/images/Admin/siddhalepa.png"],
 ];
 
 // Sample inventory batches (normally fetched from DB) - Multiple batches per product
@@ -171,7 +171,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 1 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/paspanguwa.jpeg" alt="Paspanguwa Pack" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/paspanguwa.jpeg" alt="Paspanguwa Pack" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Paspanguwa Pack</h3>
@@ -187,7 +187,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 2 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/asamodagam.jpg" alt="Asamodagam Spirit" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/asamodagam.jpg" alt="Asamodagam Spirit" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Asamodagam Spirit</h3>
@@ -203,7 +203,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 3 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/siddhalepa.png" alt="Siddhalepa Balm" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/siddhalepa.png" alt="Siddhalepa Balm" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Siddhalepa Balm</h3>
@@ -219,7 +219,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 4 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/Dashamoolarishta.jpeg" alt="Dashamoolarishta" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/Dashamoolarishta.jpeg" alt="Dashamoolarishta" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Dashamoolarishta</h3>
@@ -235,7 +235,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 5 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/Kothalahimbutu Capsules.jpeg" alt="Kothalahimbutu Capsules" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/Kothalahimbutu Capsules.jpeg" alt="Kothalahimbutu Capsules" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Kothalahimbutu Capsules</h3>
@@ -251,7 +251,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 6 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/Neem Oil.jpg" alt="Neem Oil" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/Neem Oil.jpg" alt="Neem Oil" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Neem Oil</h3>
@@ -267,7 +267,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 7 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/Pinda Thailaya.jpeg" alt="Pinda Thailaya" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/Pinda Thailaya.jpeg" alt="Pinda Thailaya" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Pinda Thailaya</h3>
@@ -283,7 +283,7 @@ foreach($inventoryData as $item) {
             <!-- Product Card 8 -->
             <div class="product-card">
                 <div class="product-image">
-                    <img src="images/Nirgundi Oil.jpg" alt="Nirgundi Oil" class="product-img">
+                    <img src="/dheergayu/public/assets/images/Admin/Nirgundi Oil.jpg" alt="Nirgundi Oil" class="product-img">
                 </div>
                 <div class="product-info">
                     <h3 class="product-name">Nirgundi Oil</h3>
