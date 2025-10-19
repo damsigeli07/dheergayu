@@ -116,16 +116,21 @@ fetch('/dheergayu/app/Controllers/admin_users.php')
         let doctors = 0, patients = 0, staff = 0;
 
         users.forEach(u => {
-            if (u.role === 'Doctor') doctors++;
-            else if (u.role === 'Patient') patients++;
-            else if (['Admin', 'Staff', 'Pharmacist'].includes(u.role)) staff++;
+            // Count by role (handle both lowercase and capitalized)
+            const role = u.role?.toLowerCase();
+            if (role === 'doctor') doctors++;
+            else if (role === 'patient') patients++;
+            else if (['admin', 'staff', 'pharmacist'].includes(role)) staff++;
+
+            // Capitalize role for display
+            const displayRole = u.role?.charAt(0).toUpperCase() + u.role?.slice(1).toLowerCase() || 'Unknown';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${u.name}</td>
-                <td>${u.role}</td>
-                <td>${u.email}</td>
-                <td>${u.phone}</td>
+                <td>${u.name || 'N/A'}</td>
+                <td>${displayRole}</td>
+                <td>${u.email || 'N/A'}</td>
+                <td>${u.phone || 'N/A'}</td>
                 <td class="status ${u.status?.toLowerCase() || 'active'}">${u.status || 'Active'}</td>
                 <td>${u.reg_date || '-'}</td>
                 <td>
