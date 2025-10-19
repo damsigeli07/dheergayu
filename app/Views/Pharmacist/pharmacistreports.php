@@ -110,6 +110,12 @@
                     }
                 },
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Products'
+                        }
+                    },
                     y: {
                         beginAtZero: true,
                         title: {

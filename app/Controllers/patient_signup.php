@@ -2,26 +2,11 @@
 // app/Controllers/patient_signup.php
 
 require_once(__DIR__ . "/../../config/config.php");
+
+// Debug: Log that the script is being executed
+error_log("Patient signup script executed - Method: " . $_SERVER["REQUEST_METHOD"]);
 require_once(__DIR__ . "/../Models/PatientModel.php");
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
-    $first_name = trim($_POST['first_name']);
-    $last_name  = trim($_POST['last_name']);
-    $dob        = $_POST['dob'];
-    $nic        = trim($_POST['nic']);
-    $email      = trim($_POST['email']);
-    $password   = $_POST['password'];
-    $confirm_pw = $_POST['confirm_password'];
-    
-    // Validate Date of Birth
-    $dob_date = new DateTime($dob);
-    $dob_year = (int)$dob_date->format('Y');
-    
-    if ($dob_year < 1925 || $dob_year > 2007) {
-        header("Location: /dheergayu/app/Views/Patient/signup.php?error=invalid_dob");
-        exit();
-    }
     
     // Validate passwords match
     if ($password !== $confirm_pw) {
@@ -42,7 +27,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     
     // Check if NIC or email already exists in patients table
-    $stmt = $conn->prepare("SELECT id FROM patients WHERE email=? OR nic=?");
+    $stmt = $conn->prepare("SELECT id FROM patients WHERE email = ? OR nic = ?");
+    if (!$stmt) {
+        header("Location: /dheergayu/app/Views/Patient/signup.php?error=database_error");
+        exit();
+    }
+    
     $stmt->bind_param("ss", $email, $nic);
     $stmt->execute();
     $stmt->store_result();
@@ -59,28 +49,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Insert new patient into patients table
     $stmt = $conn->prepare("INSERT INTO patients (first_name, last_name, dob, nic, email, password) VALUES (?, ?, ?, ?, ?, ?)");
+
     $stmt->bind_param("ssssss", $first_name, $last_name, $dob, $nic, $email, $hashed_pw);
     
     if ($stmt->execute()) {
-        $patient_id = $stmt->insert_id; // Get the newly inserted patient ID
-        $stmt->close();
-        
-        // NOW create the patient_info profile
-        $patientModel = new PatientModel($conn);
-        $profile_created = $patientModel->createProfile($patient_id, $email, $first_name, $last_name);
-        
-        if ($profile_created) {
-            $conn->close();
-            header("Location: /dheergayu/app/Views/Patient/login.php?success=signup_complete");
-            exit();
-        } else {
-            $conn->close();
-            header("Location: /dheergayu/app/Views/Patient/signup.php?error=profile_creation_failed");
-            exit();
-        }
     } else {
+        $error = $stmt->error;
         $stmt->close();
         $conn->close();
+        error_log("Patient signup database error: " . $error);
         header("Location: /dheergayu/app/Views/Patient/signup.php?error=database_error");
         exit();
     }

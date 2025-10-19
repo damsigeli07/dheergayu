@@ -2,105 +2,105 @@
 // Sample data - In a real application, this would come from a database
 $treatments = array(
     array(
-        'patient_no' => '1001',
-        'patient_name' => 'Arjun Patel',
-        'treatment_type' => 'Udwarthana',
-        'date_time' => 'March 20, 2026 - 10:00 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_no' => '1001',
+        'patient_ID' => 'P12349',
         'patient_name' => 'Melissa Fernando',
         'treatment_type' => 'Vashpa Sweda',
         'date_time' => 'March 20, 2026 - 10:00 AM',
         'status' => 'Completed'
     ),
     array(
-        'patient_no' => '1025',
-        'patient_name' => 'Sumana Bandara',
+        'patient_ID' => 'P12352',
+        'patient_name' => 'Arjun Patel',
+        'treatment_type' => 'Udwarthana',
+        'date_time' => 'March 20, 2026 - 10:15 AM',
+        'status' => 'Completed'
+    ),
+    array(
+        'patient_ID' => 'P12345',
+        'patient_name' => 'Amashi Vithanage',
         'treatment_type' => 'Panchakarma Detox',
         'date_time' => 'March 20, 2026 - 10:30 AM',
         'status' => 'Completed'
     ),
     array(
-        'patient_no' => '1005',
+        'patient_ID' => 'P12358',
         'patient_name' => 'Noora Fathi',
         'treatment_type' => 'Elakizhi',
         'date_time' => 'March 20, 2026 - 10:30 AM',
         'status' => 'Completed'
     ),
     array(
-        'patient_no' => '1019',
+        'patient_ID' => 'P12375',
         'patient_name' => 'Kingsley Tissera',
         'treatment_type' => 'Shirodhara',
         'date_time' => 'March 20, 2026 - 11:00 AM',
-        'status' => 'Pending'
+        'status' => 'Completed'
     ),
     array(
-        'patient_no' => '1002',
+        'patient_ID' => 'P12341',
         'patient_name' => 'Priya Sharma',
         'treatment_type' => 'Nasya Karma',
         'date_time' => 'March 20, 2026 - 11:30 AM',
         'status' => 'Completed'
     ),
     array(
-        'patient_no' => '1000',
+        'patient_ID' => 'P12388',
         'patient_name' => 'John Alexa',
         'treatment_type' => 'Udwarthana',
         'date_time' => 'March 20, 2026 - 12:00 AM',
         'status' => 'Completed'
     ),
     array(
-        'patient_no' => '1017',
+        'patient_ID' => 'P12366',
         'patient_name' => 'Andrea Devidpulle',
         'treatment_type' => 'Panchakarma Detox',
         'date_time' => 'March 20, 2026 - 12:30 AM',
         'status' => 'Completed'
     ),
     array(
-        'patient_no' => '1008',
+        'patient_ID' => 'P12363',
         'patient_name' => 'Ravi Kumar',
         'treatment_type' => 'Shirodhara',
         'date_time' => 'March 20, 2026 - 02:00 PM',
-        'status' => 'Pending'
-    ),
-    array(
-        'patient_no' => '1008',
-        'patient_name' => 'Riyaz Veero',
-        'treatment_type' => 'Abhyanga Massage',
-        'date_time' => 'March 20, 2026 - 02:00 PM',
-        'status' => 'Pending'
-    ),
-    array(
-        'patient_no' => '1022',
-        'patient_name' => 'Elani Fernando',
-        'treatment_type' => 'Panchakarma Detox',
-        'date_time' => 'March 20, 2026 - 02:30 PM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_no' => '1010',
-        'patient_name' => 'Maya Singh',
-        'treatment_type' => 'Udwarthana',
-        'date_time' => 'March 20, 2026 - 03:30 PM',
         'status' => 'In Progress'
     ),
     array(
-        'patient_no' => '1012',
+        'patient_ID' => 'P12347',
+        'patient_name' => 'Riyaz Veero',
+        'treatment_type' => 'Abhyanga Massage',
+        'date_time' => 'March 20, 2026 - 02:00 PM',
+        'status' => 'In Progress'
+    ),
+    array(
+        'patient_ID' => 'P12380',
+        'patient_name' => 'Elani Fernando',
+        'treatment_type' => 'Panchakarma Detox',
+        'date_time' => 'March 20, 2026 - 02:30 PM',
+        'status' => 'Pending'
+    ),
+    array(
+        'patient_ID' => 'P12361',
+        'patient_name' => 'Maya Singh',
+        'treatment_type' => 'Udwarthana',
+        'date_time' => 'March 20, 2026 - 03:30 PM',
+        'status' => 'Pending'
+    ),
+    array(
+        'patient_ID' => 'P12356',
         'patient_name' => 'Suresh Reddy',
         'treatment_type' => 'Nasya Karma',
         'date_time' => 'March 20, 2026 - 04:00 PM',
         'status' => 'Pending'
     ),
     array(
-        'patient_no' => '1035',
+        'patient_ID' => 'P12384',
         'patient_name' => 'Nicola Muller',
         'treatment_type' => 'Panchakarma Detox',
         'date_time' => 'March 20, 2026 - 04:30 PM',
-        'status' => 'Completed'
+        'status' => 'Pending'
     ),
     array(
-        'patient_no' => '1030',
+        'patient_ID' => 'P12368',
         'patient_name' => 'Deepa Nair',
         'treatment_type' => 'Basti',
         'date_time' => 'March 20, 2026 - 05:00 PM',
@@ -169,7 +169,7 @@ function getStatusClass($status) {
                 <table class="treatment-table">
                     <thead>
                         <tr>
-                            <th>Patient No</th>
+                            <th>Patient ID</th>
                             <th>Patient Name</th>
                             <th>Treatment Type</th>
                             <th>Date and Time</th>
@@ -179,7 +179,7 @@ function getStatusClass($status) {
                     <tbody>
                         <?php foreach ($treatments as $treatment): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($treatment['patient_no']); ?></td>
+                            <td><?php echo htmlspecialchars($treatment['patient_ID']); ?></td>
                             <td><?php echo htmlspecialchars($treatment['patient_name']); ?></td>
                             <td><?php echo htmlspecialchars($treatment['treatment_type']); ?></td>
                             <td><?php echo htmlspecialchars($treatment['date_time']); ?></td>

@@ -1,12 +1,12 @@
 <?php
 // Sample data - In a real application, this would come from a database
 $patients = [
-    ['patient_no' => '1001', 'patient_name' => 'Arjun Patel', 'treatment' => 'Udwarthana', 'suggestion' => 'Sensitive skin. Medium Level massage- For 20 minutes'],
-    ['patient_no' => '1002', 'patient_name' => 'Priya Sharma', 'treatment' => 'Nasya Karma', 'suggestion' => 'For 15 minutes'],
-    ['patient_no' => '1008', 'patient_name' => 'Ravi Kumar', 'treatment' => 'Shirodhara', 'suggestion' => 'No'],
-    ['patient_no' => '1010', 'patient_name' => 'Maya Singh', 'treatment' => 'Udwarthana', 'suggestion' => 'High Level massage- For 30 minutes'],
-    ['patient_no' => '1012', 'patient_name' => 'Suresh Reddy', 'treatment' => 'Nasya Karma', 'suggestion' => 'For 30 minutes'],
-    ['patient_no' => '1030', 'patient_name' => 'Deepa Nair', 'treatment' => 'Shirodhara', 'suggestion' => 'No']
+    ['patient_ID' => 'P12352', 'patient_name' => 'Arjun Patel', 'treatment' => 'Udwarthana', 'suggestion' => 'Sensitive skin. Medium Level massage- For 20 minutes'],
+    ['patient_ID' => 'P12341', 'patient_name' => 'Priya Sharma', 'treatment' => 'Nasya Karma', 'suggestion' => 'For 15 minutes'],
+    ['patient_ID' => 'P12363', 'patient_name' => 'Ravi Kumar', 'treatment' => 'Shirodhara', 'suggestion' => 'No'],
+    ['patient_ID' => 'P12361', 'patient_name' => 'Maya Singh', 'treatment' => 'Udwarthana', 'suggestion' => 'High Level massage- For 30 minutes'],
+    ['patient_ID' => 'P12356', 'patient_name' => 'Suresh Reddy', 'treatment' => 'Nasya Karma', 'suggestion' => 'For 30 minutes'],
+    ['patient_ID' => 'P12368', 'patient_name' => 'Deepa Nair', 'treatment' => 'Shirodhara', 'suggestion' => 'No']
 ];
 
 // Search functionality
@@ -15,7 +15,7 @@ $filteredPatients = $patients;
 
 if (!empty($searchQuery)) {
     $filteredPatients = array_filter($patients, function($patient) use ($searchQuery) {
-        return stripos($patient['patient_no'], $searchQuery) !== false ||
+        return stripos($patient['patient_ID'], $searchQuery) !== false ||
                stripos($patient['patient_name'], $searchQuery) !== false ||
                stripos($patient['treatment'], $searchQuery) !== false ||
                stripos($patient['suggestion'], $searchQuery) !== false;
@@ -75,7 +75,7 @@ if (!empty($searchQuery)) {
                     <table class="suggestion-table">
                         <thead>
                             <tr>
-                                <th>Patient No.</th>
+                                <th>Patient ID</th>
                                 <th>Patient Name</th>
                                 <th>Treatment</th>
                                 <th>Suggestion</th>
@@ -89,7 +89,7 @@ if (!empty($searchQuery)) {
                             <?php else: ?>
                                 <?php foreach ($filteredPatients as $patient): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($patient['patient_no']); ?></td>
+                                        <td><?php echo htmlspecialchars($patient['patient_ID']); ?></td>
                                         <td><?php echo htmlspecialchars($patient['patient_name']); ?></td>
                                         <td><?php echo htmlspecialchars($patient['treatment']); ?></td>
                                         <td><?php echo htmlspecialchars($patient['suggestion']); ?></td>

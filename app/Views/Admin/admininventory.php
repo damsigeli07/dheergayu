@@ -91,6 +91,7 @@ foreach($inventoryData as $item) {
             <nav class="navigation">
                 <a href="admindashboard.php" class="nav-btn">Home</a>
                 <button class="nav-btn active">Products</button>
+                <a href="admininventoryview.php" class="nav-btn">Inventory</a>
                 <a href="adminappointment.php" class="nav-btn">Appointments</a>
                 <a href="adminusers.php" class="nav-btn">Users</a>
                 <a href="admintreatment.php" class="nav-btn">Treatments</a>
@@ -115,44 +116,6 @@ foreach($inventoryData as $item) {
 
     <main class="main-content">
 
-        <!-- Inventory Overview Cards -->
-        <div class="inventory-overview">
-            <div class="overview-card critical">
-                <div class="overview-icon">⚠️</div>
-                <div class="overview-content">
-                    <h3>Critical Stock</h3>
-                    <p class="overview-number"><?= $criticalStockCount ?></p>
-                    <p class="overview-desc">Items need immediate attention</p>
-                </div>
-            </div>
-            
-            <div class="overview-card warning">
-                <div class="overview-icon">📉</div>
-                <div class="overview-content">
-                    <h3>Low Stock</h3>
-                    <p class="overview-number"><?= $lowStockCount ?></p>
-                    <p class="overview-desc">Items running low</p>
-                </div>
-            </div>
-            
-            <div class="overview-card alert">
-                <div class="overview-icon">⏰</div>
-                <div class="overview-content">
-                    <h3>Expiring Soon</h3>
-                    <p class="overview-number"><?= $expiringSoonCount ?></p>
-                    <p class="overview-desc">Within 90 days</p>
-                </div>
-            </div>
-            
-            <div class="overview-card total">
-                <div class="overview-icon">📦</div>
-                <div class="overview-content">
-                    <h3>Total Products</h3>
-                    <p class="overview-number"><?= count($inventoryData) ?></p>
-                    <p class="overview-desc">In inventory</p>
-                </div>
-            </div>
-        </div>
 
         <!-- Search Bar -->
         <div class="search-container">

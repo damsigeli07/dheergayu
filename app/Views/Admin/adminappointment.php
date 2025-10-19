@@ -25,6 +25,7 @@ $appointments = [
       <nav class="navigation">
         <a href="admindashboard.php" class="nav-btn">Home</a>
         <a href="admininventory.php" class="nav-btn">Products</a>
+        <a href="admininventoryview.php" class="nav-btn">Inventory</a>
         <button class="nav-btn active">Appointments</button>
         <a href="adminusers.php" class="nav-btn">Users</a>
         <a href="admintreatment.php" class="nav-btn">Treatments</a>
@@ -32,7 +33,7 @@ $appointments = [
       </nav>
     </div>
     <div class="header-right">
-      <img src="../staff/images/dheergayu.png" class="logo" alt="Logo" />
+      <img src="/dheergayu/public/assets/images/dheergayu.png" class="logo" alt="Logo" />
       <h1 class="header-title">Dheergayu</h1>
       <div class="user-section">
                 <div class="user-icon" id="user-icon">👤</div>

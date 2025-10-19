@@ -43,7 +43,27 @@ body {
     font-weight: 700;
     color: #5d9b57;
     text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* Profile Icon */
+.profile-icon-container {
+    text-align: center;
     margin-bottom: 2rem;
+}
+
+.profile-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #5d9b57;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.profile-icon:hover {
+    transform: scale(1.05);
 }
 
 /* Profile Card */
