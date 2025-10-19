@@ -27,6 +27,7 @@ $ordersValue           = 8450;
           <nav class="navigation">
               <button class="nav-btn active">Home</button>
               <a href="admininventory.php" class="nav-btn">Products</a>
+              <a href="admininventoryview.php" class="nav-btn">Inventory</a>
               <a href="adminappointment.php" class="nav-btn">Appointments</a>
               <a href="adminusers.php" class="nav-btn">Users</a>
               <a href="admintreatment.php" class="nav-btn">Treatments</a>

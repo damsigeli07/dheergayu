@@ -25,6 +25,7 @@ $appointments = [
       <nav class="navigation">
         <a href="admindashboard.php" class="nav-btn">Home</a>
         <a href="admininventory.php" class="nav-btn">Products</a>
+        <a href="admininventoryview.php" class="nav-btn">Inventory</a>
         <button class="nav-btn active">Appointments</button>
         <a href="adminusers.php" class="nav-btn">Users</a>
         <a href="admintreatment.php" class="nav-btn">Treatments</a>

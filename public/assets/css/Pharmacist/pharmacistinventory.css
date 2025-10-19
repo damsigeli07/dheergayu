@@ -43,6 +43,76 @@ body {
     margin-bottom: 1rem;
 }
 
+/* ===========================
+   INVENTORY OVERVIEW CARDS
+   =========================== */
+.inventory-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.overview-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid;
+}
+
+.overview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.overview-card.critical {
+    border-left-color: #dc3545;
+}
+
+.overview-card.warning {
+    border-left-color: #ffc107;
+}
+
+.overview-card.alert {
+    border-left-color: #fd7e14;
+}
+
+.overview-card.total {
+    border-left-color: #7a9b57;
+}
+
+.overview-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.overview-content h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.overview-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+    line-height: 1;
+}
+
+.overview-desc {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0;
+    margin-top: 0.25rem;
+}
+
 
 /* ===========================
    INVENTORY TABLE
