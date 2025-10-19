@@ -61,13 +61,45 @@ class TreatmentModel {
         return $ok && $affected >= 0; // true on success even if values unchanged
     }
 
+    
     public function delete(int $id): bool {
-        $stmt = $this->db->prepare("DELETE FROM treatments WHERE treatment_id = ?");
-        $stmt->bind_param('i', $id);
-        $ok = $stmt->execute();
-        $stmt->close();
-        return $ok;
+    // Step 1: Fetch treatment data before deletion
+    $treatment = $this->getById($id);
+    if (!$treatment) return false;
+
+    $this->db->begin_transaction();
+    try {
+        // Step 2: Insert into deletedadmintreatment table
+        $stmt1 = $this->db->prepare("
+            INSERT INTO deletedadmintreatment (treatment_id, treatment_name, description, duration, price, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $stmt1->bind_param(
+            'isssds',
+            $treatment['treatment_id'],
+            $treatment['treatment_name'],
+            $treatment['description'],
+            $treatment['duration'],
+            $treatment['price'],
+            $treatment['status']
+        );
+        $stmt1->execute();
+        $stmt1->close();
+
+        // Step 3: Delete from treatments table
+        $stmt2 = $this->db->prepare("DELETE FROM treatments WHERE treatment_id = ?");
+        $stmt2->bind_param('i', $id);
+        $stmt2->execute();
+        $stmt2->close();
+
+        $this->db->commit();
+        return true;
+    } catch (\Throwable $e) {
+        $this->db->rollback();
+        return false;
     }
+}
+
 }
 
 

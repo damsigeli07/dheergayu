@@ -1,12 +1,12 @@
 <?php
 // Sample data - In a real application, this would come from a database
 $reports = [
-    ['patient_no' => '1001', 'patient_name' => 'Arjun Patel', 'report_file' => '1001.pdf'],
-    ['patient_no' => '1002', 'patient_name' => 'Priya Sharma', 'report_file' => '1002.pdf'],
-    ['patient_no' => '1008', 'patient_name' => 'Ravi Kumar', 'report_file' => '1008.pdf'],
-    ['patient_no' => '1010', 'patient_name' => 'Maya Singh', 'report_file' => '1010.pdf'],
-    ['patient_no' => '1012', 'patient_name' => 'Suresh Reddy', 'report_file' => '1012.pdf'],
-    ['patient_no' => '1030', 'patient_name' => 'Deepa Nair', 'report_file' => '1030.pdf']
+    ['patient_ID' => 'P12352', 'patient_name' => 'Arjun Patel', 'report_file' => '1001.pdf'],
+    ['patient_ID' => 'P12341', 'patient_name' => 'Priya Sharma', 'report_file' => '1002.pdf'],
+    ['patient_ID' => 'P12363', 'patient_name' => 'Ravi Kumar', 'report_file' => '1008.pdf'],
+    ['patient_ID' => 'P12361', 'patient_name' => 'Maya Singh', 'report_file' => '1010.pdf'],
+    ['patient_ID' => 'P12356', 'patient_name' => 'Suresh Reddy', 'report_file' => '1012.pdf'],
+    ['patient_ID' => 'P12368', 'patient_name' => 'Deepa Nair', 'report_file' => '1030.pdf']
 ];
 
 // Treatment data for chart - In real application, this would come from database
@@ -27,7 +27,7 @@ $filteredReports = $reports;
 
 if (!empty($searchQuery)) {
     $filteredReports = array_filter($reports, function($report) use ($searchQuery) {
-        return stripos($report['patient_no'], $searchQuery) !== false ||
+        return stripos($report['patient_ID'], $searchQuery) !== false ||
                stripos($report['patient_name'], $searchQuery) !== false ||
                stripos($report['report_file'], $searchQuery) !== false;
     });
@@ -147,7 +147,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                     <table class="suggestion-table">
                         <thead>
                             <tr>
-                                <th>Patient No.</th>
+                                <th>Patient ID</th>
                                 <th>Patient Name</th>
                                 <th>Report File</th>
                             </tr>
@@ -160,7 +160,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                             <?php else: ?>
                                 <?php foreach ($filteredReports as $report): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($report['patient_no']); ?></td>
+                                        <td><?php echo htmlspecialchars($report['patient_ID']); ?></td>
                                         <td><?php echo htmlspecialchars($report['patient_name']); ?></td>
                                         <td>
                                             <a href="reports/<?php echo htmlspecialchars($report['report_file']); ?>" class="pdf-link" target="_blank">
