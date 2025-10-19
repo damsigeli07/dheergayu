@@ -20,7 +20,7 @@ if ($result_users && $result_users->num_rows > 0) {
 }
 
 // Fetch patients from patients table
-$sql_patients = "SELECT id, CONCAT(first_name, ' ', last_name) AS name, 'patient' AS role, email, '' AS phone, 'Active' AS status, created_at AS reg_date FROM patients";
+$sql_patients = "SELECT id, CONCAT(first_name, ' ', last_name) AS name, 'patient' AS role, email, '' AS phone, 'Active' AS status, created_at AS reg_date, dob, nic FROM patients";
 $result_patients = $conn->query($sql_patients);
 if ($result_patients === false) {
     http_response_code(500);

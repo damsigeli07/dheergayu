@@ -79,28 +79,77 @@
         </div>
     </div>
 
-    <div class="content-box">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Role</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Status</th>
-                    <th>Reg Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="userTableBody">
-                <!-- Users will load here dynamically -->
-            </tbody>
-        </table>
-        <a href="adminaddnewuser.php"><button class="add-btn">+ Add New User</button></a>
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+        <button class="tab-btn active" onclick="showTab('users')">Staff & Doctors</button>
+        <button class="tab-btn" onclick="showTab('patients')">Patients</button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="usersTab" class="tab-content active">
+        <div class="content-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Reg Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <!-- Users will load here dynamically -->
+                </tbody>
+            </table>
+            <a href="adminaddnewuser.php"><button class="add-btn">+ Add New User</button></a>
+        </div>
+    </div>
+
+    <!-- Patients Tab -->
+    <div id="patientsTab" class="tab-content">
+        <div class="content-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date of Birth</th>
+                        <th>NIC</th>
+                        <th>Email</th>
+                        <th>Registration Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="patientTableBody">
+                    <!-- Patients will load here dynamically -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </main>
 
 <script>
+// Tab switching function
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+
 // Fetch users from backend
 fetch('/dheergayu/app/Controllers/admin_users.php')
     .then(async response => {
@@ -110,46 +159,88 @@ fetch('/dheergayu/app/Controllers/admin_users.php')
         }
         return response.json();
     })
-    .then(users => {
-        const tbody = document.getElementById('userTableBody');
-        let total = users.length;
-        let doctors = 0, patients = 0, staff = 0;
-
-        users.forEach(u => {
-            // Count by role (handle both lowercase and capitalized)
-            const role = u.role?.toLowerCase();
-            if (role === 'doctor') doctors++;
-            else if (role === 'patient') patients++;
-            else if (['admin', 'staff', 'pharmacist'].includes(role)) staff++;
-
-            // Capitalize role for display
-            const displayRole = u.role?.charAt(0).toUpperCase() + u.role?.slice(1).toLowerCase() || 'Unknown';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${u.name || 'N/A'}</td>
-                <td>${displayRole}</td>
-                <td>${u.email || 'N/A'}</td>
-                <td>${u.phone || 'N/A'}</td>
-                <td class="status ${u.status?.toLowerCase() || 'active'}">${u.status || 'Active'}</td>
-                <td>${u.reg_date || '-'}</td>
-                <td>
-                    <button class="edit-btn">Edit</button>
-                    <button class="del-btn">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('totalUsers').textContent = total;
-        document.getElementById('doctorCount').textContent = doctors;
-        document.getElementById('patientCount').textContent = patients;
-        document.getElementById('staffCount').textContent = staff;
+    .then(data => {
+        // Separate users and patients
+        const users = data.filter(u => u.role?.toLowerCase() !== 'patient');
+        const patients = data.filter(u => u.role?.toLowerCase() === 'patient');
+        
+        // Display users in users tab
+        displayUsers(users);
+        
+        // Display patients in patients tab
+        displayPatients(patients);
+        
+        // Update overview counts
+        updateOverviewCounts(users, patients);
     })
     .catch(error => {
-        console.error('Error fetching users:', error);
-        alert('Error loading users from database! ' + (error.message || ''));
+        console.error('Error fetching data:', error);
+        document.getElementById('userTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading users</td></tr>';
+        document.getElementById('patientTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Error loading patients</td></tr>';
     });
+
+function displayUsers(users) {
+    const tbody = document.getElementById('userTableBody');
+    tbody.innerHTML = '';
+    
+    users.forEach(u => {
+        // Capitalize role for display
+        const displayRole = u.role?.charAt(0).toUpperCase() + u.role?.slice(1).toLowerCase() || 'Unknown';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${u.name || 'N/A'}</td>
+            <td>${displayRole}</td>
+            <td>${u.email || 'N/A'}</td>
+            <td>${u.phone || 'N/A'}</td>
+            <td class="status ${u.status?.toLowerCase() || 'active'}">${u.status || 'Active'}</td>
+            <td>${u.reg_date || '-'}</td>
+            <td>
+                <button class="edit-btn">Edit</button>
+                <button class="del-btn">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function displayPatients(patients) {
+    const tbody = document.getElementById('patientTableBody');
+    tbody.innerHTML = '';
+    
+    patients.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${p.name || 'N/A'}</td>
+            <td>${p.dob || 'N/A'}</td>
+            <td>${p.nic || 'N/A'}</td>
+            <td>${p.email || 'N/A'}</td>
+            <td>${p.reg_date || '-'}</td>
+            <td>
+                <button class="edit-btn">Edit</button>
+                <button class="del-btn">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateOverviewCounts(users, patients) {
+    let doctors = 0, staff = 0;
+    
+    users.forEach(u => {
+        const role = u.role?.toLowerCase();
+        if (role === 'doctor') doctors++;
+        else if (['admin', 'staff', 'pharmacist'].includes(role)) staff++;
+    });
+    
+    const total = users.length + patients.length;
+    
+    document.getElementById('totalUsers').textContent = total;
+    document.getElementById('doctorCount').textContent = doctors;
+    document.getElementById('patientCount').textContent = patients.length;
+    document.getElementById('staffCount').textContent = staff;
+}
 </script>
 
 </body>
