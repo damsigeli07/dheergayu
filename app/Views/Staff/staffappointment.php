@@ -4,35 +4,35 @@ $appointments = array(
     array(
         'appointment_no' => '100',
         'doctor' => 'Dr. John',
-        'patient_no' => '1008',
-        'patient_name' => 'Ravi Kumar',
+        'patient_ID' => 'P12352',
+        'patient_name' => 'Arjun Patel',
         'date_time' => 'March 20, 2026 - 10:00 AM'
     ),
     array(
         'appointment_no' => '101',
         'doctor' => 'Dr. Rohan',
-        'patient_no' => '1002',
+        'patient_ID' => 'P12341',
         'patient_name' => 'Priya Sharma',
         'date_time' => 'March 20, 2026 - 10:15 AM'
     ),
     array(
         'appointment_no' => '102',
         'doctor' => 'Dr. Raj',
-        'patient_no' => '1005',
-        'patient_name' => 'Arjun Patel',
+        'patient_ID' => 'P12363',
+        'patient_name' => 'Ravi Kumar',
         'date_time' => 'March 20, 2026 - 10:30 AM'
     ),
     array(
         'appointment_no' => '103',
         'doctor' => 'Dr. Ilma',
-        'patient_no' => '1006',
+        'patient_ID' => 'P12361',
         'patient_name' => 'Maya Singh',
         'date_time' => 'March 20, 2026 - 10:45 AM'
     ),
     array(
         'appointment_no' => '104',
         'doctor' => 'Dr. Chan',
-        'patient_no' => '1012',
+        'patient_ID' => 'P12368',
         'patient_name' => 'Deepa Nair',
         'date_time' => 'March 20, 2026 - 11:00 AM'
     )
@@ -127,7 +127,7 @@ $appointments = array(
                         <tr>
                             <th>Appointment No.</th>
                             <th>Doctor</th>
-                            <th>Patient No.</th>
+                            <th>Patient ID</th>
                             <th>Patient Name</th>
                             <th>Date and Time</th>
                             <th>Actions</th>
@@ -138,7 +138,7 @@ $appointments = array(
                         <tr>
                             <td><?php echo htmlspecialchars($appointment['appointment_no']); ?></td>
                             <td class="doctor-name"><?php echo htmlspecialchars($appointment['doctor']); ?></td>
-                            <td><?php echo htmlspecialchars($appointment['patient_no']); ?></td>
+                            <td><?php echo htmlspecialchars($appointment['patient_ID']); ?></td>
                             <td class="patient-name"><?php echo htmlspecialchars($appointment['patient_name']); ?></td>
                             <td class="date-time"><?php echo htmlspecialchars($appointment['date_time']); ?></td>
                             <td class="actions">

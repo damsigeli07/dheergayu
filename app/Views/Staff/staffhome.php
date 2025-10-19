@@ -13,9 +13,6 @@ $treatments = [
 ];
 
 $todaySchedule = [
-    ['time' => '9:00 AM - 11:00 AM', 'type' => 'Morning Session'],
-    ['time' => '2:00 PM - 5:00 PM', 'type' => 'Afternoon Session'],
-    ['time' => '', 'type' => 'Staff on Duty:'],
     ['time' => '', 'type' => 'Therapist A - Udwarthana'],
     ['time' => '', 'type' => 'Therapist B - Nasya Karma'],
     ['time' => '', 'type' => 'Therapist C - Shirodhara'],
@@ -92,7 +89,7 @@ $requiredProducts = [
             <!-- Right Panel -->
             <div class="right-panel">
                 <div class="schedule-section">
-                    <h3>Today's Schedule</h3>
+                    <h3>Staff Schedule :</h3>
                     <div class="schedule-content">
                         <?php foreach ($todaySchedule as $item): ?>
                             <div class="schedule-item">
