@@ -7,40 +7,43 @@
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Doctor/doctorconsultform.css">
 </head>
 <body>
+<?php
+require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
+?>
     <div class="container">
         <header class="header">
             <h1>DOCTOR'S CONSULTATION FORM</h1>
         </header>
 
         <div class="form-container">
-            <form method="POST" action="">
+            <form method="POST" action="/dheergayu/app/Controllers/ConsultationFormController.php">
                 <div class="main-content">
                     <div class="left-section">
                         <h2>Consultation Form</h2>
                         
                         <div class="form-row">
                             <div class="form-group half">
-                                <label for="patient_first_name">First Name</label>
-                                <input type="text" id="patient_first_name" name="patient_first_name" placeholder="Enter first name">
+                                <label for="first_name">First Name</label>
+                                <input type="text" id="first_name" name="first_name" placeholder="Enter first name" value="<?= isset($appointment['patient_name']) ? htmlspecialchars(explode(' ', $appointment['patient_name'])[0]) : '' ?>">
                             </div>
                             <div class="form-group half">
-                                <label for="patient_last_name">Last Name</label>
-                                <input type="text" id="patient_last_name" name="patient_last_name" placeholder="Enter last name">
+                                <label for="last_name">Last Name</label>
+                                <input type="text" id="last_name" name="last_name" placeholder="Enter last name" value="<?= isset($appointment['patient_name']) ? htmlspecialchars(explode(' ', $appointment['patient_name'])[1] ?? '') : '' ?>">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group half">
                                 <label for="age">Age</label>
-                                <input type="number" id="age" name="age" placeholder="Enter age">
+                                <input type="number" id="age" name="age" placeholder="Enter age" value="<?= isset($appointment['age']) ? htmlspecialchars($appointment['age']) : '' ?>">
                             </div>
                             <div class="form-group half">
                                 <label for="gender">Gender</label>
                                 <select id="gender" name="gender">
                                     <option value="">Select gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
+                                    <option value="male" <?= (isset($appointment['gender']) && strtolower($appointment['gender'])=='male') ? 'selected' : '' ?>>Male</option>
+                                    <option value="female" <?= (isset($appointment['gender']) && strtolower($appointment['gender'])=='female') ? 'selected' : '' ?>>Female</option>
+                                    <option value="other" <?= (isset($appointment['gender']) && strtolower($appointment['gender'])=='other') ? 'selected' : '' ?>>Other</option>
                                 </select>
                             </div>
                         </div>
@@ -72,6 +75,9 @@
                                 <button type="button" id="add_product">Add</button>
                             </div>
 
+                            <!-- Hidden field to submit selected products -->
+                            <input type="hidden" id="personal_products" name="personal_products" value="[]">
+
                             <!-- Hidden initially -->
                             <table class="product-table" id="cart_table" style="display:none;">
                                 <thead>
@@ -102,18 +108,27 @@
                             
                             <div class="info-group">
                                 <strong>Patient No:</strong>
-                                <div class="info-value">P018</div>
+                                <div class="info-value">
+                                    <input type="text" name="patient_no" value="<?= isset($appointment['patient_no']) ? htmlspecialchars($appointment['patient_no']) : '' ?>" readonly>
+                                </div>
                             </div>
 
                             <div class="info-group">
                                 <strong>Previous Visits:</strong>
-                                <div class="info-value">Last visit: 15/04/2025</div>
-                                <div class="info-value">Total visits: 3</div>
+                                <div class="info-value">
+                                    <input type="date" name="last_visit_date" value="<?= isset($appointment['last_visit_date']) ? htmlspecialchars($appointment['last_visit_date']) : '' ?>">
+                                </div>
+                                <div class="info-value">
+                                    <input type="number" name="total_visits" value="<?= isset($appointment['total_visits']) ? htmlspecialchars($appointment['total_visits']) : '0' ?>">
+                                </div>
                             </div>
 
                             <div class="info-group">
                                 <strong>Contact Info:</strong>
-                                <div class="info-value">+94 77 123 4567</div>
+                                <div class="info-value">
+                                    <input type="text" name="contact_info" value="<?= isset($appointment['contact_info']) ? htmlspecialchars($appointment['contact_info']) : '' ?>">
+                                </div>
+                <input type="hidden" name="appointment_id" value="<?= isset($appointment['appointment_id']) ? htmlspecialchars($appointment['appointment_id']) : '' ?>">
                             </div>
                         </div>
 
@@ -139,6 +154,16 @@
     </div>
 
     <script>
+    // Maintain selected products as an array and sync to hidden input
+    var selectedProducts = [];
+    function syncProductsField() {
+        try {
+            document.getElementById('personal_products').value = JSON.stringify(selectedProducts);
+        } catch (e) {
+            document.getElementById('personal_products').value = '[]';
+        }
+    }
+
     // Add products to cart table
     document.getElementById("add_product").addEventListener("click", function() {
         let product = document.getElementById("product_search").value.trim();
@@ -155,6 +180,11 @@
         // Show table if first item
         cartTable.style.display = "table";
 
+        // Push into array and render row
+        var item = { product: product, qty: parseInt(qty, 10) };
+        selectedProducts.push(item);
+        syncProductsField();
+
         let row = document.createElement("tr");
         row.innerHTML = `
             <td>${product}</td>
@@ -163,6 +193,10 @@
         `;
 
         row.querySelector(".remove-btn").addEventListener("click", function() {
+            // Remove from array
+            selectedProducts = selectedProducts.filter(function(p){ return !(p.product === product && p.qty === parseInt(qty,10)); });
+            syncProductsField();
+            // Remove row
             row.remove();
             if (table.children.length === 0) {
                 cartTable.style.display = "none"; // hide if empty
@@ -175,35 +209,73 @@
         document.getElementById("product_qty").value = "";
     });
 
-    // Simple form validation
+    // Simple form validation + AJAX submit with success dialog + redirect
     document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
         let errors = [];
 
-        const patientFirstName = document.getElementById('patient_first_name').value.trim();
-        const patientLastName = document.getElementById('patient_last_name').value.trim();
+        const patientFirstName = document.getElementById('first_name').value.trim();
+        const patientLastName = document.getElementById('last_name').value.trim();
         const age = document.getElementById('age').value.trim();
         const gender = document.getElementById('gender').value;
         const diagnosis = document.getElementById('diagnosis').value.trim();
         const treatment = document.getElementById('recommended_treatment').value.trim();
-        const products = document.querySelectorAll('#product_list_table tr');
+        // ensure latest sync
+        syncProductsField();
+        const products = selectedProducts;
 
         if (patientFirstName.length < 2) errors.push("Patient first name must be at least 2 characters.");
         if (patientLastName.length < 2) errors.push("Patient last name must be at least 2 characters.");
         if (age === "" || age <= 0) errors.push("Enter a valid age.");
         if (gender === "") errors.push("Please select gender.");
         if (diagnosis === "") errors.push("Diagnosis is required.");
-        if (products.length < 1) errors.push("Add at least one prescribed product.");
+        if (!products || products.length < 1) errors.push("Add at least one prescribed product.");
         if (treatment === "") errors.push("Recommended treatment is required.");
 
         if (errors.length > 0) {
             alert(errors.join("\n"));
             return false;
         }
-        alert("Saved Successfully");
-
-        this.submit();
+        // Build FormData and submit via fetch to get JSON response
+        var formEl = this;
+        var formData = new FormData(formEl);
+        fetch('/dheergayu/app/Controllers/ConsultationFormController.php', {
+            method: 'POST',
+            body: formData
+        }).then(function(res){ return res.json(); })
+        .then(function(resp){
+            if (resp && resp.status === 'success') {
+                showSuccessDialog('Saved successfully! Redirecting to dashboard...');
+                setTimeout(function(){ window.location.href = 'doctordashboard.php'; }, 1200);
+            } else {
+                alert('Error saving consultation form.');
+            }
+        }).catch(function(){
+            alert('Network error while saving consultation form.');
+        });
     });
+
+    function showSuccessDialog(message) {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.background = 'rgba(0,0,0,0.3)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '9999';
+        overlay.innerHTML = `
+            <div style="background:#ffffff;padding:24px 28px;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,0.2);text-align:center;max-width:380px;">
+                <div style="font-size:18px;color:#2e7d32;margin-bottom:10px;font-weight:600;">Success</div>
+                <div style="font-size:14px;color:#333;margin-bottom:16px;">${message}</div>
+                <button id="success-ok" style="background:#43a047;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:14px;cursor:pointer;">OK</button>
+            </div>`;
+        document.body.appendChild(overlay);
+        document.getElementById('success-ok').addEventListener('click', function(){ window.location.href = 'doctordashboard.php'; });
+    }
     </script>
 </body>
 </html>
