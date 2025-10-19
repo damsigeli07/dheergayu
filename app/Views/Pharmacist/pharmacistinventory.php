@@ -49,21 +49,38 @@ function product_image_for(string $name): string {
 // Inventory overview from DB
 $overview = $model->getInventoryOverview();
 
-// Stock statistics
+// Calculate statistics from database
 $criticalStockCount = 0;
 $lowStockCount = 0;
 $expiringSoonCount = 0;
-$today = new DateTime();
-$ninetyDaysFromNow = (new DateTime())->add(new DateInterval('P90D'));
+
 foreach ($overview as $row) {
     $qty = (int)$row['total_quantity'];
-    if ($qty <= 5) { $criticalStockCount++; }
-    elseif ($qty <= 15) { $lowStockCount++; }
-    if (!empty($row['earliest_exp'])) {
-        $expDate = new DateTime($row['earliest_exp']);
-        if ($expDate <= $ninetyDaysFromNow) { $expiringSoonCount++; }
+    if ($qty <= 5) { 
+        $criticalStockCount++; 
+    } elseif ($qty <= 15) { 
+        $lowStockCount++; 
     }
 }
+
+// Check for products with batches that have "Expiring Soon" status
+$expiringProducts = [];
+foreach ($overview as $row) {
+    $productId = $row['product_id'];
+    $batches = $model->getBatchesByProductId($productId);
+    
+    foreach ($batches as $batch) {
+        if ($batch['status'] === 'Expiring Soon') {
+            if (!in_array($productId, $expiringProducts)) {
+                $expiringProducts[] = $productId;
+                $expiringSoonCount++;
+            }
+            break; // Only count the product once
+        }
+    }
+}
+
+$totalProducts = count($overview);
 ?>
 
 <!DOCTYPE html>
@@ -103,6 +120,45 @@ foreach ($overview as $row) {
 
 <main class="main-content">
         <h2 class="section-title">Stock Management</h2>
+
+        <!-- Inventory Overview Cards -->
+        <div class="inventory-overview">
+            <div class="overview-card critical">
+                <div class="overview-icon">⚠️</div>
+                <div class="overview-content">
+                    <h3>Critical Stock</h3>
+                    <p class="overview-number"><?= $criticalStockCount ?></p>
+                    <p class="overview-desc">Items need immediate attention</p>
+                </div>
+            </div>
+            
+            <div class="overview-card warning">
+                <div class="overview-icon">📉</div>
+                <div class="overview-content">
+                    <h3>Low Stock</h3>
+                    <p class="overview-number"><?= $lowStockCount ?></p>
+                    <p class="overview-desc">Items running low</p>
+                </div>
+            </div>
+            
+            <div class="overview-card alert">
+                <div class="overview-icon">⏰</div>
+                <div class="overview-content">
+                    <h3>Expiring Soon</h3>
+                    <p class="overview-number"><?= $expiringSoonCount ?></p>
+                    <p class="overview-desc">Within 30 days</p>
+                </div>
+            </div>
+            
+            <div class="overview-card total">
+                <div class="overview-icon">📦</div>
+                <div class="overview-content">
+                    <h3>Total Products</h3>
+                    <p class="overview-number"><?= $totalProducts ?></p>
+                    <p class="overview-desc">In inventory</p>
+                </div>
+            </div>
+        </div>
 
     <table class="inventory-table">
         <thead>
@@ -198,11 +254,8 @@ foreach ($overview as $row) {
                     </div>
                     <div class="form-group">
                         <label for="edit_status">Status</label>
-                        <select name="status" id="edit_status" class="form-input">
-                            <option value="Good">Good</option>
-                            <option value="Expiring Soon">Expiring Soon</option>
-                            <option value="Expired">Expired</option>
-                        </select>
+                        <input type="text" id="edit_status" class="form-input" readonly style="background-color: #f8f9fa; color: #6c757d;">
+                        <small class="form-help">Status is automatically calculated based on expiry date</small>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn-submit">Save Changes</button>
@@ -421,7 +474,11 @@ foreach ($overview as $row) {
             document.getElementById('edit_mfd').value = batch.mfd;
             document.getElementById('edit_exp').value = batch.exp;
             document.getElementById('edit_supplier').value = batch.supplier;
-            document.getElementById('edit_status').value = batch.status || 'Good';
+            
+            // Auto-calculate status based on expiry date
+            const autoStatus = calculateStatus(batch.exp);
+            document.getElementById('edit_status').value = autoStatus;
+            
             document.getElementById('editBatchModal').style.display = 'block';
         }
 
@@ -591,18 +648,28 @@ foreach ($overview as $row) {
 
         // Recompute suggestion when product changes in add form
         document.getElementById('product').addEventListener('change', suggestNextBatchNumber);
+        
+        // Auto-update status when expiry date changes in edit form
+        document.getElementById('edit_exp').addEventListener('change', function() {
+            const expDate = this.value;
+            const autoStatus = calculateStatus(expDate);
+            document.getElementById('edit_status').value = autoStatus;
+        });
 
         document.getElementById('editBatchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const productName = document.getElementById('edit_product_name_hidden').value;
+            const expDate = document.getElementById('edit_exp').value;
+            const autoStatus = calculateStatus(expDate);
+            
             const payload = new FormData();
             payload.append('product_id', document.getElementById('edit_product_id').value);
             payload.append('batch_number', document.getElementById('edit_batch_number').value);
             payload.append('quantity', document.getElementById('edit_quantity').value);
             payload.append('mfd', document.getElementById('edit_mfd').value);
-            payload.append('exp', document.getElementById('edit_exp').value);
+            payload.append('exp', expDate);
             payload.append('supplier', document.getElementById('edit_supplier').value);
-            payload.append('status', document.getElementById('edit_status').value);
+            payload.append('status', autoStatus);
             const res = await fetch('/dheergayu/public/api/batches/update', { method: 'POST', body: payload });
             const data = await res.json();
             if (data.success) {

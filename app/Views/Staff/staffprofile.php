@@ -25,6 +25,11 @@ $staff = [
 
         <h1 class="profile-title">My Profile</h1>
         
+        <!-- Profile Icon -->
+        <div class="profile-icon-container">
+            <img src="/dheergayu/public/assets/images/Staff/profileicon.jpg" alt="Profile Icon" class="profile-icon">
+        </div>
+        
         <div class="profile-card">
             <div class="profile-item">
                 <span class="label">Name:</span>
