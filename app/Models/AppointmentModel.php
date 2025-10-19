@@ -7,9 +7,9 @@ class AppointmentModel {
         $stmt->close();
         return $success;
     }
-    public function cancelAppointment($appointment_no, $reason) {
-        $stmt = $this->conn->prepare("UPDATE appointments SET status='Cancelled', reason=? WHERE appointment_no=?");
-        $stmt->bind_param('ss', $reason, $appointment_no);
+    public function cancelAppointment($appointment_id, $reason) {
+        $stmt = $this->conn->prepare("UPDATE appointments SET status='Cancelled', reason=? WHERE appointment_id=?");
+        $stmt->bind_param('ss', $reason, $appointment_id);
         $success = $stmt->execute();
         $stmt->close();
         return $success;
@@ -21,7 +21,7 @@ class AppointmentModel {
     }
 
     public function getAllAppointments() {
-    $sql = "SELECT appointment_id, patient_no, patient_name, appointment_no, appointment_datetime, status, reason FROM appointments";
+    $sql = "SELECT appointment_id, patient_no, patient_name, appointment_datetime, status, reason FROM appointments";
         $result = $this->conn->query($sql);
         $appointments = [];
         if ($result) {

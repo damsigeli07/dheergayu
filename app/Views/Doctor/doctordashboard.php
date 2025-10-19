@@ -134,7 +134,7 @@ if (!empty($appointments)) {
                                 <td class="actions">
                                     <?php if ($status === 'Upcoming') : ?>
                                         <button class="btn-start" onclick="window.open('doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>', '_blank')">Start Consultation</button>
-                                        <button class="btn-cancel" onclick="showCancelReason(this, '<?= htmlspecialchars($apt['appointment_no']) ?>')">Cancel</button>
+                                        <button class="btn-cancel" onclick="showCancelReason(this, '<?= htmlspecialchars($apt['appointment_id']) ?>')">Cancel</button>
                                     <?php elseif ($status === 'Completed') : ?>
                                         <button class="btn-view" onclick="showConsultationModal(<?= htmlspecialchars($apt['appointment_id']) ?>)">View</button>
                                     <?php elseif ($status === 'Cancelled') : ?>
@@ -423,7 +423,7 @@ if (!empty($appointments)) {
                     setTimeout(function(){ location.reload(); }, 1200);
                 }
             };
-            xhr.send('action=cancel&appointment_no=' + encodeURIComponent(appointmentNo) + '&reason=' + encodeURIComponent(reason));
+            xhr.send('action=cancel&appointment_id=' + encodeURIComponent(appointmentNo) + '&reason=' + encodeURIComponent(reason));
         }
 
         function showCustomAlert(msg) {

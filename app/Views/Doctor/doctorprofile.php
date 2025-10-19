@@ -23,6 +23,10 @@ $doctor = [
         <!-- Close button -->
         <a href="doctordashboard.php" class="btn-back">&times;</a>
 
+        <div class="profile-picture">
+    <img src="/dheergayu/public/assets/images/Doctor/doctor-profile.jpg" alt="Doctor Profile">
+</div>
+
         <h1 class="profile-title">My Profile</h1>
         
         <div class="profile-card">

@@ -97,7 +97,7 @@
         legend: { display: false },
         title: {
           display: true,
-          text: 'Appointments per Day'
+          
         }
       },
       scales: {
@@ -131,7 +131,7 @@ const incomeChart = new Chart(incomeCtx, {
       legend: { display: false },
       title: {
         display: true,
-        text: 'Income per Day'
+        
       }
     },
     scales: {

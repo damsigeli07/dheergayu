@@ -5,10 +5,10 @@ require_once __DIR__ . '/../Models/AppointmentModel.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cancel') {
     $db = new mysqli('localhost', 'root', '', 'dheergayu_db');
     $model = new AppointmentModel($db);
-    $appointment_no = $_POST['appointment_no'] ?? '';
+    $appointment_id = $_POST['appointment_id'] ?? '';
     $reason = $_POST['reason'] ?? '';
-    if ($appointment_no && $reason) {
-        $success = $model->cancelAppointment($appointment_no, $reason);
+    if ($appointment_id && $reason) {
+        $success = $model->cancelAppointment($appointment_id, $reason);
         echo $success ? 'success' : 'error';
     } else {
         echo 'error';
