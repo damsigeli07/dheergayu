@@ -301,14 +301,14 @@ $totalProducts = count($overview);
 
                     <div class="form-group">
                         <label for="mfd">Manufacturing Date *</label>
-                        <input type="date" name="mfd" id="mfd" class="form-input" required>
-                        <small class="form-help">Date when this batch was manufactured</small>
+                        <input type="date" name="mfd" id="mfd" class="form-input" required max="">
+                        <small class="form-help">Date when this batch was manufactured (cannot be in the future)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="exp">Expiry Date *</label>
-                        <input type="date" name="exp" id="exp" class="form-input" required>
-                        <small class="form-help">Date when this batch expires</small>
+                        <input type="date" name="exp" id="exp" class="form-input" required min="">
+                        <small class="form-help">Date when this batch expires (cannot be in the past)</small>
                     </div>
 
                     <div class="form-group">
@@ -341,9 +341,20 @@ $totalProducts = count($overview);
         function openAddBatchModal(productName) {
             const modal = document.getElementById('addBatchModal');
             const productSelect = document.getElementById('product');
-            // Set default dates
+            
+            // Set date constraints
+            const today = new Date().toISOString().split('T')[0];
             const mfdInput = document.getElementById('mfd');
-            mfdInput.valueAsDate = new Date();
+            const expInput = document.getElementById('exp');
+            
+            // Manufacturing date: cannot be in the future (max = today)
+            mfdInput.max = today;
+            mfdInput.value = ''; // Don't set default date
+            
+            // Expiry date: cannot be in the past (min = today)
+            expInput.min = today;
+            expInput.value = '';
+            
             if (productName) {
                 for (const option of productSelect.options) {
                     option.selected = option.value === productName;
@@ -648,6 +659,39 @@ $totalProducts = count($overview);
 
         // Recompute suggestion when product changes in add form
         document.getElementById('product').addEventListener('change', suggestNextBatchNumber);
+        
+        // Add date validation
+        document.getElementById('mfd').addEventListener('change', function() {
+            const mfdDate = this.value;
+            const expInput = document.getElementById('exp');
+            if (mfdDate) {
+                // Set minimum expiry date to manufacturing date
+                expInput.min = mfdDate;
+                // If current expiry date is before manufacturing date, clear it
+                if (expInput.value && expInput.value < mfdDate) {
+                    expInput.value = '';
+                }
+            }
+        });
+        
+        document.getElementById('exp').addEventListener('change', function() {
+            const expDate = this.value;
+            const mfdInput = document.getElementById('mfd');
+            if (expDate && mfdInput.value && expDate < mfdInput.value) {
+                alert('❌ Expiry date cannot be before manufacturing date');
+                this.value = '';
+            }
+        });
+        
+        // Quantity validation
+        document.getElementById('quantity').addEventListener('input', function() {
+            const quantity = parseInt(this.value);
+            if (quantity < 1) {
+                this.setCustomValidity('Quantity must be at least 1');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
         
         // Auto-update status when expiry date changes in edit form
         document.getElementById('edit_exp').addEventListener('change', function() {
