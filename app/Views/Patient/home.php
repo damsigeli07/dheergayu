@@ -30,7 +30,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <!-- After login navigation -->
                 <a href="home.php" class="nav-btn">Home</a>
                 <a href="channeling.php" class="nav-btn" onclick="handleChanneling()">Consultations</a>
-                <a href="treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
+                <a href="after_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
                 <div class="profile-container">
                     <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
                     <div class="profile-dropdown" id="profileDropdown">
@@ -119,13 +119,10 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
             <div class="footer-section">
                 <h3>Dheergayu Ayurveda</h3>
                 <ul>
-                    <li><a href="#" onclick="navigateTo('Home')">Home</a></li>
-                    <li><a href="#" onclick="navigateTo('Accommodation')">Accommodation</a></li>
-                    <li><a href="#" onclick="navigateTo('Offers')">Offers</a></li>
-                    <li><a href="#" onclick="navigateTo('Treatments')">Treatments</a></li>
-                    <li><a href="#" onclick="navigateTo('Dining')">Dining</a></li>
-                    <li><a href="#" onclick="navigateTo('Experiences')">Experiences</a></li>
-                    <li><a href="#" onclick="navigateTo('Facilities')">Facilities</a></li>
+                    <li><a href="home.php">Home</a></li>
+                    <li><a href="before_login_treatment.php">Treatments</a></li>
+                    <li><a href="products.php">Our products</a></li>
+                    <li><a href="doctors.php">About Us</a></li>
                 </ul>
             </div>
 
