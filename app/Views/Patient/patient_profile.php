@@ -59,24 +59,11 @@ $history = $model->getRecentMedicalHistory($user_id);
 
         <div class="profile-container">
             <div class="profile-sidebar">
-                <div class="quick-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">Upcoming:</span>
-                        <span class="stat-value"><?php echo $stats['upcoming_count'] ?? 0; ?></span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Last Visit:</span>
-                        <span class="stat-value"><?php echo $stats['last_visit'] ? date('M d, Y', strtotime($stats['last_visit'])) : 'N/A'; ?></span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Next Appointment:</span>
-                        <span class="stat-value"><?php echo $stats['next_appointment'] ? date('M d, Y', strtotime($stats['next_appointment'])) : 'N/A'; ?></span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Member Since:</span>
-                        <span class="stat-value"><?php echo $stats['member_since'] ? date('M Y', strtotime($stats['member_since'])) : 'N/A'; ?></span>
-                    </div>
+                <div class="profile-avatar">
+                    <img src="/dheergayu/public/assets/images/Patient/profile_photo.jpg" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                 </div>
+                <div class="patient-name"><?php echo htmlspecialchars($profile['first_name'] ?? '') . ' ' . htmlspecialchars($profile['last_name'] ?? ''); ?></div>
+                <div class="patient-id">Patient ID: P<?php echo str_pad($user_id, 5, '0', STR_PAD_LEFT); ?></div>
             </div>
 
             <div class="profile-main">
