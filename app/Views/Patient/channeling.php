@@ -22,7 +22,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dheergayu - Book Consultation</title>
-    <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/treatment.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/channeling.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
