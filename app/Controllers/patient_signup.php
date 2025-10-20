@@ -1,12 +1,25 @@
 <?php
-// app/Controllers/patient_signup.php
-
+// Include database connection
 require_once(__DIR__ . "/../../config/config.php");
 
-// Debug: Log that the script is being executed
-error_log("Patient signup script executed - Method: " . $_SERVER["REQUEST_METHOD"]);
-require_once(__DIR__ . "/../Models/PatientModel.php");
-
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
+    $first_name = trim($_POST['first_name']);
+    $last_name  = trim($_POST['last_name']);
+    $dob        = $_POST['dob'];
+    $nic        = trim($_POST['nic']);
+    $email      = trim($_POST['email']);
+    $password   = $_POST['password'];
+    $confirm_pw = $_POST['confirm_password'];
+    
+    // Validate Date of Birth
+    $dob_date = new DateTime($dob);
+    $dob_year = (int)$dob_date->format('Y');
+    
+    if ($dob_year < 1925 || $dob_year > 2007) {
+        header("Location: /dheergayu/app/Views/Patient/signup.php?error=invalid_dob");
+        exit();
+    }
     
     // Validate passwords match
     if ($password !== $confirm_pw) {
@@ -14,25 +27,14 @@ require_once(__DIR__ . "/../Models/PatientModel.php");
         exit();
     }
     
-    // Validate password strength
+    // Validate password strength (optional but recommended)
     if (strlen($password) < 8) {
         header("Location: /dheergayu/app/Views/Patient/signup.php?error=weak_password");
         exit();
     }
     
-    // Validate email format
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header("Location: /dheergayu/app/Views/Patient/signup.php?error=invalid_email");
-        exit();
-    }
-    
-    // Check if NIC or email already exists in patients table
-    $stmt = $conn->prepare("SELECT id FROM patients WHERE email = ? OR nic = ?");
-    if (!$stmt) {
-        header("Location: /dheergayu/app/Views/Patient/signup.php?error=database_error");
-        exit();
-    }
-    
+    // Check if NIC or email already exists
+    $stmt = $conn->prepare("SELECT id FROM patients WHERE email=? OR nic=?");
     $stmt->bind_param("ss", $email, $nic);
     $stmt->execute();
     $stmt->store_result();
@@ -44,20 +46,27 @@ require_once(__DIR__ . "/../Models/PatientModel.php");
     }
     $stmt->close();
     
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        header("Location: /dheergayu/app/Views/Patient/signup.php?error=invalid_email");
+        exit();
+    }
+    
     // Hash password
     $hashed_pw = password_hash($password, PASSWORD_DEFAULT);
     
-    // Insert new patient into patients table
+    // Insert new patient
     $stmt = $conn->prepare("INSERT INTO patients (first_name, last_name, dob, nic, email, password) VALUES (?, ?, ?, ?, ?, ?)");
-
     $stmt->bind_param("ssssss", $first_name, $last_name, $dob, $nic, $email, $hashed_pw);
     
     if ($stmt->execute()) {
-    } else {
-        $error = $stmt->error;
         $stmt->close();
         $conn->close();
-        error_log("Patient signup database error: " . $error);
+        header("Location: /dheergayu/app/Views/Patient/signup.php?success=signup_complete");
+        exit();
+    } else {
+        $stmt->close();
+        $conn->close();
         header("Location: /dheergayu/app/Views/Patient/signup.php?error=database_error");
         exit();
     }
