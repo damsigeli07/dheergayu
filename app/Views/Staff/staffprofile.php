@@ -16,7 +16,7 @@ $staff = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Profile</title>
-    <link rel="stylesheet" href="/dheergayu/public/assets/css/Staff/staffprofile.css">
+    <link rel="stylesheet" href="/DHEERGAYU/public/assets/css/Staff/staffprofile.css">
 </head>
 <body>
     <main class="profile-container">

@@ -16,7 +16,7 @@ $pharmacist = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Pharmacist Profile</title>
-    <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/editadminprofile.css">
+    <link rel="stylesheet" href="/DHEERGAYU/public/assets/css/Admin/editadminprofile.css">
     <script>
         function showAlert(event) {
             event.preventDefault();
@@ -68,7 +68,7 @@ $pharmacist = [
             
             <div class="form-actions">
                 <button type="submit" class="btn-save">Save Changes</button>
-                <a href="pharmacistprofile.php" class="btn-cancel">Cancel</a>
+                <a href="adminprofile.php" class="btn-cancel">Cancel</a>
             </div>
         </form>
     </main>
