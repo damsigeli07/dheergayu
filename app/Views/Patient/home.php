@@ -87,7 +87,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
             <div class="content">
                 <h4>Therapeutic Treatments</h4>
                 <p>Experience authentic Ayurvedic spa therapies with herbal oils, healing potions, and traditional wellness practices.</p>
-                <a href="#" class="learn-more" onclick="handleTreatmentNavigation()">Our Treatments</a>
+                <a href="after_login_treatment.php" class="learn-more" onclick="handleTreatmentNavigation()">Our Treatments</a>
             </div>
         </div>
 

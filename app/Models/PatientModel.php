@@ -9,19 +9,21 @@ class PatientModel {
     }
 
     // Get patient profile by user_id
-    public function getProfileByUserId($user_id) {
-        $stmt = $this->conn->prepare("SELECT * FROM patient_info WHERE user_id = ?");
-        $stmt->bind_param("i", $user_id);
+    public function getProfileByUserId($patient_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM patient_info WHERE patient_id = ?");
+        $stmt->bind_param("i", $patient_id);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
         $stmt->close();
         return $result;
     }
 
+
+    
     // Create initial patient profile
     public function createProfile($user_id, $email, $first_name = '', $last_name = '') {
         $stmt = $this->conn->prepare("
-            INSERT INTO patient_info (user_id, email, first_name, last_name) 
+            INSERT INTO patient_info (patient_id, email, first_name, last_name) 
             VALUES (?, ?, ?, ?)
         ");
         $stmt->bind_param("isss", $user_id, $email, $first_name, $last_name);
@@ -43,7 +45,7 @@ class PatientModel {
                 phone = ?,
                 emergency_contact = ?,
                 address = ?
-            WHERE user_id = ?
+            WHERE patient_id = ?
         ");
         
         $stmt->bind_param(
@@ -74,7 +76,7 @@ class PatientModel {
                 allergies = ?,
                 current_medications = ?,
                 chronic_conditions = ?
-            WHERE user_id = ?
+            WHERE patient_id = ?
         ");
         
         $stmt->bind_param(
@@ -103,7 +105,7 @@ class PatientModel {
                 marketing_communications = ?,
                 allow_data_improvement = ?,
                 share_research_data = ?
-            WHERE user_id = ?
+            WHERE patient_id = ?
         ");
         
         $stmt->bind_param(
@@ -130,7 +132,7 @@ class PatientModel {
                 COUNT(CASE WHEN status NOT IN ('Cancelled', 'Completed') THEN 1 END) as upcoming_count,
                 MAX(CASE WHEN status = 'Completed' THEN appointment_date END) as last_visit,
                 MIN(CASE WHEN status NOT IN ('Cancelled', 'Completed') THEN appointment_date END) as next_appointment,
-                (SELECT created_at FROM patient_info WHERE user_id = ?) as member_since
+                (SELECT created_at FROM patient_info WHERE patient_id = ?) as member_since
             FROM (
                 SELECT appointment_date, status FROM consultations WHERE patient_id = ?
                 UNION ALL
@@ -180,7 +182,7 @@ class PatientModel {
 
     // Check if profile exists
     public function profileExists($user_id) {
-        $stmt = $this->conn->prepare("SELECT id FROM patient_info WHERE user_id = ?");
+        $stmt = $this->conn->prepare("SELECT id FROM patient_info WHERE patient_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result()->num_rows > 0;
@@ -190,7 +192,7 @@ class PatientModel {
 
     // Delete patient account
     public function deleteAccount($user_id) {
-        $stmt = $this->conn->prepare("DELETE FROM patient_info WHERE user_id = ?");
+        $stmt = $this->conn->prepare("DELETE FROM patient_info WHERE patient_id = ?");
         $stmt->bind_param("i", $user_id);
         $result = $stmt->execute();
         $stmt->close();

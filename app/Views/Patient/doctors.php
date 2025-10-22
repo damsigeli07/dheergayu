@@ -122,7 +122,7 @@
             <p class="cta-text">
                 Book a consultation with one of our experienced doctors today and discover how Ayurveda can transform your health and wellbeing.
             </p>
-            <button class="cta-button" onclick="handleBookNow()">Book Your Appointment</button>
+            <a href="channeling.php" class="cta-button" onclick="handleBookNow()">Book Your Appointment</a>
         </div>
     </div>
     <div id="loginModal" class="modal">
