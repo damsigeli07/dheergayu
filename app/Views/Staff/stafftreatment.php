@@ -1,112 +1,33 @@
 <?php
-// Sample data - In a real application, this would come from a database
-$treatments = array(
-    array(
-        'patient_ID' => 'P12349',
-        'patient_name' => 'Melissa Fernando',
-        'treatment_type' => 'Vashpa Sweda',
-        'date_time' => 'March 20, 2026 - 10:00 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12352',
-        'patient_name' => 'Arjun Patel',
-        'treatment_type' => 'Udwarthana',
-        'date_time' => 'March 20, 2026 - 10:15 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12345',
-        'patient_name' => 'Amashi Vithanage',
-        'treatment_type' => 'Panchakarma Detox',
-        'date_time' => 'March 20, 2026 - 10:30 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12358',
-        'patient_name' => 'Noora Fathi',
-        'treatment_type' => 'Elakizhi',
-        'date_time' => 'March 20, 2026 - 10:30 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12375',
-        'patient_name' => 'Kingsley Tissera',
-        'treatment_type' => 'Shirodhara',
-        'date_time' => 'March 20, 2026 - 11:00 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12341',
-        'patient_name' => 'Priya Sharma',
-        'treatment_type' => 'Nasya Karma',
-        'date_time' => 'March 20, 2026 - 11:30 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12388',
-        'patient_name' => 'John Alexa',
-        'treatment_type' => 'Udwarthana',
-        'date_time' => 'March 20, 2026 - 12:00 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12366',
-        'patient_name' => 'Andrea Devidpulle',
-        'treatment_type' => 'Panchakarma Detox',
-        'date_time' => 'March 20, 2026 - 12:30 AM',
-        'status' => 'Completed'
-    ),
-    array(
-        'patient_ID' => 'P12363',
-        'patient_name' => 'Ravi Kumar',
-        'treatment_type' => 'Shirodhara',
-        'date_time' => 'March 20, 2026 - 02:00 PM',
-        'status' => 'In Progress'
-    ),
-    array(
-        'patient_ID' => 'P12347',
-        'patient_name' => 'Riyaz Veero',
-        'treatment_type' => 'Abhyanga Massage',
-        'date_time' => 'March 20, 2026 - 02:00 PM',
-        'status' => 'In Progress'
-    ),
-    array(
-        'patient_ID' => 'P12380',
-        'patient_name' => 'Elani Fernando',
-        'treatment_type' => 'Panchakarma Detox',
-        'date_time' => 'March 20, 2026 - 02:30 PM',
-        'status' => 'Pending'
-    ),
-    array(
-        'patient_ID' => 'P12361',
-        'patient_name' => 'Maya Singh',
-        'treatment_type' => 'Udwarthana',
-        'date_time' => 'March 20, 2026 - 03:30 PM',
-        'status' => 'Pending'
-    ),
-    array(
-        'patient_ID' => 'P12356',
-        'patient_name' => 'Suresh Reddy',
-        'treatment_type' => 'Nasya Karma',
-        'date_time' => 'March 20, 2026 - 04:00 PM',
-        'status' => 'Pending'
-    ),
-    array(
-        'patient_ID' => 'P12384',
-        'patient_name' => 'Nicola Muller',
-        'treatment_type' => 'Panchakarma Detox',
-        'date_time' => 'March 20, 2026 - 04:30 PM',
-        'status' => 'Pending'
-    ),
-    array(
-        'patient_ID' => 'P12368',
-        'patient_name' => 'Deepa Nair',
-        'treatment_type' => 'Basti',
-        'date_time' => 'March 20, 2026 - 05:00 PM',
-        'status' => 'Pending'
-    )
-);
+// Fetch treatments from database
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+if ($db->connect_error) {
+    die("Database connection failed: " . $db->connect_error);
+}
+
+// Fetch treatments excluding "General Consultation"
+$query = "SELECT * FROM treatments WHERE treatment_type != 'General Consultation' ORDER BY appointment_date DESC, appointment_time DESC";
+$result = $db->query($query);
+
+$treatments = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $treatments[] = [
+            'id' => $row['id'],
+            'patient_id' => $row['patient_id'],
+            'patient_name' => $row['patient_name'],
+            'treatment_type' => $row['treatment_type'],
+            'appointment_date' => $row['appointment_date'],
+            'appointment_time' => $row['appointment_time'],
+            'status' => $row['status'],
+            'treatment_fee' => $row['treatment_fee'],
+            'duration' => $row['duration']
+        ];
+    }
+}
+
+$db->close();
 
 function getStatusClass($status) {
     switch(strtolower($status)) {
@@ -116,6 +37,8 @@ function getStatusClass($status) {
             return 'status-in-progress';
         case 'pending':
             return 'status-pending';
+        case 'cancelled':
+            return 'status-cancelled';
         default:
             return 'status-pending';
     }
@@ -173,27 +96,140 @@ function getStatusClass($status) {
                             <th>Patient Name</th>
                             <th>Treatment Type</th>
                             <th>Date and Time</th>
+                            <th>Duration</th>
+                            <th>Fee</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($treatments as $treatment): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($treatment['patient_ID']); ?></td>
-                            <td><?php echo htmlspecialchars($treatment['patient_name']); ?></td>
-                            <td><?php echo htmlspecialchars($treatment['treatment_type']); ?></td>
-                            <td><?php echo htmlspecialchars($treatment['date_time']); ?></td>
-                            <td>
-                                <span class="status-badge <?php echo getStatusClass($treatment['status']); ?>">
-                                    <?php echo htmlspecialchars($treatment['status']); ?>
-                                </span>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
+                        <?php if (!empty($treatments)): ?>
+                            <?php foreach ($treatments as $treatment): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($treatment['patient_id']); ?></td>
+                                <td><?php echo htmlspecialchars($treatment['patient_name']); ?></td>
+                                <td><?php echo htmlspecialchars($treatment['treatment_type']); ?></td>
+                                <td><?php echo htmlspecialchars($treatment['appointment_date'] . ' - ' . $treatment['appointment_time']); ?></td>
+                                <td><?php echo htmlspecialchars($treatment['duration'] . ' min'); ?></td>
+                                <td>Rs. <?php echo number_format($treatment['treatment_fee'], 2); ?></td>
+                                <td>
+                                    <span class="status-badge <?php echo getStatusClass($treatment['status']); ?>">
+                                        <?php echo htmlspecialchars($treatment['status']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php if (strtolower($treatment['status']) === 'pending'): ?>
+                                        <button class="action-btn complete-btn" onclick="markAsCompleted(<?php echo $treatment['id']; ?>)">
+                                            Mark Complete
+                                        </button>
+                                    <?php elseif (strtolower($treatment['status']) === 'completed'): ?>
+                                        <span class="completed-text">✓ Completed</span>
+                                    <?php else: ?>
+                                        <span class="status-text"><?php echo htmlspecialchars($treatment['status']); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 20px;">No treatments found.</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
+
+    <script>
+        function markAsCompleted(treatmentId) {
+            if (confirm('Are you sure you want to mark this treatment as completed?')) {
+                // Create form data
+                const formData = new FormData();
+                formData.append('treatment_id', treatmentId);
+                formData.append('status', 'Completed');
+
+                // Send AJAX request
+                fetch('/dheergayu/app/Controllers/TreatmentController.php?action=update_status', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Treatment marked as completed successfully!');
+                        location.reload(); // Refresh the page to show updated status
+                    } else {
+                        alert('Failed to update treatment status: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the treatment status.');
+                });
+            }
+        }
+
+        // Search functionality
+        document.querySelector('.search-input').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.treatment-table tbody tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let found = false;
+                
+                for (let i = 0; i < cells.length - 1; i++) { // Exclude actions column
+                    if (cells[i].textContent.toLowerCase().includes(searchTerm)) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                row.style.display = found ? '' : 'none';
+            });
+        });
+    </script>
+
+    <style>
+        .action-btn {
+            background: #5d9b57;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .action-btn:hover {
+            background: #4a7c47;
+        }
+        
+        .complete-btn {
+            background: #28a745;
+        }
+        
+        .complete-btn:hover {
+            background: #218838;
+        }
+        
+        .completed-text {
+            color: #28a745;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        
+        .status-text {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
 </body>
 </html>
