@@ -252,14 +252,29 @@ if (!empty($appointments)) {
                 content.innerHTML = '<div style="text-align:center;padding:40px 0;font-size:18px;color:#e74c3c;">No consultation form data found.</div>';
             }
         } else {
-            // Edit mode: show form fields
+            // Edit mode: show form fields with dynamic product loading
             if (data && Object.keys(data).length > 0) {
                 var html = '<form id="editConsultationForm" style="width:100%;">';
                 for (var key in data) {
                     if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && isAllowed(key)) {
                         html += '<div style="margin-bottom:16px;">';
                         html += '<label style="font-weight:500;color:#5d9b57;display:block;margin-bottom:6px;">' + labelFor(key) + '</label>';
-                        html += '<input type="text" name="' + key + '" value="' + (data[key] !== null ? data[key] : '') + '" style="width:100%;padding:8px 12px;border:1px solid #5d9b57;border-radius:6px;font-size:15px;" />';
+                        
+                        if (key === 'personal_products') {
+                            // Special handling for personal_products with dynamic product loading
+                            html += '<div id="products-container">';
+                            html += '<div style="margin-bottom:10px;">';
+                            html += '<input type="text" id="product_search" placeholder="Search products..." style="width:70%;padding:8px 12px;border:1px solid #5d9b57;border-radius:6px;font-size:15px;" list="product_list" />';
+                            html += '<input type="number" id="product_qty" placeholder="Qty" min="1" style="width:20%;padding:8px 12px;border:1px solid #5d9b57;border-radius:6px;font-size:15px;margin-left:5px;" />';
+                            html += '<button type="button" id="add_product" style="background:#5d9b57;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Add</button>';
+                            html += '</div>';
+                            html += '<datalist id="product_list"></datalist>';
+                            html += '<div id="selected_products"></div>';
+                            html += '<input type="hidden" name="personal_products" id="personal_products_input" value="' + (data[key] !== null ? data[key] : '[]') + '" />';
+                            html += '</div>';
+                        } else {
+                            html += '<input type="text" name="' + key + '" value="' + (data[key] !== null ? data[key] : '') + '" style="width:100%;padding:8px 12px;border:1px solid #5d9b57;border-radius:6px;font-size:15px;" />';
+                        }
                         html += '</div>';
                     }
                 }
@@ -267,6 +282,9 @@ if (!empty($appointments)) {
                 html += '<button type="button" onclick="toggleEditConsultationModal()" style="background:#fff;color:#5d9b57;padding:10px 28px;border:1px solid #5d9b57;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px #5d9b5733;margin-top:10px;margin-left:10px;">Cancel</button>';
                 html += '</form>';
                 content.innerHTML = html;
+                
+                // Initialize product functionality for edit mode
+                initializeProductEditMode(data.personal_products);
             } else {
                 content.innerHTML = '<div style="text-align:center;padding:40px 0;font-size:18px;color:#e74c3c;">No consultation form data found.</div>';
             }
@@ -304,6 +322,114 @@ if (!empty($appointments)) {
     }
     function closeConsultationModal() {
         document.getElementById('consultationModal').style.display = 'none';
+    }
+
+    // Product editing functionality
+    var availableProducts = [];
+    var selectedProducts = [];
+
+    function initializeProductEditMode(existingProducts) {
+        // Load products from database
+        loadProductsFromDatabase();
+        
+        // Parse existing products
+        try {
+            selectedProducts = JSON.parse(existingProducts || '[]');
+        } catch (e) {
+            selectedProducts = [];
+        }
+        
+        // Display existing products
+        displaySelectedProducts();
+        
+        // Add event listeners
+        document.getElementById('add_product').addEventListener('click', addProduct);
+    }
+
+    function loadProductsFromDatabase() {
+        fetch('/dheergayu/public/api/get-products.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    availableProducts = data.products;
+                    populateProductList();
+                } else {
+                    console.error('Failed to load products:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading products:', error);
+            });
+    }
+
+    function populateProductList() {
+        const datalist = document.getElementById('product_list');
+        datalist.innerHTML = '';
+        
+        availableProducts.forEach(product => {
+            const option = document.createElement('option');
+            option.value = `${product.name} (Av: ${product.available_quantity} units)`;
+            option.setAttribute('data-product-id', product.id);
+            option.setAttribute('data-available-qty', product.available_quantity);
+            datalist.appendChild(option);
+        });
+    }
+
+    function addProduct() {
+        let product = document.getElementById('product_search').value.trim();
+        let qty = parseInt(document.getElementById('product_qty').value.trim());
+
+        if (product === "" || qty === "" || qty <= 0) {
+            alert("Please enter product and valid quantity.");
+            return;
+        }
+
+        // Extract product name (remove availability info)
+        const productName = product.split(' (Av:')[0];
+        
+        // Check if product already exists
+        const existingIndex = selectedProducts.findIndex(p => p.product === productName);
+        if (existingIndex !== -1) {
+            selectedProducts[existingIndex].qty += qty;
+        } else {
+            selectedProducts.push({
+                product: productName,
+                qty: qty
+            });
+        }
+
+        // Clear inputs
+        document.getElementById('product_search').value = '';
+        document.getElementById('product_qty').value = '';
+        
+        // Update display and hidden input
+        displaySelectedProducts();
+        syncProductsField();
+    }
+
+    function removeProduct(index) {
+        selectedProducts.splice(index, 1);
+        displaySelectedProducts();
+        syncProductsField();
+    }
+
+    function displaySelectedProducts() {
+        const container = document.getElementById('selected_products');
+        container.innerHTML = '';
+        
+        selectedProducts.forEach((product, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:#f8f9fa;border:1px solid #5d9b57;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
+            div.innerHTML = `
+                <span>${product.product} x${product.qty}</span>
+                <button type="button" onclick="removeProduct(${index})" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Remove</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function syncProductsField() {
+        document.getElementById('personal_products_input').value = JSON.stringify(selectedProducts);
     }
         function showConfirm(action) {
             let msg = '';

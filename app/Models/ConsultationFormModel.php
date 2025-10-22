@@ -6,6 +6,18 @@ class ConsultationFormModel {
         $this->conn = $db;
     }
     
+    public function getAllConsultationForms() {
+        $stmt = $this->conn->prepare("SELECT * FROM consultationforms ORDER BY created_at DESC");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $forms = [];
+        while ($form = $result->fetch_assoc()) {
+            $forms[] = $form;
+        }
+        $stmt->close();
+        return $forms;
+    }
+    
     public function getConsultationFormByAppointmentId($appointment_id) {
         $stmt = $this->conn->prepare("SELECT * FROM consultationforms WHERE appointment_id = ? LIMIT 1");
         $stmt->bind_param('i', $appointment_id);
