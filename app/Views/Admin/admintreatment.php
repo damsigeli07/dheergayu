@@ -168,7 +168,7 @@ foreach ($treatments as $treatment) {
                                 </span>
                             </td>
                             <td class="actions">
-                                <button class="action-btn edit-btn" onclick="openEditTreatment(<?= (int)$treatment['treatment_id'] ?>)">
+                                <button class="action-btn edit-btn" onclick="openEditTreatment(<?= (int)$treatment['treatment_id'] ?>, '<?= htmlspecialchars($treatment['treatment_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($treatment['description'], ENT_QUOTES) ?>', '<?= htmlspecialchars($treatment['duration'], ENT_QUOTES) ?>', <?= $treatment['price'] ?>, '<?= htmlspecialchars($treatment['status'], ENT_QUOTES) ?>')">
                                     ✏️ Edit
                                 </button>
                                 <button class="action-btn delete-btn" onclick="deleteTreatment(<?= (int)$treatment['treatment_id'] ?>)">
@@ -231,18 +231,14 @@ foreach ($treatments as $treatment) {
             });
         }
 
-        async function openEditTreatment(id) {
-            const res = await fetch(`/dheergayu/public/api/treatments/show?id=${id}`);
-            const data = await res.json();
-            const item = data.data;
-            if (!item) { alert('Not found'); return; }
+        function openEditTreatment(id, name, description, duration, price, status) {
             const params = new URLSearchParams({
-                treatment_id: item.treatment_id,
-                treatment_name: item.treatment_name,
-                description: item.description || '',
-                duration: item.duration,
-                price: item.price,
-                status: item.status
+                treatment_id: id,
+                treatment_name: name,
+                description: description || '',
+                duration: duration,
+                price: price,
+                status: status
             });
             window.location.href = `addnewtreatment.php?${params.toString()}`;
         }
@@ -251,13 +247,14 @@ foreach ($treatments as $treatment) {
             if (!confirm('Are you sure you want to delete this treatment? This action cannot be undone.')) return;
             const form = new FormData();
             form.append('treatment_id', id);
-            const res = await fetch('/dheergayu/public/api/treatments/delete', { method: 'POST', body: form });
+            form.append('action', 'delete');
+            const res = await fetch('/dheergayu/app/Controllers/TreatmentController.php', { method: 'POST', body: form });
             const data = await res.json();
             if (data.success) {
                 alert('✅ Treatment deleted');
                 location.reload();
             } else {
-                alert('Delete failed');
+                alert('Delete failed: ' + (data.message || 'Unknown error'));
             }
         }
 
