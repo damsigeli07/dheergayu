@@ -12,9 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $reason = $_POST['reason'] ?? '';
     
     if ($appointment_id && $reason) {
-        $success = $model->cancelAppointment($appointment_id, $reason);
+        error_log("Attempting to cancel appointment ID: $appointment_id with reason: $reason");
+        $success = $model->cancelAppointmentWithReason($appointment_id, $reason);
+        error_log("Cancel result: " . ($success ? 'success' : 'failed'));
         echo $success ? 'success' : 'error';
     } else {
+        error_log("Missing appointment_id or reason. ID: $appointment_id, Reason: $reason");
         echo 'error';
     }
     exit;

@@ -25,6 +25,11 @@ $appointmentModel = new AppointmentModel($db);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_GET['action'] ?? '';
+    
+    // Debug logging
+    error_log("ConsultationFormController POST request received. Action: " . $action);
+    error_log("POST data: " . print_r($_POST, true));
+    
     $data = [
         'first_name' => $_POST['first_name'] ?? '',
         'last_name' => $_POST['last_name'] ?? '',
@@ -49,27 +54,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'send_to_pharmacy' => isset($_POST['send_to_pharmacy']) ? 1 : 0,
         'appointment_id' => $_POST['appointment_id'] ?? '',
     ];
-    if ($action === 'update_consultation_form') {
-        $success = $model->updateConsultationForm($data);
-        header('Content-Type: application/json');
-        if ($success) {
-            $appointmentModel->setCompletedStatus($data['appointment_id']);
-            echo json_encode(['status' => 'success']);
+    
+    header('Content-Type: application/json');
+    
+    try {
+        if ($action === 'update_consultation_form') {
+            $success = $model->updateConsultationForm($data);
+            if ($success) {
+                $appointmentModel->setCompletedStatus($data['appointment_id']);
+                echo json_encode(['status' => 'success']);
+            } else {
+                error_log("Failed to update consultation form for appointment_id: " . $data['appointment_id']);
+                echo json_encode(['status' => 'error', 'message' => 'Failed to update consultation form']);
+            }
         } else {
-            echo json_encode(['status' => 'error']);
+            $success = $model->saveConsultationForm($data);
+            if ($success) {
+                $appointmentModel->setCompletedStatus($data['appointment_id']);
+                echo json_encode(['status' => 'success']);
+            } else {
+                error_log("Failed to save consultation form for appointment_id: " . $data['appointment_id']);
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save consultation form']);
+            }
         }
-        exit;
-    } else {
-        $success = $model->saveConsultationForm($data);
-        header('Content-Type: application/json');
-        if ($success) {
-            $appointmentModel->setCompletedStatus($data['appointment_id']);
-            echo json_encode(['status' => 'success']);
-        } else {
-            echo json_encode(['status' => 'error']);
-        }
-        exit;
+    } catch (Exception $e) {
+        error_log("ConsultationFormController error: " . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'Database error occurred: ' . $e->getMessage()]);
     }
+    exit;
 }
 
 // For GET: fetch appointment details for pre-fill

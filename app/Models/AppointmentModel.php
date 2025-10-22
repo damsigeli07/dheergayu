@@ -88,6 +88,42 @@ class AppointmentModel {
         ];
     }
 
+    // READ: Get all appointments for doctor dashboard
+    public function getAllDoctorAppointments() {
+        // Try different possible table names for appointments
+        $possible_tables = ['appointments', 'doctor_appointments', 'appointment_list'];
+        $appointments = [];
+        
+        foreach ($possible_tables as $table_name) {
+            $stmt = $this->conn->prepare("SELECT * FROM $table_name ORDER BY appointment_datetime DESC");
+            if ($stmt && $stmt->execute()) {
+                $result = $stmt->get_result();
+                $raw_appointments = $result->fetch_all(MYSQLI_ASSOC);
+                $stmt->close();
+                
+                if (!empty($raw_appointments)) {
+                    // Transform the data to match expected format
+                    foreach ($raw_appointments as $row) {
+                        $appointment = [
+                            'appointment_id' => $row['appointment_id'] ?? '',
+                            'patient_no' => $row['patient_no'] ?? '',
+                            'patient_name' => $row['patient_name'] ?? '',
+                            'appointment_datetime' => $row['appointment_datetime'] ?? '',
+                            'status' => $row['status'] ?? '',
+                            'reason' => $row['reason'] ?? '',
+                            'actions' => $row['actions'] ?? ''
+                        ];
+                        
+                        $appointments[] = $appointment;
+                    }
+                    break; // Found data, stop looking
+                }
+            }
+        }
+        
+        return $appointments;
+    }
+
     // READ: Get consultation by ID
     public function getConsultationById($id) {
         $stmt = $this->conn->prepare("SELECT * FROM consultations WHERE id = ?");
@@ -159,6 +195,32 @@ class AppointmentModel {
         return $result;
     }
 
+    // UPDATE: Cancel appointment with reason (for appointments table)
+    public function cancelAppointmentWithReason($appointment_id, $reason) {
+        // Try different possible table names for appointments
+        $possible_tables = ['appointments', 'doctor_appointments', 'appointment_list'];
+        
+        foreach ($possible_tables as $table_name) {
+            // First try with reason column
+            $stmt = $this->conn->prepare("UPDATE $table_name SET status = 'Cancelled', reason = ? WHERE appointment_id = ?");
+            if ($stmt && $stmt->bind_param("si", $reason, $appointment_id) && $stmt->execute()) {
+                $stmt->close();
+                return true;
+            }
+            if ($stmt) $stmt->close();
+            
+            // If that fails, try without reason column
+            $stmt = $this->conn->prepare("UPDATE $table_name SET status = 'Cancelled' WHERE appointment_id = ?");
+            if ($stmt && $stmt->bind_param("i", $appointment_id) && $stmt->execute()) {
+                $stmt->close();
+                return true;
+            }
+            if ($stmt) $stmt->close();
+        }
+        
+        return false;
+    }
+
     // UPDATE: Update appointment date and time
     public function updateAppointment($id, $type, $date, $time) {
         $table = ($type === 'consultation') ? 'consultations' : 'treatments';
@@ -179,6 +241,19 @@ class AppointmentModel {
         $result = $stmt->execute();
         $stmt->close();
         return $result;
+    }
+
+    // UPDATE: Set appointment status to completed
+    public function setCompletedStatus($appointment_id) {
+        // Try to update in appointments table first
+        $stmt = $this->conn->prepare("UPDATE appointments SET status = 'Completed' WHERE appointment_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $appointment_id);
+            $result = $stmt->execute();
+            $stmt->close();
+            return $result;
+        }
+        return false;
     }
 
     // READ: Get doctors list
