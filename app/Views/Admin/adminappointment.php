@@ -1,11 +1,15 @@
 <?php
-$appointments = [
-    ['appointment_no'=>'100','doctor'=>'Dr. John','patient_no'=>'1008','patient_name'=>'Ravi Kumar','date_time'=>'March 20, 2026 - 10:00 AM'],
-    ['appointment_no'=>'101','doctor'=>'Dr. Rohan','patient_no'=>'1002','patient_name'=>'Priya Sharma','date_time'=>'March 20, 2026 - 10:15 AM'],
-    ['appointment_no'=>'102','doctor'=>'Dr. Raj', 'patient_no'=>'1005','patient_name'=>'Arjun Patel','date_time'=>'March 20, 2026 - 10:30 AM'],
-    ['appointment_no'=>'103','doctor'=>'Dr. Ilma','patient_no'=>'1006','patient_name'=>'Maya Singh','date_time'=>'March 20, 2026 - 10:45 AM'],
-    ['appointment_no'=>'104','doctor'=>'Dr. Chan','patient_no'=>'1012','patient_name'=>'Deepa Nair','date_time'=>'March 20, 2026 - 11:00 AM']
-];
+// Fetch appointments from database
+require_once __DIR__ . '/../../Models/AppointmentModel.php';
+
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+$appointmentModel = new AppointmentModel($db);
+$appointments = $appointmentModel->getAllDoctorAppointments();
+
+// If no appointments found, use empty array
+if (!$appointments) {
+    $appointments = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +20,47 @@ $appointments = [
   <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
   <script src="/dheergayu/public/assets/js/header.js"></script>
   <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/adminappointment.css?v=1.1" />
+  <style>
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .status-badge.pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .status-badge.completed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .status-badge.cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+  </style>
+  <script>
+    function searchTable() {
+        const input = document.querySelector('.search-input');
+        const filter = input.value.toLowerCase();
+        const table = document.querySelector('.appointments-table');
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            let found = false;
+            for (let j = 0; j < cells.length; j++) {
+                if (cells[j].textContent.toLowerCase().includes(filter)) {
+                    found = true;
+                    break;
+                }
+            }
+            rows[i].style.display = found ? '' : 'none';
+        }
+    }
+  </script>
 </head>
 <body>
 
@@ -64,29 +109,33 @@ $appointments = [
         <table class="appointments-table">
           <thead>
             <tr>
-              <th>Appointment No.</th>
-              <th>Doctor</th>
+              <th>Appointment ID</th>
               <th>Patient No.</th>
               <th>Patient Name</th>
               <th>Date and Time</th>
-              <th>Actions</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-          <?php foreach($appointments as $a): ?>
-          <tr>
-            <td><?= htmlspecialchars($a['appointment_no']) ?></td>
-            <td class="doctor-name"><?= htmlspecialchars($a['doctor']) ?></td>
-            <td><?= htmlspecialchars($a['patient_no']) ?></td>
-            <td class="patient-name"><?= htmlspecialchars($a['patient_name']) ?></td>
-            <td class="date-time"><?= htmlspecialchars($a['date_time']) ?></td>
-            <td class="actions">
-              <button class="action-btn reschedule-btn" onclick="rescheduleAppointment('<?= $a['appointment_no'] ?>')">Reschedule</button>
-              <button class="action-btn edit-btn" onclick="editAppointment('<?= $a['appointment_no'] ?>')">Edit</button>
-              <button class="action-btn delete-btn" onclick="deleteAppointment('<?= $a['appointment_no'] ?>')">Delete</button>
-            </td>
-          </tr>
-          <?php endforeach; ?>
+          <?php if (!empty($appointments)): ?>
+            <?php foreach($appointments as $appointment): ?>
+            <tr>
+              <td><?= htmlspecialchars($appointment['appointment_id'] ?? '') ?></td>
+              <td><?= htmlspecialchars($appointment['patient_no'] ?? '') ?></td>
+              <td class="patient-name"><?= htmlspecialchars($appointment['patient_name'] ?? '') ?></td>
+              <td class="date-time"><?= htmlspecialchars($appointment['appointment_datetime'] ?? '') ?></td>
+              <td>
+                <span class="status-badge <?= strtolower($appointment['status'] ?? '') ?>">
+                  <?= htmlspecialchars($appointment['status'] ?? '') ?>
+                </span>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 20px;">No appointments found.</td>
+            </tr>
+          <?php endif; ?>
           </tbody>
         </table>
       </div>

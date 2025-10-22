@@ -1,3 +1,24 @@
+<?php
+// Fetch consultation forms from database
+require_once __DIR__ . '/../../Models/ConsultationFormModel.php';
+
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+$consultationModel = new ConsultationFormModel($db);
+
+// Get all consultation forms
+$consultations = $consultationModel->getAllConsultationForms();
+
+// Get product prices
+$productPrices = [];
+$productsQuery = $db->query("SELECT product_id, name, price FROM products");
+while ($product = $productsQuery->fetch_assoc()) {
+    $productPrices[$product['name']] = [
+        'id' => $product['product_id'],
+        'price' => (float)$product['price']
+    ];
+}
+$db->close();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,38 +70,39 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>101</td>
-                        <td>John Doe</td>
-                        <td>
-                            <div class="medicine-card">
-                                <span class="medicine-name">Paspanguwa Pack</span>
-                                <span class="medicine-qty">x2</span>
-                            </div>
-                            <div class="medicine-card">
-                                <span class="medicine-name">Asamodagam Spirit</span>
-                                <span class="medicine-qty">x1</span>
-                            </div>
-                        </td>
-                        <td><button class="btn-action" onclick="calculateTotal('101')">Calculate</button></td>
-                        <td><input type="checkbox" class="dispense-status"> Dispatched</td>
-                    </tr>
-                    <tr>
-                        <td>102</td>
-                        <td>Jane Smith</td>
-                        <td>
-                            <div class="medicine-card">
-                                <span class="medicine-name">Siddhalepa Balm</span>
-                                <span class="medicine-qty">x1</span>
-                            </div>
-                            <div class="medicine-card">
-                                <span class="medicine-name">Dashamoolarishta</span>
-                                <span class="medicine-qty">x2</span>
-                            </div>
-                        </td>
-                        <td><button class="btn-action" onclick="calculateTotal('102')">Calculate</button></td>
-                        <td><input type="checkbox" class="dispense-status"> Dispatched</td>
-                    </tr>
+                    <?php if (!empty($consultations)): ?>
+                        <?php foreach ($consultations as $consultation): ?>
+                            <?php 
+                            // Parse personal_products JSON
+                            $personalProducts = json_decode($consultation['personal_products'] ?? '[]', true);
+                            if (!is_array($personalProducts)) {
+                                $personalProducts = [];
+                            }
+                            ?>
+                            <tr>
+                                <td><?= htmlspecialchars($consultation['id']) ?></td>
+                                <td><?= htmlspecialchars($consultation['first_name'] . ' ' . $consultation['last_name']) ?></td>
+                                <td>
+                                    <?php if (!empty($personalProducts)): ?>
+                                        <?php foreach ($personalProducts as $product): ?>
+                                            <div class="medicine-card">
+                                                <span class="medicine-name"><?= htmlspecialchars($product['product'] ?? '') ?></span>
+                                                <span class="medicine-qty">x<?= htmlspecialchars($product['qty'] ?? '0') ?></span>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <span class="no-medicines">No medicines prescribed</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><button class="btn-action" onclick="calculateTotal('<?= $consultation['id'] ?>')">Calculate</button></td>
+                                <td><input type="checkbox" class="dispense-status"> Dispatched</td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px;">No consultation orders found.</td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -107,45 +129,51 @@
     </div>
 
     <script>
-        // Sample prices
-        const productPrices = {
-            "Paspanguwa Pack": 850,
-            "Asamodagam Spirit": 650,
-            "Siddhalepa Balm": 450,
-            "Dashamoolarishta": 750
-        };
+        // Product prices from database
+        const productPrices = <?= json_encode($productPrices) ?>;
+        
+        // Consultation data from database
+        const consultations = <?= json_encode($consultations) ?>;
 
-        const prescriptions = {
-            "101": [
-                {name: "Paspanguwa Pack", qty: 2},
-                {name: "Asamodagam Spirit", qty: 1}
-            ],
-            "102": [
-                {name: "Siddhalepa Balm", qty: 1},
-                {name: "Dashamoolarishta", qty: 2}
-            ]
-        };
+        function calculateTotal(consultationId) {
+            // Find the consultation by ID
+            const consultation = consultations.find(c => c.id == consultationId);
+            if (!consultation) {
+                alert('Consultation not found');
+                return;
+            }
 
-        function calculateTotal(id) {
-            const items = prescriptions[id];
+            // Parse personal products
+            let personalProducts = [];
+            try {
+                personalProducts = JSON.parse(consultation.personal_products || '[]');
+            } catch (e) {
+                console.error('Error parsing personal products:', e);
+                personalProducts = [];
+            }
+
             const tbody = document.querySelector("#receiptTable tbody");
             tbody.innerHTML = "";
             let total = 0;
 
-            items.forEach(item => {
-                const price = productPrices[item.name] || 0;
-                const amount = item.qty * price;
+            personalProducts.forEach(product => {
+                const productName = product.product || '';
+                const quantity = parseInt(product.qty) || 0;
+                const priceInfo = productPrices[productName];
+                const unitPrice = priceInfo ? priceInfo.price : 0;
+                const amount = quantity * unitPrice;
                 total += amount;
+                
                 const row = `<tr>
-                                <td>${item.name}</td>
-                                <td>${item.qty}</td>
-                                <td>Rs. ${price.toFixed(2)}</td>
+                                <td>${productName}</td>
+                                <td>${quantity}</td>
+                                <td>Rs. ${unitPrice.toFixed(2)}</td>
                                 <td>Rs. ${amount.toFixed(2)}</td>
                              </tr>`;
                 tbody.innerHTML += row;
             });
 
-            document.getElementById("consultationId").innerText = id;
+            document.getElementById("consultationId").innerText = consultationId;
             document.getElementById("totalAmount").innerText = total.toFixed(2);
             document.getElementById("receiptModal").style.display = "block";
         }
