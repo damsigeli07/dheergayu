@@ -83,10 +83,10 @@
   const appointmentsChart = new Chart(ctx, {
     type: 'bar', // Bar chart
     data: {
-      labels: ['Aug 1', 'Aug 2', 'Aug 3', 'Aug 4', 'Aug 5', 'Aug 6', 'Aug 7', 'Aug 8', 'Aug 9', 'Aug 10'],
+      labels: ['Oct 15', 'Oct 16', 'Oct 17', 'Oct 18', 'Oct 19', 'Oct 20', 'Oct 21', 'Oct 22', 'Oct 23', 'Oct 24'],
       datasets: [{
         label: 'Appointments',
-        data: [18, 22, 15, 20, 19, 25, 21, 23, 17, 30],
+        data: [18, 22, 15, 20, 19, 25, 21, 23, 17, 9],
         backgroundColor: '#84a939ff',
         barPercentage: 0.6
     }]
@@ -117,10 +117,10 @@
 const incomeChart = new Chart(incomeCtx, {
   type: 'bar',
   data: {
-    labels: ['Aug 1', 'Aug 2', 'Aug 3', 'Aug 4', 'Aug 5', 'Aug 6', 'Aug 7', 'Aug 8', 'Aug 9', 'Aug 10'],
+    labels: ['Oct 15', 'Oct 16', 'Oct 17', 'Oct 18', 'Oct 19', 'Oct 20', 'Oct 21', 'Oct 22', 'Oct 23', 'Oct 24'],
     datasets: [{
       label: 'Income (Rs.)',
-      data: [10000, 13000, 10500, 12750, 11100, 14200, 12900, 13500, 11900, 15750],
+      data: [67500, 83000, 50500, 72750, 70800, 110200, 72900, 83500, 61900, 9050],
       backgroundColor: '#84a939ff',
       barPercentage: 0.6
     }]

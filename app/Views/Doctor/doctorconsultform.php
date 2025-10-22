@@ -85,8 +85,21 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
 
                         <div class="form-group">
                             <label for="recommended_treatment">Recommended Treatment</label>
-                            <textarea id="recommended_treatment" name="recommended_treatment" placeholder="Recommended treatment details..."></textarea>
+                            <select id="recommended_treatment" name="recommended_treatment">
+                                    <option value="">-- Select treatment --</option>
+                                    <option value="No need">No need</option>
+                                    <option value="Abhyanga">Abhyanga</option>
+                                    <option value="Shirodhara">Shirodhara</option>
+                                    <option value="Panchakarma">Panchakarma</option>
+                                    <option value="Udvartana">Udvartana</option>
+                                    <option value="Nasya">Nasya</option>
+                                    <option value="Vashpa Sweda">Vashpa Sweda</option>
+                                    <option value="Elakizhi">Elakizhi</option>
+                                    <option value="Basti">Basti</option>
+                                    
+                            </select>
                         </div>
+
 
                         <div class="form-group">
                             <label for="notes">Notes</label>
