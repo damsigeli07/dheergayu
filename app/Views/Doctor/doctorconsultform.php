@@ -60,15 +60,7 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                             <div class="product-selector">
                                 <input type="text" id="product_search" placeholder="Search product..." list="product_list">
                                 <datalist id="product_list">
-                                    <option value="Neem Oil (Av: 45 bottles)">
-                                    <option value="Triphala Tablets (Av: 100 bottles)">
-                                    <option value="Ashwagandha Powder (Av: 25 packets)">
-                                    <option value="Brahmi Powder (Av: 12 packets)">
-                                    <option value="Chyawanprash (Av: 8 jars)">
-                                    <option value="Nirgundi Oil (Av: 120 bottles)">
-                                    <option value="Oinda Thailaya (Av: 80 bottles)">
-                                    <option value="Herbal Pain Oil (Av: 67 bottles)">
-                                    <option value="Steam Hurbs (Av: 276 packets)">                
+                                    <!-- Products will be loaded dynamically from database -->
                                 </datalist>
                                 
                                 <input type="number" id="product_qty" min="1" placeholder="Qty">
@@ -156,6 +148,74 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
     <script>
     // Maintain selected products as an array and sync to hidden input
     var selectedProducts = [];
+    var availableProducts = []; // Store products from database
+
+    // Load products from database on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, starting to load products...');
+        loadProductsFromDatabase();
+    });
+
+    function loadProductsFromDatabase() {
+        console.log('Loading products from database...');
+        fetch('/dheergayu/public/api/get-products.php')
+            .then(response => {
+                console.log('API response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('API response data:', data);
+                if (data.success) {
+                    availableProducts = data.products;
+                    console.log('Loaded products:', availableProducts);
+                    populateProductList();
+                } else {
+                    console.error('Failed to load products:', data.error);
+                    // Fallback to static products if API fails
+                    loadFallbackProducts();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading products:', error);
+                // Fallback to static products if API fails
+                loadFallbackProducts();
+            });
+    }
+
+    function populateProductList() {
+        const datalist = document.getElementById('product_list');
+        datalist.innerHTML = ''; // Clear existing options
+        
+        availableProducts.forEach(product => {
+            const option = document.createElement('option');
+            option.value = `${product.name} (Av: ${product.available_quantity} units)`;
+            option.setAttribute('data-product-id', product.id);
+            option.setAttribute('data-available-qty', product.available_quantity);
+            datalist.appendChild(option);
+        });
+    }
+
+    function loadFallbackProducts() {
+        // Fallback static products if database fails - using actual products from database
+        const fallbackProducts = [
+            'Paspanguwa Pack (Av: 0 units)',
+            'Asamodagam Spirit (Av: 0 units)',
+            'Siddhalepa Balm (Av: 0 units)',
+            'Dashamoolarishta (Av: 0 units)',
+            'Kothalahimbutu Capsules (Av: 0 units)',
+            'Neem Oil (Av: 0 units)',
+            'Pinda Thailaya (Av: 0 units)',
+            'Nirgundi Oil (Av: 0 units)'
+        ];
+        
+        const datalist = document.getElementById('product_list');
+        datalist.innerHTML = '';
+        fallbackProducts.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product;
+            datalist.appendChild(option);
+        });
+    }
     function syncProductsField() {
         try {
             document.getElementById('personal_products').value = JSON.stringify(selectedProducts);
@@ -167,11 +227,23 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
     // Add products to cart table
     document.getElementById("add_product").addEventListener("click", function() {
         let product = document.getElementById("product_search").value.trim();
-        let qty = document.getElementById("product_qty").value.trim();
+        let qty = parseInt(document.getElementById("product_qty").value.trim());
 
         if (product === "" || qty === "" || qty <= 0) {
             alert("Please enter product and valid quantity.");
             return;
+        }
+
+        // Check if quantity is available in database
+        if (availableProducts.length > 0) {
+            const selectedOption = document.querySelector(`#product_list option[value="${product}"]`);
+            if (selectedOption) {
+                const availableQty = parseInt(selectedOption.getAttribute('data-available-qty'));
+                if (qty > availableQty) {
+                    alert(`Only ${availableQty} units available for this product.`);
+                    return;
+                }
+            }
         }
 
         let table = document.getElementById("product_list_table");
@@ -239,7 +311,7 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
         // Build FormData and submit via fetch to get JSON response
         var formEl = this;
         var formData = new FormData(formEl);
-        fetch('/dheergayu/app/Controllers/ConsultationFormController.php', {
+        fetch('/dheergayu/app/Controllers/ConsultationFormController.php?action=save_consultation_form', {
             method: 'POST',
             body: formData
         }).then(function(res){ return res.json(); })

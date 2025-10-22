@@ -13,7 +13,8 @@
 require_once __DIR__ . '/../../Models/AppointmentModel.php';
 $db = new mysqli('localhost', 'root', '', 'dheergayu_db'); // Update credentials if needed
 $appointmentModel = new AppointmentModel($db);
-$appointments = $appointmentModel->getAllAppointments();
+$appointments = $appointmentModel->getAllDoctorAppointments();
+
 // Compute counts
 $totalAppointments = 0;
 $upcomingAppointments = 0;

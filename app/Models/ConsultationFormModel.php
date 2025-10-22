@@ -1,23 +1,19 @@
 <?php
 class ConsultationFormModel {
+    private $conn;
+    
+    public function __construct($db) {
+        $this->conn = $db;
+    }
+    
     public function getConsultationFormByAppointmentId($appointment_id) {
-    $stmt = $this->conn->prepare("SELECT * FROM consultationforms WHERE appointment_id = ? LIMIT 1");
-    $stmt->bind_param('i', $appointment_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $form = $result->fetch_assoc();
-    $stmt->close();
-    return $form;
+        $stmt = $this->conn->prepare("SELECT * FROM consultationforms WHERE appointment_id = ? LIMIT 1");
         $stmt->bind_param('i', $appointment_id);
         $stmt->execute();
         $result = $stmt->get_result();
         $form = $result->fetch_assoc();
         $stmt->close();
         return $form;
-    }
-    private $conn;
-    public function __construct($db) {
-        $this->conn = $db;
     }
     public function getAppointmentDetails($appointment_id) {
         $stmt = $this->conn->prepare("SELECT * FROM appointments WHERE appointment_id = ?");
@@ -30,7 +26,7 @@ class ConsultationFormModel {
     }
     public function saveConsultationForm($data) {
         // Check if record exists for appointment_id
-        $stmt = $this->conn->prepare("SELECT id FROM ConsultationForms WHERE appointment_id = ? LIMIT 1");
+        $stmt = $this->conn->prepare("SELECT id FROM consultationforms WHERE appointment_id = ? LIMIT 1");
         $stmt->bind_param('i', $data['appointment_id']);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -39,13 +35,17 @@ class ConsultationFormModel {
         if ($exists) {
             return $this->updateConsultationForm($data);
         }
-        $sql = "INSERT INTO ConsultationForms (
+        $sql = "INSERT INTO consultationforms (
             first_name, last_name, age, diagnosis, gender, personal_products, recommended_treatment,
             question_1, question_2, question_3, question_4, notes, patient_no, last_visit_date,
             total_visits, contact_info, check_patient_vitals, review_previous_medications,
             update_patient_history, follow_up_appointment, send_to_pharmacy, appointment_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Prepare failed: " . $this->conn->error);
+            return false;
+        }
         $stmt->bind_param(
             'ssissssssssssssiissiii',
             $data['first_name'], $data['last_name'], $data['age'], $data['diagnosis'], $data['gender'],
@@ -57,18 +57,25 @@ class ConsultationFormModel {
             $data['appointment_id']
         );
         $success = $stmt->execute();
+        if (!$success) {
+            error_log("Execute failed: " . $stmt->error);
+        }
         $stmt->close();
         return $success;
     }
 
     public function updateConsultationForm($data) {
-        $sql = "UPDATE ConsultationForms SET
+        $sql = "UPDATE consultationforms SET
             first_name = ?, last_name = ?, age = ?, diagnosis = ?, gender = ?, personal_products = ?, recommended_treatment = ?,
             question_1 = ?, question_2 = ?, question_3 = ?, question_4 = ?, notes = ?, patient_no = ?, last_visit_date = ?,
             total_visits = ?, contact_info = ?, check_patient_vitals = ?, review_previous_medications = ?,
             update_patient_history = ?, follow_up_appointment = ?, send_to_pharmacy = ?
             WHERE appointment_id = ?";
         $stmt = $this->conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Prepare failed: " . $this->conn->error);
+            return false;
+        }
         $stmt->bind_param(
             'ssissssssssssssiissiii',
             $data['first_name'], $data['last_name'], $data['age'], $data['diagnosis'], $data['gender'],
@@ -80,6 +87,9 @@ class ConsultationFormModel {
             $data['appointment_id']
         );
         $success = $stmt->execute();
+        if (!$success) {
+            error_log("Execute failed: " . $stmt->error);
+        }
         $stmt->close();
         return $success;
     }
