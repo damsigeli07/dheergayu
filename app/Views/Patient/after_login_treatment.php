@@ -48,7 +48,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
         <div class="header-right">
             <a href="home.php" class="nav-btn">Home</a>
             <a href="channeling.php" class="nav-btn">Consultations</a>
-            <a href="treatment.php" class="nav-btn active">Treatments</a>
+            <a href="after_login_treatment.php" class="nav-btn active">Treatments</a>
             <div class="profile-container">
                 <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
                 <div class="profile-dropdown" id="profileDropdown">
