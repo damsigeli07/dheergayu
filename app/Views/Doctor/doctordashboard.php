@@ -236,11 +236,57 @@ if (!empty($appointments)) {
                         var value = (data[key] !== null ? data[key] : '');
                         if (String(key).toLowerCase() === 'personal_products') {
                             try {
+                                // Debug: Log the raw value
+                                console.log('Raw personal_products value:', value);
+                                
                                 var items = JSON.parse(value);
+                                console.log('Parsed items:', items);
+                                
                                 if (Array.isArray(items)) {
-                                    value = items.map(function(p){ return (p.product || '') + (p.qty ? ' x' + p.qty : ''); }).join(', ');
+                                    value = items.map(function(p){ 
+                                        return (p.product || '') + (p.qty ? ' x' + p.qty : ''); 
+                                    }).join(', ');
+                                } else {
+                                    value = 'No products prescribed';
                                 }
-                            } catch(e) { /* leave as-is if not JSON */ }
+                            } catch(e) { 
+                                console.error('Error parsing personal_products:', e);
+                                console.error('Raw value that failed to parse:', value);
+                                console.error('Value type:', typeof value);
+                                console.error('Value length:', value ? value.length : 'null/undefined');
+                                
+                                // Try to fix common issues
+                                if (value && typeof value === 'string') {
+                                    // Try to clean up the value
+                                    var cleanedValue = value.trim();
+                                    console.log('Cleaned value:', cleanedValue);
+                                    
+                                    // Check for common malformed patterns
+                                    if (cleanedValue === '[{' || cleanedValue === '[[' || cleanedValue === '[]' || cleanedValue === '{}') {
+                                        console.log('Detected malformed JSON, treating as empty');
+                                        value = 'No products prescribed';
+                                    } else if (cleanedValue.includes('(Av:') && !cleanedValue.includes('}')) {
+                                        console.log('Detected incomplete JSON with availability text, treating as empty');
+                                        value = 'No products prescribed';
+                                    } else {
+                                        // Try parsing the cleaned value
+                                        try {
+                                            var cleanedItems = JSON.parse(cleanedValue);
+                                            console.log('Successfully parsed cleaned value:', cleanedItems);
+                                            if (Array.isArray(cleanedItems)) {
+                                                value = cleanedItems.map(function(p){ 
+                                                    return (p.product || '') + (p.qty ? ' x' + p.qty : ''); 
+                                                }).join(', ');
+                                            }
+                                        } catch(e2) {
+                                            console.error('Still failed after cleaning:', e2);
+                                            value = 'Error loading prescribed products';
+                                        }
+                                    }
+                                } else {
+                                    value = 'Error loading prescribed products';
+                                }
+                            }
                         }
                         html += '<td style="padding:10px 16px;color:#222;border-radius:0 8px 8px 0;">' + value + '</td>';
                         html += '</tr>';
@@ -297,6 +343,9 @@ if (!empty($appointments)) {
     }
 
     function saveConsultationEdit() {
+        // Ensure products are synced before saving
+        syncProductsField();
+        
         var form = document.getElementById('editConsultationForm');
         var formData = new FormData(form);
         formData.append('appointment_id', currentAppointmentId);
@@ -344,6 +393,61 @@ if (!empty($appointments)) {
         
         // Add event listeners
         document.getElementById('add_product').addEventListener('click', addProduct);
+    }
+
+    function displaySelectedProducts() {
+        const container = document.getElementById('selected_products');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        selectedProducts.forEach((product, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:#f8f9fa;border:1px solid #5d9b57;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
+            div.innerHTML = `
+                <span>${product.product} x${product.qty}</span>
+                <button type="button" onclick="removeProduct(${index})" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Remove</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function removeProduct(index) {
+        selectedProducts.splice(index, 1);
+        displaySelectedProducts();
+        syncProductsField();
+    }
+
+    function syncProductsField() {
+        const input = document.getElementById('personal_products_input');
+        if (input) {
+            try {
+                // Ensure selectedProducts is a valid array
+                if (!Array.isArray(selectedProducts)) {
+                    selectedProducts = [];
+                }
+                
+                // Create a clean copy to avoid any reference issues
+                var cleanProducts = selectedProducts.map(function(p) {
+                    // Clean product name (remove availability text if present)
+                    var cleanProductName = p.product || '';
+                    if (cleanProductName.includes(' (Av:')) {
+                        cleanProductName = cleanProductName.split(' (Av:')[0];
+                    }
+                    
+                    return {
+                        product: cleanProductName,
+                        qty: parseInt(p.qty) || 0
+                    };
+                });
+                
+                input.value = JSON.stringify(cleanProducts);
+                console.log('Synced products to field:', cleanProducts);
+            } catch (e) {
+                console.error('Error syncing products:', e);
+                input.value = '[]';
+            }
+        }
     }
 
     function loadProductsFromDatabase() {
