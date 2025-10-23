@@ -12,6 +12,12 @@ foreach ($productRows as $row) {
     $productNameToId[$row['name']] = (int)$row['id'];
 }
 
+// Get suppliers from database using direct database connection
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../Models/SupplierModel.php';
+$supplierModel = new SupplierModel($conn);
+$suppliers = $supplierModel->getAllSuppliers();
+
  
 
 function product_image_for(string $name): string {
@@ -247,9 +253,12 @@ $totalProducts = count($overview);
                     <div class="form-group">
                         <label for="edit_supplier">Supplier *</label>
                         <select name="supplier" id="edit_supplier" class="form-input" required>
-                            <option value="Herbal Supplies Co.">Herbal Supplies Co.</option>
-                            <option value="Ayurvedic Traders">Ayurvedic Traders</option>
-                            <option value="Natural Extracts Ltd.">Natural Extracts Ltd.</option>
+                            <option value="">Select Supplier</option>
+                            <?php foreach($suppliers as $supplier): ?>
+                            <option value="<?php echo htmlspecialchars($supplier['supplier_name']); ?>">
+                                <?php echo htmlspecialchars($supplier['supplier_name']); ?>
+                            </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group">
@@ -314,9 +323,12 @@ $totalProducts = count($overview);
                     <div class="form-group">
                         <label for="supplier">Supplier *</label>
                         <select name="supplier" id="supplier" class="form-input" required>
-                            <option value="Herbal Supplies Co.">Herbal Supplies Co.</option>
-                            <option value="Ayurvedic Traders">Ayurvedic Traders</option>
-                            <option value="Natural Extracts Ltd.">Natural Extracts Ltd.</option>
+                            <option value="">Select Supplier</option>
+                            <?php foreach($suppliers as $supplier): ?>
+                            <option value="<?php echo htmlspecialchars($supplier['supplier_name']); ?>">
+                                <?php echo htmlspecialchars($supplier['supplier_name']); ?>
+                            </option>
+                            <?php endforeach; ?>
                         </select>
                         <small class="form-help">Select the supplier for this batch</small>
                     </div>
