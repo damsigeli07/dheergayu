@@ -119,7 +119,6 @@
                         <th>NIC</th>
                         <th>Email</th>
                         <th>Registration Date</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="patientTableBody">
@@ -188,16 +187,20 @@ function displayUsers(users) {
         const displayRole = u.role?.charAt(0).toUpperCase() + u.role?.slice(1).toLowerCase() || 'Unknown';
 
         const tr = document.createElement('tr');
+        const isActive = (u.status?.toLowerCase() === 'active');
+        const statusClass = isActive ? 'active' : 'inactive';
+        const buttonText = isActive ? 'Deactivate' : 'Activate';
+        const buttonClass = isActive ? 'deactivate-btn' : 'activate-btn';
+        
         tr.innerHTML = `
             <td>${u.name || 'N/A'}</td>
             <td>${displayRole}</td>
             <td>${u.email || 'N/A'}</td>
             <td>${u.phone || 'N/A'}</td>
-            <td class="status ${u.status?.toLowerCase() || 'active'}">${u.status || 'Active'}</td>
+            <td class="status ${statusClass}">${u.status || 'Active'}</td>
             <td>${u.reg_date || '-'}</td>
             <td>
-                <button class="edit-btn">Edit</button>
-                <button class="del-btn">Delete</button>
+                <button class="${buttonClass}" onclick="toggleUserStatus(${u.id}, '${u.status || 'Active'}')">${buttonText}</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -216,10 +219,6 @@ function displayPatients(patients) {
             <td>${p.nic || 'N/A'}</td>
             <td>${p.email || 'N/A'}</td>
             <td>${p.reg_date || '-'}</td>
-            <td>
-                <button class="edit-btn">Edit</button>
-                <button class="del-btn">Delete</button>
-            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -240,6 +239,41 @@ function updateOverviewCounts(users, patients) {
     document.getElementById('doctorCount').textContent = doctors;
     document.getElementById('patientCount').textContent = patients.length;
     document.getElementById('staffCount').textContent = staff;
+}
+
+// Toggle user status (activate/deactivate)
+async function toggleUserStatus(userId, currentStatus) {
+    const newStatus = currentStatus.toLowerCase() === 'active' ? 'Inactive' : 'Active';
+    const action = newStatus === 'Active' ? 'activate' : 'deactivate';
+    
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('status', newStatus);
+        formData.append('action', 'update_status');
+        
+        const response = await fetch('/dheergayu/app/Controllers/admin_users.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`✅ User ${action}d successfully`);
+            // Reload the page to show updated status
+            location.reload();
+        } else {
+            alert(`❌ Failed to ${action} user: ${result.message || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`❌ Failed to ${action} user: ${error.message}`);
+    }
 }
 </script>
 

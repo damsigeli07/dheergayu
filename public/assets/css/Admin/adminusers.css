@@ -162,6 +162,43 @@ tbody tr:hover {
     transform: translateY(-1px);
 }
 
+.activate-btn {
+    background: #2E7D32;
+    color: #fff;
+    border-radius: 6px;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.activate-btn:hover {
+    background: #1B5E20;
+    transform: translateY(-1px);
+}
+
+.deactivate-btn {
+    background: #D32F2F;
+    color: #fff;
+    border-radius: 6px;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.deactivate-btn:hover {
+    background: #C62828;
+    transform: translateY(-1px);
+}
+
+.status.inactive {
+    color: #D32F2F;
+    font-weight: 600;
+    background: #ffebee;
+    border-radius: 20px;
+    padding: 4px 12px;
+    display: inline-block;
+}
+
 .add-btn {
     background: #419745;
     color: #fff;

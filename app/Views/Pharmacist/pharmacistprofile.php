@@ -3,7 +3,7 @@
 $pharmacist = [
     'name' => 'M.Perera',
     'age' => 28,
-    'email' => 'pharmacistdheergayu@gmail.com',
+    'email' => 'pharmacist1@gmail.com',
     'contact' => '+94 77 123 4567',
     'address' => '123 Flower Road, Colombo, Sri Lanka',
     'gender' => 'Male'
