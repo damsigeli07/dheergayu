@@ -155,67 +155,19 @@ $userEmail = $_SESSION['user_email'] ?? '';
         });
 
         function loadAvailableSlots(date) {
-    fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('slotsContainer');
-            if (data.slots && data.slots.length > 0) {
-                container.innerHTML = data.slots.map(slot => {
-                    let className = 'time-slot';
-                    let disabled = '';
-                    let onclick = `selectSlot(this, '${slot.time}')`;
-                    
-                    if (slot.status === 'booked') {
-                        className += ' slot-booked';
-                        disabled = 'disabled';
-                        onclick = '';
-                    } else if (slot.status === 'locked') {
-                        className += ' slot-locked';
-                        disabled = 'disabled';
-                        onclick = '';
+            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('slotsContainer');
+                    if (data.slots && data.slots.length > 0) {
+                        container.innerHTML = data.slots.map(slot =>
+                            `<button type="button" class="time-slot" onclick="selectSlot(this, '${slot}')">${formatTime(slot)}</button>`
+                        ).join('');
+                    } else {
+                        container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
                     }
-                    
-                    return `<button type="button" class="${className}" ${disabled} onclick="${onclick}">${formatTime(slot.time)}</button>`;
-                }).join('');
-            } else {
-                container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
-            }
-        });
-}
-
-function selectSlot(button, slot) {
-    const date = document.getElementById('consultationDate').value;
-    
-    // Release previous lock if any
-    if (selectedTimeSlot) {
-        fetch('/dheergayu/public/api/release-slot.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `date=${date}&time=${selectedTimeSlot}`
-        });
-    }
-    
-    // Lock the new slot
-    fetch('/dheergayu/public/api/lock-slot.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `date=${date}&time=${slot}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
-            button.classList.add('selected');
-            selectedTimeSlot = slot;
-            updateSummary();
-            checkFormValidity();
-        } else {
-            alert('This slot is no longer available. Please select another.');
-            loadAvailableSlots(date); // Refresh slots
+                });
         }
-    });
-}
-
 
         function formatTime(time) {
             const [hours, minutes] = time.split(':');
@@ -225,7 +177,13 @@ function selectSlot(button, slot) {
             return `${displayHours}:${minutes} ${period}`;
         }
 
-
+        function selectSlot(button, slot) {
+            document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
+            button.classList.add('selected');
+            selectedTimeSlot = slot;
+            updateSummary();
+            checkFormValidity();
+        }
 
         function updateSummary() {
             const treatmentSelect = document.getElementById('treatmentSelect');

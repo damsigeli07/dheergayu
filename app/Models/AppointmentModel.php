@@ -263,108 +263,26 @@ class AppointmentModel {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-
-
-    // Lock a time slot temporarily (5 minutes)
-    public function lockSlot($date, $time, $user_id) {
-        // First, clean expired locks
-        $this->cleanExpiredLocks();
-        
-        // Check if slot is already locked or booked
-        if ($this->isSlotLocked($date, $time) || !$this->isSlotAvailable($date, $time)) {
-            return false;
-        }
-        
-        // Lock the slot
-        $stmt = $this->conn->prepare("
-            INSERT INTO slot_locks (slot_date, slot_time, locked_by) 
-            VALUES (?, ?, ?)
-        ");
-        $stmt->bind_param("ssi", $date, $time, $user_id);
-        $result = $stmt->execute();
-        $stmt->close();
-        return $result;
-    }
-    
-    // Release slot lock
-    public function releaseSlot($date, $time, $user_id) {
-        $stmt = $this->conn->prepare("
-            DELETE FROM slot_locks 
-            WHERE slot_date = ? AND slot_time = ? AND locked_by = ?
-        ");
-        $stmt->bind_param("ssi", $date, $time, $user_id);
-        $result = $stmt->execute();
-        $stmt->close();
-        return $result;
-    }
-    
-    // Check if slot is locked
-    public function isSlotLocked($date, $time) {
-        $this->cleanExpiredLocks();
-        
-        $stmt = $this->conn->prepare("
-            SELECT id FROM slot_locks 
-            WHERE slot_date = ? AND slot_time = ? AND expires_at > NOW()
-        ");
-        $stmt->bind_param("ss", $date, $time);
-        $stmt->execute();
-        $result = $stmt->get_result()->num_rows > 0;
-        $stmt->close();
-        return $result;
-    }
-    
-    // Check if slot is available (not booked in consultations or treatments)
-    public function isSlotAvailable($date, $time) {
-        $stmt = $this->conn->prepare("
-            SELECT 
-                (SELECT COUNT(*) FROM consultations 
-                 WHERE appointment_date = ? AND appointment_time = ? 
-                 AND status IN ('Pending', 'Confirmed')) +
-                (SELECT COUNT(*) FROM treatments 
-                 WHERE appointment_date = ? AND appointment_time = ? 
-                 AND status IN ('Pending', 'Confirmed')) as total
-        ");
-        $stmt->bind_param("ssss", $date, $time, $date, $time);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        
-        return $result['total'] == 0;
-    }
-    
-    // Clean expired locks (older than 5 minutes)
-    private function cleanExpiredLocks() {
-        $stmt = $this->conn->prepare("DELETE FROM slot_locks WHERE expires_at < NOW()");
-        $stmt->execute();
-        $stmt->close();
-    }
-    
-    // UPDATED: Get available time slots with lock status
+    // READ: Get available time slots
     public function getAvailableSlots($date) {
         $slots = ['08:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
-        $result = [];
         
-        $this->cleanExpiredLocks();
+        $stmt = $this->conn->prepare("
+            SELECT appointment_time FROM consultations 
+            WHERE appointment_date = ? AND status IN ('Pending', 'Confirmed')
+            UNION
+            SELECT appointment_time FROM treatments 
+            WHERE appointment_date = ? AND status IN ('Pending', 'Confirmed')
+        ");
+        $stmt->bind_param("ss", $date, $date);
+        $stmt->execute();
+        $booked = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
         
-        foreach ($slots as $slot) {
-            $status = 'available';
-            
-            // Check if booked
-            if (!$this->isSlotAvailable($date, $slot)) {
-                $status = 'booked';
-            } 
-            // Check if locked by someone else
-            else if ($this->isSlotLocked($date, $slot)) {
-                $status = 'locked';
-            }
-            
-            $result[] = [
-                'time' => $slot,
-                'status' => $status
-            ];
-        }
-        
-        return $result;
+        $booked_times = array_column($booked, 'appointment_time');
+        return array_filter($slots, function($slot) use ($booked_times) {
+            return !in_array($slot, $booked_times);
+        });
     }
 }
 ?>
