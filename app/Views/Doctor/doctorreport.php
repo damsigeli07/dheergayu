@@ -44,7 +44,7 @@
   <div class="card green">
     <h3>Appointments This Month</h3>
     <p>185</p>
-    <span>Up to August 10</span>
+    <span>Up to October 24</span>
   </div>
   <div class="card yellow">
     <h3>Total Patients</h3>
@@ -53,7 +53,7 @@
   </div>
   <div class="card purple">
     <h3>Today's Income</h3>
-    <p>Rs. 15,750</p>
+    <p>Rs. 9,050</p>
     <span>From completed appointments</span>
   </div>
 </section>
