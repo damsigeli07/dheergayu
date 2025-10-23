@@ -237,8 +237,8 @@
 
         .circle1 {
             border: #94754b 4px solid;
-            width: min(680px, 50vw);
-            height: min(680px, 50vw);
+            width: min(540px, 50vw);
+            height: min(540px, 50vw);
             top: -10%;
             left:2%;
             animation-delay: 0s;
@@ -246,10 +246,10 @@
 
         .circle2 {
             border: #94754b 4px solid;
-            width: min(600px, 40vw);
-            height: min(600px, 40vw);
-            bottom: 10%;
-            left: -1%;
+            width: min(470px, 40vw);
+            height: min(470px, 40vw);
+            bottom: 2%;
+            left: 5%;
             animation-delay: 2s;
         }
 
