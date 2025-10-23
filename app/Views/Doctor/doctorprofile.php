@@ -3,7 +3,7 @@
 $doctor = [
     'name' => 'G.B.D.Bandara',
     'age' => 35,
-    'email' => 'doctordheergayu@gmail.com',
+    'email' => 'doctor1@gmail.com',
     'contact' => '+94 74 166 4838',
     'address' => '26, Samagi Road, Mahara, Sri Lanka',
     'gender' => 'Male'
