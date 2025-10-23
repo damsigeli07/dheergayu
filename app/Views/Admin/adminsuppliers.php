@@ -1,3 +1,29 @@
+<?php
+// Include database connection and controller
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../Controllers/SupplierController.php';
+
+// Debug: Check if $conn is available
+if (!isset($conn)) {
+    die("Database connection not available. Please check config.php");
+}
+
+// Initialize controller
+$controller = new SupplierController($conn);
+
+// Handle different actions
+$action = $_GET['action'] ?? 'list';
+
+switch ($action) {
+    case 'delete':
+        $controller->deleteSupplier();
+        break;
+    default:
+        $suppliers = $controller->getModel()->getAllSuppliers();
+        break;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,6 +115,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             color: white;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-edit {
@@ -146,6 +174,33 @@
             <a href="addsupplier.php" class="btn-add-supplier">+ Add New Supplier</a>
         </div>
 
+        <!-- Success/Error Messages -->
+        <?php if (isset($_SESSION['success'])): ?>
+            <script>
+                console.log('Success message:', '<?php echo $_SESSION['success']; ?>');
+                alert('<?php echo addslashes($_SESSION['success']); ?>');
+            </script>
+            <div class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #c3e6cb;">
+                <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error'])): ?>
+            <script>
+                console.log('Error message:', '<?php echo $_SESSION['error']; ?>');
+                alert('<?php echo addslashes($_SESSION['error']); ?>');
+            </script>
+            <div class="alert alert-error" style="background-color: #f8d7da; color: #721c24; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #f5c6cb;">
+                <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Debug: Show all session data -->
+        <script>
+            console.log('All session data:', <?php echo json_encode($_SESSION); ?>);
+            alert('Page loaded - checking for session messages...');
+        </script>
+
         <!-- Supplier Table -->
         <div class="supplier-table-container">
             <table class="supplier-table">
@@ -159,36 +214,28 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Herbal Supplies Co.</td>
-                        <td>Mr. Sunil Perera</td>
-                        <td>071 123 4567</td>
-                        <td>sunil@herbalsupplies.lk</td>
-                        <td class="action-buttons">
-                            <button class="btn-edit">Edit</button>
-                            <button class="btn-delete">Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Ayurvedic Traders</td>
-                        <td>Mrs. Nadeesha Silva</td>
-                        <td>077 987 6543</td>
-                        <td>nadeesha@ayutraders.lk</td>
-                        <td class="action-buttons">
-                            <button class="btn-edit">Edit</button>
-                            <button class="btn-delete">Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Natural Extracts Ltd.</td>
-                        <td>Mr. Amal Fernando</td>
-                        <td>076 555 8899</td>
-                        <td>amal@naturalextracts.lk</td>
-                        <td class="action-buttons">
-                            <button class="btn-edit">Edit</button>
-                            <button class="btn-delete">Delete</button>
-                        </td>
-                    </tr>
+                    <?php if (!empty($suppliers)): ?>
+                        <?php foreach ($suppliers as $supplier): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
+                                <td><?php echo htmlspecialchars($supplier['contact_person']); ?></td>
+                                <td><?php echo htmlspecialchars($supplier['phone']); ?></td>
+                                <td><?php echo htmlspecialchars($supplier['email']); ?></td>
+                                <td class="action-buttons">
+                                    <a href="editsupplier.php?id=<?php echo $supplier['id']; ?>" class="btn-edit">Edit</a>
+                                    <a href="?action=delete&id=<?php echo $supplier['id']; ?>" 
+                                       class="btn-delete" 
+                                       onclick="return confirm('Are you sure you want to delete this supplier? This action cannot be undone.')">Delete</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem; color: #666;">
+                                No suppliers found. <a href="addsupplier.php">Add your first supplier</a>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

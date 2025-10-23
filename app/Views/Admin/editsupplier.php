@@ -13,11 +13,24 @@ $controller = new SupplierController($conn);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $controller->addSupplier();
+    $controller->updateSupplier();
     exit; // Controller will redirect, so we don't need to continue
 }
 
-// Show the form
+// Get supplier data for editing
+$id = $_GET['id'] ?? null;
+if (!$id || !is_numeric($id)) {
+    $_SESSION['error'] = 'Invalid supplier ID.';
+    header('Location: adminsuppliers.php');
+    exit;
+}
+
+$supplier = $controller->getModel()->getSupplierById($id);
+if (!$supplier) {
+    $_SESSION['error'] = 'Supplier not found.';
+    header('Location: adminsuppliers.php');
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -25,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Supplier - Admin Dashboard</title>
+    <title>Edit Supplier - Admin Dashboard</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <style>
@@ -49,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1rem;
         }
 
-        .add-supplier-form {
+        .edit-supplier-form {
             background: white;
             padding: 2rem;
             border-radius: 12px;
@@ -76,7 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .form-input,
-        select {
+        select,
+        textarea {
             width: 100%;
             padding: 0.8rem;
             border: 1px solid #ddd;
@@ -86,7 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .form-input:focus,
-        select:focus {
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: #7a9b57;
             box-shadow: 0 0 0 3px rgba(122, 155, 87, 0.1);
@@ -167,8 +182,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </header>
 
     <main class="main-content">
-        <div class="add-supplier-form">
-            <h2 class="form-title">Add New Supplier</h2>
+        <div class="edit-supplier-form">
+            <h2 class="form-title">Edit Supplier</h2>
 
             <!-- Success/Error Messages -->
             <?php if (isset($_SESSION['success'])): ?>
@@ -183,29 +198,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <form action="addsupplier.php" method="POST" id="addSupplierForm">
+            <form action="editsupplier.php" method="POST" id="editSupplierForm">
+                <input type="hidden" name="supplier_id" value="<?php echo $supplier['id']; ?>">
+                
                 <div class="form-group">
                     <label for="supplier-name" class="form-label">Supplier Name</label>
-                    <input type="text" id="supplier-name" name="supplier_name" class="form-input" required placeholder="Enter supplier name">
+                    <input type="text" id="supplier-name" name="supplier_name" class="form-input" required 
+                           value="<?php echo htmlspecialchars($supplier['supplier_name']); ?>" placeholder="Enter supplier name">
                 </div>
 
                 <div class="form-group">
                     <label for="contact-person" class="form-label">Contact Person</label>
-                    <input type="text" id="contact-person" name="contact_person" class="form-input" required placeholder="Enter contact person">
+                    <input type="text" id="contact-person" name="contact_person" class="form-input" required 
+                           value="<?php echo htmlspecialchars($supplier['contact_person']); ?>" placeholder="Enter contact person">
                 </div>
 
                 <div class="form-group">
                     <label for="phone" class="form-label">Phone</label>
-                    <input type="text" id="phone" name="phone" class="form-input" required placeholder="Enter 10-digit phone number" maxlength="10">
+                    <input type="text" id="phone" name="phone" class="form-input" required 
+                           value="<?php echo htmlspecialchars($supplier['phone']); ?>" placeholder="Enter 10-digit phone number" maxlength="10">
                 </div>
 
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" name="email" class="form-input" required placeholder="Enter email address">
+                    <input type="email" id="email" name="email" class="form-input" required 
+                           value="<?php echo htmlspecialchars($supplier['email']); ?>" placeholder="Enter email address">
                 </div>
 
+
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit">Add Supplier</button>
+                    <button type="submit" class="btn-submit">Update Supplier</button>
                     <a href="adminsuppliers.php" class="btn-cancel">Cancel</a>
                 </div>
             </form>
@@ -214,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
         // Phone validation: must be exactly 10 digits
-        document.getElementById('addSupplierForm').addEventListener('submit', function(e) {
+        document.getElementById('editSupplierForm').addEventListener('submit', function(e) {
             const phoneInput = document.getElementById('phone').value.trim();
             const phonePattern = /^\d{10}$/;
             if (!phonePattern.test(phoneInput)) {
