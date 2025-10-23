@@ -265,21 +265,24 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
         // Show table if first item
         cartTable.style.display = "table";
 
+        // Clean product name (remove availability text)
+        const cleanProductName = product.split(' (Av:')[0];
+        
         // Push into array and render row
-        var item = { product: product, qty: parseInt(qty, 10) };
+        var item = { product: cleanProductName, qty: parseInt(qty, 10) };
         selectedProducts.push(item);
         syncProductsField();
 
         let row = document.createElement("tr");
         row.innerHTML = `
-            <td>${product}</td>
+            <td>${cleanProductName}</td>
             <td>${qty}</td>
             <td><button type="button" class="remove-btn"> X </button></td>
         `;
 
         row.querySelector(".remove-btn").addEventListener("click", function() {
             // Remove from array
-            selectedProducts = selectedProducts.filter(function(p){ return !(p.product === product && p.qty === parseInt(qty,10)); });
+            selectedProducts = selectedProducts.filter(function(p){ return !(p.product === cleanProductName && p.qty === parseInt(qty,10)); });
             syncProductsField();
             // Remove row
             row.remove();
