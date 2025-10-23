@@ -33,7 +33,7 @@
             <div class="treatment-card">
                 <img src="/dheergayu/public/assets/images/Patient/asthma.png" alt="asthma" class="treatment-image">
                 <div class="treatment-content">
-                    <h3 class="treatment-name">Nasya Karma</h3>
+                    <h3 class="treatment-name">Nasya</h3>
                     <p class="treatment-description">Traditional full-body massage using warm herbal oils</p>
                     <div class="key-benefits">
                         <h4 class="benefits-title">Condition</h4>
@@ -46,6 +46,7 @@
                             <li>Reduces stress and anxiety</li>
                             <li>Improves blood circulation</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-30 min</h4>
                         <h4 class="price-title">Price - Rs. 2,500.00</h4>
                     </div>
                 </div>
@@ -67,6 +68,7 @@
                             <li>Deep detoxification</li>
                             <li>Restores body balance</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-90 min</h4>
                         <h4 class="price-title">Price - Rs. 9,000.00</h4>
                     </div>
                 </div>
@@ -87,6 +89,7 @@
                             <li>Clears nasal passages</li>
                             <li>Improves breathing</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-30 min</h4>
                         <h4 class="price-title">Price - Rs. 3,500.00</h4>
                     </div>
                 </div>
@@ -107,6 +110,7 @@
                             <li>Reduces back pain</li>
                             <li>Reduces stiffness</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-60 min</h4>
                         <h4 class="price-title">Price - Rs. 7,000.00</h4>
                     </div>
                 </div>
@@ -128,6 +132,7 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-45 min</h4>
                         <h4 class="price-title">Price - Rs. 5,000.00</h4>
                     </div>
                 </div>
@@ -148,13 +153,14 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-60 min</h4>
                         <h4 class="price-title">Price - Rs. 5,000.00</h4>
                     </div>
                 </div>
             </div>
 
             <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/Stress.png">
+                <img src="/dheergayu/public/assets/images/Patient/ENT_disorders.jpg" alt="bone disorders" class="treatment-image">
                 <div class="treatment-content">
                     <h3 class="treatment-name">Shirodhara</h3>
                     <p class="treatment-description">Energy point therapy</p>
@@ -168,14 +174,15 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-45 min</h4>
                         <h4 class="price-title">Price - Rs. 7,000.00</h4>
                     </div>
                 </div>
             </div>
             <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/cholesterol.png" alt="cholesterol" class="treatment-image">
+                <img src="/dheergayu/public/assets/images/Patient/health-treatments.jpg" alt="cholesterol" class="treatment-image">
                 <div class="treatment-content">
-                    <h3 class="treatment-name">Udwarthana</h3>
+                    <h3 class="treatment-name">Udvartana</h3>
                     <p class="treatment-description">Energy point therapy</p>
                     <div class="key-benefits">
                         <h4 class="benefits-title">Condition</h4>
@@ -187,6 +194,7 @@
                             <li>Relieves foot fatigue</li>
                             <li>Improves circulation</li>
                         </ul>
+                        <h4 class="benefits-title">Duration-45 min</h4>
                         <h4 class="price-title">Price - Rs. 3,500.00</h4>
                     </div>
                 </div>
