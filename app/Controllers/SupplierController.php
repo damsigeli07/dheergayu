@@ -165,36 +165,48 @@ class SupplierController {
         }
     }
 
-    // Delete supplier
     public function deleteSupplier() {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        $id = $_GET['id'] ?? null;
-        if (!$id || !is_numeric($id)) {
-            $_SESSION['error'] = 'Invalid supplier ID.';
-            header('Location: adminsuppliers.php');
-            exit;
-        }
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
 
-        // Check if supplier exists
-        if (!$this->model->supplierExists($id)) {
-            $_SESSION['error'] = 'Supplier not found.';
-            header('Location: adminsuppliers.php');
-            exit;
-        }
-
-        $result = $this->model->deleteSupplier($id);
-        
-        if ($result) {
-            $_SESSION['success'] = 'Supplier deleted successfully!';
-        } else {
-            $_SESSION['error'] = 'Failed to delete supplier. Please try again.';
-        }
-        
+    $id = $_GET['id'] ?? null;
+    if (!$id || !is_numeric($id)) {
+        $_SESSION['error'] = 'Invalid supplier ID.';
         header('Location: adminsuppliers.php');
         exit;
     }
+
+    // Check if supplier exists
+    $supplier = $this->model->getSupplierById($id);
+    if (!$supplier) {
+        $_SESSION['error'] = 'Supplier not found.';
+        header('Location: adminsuppliers.php');
+        exit;
+    }
+
+    // 1️⃣ Move supplier to delete_suppliers before deletion
+    $moved = $this->model->moveToDeletedSuppliers($supplier);
+
+    if (!$moved) {
+        $_SESSION['error'] = 'Failed to move supplier to deleted records.';
+        header('Location: adminsuppliers.php');
+        exit;
+    }
+
+    // 2️⃣ Delete from original suppliers table
+    $result = $this->model->deleteSupplier($id);
+
+    if ($result) {
+        $_SESSION['success'] = 'Supplier deleted and moved to deleted records successfully!';
+    } else {
+        $_SESSION['error'] = 'Failed to delete supplier from main table.';
+    }
+
+    header('Location: adminsuppliers.php');
+    exit;
+}
+
+
 }
 ?>
