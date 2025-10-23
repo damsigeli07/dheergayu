@@ -87,6 +87,25 @@ class SupplierModel {
         return $result;
     }
 
+    // Move deleted supplier to delete_suppliers table
+public function moveToDeletedSuppliers($supplier) {
+    $stmt = $this->conn->prepare("
+        INSERT INTO delete_suppliers (supplier_name, contact_person, phone, email)
+        VALUES (?, ?, ?, ?)
+    ");
+    $stmt->bind_param(
+        "ssss",
+        $supplier['supplier_name'],
+        $supplier['contact_person'],
+        $supplier['phone'],
+        $supplier['email']
+    );
+    $result = $stmt->execute();
+    $stmt->close();
+    return $result;
+}
+
+
     // Check if supplier exists
     public function supplierExists($id) {
         $stmt = $this->conn->prepare("SELECT id FROM suppliers WHERE id = ?");
