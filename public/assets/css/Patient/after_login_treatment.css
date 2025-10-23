@@ -278,6 +278,24 @@ textarea:focus {
     transform: translateY(-3px);
 }
 
+
+.slot-booked {
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.slot-locked {
+    background: linear-gradient(135deg, #ffc107, #ff9800) !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.slot-booked:hover, .slot-locked:hover {
+    transform: none !important;
+}
+
+
 .book-btn {
     background: linear-gradient(135deg, #5CB85C, #4CAF50);
     color: white;
