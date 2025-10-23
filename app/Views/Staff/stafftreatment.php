@@ -63,7 +63,6 @@ function getStatusClass($status) {
                 <a href="staffhome.php" class="nav-btn">Home</a>
                 <button class="nav-btn active">Treatment Schedule</button>
                 <a href="staffappointment.php" class="nav-btn">Appointment</a>
-                <a href="staffhomeTreatmentSuggestion.php" class="nav-btn">Treatment Suggestion</a>
                 <a href="staffhomeReports.php" class="nav-btn">Reports</a>
             </nav>
         </div>

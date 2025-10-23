@@ -49,7 +49,6 @@ $requiredProducts = [
                 <button class="nav-btn active">Home</button>
                 <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
                 <a href="staffappointment.php" class="nav-btn">Appointment</a>
-                <a href="staffhomeTreatmentSuggestion.php" class="nav-btn">Treatment Suggestion</a>
                 <a href="staffhomeReports.php" class="nav-btn">Reports</a>
             </nav>
         </div>
