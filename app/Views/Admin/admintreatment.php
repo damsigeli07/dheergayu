@@ -1,24 +1,96 @@
 <?php
-require_once __DIR__ . '/../../../core/bootloader.php';
-
-use App\Models\TreatmentModel;
-
-$model = new TreatmentModel();
-$treatments = $model->getAll();
+// Hardcoded treatments data from patient page
+$treatments = [
+    [
+        'id' => 1,
+        'name' => 'Nasya',
+        'description' => 'Traditional full-body massage using warm herbal oils',
+        'duration' => '30 min',
+        'price' => '2,500.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/asthma.png',
+        'conditions' => ['Asthma', 'ENT Disorders']
+    ],
+    [
+        'id' => 2,
+        'name' => 'Panchakarma Detox',
+        'description' => 'Complete detoxification and rejuvenation therapy',
+        'duration' => '90 min',
+        'price' => '9,000.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/skin_diseases.jpg',
+        'conditions' => ['Diabetes', 'Skin Diseases']
+    ],
+    [
+        'id' => 3,
+        'name' => 'Vashpa Sweda',
+        'description' => 'Nasal administration of herbal oils',
+        'duration' => '30 min',
+        'price' => '3,500.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/respiratory_disorders.jpg',
+        'conditions' => ['Respiratory Disorders']
+    ],
+    [
+        'id' => 4,
+        'name' => 'Elakizhi',
+        'description' => 'Specialized treatment for lower back pain',
+        'duration' => '60 min',
+        'price' => '7,000.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/arthritis.jpg',
+        'conditions' => ['Arthritis']
+    ],
+    [
+        'id' => 5,
+        'name' => 'Basti',
+        'description' => 'Traditional Ayurvedic foot massage',
+        'duration' => '45 min',
+        'price' => '5,000.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/paralysis.jpg',
+        'conditions' => ['Neurological Diseases and Paralysis', 'Osteoporosis']
+    ],
+    [
+        'id' => 6,
+        'name' => 'Abhyanga',
+        'description' => 'Energy point therapy',
+        'duration' => '60 min',
+        'price' => '5,000.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/bone_disorders.png',
+        'conditions' => ['Dislocation Features of Joints & Bones']
+    ],
+    [
+        'id' => 7,
+        'name' => 'Shirodhara',
+        'description' => 'Energy point therapy',
+        'duration' => '45 min',
+        'price' => '7,000.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/ENT_disorders.jpg',
+        'conditions' => ['Anxiety, Stress and Depression']
+    ],
+    [
+        'id' => 8,
+        'name' => 'Udvartana',
+        'description' => 'Energy point therapy',
+        'duration' => '45 min',
+        'price' => '3,500.00',
+        'status' => 'Active',
+        'image' => '/dheergayu/public/assets/images/Admin/health-treatments.jpg',
+        'conditions' => ['Cholesterol']
+    ]
+];
 
 // Calculate statistics
 $totalTreatments = count($treatments);
-$activeTreatments = 0;
+$activeTreatments = count($treatments); // All are active
 $inactiveTreatments = 0;
 $totalRevenue = 0.0;
 
 foreach ($treatments as $treatment) {
-    if (($treatment['status'] ?? '') === 'Active') {
-        $activeTreatments++;
-        $totalRevenue += (float)($treatment['price'] ?? 0);
-    } else {
-        $inactiveTreatments++;
-    }
+    $totalRevenue += (float)str_replace(',', '', $treatment['price']);
 }
 ?>
 
@@ -142,6 +214,7 @@ foreach ($treatments as $treatment) {
             <table class="treatments-table">
                 <thead>
                     <tr>
+                        <th>Image</th>
                         <th>Treatment Name</th>
                         <th>Description</th>
                         <th>Duration</th>
@@ -153,25 +226,31 @@ foreach ($treatments as $treatment) {
                 <tbody>
                     <?php foreach ($treatments as $treatment): ?>
                         <tr class="treatment-row <?= strtolower($treatment['status']) ?>">
+                            <td class="treatment-image">
+                                <img src="<?= htmlspecialchars($treatment['image']) ?>" 
+                                     alt="<?= htmlspecialchars($treatment['name']) ?>" 
+                                     class="treatment-thumbnail"
+                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                            </td>
                             <td class="treatment-name">
                                 <div class="treatment-info">
-                                    <h4><?= htmlspecialchars($treatment['treatment_name']) ?></h4>
-                                    <span class="treatment-id">ID: <?= $treatment['treatment_id'] ?></span>
+                                    <h4><?= htmlspecialchars($treatment['name']) ?></h4>
+                                    <span class="treatment-id">ID: <?= $treatment['id'] ?></span>
                                 </div>
                             </td>
                             <td class="treatment-description"><?= htmlspecialchars($treatment['description']) ?></td>
                             <td class="duration"><?= htmlspecialchars($treatment['duration']) ?></td>
-                            <td class="price">Rs. <?= htmlspecialchars(number_format((float)$treatment['price'], 2)) ?></td>
+                            <td class="price">Rs. <?= htmlspecialchars($treatment['price']) ?></td>
                             <td class="status">
                                 <span class="status-badge <?= strtolower($treatment['status']) ?>">
                                     <?= htmlspecialchars($treatment['status']) ?>
                                 </span>
                             </td>
                             <td class="actions">
-                                <button class="action-btn edit-btn" onclick="openEditTreatment(<?= (int)$treatment['treatment_id'] ?>, '<?= htmlspecialchars($treatment['treatment_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($treatment['description'], ENT_QUOTES) ?>', '<?= htmlspecialchars($treatment['duration'], ENT_QUOTES) ?>', <?= $treatment['price'] ?>, '<?= htmlspecialchars($treatment['status'], ENT_QUOTES) ?>')">
+                                <button class="action-btn edit-btn" onclick="editTreatment(<?= $treatment['id'] ?>)">
                                     ✏️ Edit
                                 </button>
-                                <button class="action-btn delete-btn" onclick="deleteTreatment(<?= (int)$treatment['treatment_id'] ?>)">
+                                <button class="action-btn delete-btn" onclick="deleteTreatment(<?= $treatment['id'] ?>)">
                                     🗑️ Delete
                                 </button>
                             </td>
@@ -181,12 +260,6 @@ foreach ($treatments as $treatment) {
             </table>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button class="btn btn-schedule" onclick="viewTreatmentSchedule()">📅 View Treatment Schedule</button>
-            <button class="btn btn-export" onclick="exportTreatments()">📊 Export Report</button>
-            <button class="btn btn-print" onclick="window.print()">🖨️ Print Report</button>
-        </div>
     </main>
 
     <script>
@@ -231,42 +304,15 @@ foreach ($treatments as $treatment) {
             });
         }
 
-        function openEditTreatment(id, name, description, duration, price, status) {
-            const params = new URLSearchParams({
-                treatment_id: id,
-                treatment_name: name,
-                description: description || '',
-                duration: duration,
-                price: price,
-                status: status
-            });
-            window.location.href = `addnewtreatment.php?${params.toString()}`;
+        function editTreatment(id) {
+            alert('Edit functionality for treatment ID: ' + id + '\nThis would open an edit form for the treatment.');
         }
 
-        async function deleteTreatment(id) {
+        function deleteTreatment(id) {
             if (!confirm('Are you sure you want to delete this treatment? This action cannot be undone.')) return;
-            const form = new FormData();
-            form.append('treatment_id', id);
-            form.append('action', 'delete');
-            const res = await fetch('/dheergayu/app/Controllers/TreatmentController.php', { method: 'POST', body: form });
-            const data = await res.json();
-            if (data.success) {
-                alert('✅ Treatment deleted');
-                location.reload();
-            } else {
-                alert('Delete failed: ' + (data.message || 'Unknown error'));
-            }
+            alert('Delete functionality for treatment ID: ' + id + '\nThis would delete the treatment from the system.');
         }
 
-        // View treatment schedule functionality
-        function viewTreatmentSchedule() {
-            alert('Treatment Schedule view functionality would be implemented here. This would show the daily/weekly schedule of treatments.');
-        }
-
-        // Export treatments functionality
-        function exportTreatments() {
-            alert('Export functionality would generate a detailed treatments report here.');
-        }
     </script>
 </body>
 </html>
