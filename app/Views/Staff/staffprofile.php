@@ -3,7 +3,7 @@
 $staff = [
     'name' => 'M.H.Gunarathne',
     'age' => 30,
-    'email' => 'staffdheergayu@gmail.com',
+    'email' => 'staff1@gmail.com',
     'contact' => '+94 76 566 9333',
     'address' => '44, Gonahena Road, Kadawatha, Sri Lanka',
     'gender' => 'Female'

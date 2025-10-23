@@ -72,7 +72,6 @@ if (!$appointments) {
                 <a href="staffhome.php" class="nav-btn">Home</a>
                 <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
                 <button class="nav-btn active">Appointment</button>
-                <a href="staffhomeTreatmentSuggestion.php" class="nav-btn">Treatment Suggestion</a>
                 <a href="staffhomeReports.php" class="nav-btn">Reports</a>
             </nav>
         </div>
@@ -141,13 +140,6 @@ if (!$appointments) {
                 </table>
             </div>
 
-            <div class="pagination">
-                <button class="page-btn">« Previous</button>
-                <button class="page-btn active">1</button>
-                <button class="page-btn">2</button>
-                <button class="page-btn">3</button>
-                <button class="page-btn">Next »</button>
-            </div>
         </div>
     </main>
 </body>
