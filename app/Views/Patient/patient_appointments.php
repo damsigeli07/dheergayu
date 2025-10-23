@@ -181,14 +181,67 @@ $appointments = $model->getAllAppointments($patient_id);
             event.target.classList.add('active');
         }
 
-        function editAppointment(id, type, date, time) {
-            document.getElementById('editId').value = id;
-            document.getElementById('editType').value = type;
-            document.getElementById('editDate').value = date;
-            document.getElementById('editTime').value = time;
-            document.getElementById('editDate').min = new Date().toISOString().split('T')[0];
-            document.getElementById('editModal').style.display = 'block';
-        }
+
+function editAppointment(id, type, date, time) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editType').value = type;
+    document.getElementById('editDate').value = date;
+    document.getElementById('editTime').value = time;
+    document.getElementById('editDate').min = new Date().toISOString().split('T')[0];
+    
+    // Load available slots for the current date
+    loadEditSlots(date);
+    
+    document.getElementById('editModal').style.display = 'block';
+}
+
+function loadEditSlots(date) {
+    if (!date) return;
+    
+    fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            const timeSelect = document.getElementById('editTime');
+            const currentTime = timeSelect.value; // Store current selection
+            
+            // Clear existing options except the first one
+            timeSelect.innerHTML = '<option value="">Select Time</option>';
+            
+            if (data.slots && data.slots.length > 0) {
+                data.slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.time;
+                    option.textContent = formatTime(slot.time);
+                    
+                    // Disable if booked or locked (but not if it's the current selection)
+                    if ((slot.status === 'booked' || slot.status === 'locked') && slot.time !== currentTime) {
+                        option.disabled = true;
+                        option.textContent += ' (Not Available)';
+                    }
+                    
+                    timeSelect.appendChild(option);
+                });
+                
+                // Re-select the current time if it exists
+                if (currentTime) {
+                    timeSelect.value = currentTime;
+                }
+            }
+        });
+}
+
+document.getElementById('editDate').addEventListener('change', function() {
+    loadEditSlots(this.value);
+});
+function formatTime(time) {
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayHours = h % 12 || 12;
+    return `${displayHours}:${minutes} ${period}`;
+}
+
+
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
