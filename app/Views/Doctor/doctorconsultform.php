@@ -118,6 +118,7 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                             <h3>Auto-filled data</h3>
                             
                             <div class="info-group">
+                                
                                 <strong>Patient No:</strong>
                                 <div class="info-value">
                                     <input type="text" name="patient_no" value="<?= isset($appointment['patient_no']) ? htmlspecialchars($appointment['patient_no']) : '' ?>" readonly>
