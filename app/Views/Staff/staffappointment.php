@@ -64,30 +64,30 @@ if (!$appointments) {
 
     </script>
 </head>
-<body>
+<body class="has-sidebar">
     <!-- Header with ribbon style -->
+    <!-- Sidebar -->
     <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <a href="staffhome.php" class="nav-btn">Home</a>
-                <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
-                <button class="nav-btn active">Appointment</button>
-                <a href="staffhomeReports.php" class="nav-btn">Reports</a>
-            </nav>
-        </div>
-        <div class="header-right">
+        <div class="header-top">
             <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
             <h1 class="header-title">Dheergayu</h1>
-            <div class="user-section">
-                <div class="user-icon" id="user-icon">👤</div>
-                <span class="user-role">Staff</span>
-                <!-- Dropdown -->
-        <div class="user-dropdown" id="user-dropdown">
-            <a href="staffprofile.php" class="profile-btn">Profile</a>
-            <a href="../patient/login.php" class="logout-btn">Logout</a>
         </div>
-            </div> 
-
+        
+        <nav class="navigation">
+            <a href="staffhome.php" class="nav-btn">Home</a>
+            <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
+            <button class="nav-btn active">Appointment</button>
+            <a href="staffhomeReports.php" class="nav-btn">Reports</a>
+        </nav>
+        
+        <div class="user-section">
+            <div class="user-icon" id="user-icon">👤</div>
+            <span class="user-role">Staff</span>
+            <!-- Dropdown -->
+            <div class="user-dropdown" id="user-dropdown">
+                <a href="staffprofile.php" class="profile-btn">Profile</a>
+                <a href="../patient/login.php" class="logout-btn">Logout</a>
+            </div>
         </div>
     </header>
 

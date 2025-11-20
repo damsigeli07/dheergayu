@@ -8,26 +8,28 @@
   <script src="/dheergayu/public/assets/js/header.js"></script>
   <link rel="stylesheet" href="/dheergayu/public/assets/css/Doctor/patienthistory.css" />
 </head>
-<body>
+<body class="has-sidebar">
+  <!-- Sidebar -->
   <header class="header">
-    <div class="header-left">
-      <nav class="navigation">
-        <a href="doctordashboard.php" class="nav-btn">Appointments</a>
-        <button class="nav-btn active">Patient History</button>
-        <a href="doctorreport.php" class="nav-btn">Reports</a>
-      </nav>
-    </div>
-    <div class="header-right">
+    <div class="header-top">
       <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
       <h1 class="header-title">Dheergayu</h1>
-      <div class="user-section">
-                <div class="user-icon" id="user-icon">👤</div>
-                <span class="user-role">Doctor</span>
-            <!-- Dropdown -->
-        <div class="user-dropdown" id="user-dropdown">
-            <a href="doctorprofile.php" class="profile-btn">Profile</a>
-            <a href="../patient/login.php" class="logout-btn">Logout</a>
-        </div>
+    </div>
+    
+    <nav class="navigation">
+      <a href="doctordashboard.php" class="nav-btn">Appointments</a>
+      <button class="nav-btn active">Patient History</button>
+      <a href="doctorreport.php" class="nav-btn">Reports</a>
+    </nav>
+    
+    <div class="user-section">
+      <div class="user-icon" id="user-icon">👤</div>
+      <span class="user-role">Doctor</span>
+      <!-- Dropdown -->
+      <div class="user-dropdown" id="user-dropdown">
+        <a href="doctorprofile.php" class="profile-btn">Profile</a>
+        <a href="../patient/login.php" class="logout-btn">Logout</a>
+      </div>
     </div>
   </header>
 

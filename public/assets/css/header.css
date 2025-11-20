@@ -1,18 +1,41 @@
 /* ===========================
-   HEADER STYLES
+   SIDEBAR STYLES (VERTICAL)
    =========================== */
 
-/* Header container */
+/* Sidebar container */
 .header {
-  background: #5d9b57;  /* Changed from gradient to single color */
+  background: linear-gradient(180deg, #5d9b57 0%, #4a7c45 100%);
   color: white;
-  padding: 0.3rem 1rem;
+  width: 180px;
+  min-height: 100vh;
+  max-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15),
-              0 2px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for sidebar */
+.header::-webkit-scrollbar {
+  width: 6px;
+}
+
+.header::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.header::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.header::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /* Subtle animated background overlay */
@@ -20,12 +43,22 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
   pointer-events: none;
 }
 
-/* Left & Right sides */
+/* Logo and Title Section */
+.header-top {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
 .header-left,
 .header-right {
   display: flex;
@@ -33,14 +66,15 @@
   position: relative;
   z-index: 1;
 }
+
 .header-right {
   gap: 0.5rem;
 }
 
 /* Logo */
 .logo {
-  width: 45px;
-  height: 45px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   transition: transform 0.3s ease;
@@ -52,43 +86,68 @@
 /* Title */
 .header-title {
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.5px;
   margin: 0;
-  margin-right: 2.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(45deg, #ffffff, #f0f8f4);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: white;
+  text-align: center;
   position: relative;
 }
 
 /* Navigation links */
 .navigation {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  padding: 0.75rem 0;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 1;
+  flex: 1;
 }
+
 .nav-btn {
   background: none;
   border: none;
-  padding: 0.6rem 1.5rem;
+  padding: 0.85rem 1rem;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   transition: all 0.3s ease;
   font-weight: 500;
   text-decoration: none;
+  text-align: left;
+  border-radius: 6px;
+  margin: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  position: relative;
 }
+
 .nav-btn.active {
   background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+.nav-btn.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background: white;
+  border-radius: 0 4px 4px 0;
+}
+
 .nav-btn:not(.active):hover {
   background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
+  color: white;
 }
 
 /* ===========================
@@ -99,11 +158,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  transition: transform 0.3s ease;
-}
-.user-section:hover {
-  transform: translateY(-2px);
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1;
 }
 
 /* Icon (avatar) */
@@ -146,16 +205,16 @@
 /* Dropdown menu */
 .user-dropdown {
   position: absolute;
-  top: 100%;   /* right below the section */
-  right: 0;
-  margin-top: 0.4rem;
+  bottom: 100%;   /* above the section */
+  left: 0;
+  margin-bottom: 0.5rem;
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   padding: 0.4rem 0;
-  min-width: 140px;
+  min-width: 200px;
   display: none; /* hidden by default */
-  z-index: 1000;
+  z-index: 1001;
 }
 
 /* Dropdown links */
@@ -196,47 +255,52 @@
   border-radius: 6px;
 }
 
+/* Main content wrapper - add margin for sidebar */
+body.has-sidebar {
+  margin-left: 180px;
+}
+
 /* ===========================
    RESPONSIVE
    =========================== */
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 0.6rem;
+    width: 70px;
+    min-width: 70px;
   }
-  .header-left,
-  .header-right {
-    width: 100%;
-    justify-content: center;
+  
+  .header-title,
+  .user-role,
+  .nav-btn span {
+    display: none;
   }
-  .header-title {
-    font-size: 1.4rem;
-    margin-right: 2rem;
-  }
-  .user-role {
-    font-size: 0.8rem;
-  }
+  
   .nav-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    justify-content: center;
+    padding: 0.85rem;
+    margin: 0.25rem;
+  }
+  
+  body.has-sidebar {
+    margin-left: 70px;
+  }
+  
+  .header-top {
+    padding: 1rem 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .header {
-    padding: 0.4rem 0.8rem;
-    gap: 0.5rem;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
   }
-  .header-title {
-    font-size: 1.2rem;
-    margin-right: 1.5rem;
+  
+  .header.mobile-open {
+    transform: translateX(0);
   }
-  .user-role {
-    font-size: 0.7rem;
-  }
-  .nav-btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
+  
+  body {
+    margin-left: 0;
   }
 }

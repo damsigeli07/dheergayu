@@ -10,32 +10,32 @@
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" type="text/css" href="/dheergayu/public/assets/css/Admin/adminusers.css?v=1.2">
 </head>
-<body>
+<body class="has-sidebar">
 
-<!-- Header -->
+<!-- Sidebar -->
 <header class="header">
-    <div class="header-left">
-        <nav class="navigation">
-            <a href="admindashboard.php" class="nav-btn">Home</a>
-            <a href="admininventory.php" class="nav-btn">Products</a>
-            <a href="admininventoryview.php" class="nav-btn">Inventory</a>
-            <a href="adminappointment.php" class="nav-btn">Appointments</a>
-            <a href="adminusers.php" class="nav-btn active">Users</a>
-            <a href="admintreatment.php" class="nav-btn">Treatments</a>
-            <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
-        </nav>
-    </div>
-    <div class="header-right">
+    <div class="header-top">
         <img src="/dheergayu/public/assets/images/dheergayu.png" class="logo" alt="Logo">
         <h1 class="header-title">Dheergayu</h1>
-        <div class="user-section">
-            <div class="user-icon" id="user-icon">👤</div>
-            <span class="user-role">Admin</span>
-            <div class="user-dropdown" id="user-dropdown">
-                <a href="adminprofile.php" class="profile-btn">Profile</a>
-                <a href="../patient/login.php" class="logout-btn">Logout</a>
-            </div>
-        </div> 
+    </div>
+    
+    <nav class="navigation">
+        <a href="admindashboard.php" class="nav-btn">Home</a>
+        <a href="admininventory.php" class="nav-btn">Products</a>
+        <a href="admininventoryview.php" class="nav-btn">Inventory</a>
+        <a href="adminappointment.php" class="nav-btn">Appointments</a>
+        <a href="adminusers.php" class="nav-btn active">Users</a>
+        <a href="admintreatment.php" class="nav-btn">Treatments</a>
+        <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
+    </nav>
+    
+    <div class="user-section">
+        <div class="user-icon" id="user-icon">👤</div>
+        <span class="user-role">Admin</span>
+        <div class="user-dropdown" id="user-dropdown">
+            <a href="adminprofile.php" class="profile-btn">Profile</a>
+            <a href="../patient/login.php" class="logout-btn">Logout</a>
+        </div>
     </div>
 </header>
 
