@@ -57,7 +57,7 @@ $status = $_GET['status'] ?? '';
         const form = e.target;
         const data = new FormData(form);
         const isEdit = data.get('treatment_id');
-        const url = isEdit ? '/dheergayu/public/api/treatments/update' : '/dheergayu/public/api/treatments/create';
+        const url = '/dheergayu/app/Controllers/TreatmentController.php';
         try {
             const res = await fetch(url, { method: 'POST', body: data });
             let ok = false;

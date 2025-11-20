@@ -7,8 +7,11 @@ session_start();
 header('Content-Type: application/json');
 
 try {
+    // Debug session data
+    error_log('Update Profile API - Session data: ' . json_encode($_SESSION));
+    
     if (!isset($_SESSION['user_id'])) {
-        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        echo json_encode(['success' => false, 'error' => 'Not logged in']);
         exit;
     }
 
@@ -19,6 +22,10 @@ try {
     $user_id = $_SESSION['user_id'];
 
     $action = $_POST['action'] ?? '';
+    
+    // Debug received data
+    error_log('Update Profile API - Action: ' . $action);
+    error_log('Update Profile API - POST data: ' . json_encode($_POST));
 
     switch ($action) {
         case 'personal':
@@ -39,14 +46,60 @@ try {
                 exit;
             }
 
+            // Debug the data being sent
+            error_log('Update Profile - User ID: ' . $user_id);
+            error_log('Update Profile - Data: ' . json_encode($data));
+            
+            // Check if patient_info table exists first
+            $table_check = $conn->query("SHOW TABLES LIKE 'patient_info'");
+            error_log('Update Profile - Table exists: ' . ($table_check && $table_check->num_rows > 0 ? 'yes' : 'no'));
+            
+            // Check if profile exists
+            $profile_exists = $model->profileExists($user_id);
+            error_log('Update Profile - Profile exists: ' . ($profile_exists ? 'yes' : 'no'));
+            
             $result = $model->updatePersonalInfo($user_id, $data);
+            
+            error_log('Update Profile - Result: ' . ($result ? 'true' : 'false'));
+            
+            // If update failed, check the last database error
+            if (!$result) {
+                error_log('Update Profile - Database error: ' . $conn->error);
+            }
             
             if ($result) {
                 $_SESSION['user_name'] = $data['first_name'] . ' ' . $data['last_name'];
                 $_SESSION['user_email'] = $data['email'];
                 echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);
             } else {
-                echo json_encode(['success' => false, 'error' => 'Failed to update profile']);
+                // Check if it's a NIC conflict by testing the NIC
+                if (!empty($data['nic'])) {
+                    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM patients WHERE nic = ? AND id != ?");
+                    $stmt->bind_param("si", $data['nic'], $user_id);
+                    $stmt->execute();
+                    $check_result = $stmt->get_result()->fetch_assoc();
+                    $stmt->close();
+                    
+                    if ($check_result['count'] > 0) {
+                        echo json_encode(['success' => false, 'error' => 'NIC number already exists for another user. Please use a different NIC.']);
+                    } else {
+                        // Check if patient_info table exists
+                        $table_check = $conn->query("SHOW TABLES LIKE 'patient_info'");
+                        if (!$table_check || $table_check->num_rows == 0) {
+                            echo json_encode(['success' => false, 'error' => 'Database table not found. Please contact support.']);
+                        } else {
+                            echo json_encode(['success' => false, 'error' => 'Failed to update profile. Please check your data and try again.']);
+                        }
+                    }
+                } else {
+                    // Check if patient_info table exists
+                    $table_check = $conn->query("SHOW TABLES LIKE 'patient_info'");
+                    if (!$table_check || $table_check->num_rows == 0) {
+                        echo json_encode(['success' => false, 'error' => 'Database table not found. Please contact support.']);
+                    } else {
+                        echo json_encode(['success' => false, 'error' => 'Failed to update profile. Please check your data and try again.']);
+                    }
+                }
             }
             break;
 
