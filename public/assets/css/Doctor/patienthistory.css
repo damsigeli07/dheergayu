@@ -15,12 +15,12 @@ body {
 .main-content {
   max-width: 900px;
   margin: 30px auto;
-  margin-left: calc(180px + 30px);
+  margin-left: calc(200px + 30px);
   background: white;
   padding: 20px 30px 40px 30px;
   border-radius: 10px;
   box-shadow: 0 0 15px rgb(0 0 0 / 0.1);
-  width: calc(100vw - 180px - 60px);
+  width: calc(100vw - 200px - 60px);
   box-sizing: border-box;
 }
 

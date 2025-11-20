@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 /* Common Reset */
 * {
     margin: 0;
@@ -7,15 +9,15 @@
 
 /* Body */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #f0f2f5;
-    color: #333;
+    color: #2d2d2d;
 }
 
 /* Main Content */
 .main-content {
     padding: 30px;
-    width: calc(100vw - 180px);
+    width: calc(100vw - 200px);
     margin: 0;
     box-sizing: border-box;
     overflow-x: hidden;
@@ -39,12 +41,12 @@ body {
 
 .search-input:focus {
     outline: none;
-    border-color: #8B7355;
+    border-color: #E6A85A;
 }
 
 .search-btn {
-    background-color: #7a9b57;
-    color: white;
+    background-color: #E6A85A;
+    color: #2d2d2d;
     border: none;
     padding: 8px 12px;
     border-radius: 4px;
@@ -53,7 +55,7 @@ body {
 }
 
 .search-btn:hover {
-    background-color: #5a7a37;
+    background-color: #D4A574;
 }
 
 /* Table Styles */
@@ -70,8 +72,8 @@ body {
 }
 
 .treatment-table th {
-    background-color: #fefefe;
-    color: #8B7355;
+    background-color: #E6A85A;
+    color: #2d2d2d;
     padding: 1rem;
     text-align: left;
     font-weight: bold;
@@ -83,7 +85,7 @@ body {
     padding: 1rem;
     border-bottom: 1px solid #e9ecef;
     font-size: 14px;
-    color: #666;
+    color: #2d2d2d;
 }
 
 /* Status Badge */

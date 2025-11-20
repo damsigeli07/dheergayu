@@ -1,104 +1,156 @@
-/* ========== GLOBAL STYLES ========== */
-body {
+/* Reset and base styles */
+* {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #f4f8f4;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* ========== HEADER NAVIGATION ========== */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 40px;
-    background: #5c9d5c;
-    color: #fff;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f7f6;
+    color: #2d2d2d;
 }
 
-.logo {
-    font-size: 28px;
-    font-weight: bold;
+/* Main content */
+.main-content {
+    padding: 30px;
+    width: calc(100vw - 200px);
+    margin: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    max-width: 1400px;
 }
 
-.nav-menu a {
-    color: #fff;
-    margin: 0 15px;
-    text-decoration: none;
-    font-size: 17px;
-    padding: 8px 14px;
+/* Page Header */
+.page-header {
+    margin-bottom: 30px;
 }
 
-.nav-menu a.active,
-.nav-menu a:hover {
-    background: #4b874b;
-    border-radius: 6px;
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin-bottom: 8px;
 }
 
-.user-role {
-    font-weight: 600;
+.page-subtitle {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 400;
 }
 
-/* ========== MAIN CONTENT ========== */
-.container {
-    padding: 30px 50px;
-}
-
-.section-title {
-    font-size: 24px;
-    color: #2d4d2d;
-    margin-bottom: 20px;
-}
-
-/* ========== TABLE STYLING ========== */
+/* Table Card */
 .table-card {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+/* Table Styling */
 .styled-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 16px;
+    font-size: 0.95rem;
 }
 
-.styled-table thead tr {
-    background: #d7ecd7;
-    color: #2d4d2d;
+.styled-table thead {
+    background: #E6A85A;
+    color: #2d2d2d;
+}
+
+.styled-table th {
+    padding: 16px;
     text-align: left;
+    font-weight: 600;
+    color: #2d2d2d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.styled-table th,
 .styled-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #e6e6e6;
+    padding: 16px;
+    border-bottom: 1px solid #e9ecef;
+    color: #2d2d2d;
 }
 
 .styled-table tbody tr:hover {
-    background: #f3faf3;
+    background: #FFF4E6;
 }
 
-/* ========== STATUS BADGES ========== */
+.styled-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
 .status {
     padding: 6px 12px;
     border-radius: 20px;
-    font-size: 14px;
-    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status.delivered {
-    background-color: #4caf50;
+    background-color: #FFF4E6;
+    color: #D4A574;
 }
 
 .status.pending {
-    background-color: #f0ad4e;
+    background-color: #FFEED6;
+    color: #E6A85A;
 }
 
 .status.processing {
-    background-color: #5bc0de;
+    background-color: #FFF8E6;
+    color: #FFB84D;
 }
 
 .status.cancelled {
-    background-color: #d9534f;
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .main-content {
+        padding: 20px;
+    }
+
+    .table-card {
+        padding: 16px;
+        overflow-x: auto;
+    }
+
+    .styled-table {
+        font-size: 0.85rem;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        padding: 12px 8px;
+    }
+}
+
+@media (max-width: 600px) {
+    .main-content {
+        padding: 15px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .styled-table {
+        font-size: 0.8rem;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        padding: 10px 6px;
+    }
 }

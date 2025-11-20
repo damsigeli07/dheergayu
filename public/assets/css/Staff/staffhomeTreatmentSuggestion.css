@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 /* ================== Global Styles ================== */
 * {
     margin: 0;
@@ -6,9 +8,9 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #f0f2f5;
-    color: #333;
+    color: #2d2d2d;
     line-height: 1.5;
 }
 
@@ -36,7 +38,7 @@ body {
 }
 
 .info-section h3 {
-    color: #8B7355;
+    color: #E6A85A;
     font-size: 16px;
     margin-bottom: 10px;
     font-weight: bold;
@@ -50,7 +52,7 @@ body {
 .treatment-list li:before,
 .product-list li:before {
     content: "•";
-    color: #8B7355;
+    color: #E6A85A;
     position: absolute;
     left: -15px;
 }
@@ -58,7 +60,7 @@ body {
 .treatment-list li, .product-list li {
     margin-bottom: 5px;
     font-size: 14px;
-    color: #666;
+    color: #2d2d2d;
     position: relative;
 }
 
@@ -81,16 +83,16 @@ body {
 .schedule-item {
     margin-bottom: 8px;
     font-size: 13px;
-    color: #555;
+    color: #2d2d2d;
 }
 
 .schedule-item .time {
     font-weight: bold;
-    color: #333;
+    color: #2d2d2d;
 }
 
 .schedule-item .description {
-    color: #666;
+    color: #2d2d2d;
     margin-top: 2px;
 }
 
@@ -119,12 +121,12 @@ body {
 }
 
 .action-btn.primary {
-    background-color: #7a9b57;
-    color: white;
+    background-color: #E6A85A;
+    color: #2d2d2d;
 }
 
 .action-btn.primary:hover {
-    background-color: #5a7a37;
+    background-color: #D4A574;
 }
 
 /* ================== Treatment Suggestion Table ================== */
@@ -145,12 +147,12 @@ body {
 
 .search-input:focus {
     outline: none;
-    border-color: #8B7355;
+    border-color: #E6A85A;
 }
 
 .search-btn {
-    background-color: #7a9b57;
-    color: white;
+    background-color: #E6A85A;
+    color: #2d2d2d;
     border: none;
     padding: 8px 12px;
     border-radius: 4px;
@@ -159,7 +161,7 @@ body {
 }
 
 .search-btn:hover {
-    background-color: #5a7a37;
+    background-color: #D4A574;
 }
 
 .suggestion-table {
@@ -170,8 +172,8 @@ body {
 }
 
 .suggestion-table thead th {
-    background-color: #fefefe;
-    color: #8B7355;
+    background-color: #E6A85A;
+    color: #2d2d2d;
     padding: 12px 8px;
     text-align: left;
     font-weight: bold;
@@ -192,30 +194,30 @@ body {
     vertical-align: top;
     border-bottom: 1px solid #e9ecef;
     font-size: 14px;
-    color: #666;
+    color: #2d2d2d;
     background-color: #fefefe;
     word-break: break-word;
 }
 
 .suggestion-table td:first-child {
     font-weight: bold;
-    color: #8B7355;
+    color: #E6A85A;
 }
 
 .suggestion-table td:nth-child(2) {
-    color: #7a9b57;
+    color: #D4A574;
     font-weight: 500;
 }
 
 .suggestion-table td:nth-child(4) {
-    color: #333;
+    color: #2d2d2d;
     line-height: 1.4;
     white-space: normal;
 }
 
 .no-results {
     text-align: center;
-    color: #666;
+    color: #2d2d2d;
     font-style: italic;
     padding: 1.25rem !important;
 }
@@ -234,24 +236,24 @@ body {
 }
 
 .summary-section p {
-    color: #8B7355;
+    color: #E6A85A;
     font-weight: bold;
     margin: 0;
 }
 
 .clear-search {
-    color: #7a9b57;
+    color: #E6A85A;
     text-decoration: none;
     font-size: 14px;
     padding: 5px 10px;
-    border: 1px solid #7a9b57;
+    border: 1px solid #E6A85A;
     border-radius: 4px;
     transition: all 0.3s;
 }
 
 .clear-search:hover {
-    background-color: #7a9b57;
-    color: white;
+    background-color: #E6A85A;
+    color: #2d2d2d;
 }
 
 /* ================== Responsive ================== */

@@ -11,14 +11,14 @@ $reports = [
 
 // Treatment data for chart - In real application, this would come from database
 $treatmentData = [
-    ['treatment' => 'Udwarthana', 'patients' => 45, 'color' => '#8BC34A'],
-    ['treatment' => 'Nasya Karma', 'patients' => 38, 'color' => '#7CB342'],
-    ['treatment' => 'Shirodhara Therapy', 'patients' => 32, 'color' => '#689F38'],
-    ['treatment' => 'Basti', 'patients' => 28, 'color' => '#558B2F'],
-    ['treatment' => 'Panchakarma Detox', 'patients' => 76, 'color' => '#33691E'],
-    ['treatment' => 'Vashpa Sweda', 'patients' => 24, 'color' => '#8BC34A'],
-    ['treatment' => 'Abhyanga Massage', 'patients' => 19, 'color' => '#7CB342'],
-    ['treatment' => 'Elakizhi', 'patients' => 15, 'color' => '#689F38']
+    ['treatment' => 'Udwarthana', 'patients' => 45, 'color' => '#FFB84D'],
+    ['treatment' => 'Nasya Karma', 'patients' => 38, 'color' => '#FF8C42'],
+    ['treatment' => 'Shirodhara Therapy', 'patients' => 32, 'color' => '#E6A85A'],
+    ['treatment' => 'Basti', 'patients' => 28, 'color' => '#D4A574'],
+    ['treatment' => 'Panchakarma Detox', 'patients' => 76, 'color' => '#FFB84D'],
+    ['treatment' => 'Vashpa Sweda', 'patients' => 24, 'color' => '#FF8C42'],
+    ['treatment' => 'Abhyanga Massage', 'patients' => 19, 'color' => '#E6A85A'],
+    ['treatment' => 'Elakizhi', 'patients' => 15, 'color' => '#D4A574']
 ];
 
 // Search functionality
@@ -231,7 +231,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                             size: 16,
                             weight: 'bold'
                         },
-                        color: '#8B7355'
+                        color: '#2d2d2d'
                     }
                 },
                 scales: {
@@ -242,7 +242,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                             drawBorder: false
                         },
                         ticks: {
-                            color: '#666',
+                            color: '#2d2d2d',
                             font: {
                                 size: 12
                             }
@@ -250,7 +250,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                         title: {
                             display: true,
                             text: 'Number of Patients',
-                            color: '#8B7355',
+                            color: '#2d2d2d',
                             font: {
                                 size: 14,
                                 weight: 'bold'
@@ -262,7 +262,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                             display: false
                         },
                         ticks: {
-                            color: '#666',
+                            color: '#2d2d2d',
                             font: {
                                 size: 11
                             },
@@ -272,7 +272,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                         title: {
                             display: true,
                             text: 'Treatment Types',
-                            color: '#8B7355',
+                            color: '#2d2d2d',
                             font: {
                                 size: 14,
                                 weight: 'bold'
@@ -297,7 +297,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
             backgroundColor: 'rgba(0,0,0,0.8)',
             titleColor: '#fff',
             bodyColor: '#fff',
-            borderColor: '#8BC34A',
+            borderColor: '#E6A85A',
             borderWidth: 2,
             cornerRadius: 8,
             displayColors: false,

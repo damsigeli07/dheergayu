@@ -28,119 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Add Supplier - Admin Dashboard</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
-    <style>
-        /* Reset & Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .main-content {
-            max-width: 700px;
-            margin: 2rem auto;
-            margin-left: calc(180px + 2rem);
-            padding: 1rem;
-            width: calc(100vw - 180px - 4rem);
-            box-sizing: border-box;
-        }
-
-        .add-supplier-form {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-title {
-            text-align: center;
-            color: #8B7355;
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-input,
-        select {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .form-input:focus,
-        select:focus {
-            outline: none;
-            border-color: #7a9b57;
-            box-shadow: 0 0 0 3px rgba(122, 155, 87, 0.1);
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-        }
-
-        .btn-submit,
-        .btn-cancel {
-            padding: 0.8rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            text-align: center;
-            display: inline-block;
-        }
-
-        .btn-submit {
-            background-color: #7a9b57;
-            color: white;
-        }
-
-        .btn-submit:hover {
-            background-color: #6B8E23;
-        }
-
-        .btn-cancel {
-            background-color: #DC143C;
-            color: white;
-        }
-
-        .btn-cancel:hover {
-            background-color: #B91C3C;
-        }
-
-        @media (max-width: 480px) {
-            .btn-submit,
-            .btn-cancel {
-                width: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/addsupplier.css">
 </head>
 <body class="has-sidebar">
     <!-- Sidebar -->
@@ -176,36 +64,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Success/Error Messages -->
             <?php if (isset($_SESSION['success'])): ?>
-                <div class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #c3e6cb;">
+                <div class="alert alert-success">
                     <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
                 </div>
             <?php endif; ?>
 
             <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-error" style="background-color: #f8d7da; color: #721c24; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #f5c6cb;">
+                <div class="alert alert-error">
                     <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
                 </div>
             <?php endif; ?>
 
-            <form action="addsupplier.php" method="POST" id="addSupplierForm">
+            <form action="addsupplier.php" method="POST" id="addSupplierForm" autocomplete="off">
                 <div class="form-group">
                     <label for="supplier-name" class="form-label">Supplier Name</label>
-                    <input type="text" id="supplier-name" name="supplier_name" class="form-input" required placeholder="Enter supplier name">
+                    <input type="text" id="supplier-name" name="supplier_name" class="form-input" required placeholder="Enter supplier name" autocomplete="off" value="">
                 </div>
 
                 <div class="form-group">
                     <label for="contact-person" class="form-label">Contact Person</label>
-                    <input type="text" id="contact-person" name="contact_person" class="form-input" required placeholder="Enter contact person">
+                    <input type="text" id="contact-person" name="contact_person" class="form-input" required placeholder="Enter contact person" autocomplete="off" value="">
                 </div>
 
                 <div class="form-group">
                     <label for="phone" class="form-label">Phone</label>
-                    <input type="text" id="phone" name="phone" class="form-input" required placeholder="Enter 10-digit phone number" maxlength="10">
+                    <input type="text" id="phone" name="phone" class="form-input" required placeholder="Enter 10-digit phone number" maxlength="10" autocomplete="off" value="">
                 </div>
 
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" name="email" class="form-input" required placeholder="Enter email address">
+                    <input type="email" id="email" name="email" class="form-input" required placeholder="Enter email address" autocomplete="off" value="">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-input" required placeholder="Enter password for supplier login" autocomplete="new-password" value="">
                 </div>
 
                 <div class="form-actions">

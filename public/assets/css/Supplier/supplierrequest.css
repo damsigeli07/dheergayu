@@ -1,79 +1,167 @@
-/* Main Layout */
-body {
+/* Reset and base styles */
+* {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
-    background: #f5f8f4;
+    box-sizing: border-box;
 }
 
-.container {
-    width: 85%;
-    margin: 30px auto;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f5f7f6;
+    color: #2d2d2d;
 }
 
-h2 {
-    font-size: 26px;
-    font-weight: bold;
-    color: #2e4c28;
-    margin-bottom: 20px;
+/* Main content */
+.main-content {
+    padding: 30px;
+    width: calc(100vw - 200px);
+    margin: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    max-width: 1400px;
 }
 
-/* Table Box Styling */
+/* Page Header */
+.page-header {
+    margin-bottom: 30px;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin-bottom: 8px;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 400;
+}
+
+/* Table Box */
 .table-box {
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 /* Table Styling */
 .styled-table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 0.95rem;
 }
 
 .styled-table thead {
-    background: #d3e8c8;
+    background: #E6A85A;
+    color: #2d2d2d;
 }
 
 .styled-table th {
-    padding: 12px;
+    padding: 16px;
     text-align: left;
-    font-weight: bold;
-    color: #2d4b25;
+    font-weight: 600;
+    color: #2d2d2d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .styled-table td {
-    padding: 12px;
-    border-bottom: 1px solid #e8e8e8;
-    color: #333;
-    font-size: 15px;
+    padding: 16px;
+    border-bottom: 1px solid #e9ecef;
+    color: #2d2d2d;
 }
 
-.styled-table tr:last-child td {
+.styled-table tbody tr:hover {
+    background: #FFF4E6;
+}
+
+.styled-table tbody tr:last-child td {
     border-bottom: none;
 }
 
 /* Buttons */
 .btn {
-    padding: 6px 12px;
-    border-radius: 20px;
+    padding: 8px 16px;
+    border-radius: 6px;
     border: none;
     cursor: pointer;
-    font-size: 14px;
-    transition: 0.2s;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-right: 8px;
+    font-family: 'Roboto', sans-serif;
 }
 
-.accept {
-    background-color: #4CAF50;
-    color: white;
+.btn.accept {
+    background-color: #E6A85A;
+    color: #2d2d2d;
 }
 
-.reject {
-    background-color: #e57373;
-    color: white;
+.btn.accept:hover {
+    background-color: #D4A574;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(230, 168, 90, 0.3);
 }
 
-.btn:hover {
-    opacity: 0.8;
+.btn.reject {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.btn.reject:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .main-content {
+        padding: 20px;
+    }
+
+    .table-box {
+        padding: 16px;
+        overflow-x: auto;
+    }
+
+    .styled-table {
+        font-size: 0.85rem;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        padding: 12px 8px;
+    }
+}
+
+@media (max-width: 600px) {
+    .main-content {
+        padding: 15px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .styled-table {
+        font-size: 0.8rem;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        padding: 10px 6px;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin-right: 4px;
+    }
 }

@@ -38,6 +38,7 @@ body {
     text-decoration: none;
     transition: color 0.2s ease;
 }
+
 .btn-back:hover {
     color: #E6A85A;
 }
@@ -65,6 +66,8 @@ body {
     border: 3px solid #E6A85A;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
+    margin: 0 auto;
+    display: block;
 }
 
 .profile-icon:hover {
@@ -120,3 +123,32 @@ body {
     background-color: #D4A574;
     transform: translateY(-2px);
 }
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .profile-container {
+        margin-left: calc(200px + 1rem);
+        width: calc(100vw - 200px - 2rem);
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .profile-container {
+        margin: 2rem auto;
+        margin-left: 1rem;
+        width: calc(100vw - 2rem);
+        padding: 1rem;
+    }
+
+    .profile-title {
+        font-size: 1.5rem;
+    }
+
+    .profile-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+}
+

@@ -34,16 +34,17 @@ class SupplierModel {
     public function createSupplier($data) {
         $stmt = $this->conn->prepare("
             INSERT INTO suppliers (
-                supplier_name, contact_person, phone, email
-            ) VALUES (?, ?, ?, ?)
+                supplier_name, contact_person, phone, email, password
+            ) VALUES (?, ?, ?, ?, ?)
         ");
         
         $stmt->bind_param(
-            "ssss",
+            "sssss",
             $data['supplier_name'],
             $data['contact_person'],
             $data['phone'],
-            $data['email']
+            $data['email'],
+            $data['password']
         );
         
         $result = $stmt->execute();
@@ -105,6 +106,24 @@ public function moveToDeletedSuppliers($supplier) {
     return $result;
 }
 
+
+    // Deactivate supplier (set status to inactive)
+    public function deactivateSupplier($id) {
+        $stmt = $this->conn->prepare("UPDATE suppliers SET status = 'inactive' WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    // Activate supplier (set status to active)
+    public function activateSupplier($id) {
+        $stmt = $this->conn->prepare("UPDATE suppliers SET status = 'active' WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
 
     // Check if supplier exists
     public function supplierExists($id) {

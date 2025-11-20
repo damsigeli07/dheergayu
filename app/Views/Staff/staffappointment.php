@@ -30,12 +30,12 @@ if (!$appointments) {
             text-transform: uppercase;
         }
         .status-badge.pending {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color: #FFF4E6;
+            color: #E6A85A;
         }
         .status-badge.completed {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #FFF4E6;
+            color: #D4A574;
         }
         .status-badge.cancelled {
             background-color: #f8d7da;

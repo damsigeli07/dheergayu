@@ -19,7 +19,7 @@ body {
 }
 
 .main-content {
-    width: calc(100vw - 180px);
+    width: calc(100vw - 200px);
     max-width: 1200px;
     margin: 0 auto;
     padding: 1.5rem 2rem;
