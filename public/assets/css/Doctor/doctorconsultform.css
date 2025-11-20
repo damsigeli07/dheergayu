@@ -18,16 +18,26 @@ body {
 }
 
 .header {
-    background-color: #8B7355;
-    color: white;
+    background-color: #ffffff; /* keep header white */
+    color: #000;
     padding: 20px;
     text-align: center;
 }
 
 .header h1 {
     font-size: 24px;
-    font-weight: normal;
-    letter-spacing: 2px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #000; /* Title in black */
+}
+
+/* Thin orange divider used under major section titles */
+.title-divider {
+    height: 4px;
+    background: #FFB84D;
+    border: none;
+    border-radius: 3px;
+    margin: 10px 0 18px 0;
 }
 
 .form-container {
@@ -49,10 +59,10 @@ body {
 }
 
 .left-section h2 {
-    color: #a67c52;
+    color: #000;
     font-size: 20px;
     margin-bottom: 25px;
-    font-weight: normal;
+    font-weight: 600;
 }
 
 .form-group {
@@ -127,20 +137,20 @@ body {
 }
 
 .product-selector button {
-  background-color: #856e52;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 10px;
-  font-family: Arial, sans-serif;
-  white-space: nowrap;
-  min-width: 60px;
+    background: linear-gradient(135deg,#d17f1b,#e88f39);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    white-space: nowrap;
+    min-width: 80px;
 }
 
 .product-selector button:hover {
-  background-color: #6F5B42;
+    filter: brightness(0.95);
 }
 
 .product-table {
@@ -161,11 +171,11 @@ body {
 }
 
 .product-table th {
-  background-color: #f0f0f0;
-  color: #666;
-  font-size: 14px;
-  letter-spacing: 0.25px;
-  font-weight: 600;
+    background-color: #ffd9b3; /* light orange header */
+    color: #000;
+    font-size: 14px;
+    letter-spacing: 0.25px;
+    font-weight: 700;
 }
 
 .product-table th:nth-child(1),
@@ -203,15 +213,15 @@ body {
 
 /* --- Right Side --- */
 .auto-filled-section {
-    background-color: #e8f5e8;
+    background-color: #fff7ef; /* light orange tint */
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
-    border: 1px solid #d4edda;
+    border: 1px solid rgba(209,127,27,0.12);
 }
 
 .auto-filled-section h3 {
-    color: #666;
+    color: #d17f1b; /* theme color for auto-filled title */
     font-size: 14px;
     margin-bottom: 15px;
     text-align: center;
@@ -222,16 +232,20 @@ body {
 }
 
 .info-group strong {
-    color: #5a8a5a;
+    color: #d17f1b;
     font-size: 14px;
     display: block;
     margin-bottom: 5px;
 }
 
 .info-value {
-    color: #666;
+    color: #333;
     font-size: 13px;
     margin-bottom: 3px;
+}
+
+.auto-filled-section .info-value input {
+    background-color: #fffaf0; /* subtle theme tint for inputs */
 }
 
 .checklist-section {
@@ -273,31 +287,17 @@ body {
     color: white !important;
 }
 
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268;
-}
-
-.btn-primary {
-    background-color: #7a9b57;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #4a7a4a;
-}
-
+.btn-secondary,
+.btn-primary,
 .btn-tertiary {
-    background-color: #8b6914;
+    background: linear-gradient(135deg,#d17f1b,#e88f39);
     color: white;
 }
 
+.btn-secondary:hover,
+.btn-primary:hover,
 .btn-tertiary:hover {
-    background-color: #7a5a12;
+    filter: brightness(0.95);
 }
 
 .btn-back {

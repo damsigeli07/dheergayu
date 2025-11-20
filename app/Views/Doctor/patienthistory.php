@@ -36,6 +36,7 @@
   <main class="main-content">
     <div class="search-section">
       <h2>Search Patient History</h2>
+      <hr class="title-divider" />
       <p class="search-description">
         Search for a patient using their patient number, name, or birthday
       </p>

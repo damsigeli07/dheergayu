@@ -15,6 +15,8 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
             <h1>DOCTOR'S CONSULTATION FORM</h1>
         </header>
 
+        <hr class="title-divider" />
+
         <div class="form-container">
             <form method="POST" action="/dheergayu/app/Controllers/ConsultationFormController.php">
                 <div class="main-content">
@@ -88,13 +90,13 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                             <div style="display:flex;gap:12px;align-items:center;">
                                 <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="recommended_treatment_choice" value="no_need" checked> No need</label>
                                 <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="recommended_treatment_choice" value="choose"> Select treatment details</label>
-                                <button type="button" id="open_treatment_selector" disabled style="background:#7a5a12;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Add</button>
+                                <button type="button" id="open_treatment_selector" disabled style="background:linear-gradient(135deg,#d17f1b,#e88f39);color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Add</button>
                             </div>
 
-                            <div id="treatment_summary" style="margin-top:8px;display:none;border:1px solid #ddd;padding:8px;border-radius:6px;">
+                            <div id="treatment_summary" style="margin-top:8px;display:none;border:1px solid rgba(209,127,27,0.12);padding:8px;border-radius:6px;">
                                 <strong>Selected:</strong>
                                 <div id="treatment_summary_text"></div>
-                                <div style="margin-top:6px;"><button type="button" id="edit_treatment_selection" style="background:#7a5a12;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Edit</button></div>
+                                <div style="margin-top:6px;"><button type="button" id="edit_treatment_selection" style="background:linear-gradient(135deg,#d17f1b,#e88f39);color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Edit</button></div>
                             </div>
 
                             <!-- Hidden fields to include selection when submitting -->

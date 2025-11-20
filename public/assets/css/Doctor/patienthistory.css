@@ -27,7 +27,16 @@ body {
 /* Search Section */
 .search-section h2 {
   margin-top: 0;
-  color: #8B7355;
+  color: #000; /* Search Patient History title should be black */
+}
+
+/* Thin orange divider used under major section titles */
+.title-divider {
+  height: 4px;
+  background: #FFB84D;
+  border: none;
+  border-radius: 3px;
+  margin: 10px 0 18px 0;
 }
 
 .search-description {
@@ -114,12 +123,12 @@ body {
 }
 
 .btn-search {
-  background-color: #8B7355;
+  background-color: #E6A85A;
   color: white;
 }
 
 .btn-search:hover {
-  background-color: #6F5B42;
+  background-color: #d99a49; /* slightly darker hover */
 }
 
 .btn-clear {
@@ -133,7 +142,7 @@ body {
 
 /* Patient Info Section */
 .patient-info-section {
-  border-top: 2px solid #8B7355;
+  border-top: 2px solid #E6A85A;
   padding-top: 20px;
   margin-top: 30px;
 }
@@ -146,12 +155,12 @@ body {
 }
 
 .patient-header h3 {
-  color: #8B7355;
+  color: #E6A85A;
   margin: 0;
 }
 
 .patient-id {
-  background-color: #8B7355;
+  background-color: #E6A85A;
   color: white;
   padding: 4px 10px;
   font-size: 14px;
@@ -192,13 +201,13 @@ body {
 }
 
 .history-section h3 {
-  color: #8B7355;
+  color: #E6A85A;
   margin-bottom: 20px;
 }
 
 /* Timeline */
 .history-timeline {
-  border-left: 3px solid #8B7355;
+  border-left: 3px solid #E6A85A;
   padding-left: 20px;
   position: relative;
 }
@@ -210,7 +219,7 @@ body {
 
 .record-date {
   font-size: 14px;
-  color: #8B7355;
+  color: #E6A85A;
   font-weight: 600;
   margin-bottom: 6px;
   display: flex;
@@ -221,10 +230,10 @@ body {
 .timeline-dot {
   width: 14px;
   height: 14px;
-  background: #8B7355;
+  background: #E6A85A;
   border-radius: 50%;
   border: 3px solid white;
-  box-shadow: 0 0 5px #8B7355aa;
+  box-shadow: 0 0 5px #E6A85Aaa;
 }
 
 .record-content {

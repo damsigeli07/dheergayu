@@ -24,7 +24,7 @@ body {
 
 /* Report Header */
 .report-container header h1 {
-  color: #8B7355;
+  color: #000; /* Changed to black per request */
   font-size: 32px;
   margin-bottom: 5px;
 }
@@ -66,22 +66,12 @@ body {
   opacity: 0.8;
 }
 
-.green {
-  background-color: #f8f9fa;
-  color: #495057;
-  border: 1px solid #e9ecef;
-}
-
-.yellow {
-  background-color: #f8f9fa;
-  color: #495057;
-  border: 1px solid #e9ecef;
-}
-
+.green,
+.yellow,
 .purple {
-  background-color: #f8f9fa;
-  color: #495057;
-  border: 1px solid #e9ecef;
+  background-color: #fffaf2; /* soft warm tint */
+  color: #333;
+  border: 1px solid rgba(230,168,90,0.18);
 }
 
 /* Button Container */
@@ -92,7 +82,7 @@ body {
 
 /* Generate Report Button */
 .generate-btn {
-  background-color: #7a9b57;
+  background-color: #E6A85A;
   color: white;
   font-size: 14px;
   font-family: 'Arial', sans-serif;
@@ -100,12 +90,12 @@ body {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 14px rgba(230,168,90,0.15);
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .generate-btn:hover {
-  background-color: #6b8a4a;
+  background-color: #d99a49; /* slightly darker hover */
   transform: translateY(-2px);
 }
 
@@ -123,7 +113,7 @@ body {
 }
 
 .section-header h2 {
-  color: #8B7355;
+  color: #000; /* section headers in black */
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-size: 2rem;
   font-weight: 600;
@@ -159,7 +149,7 @@ body {
 }
 
 .report-card h3 {
-  color: #8B7355;
+  color: #000; /* small card titles in black */
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-size: 1.4rem;
   font-weight: 600;
@@ -174,7 +164,7 @@ body {
 }
 
 .btn-generate {
-  background: linear-gradient(135deg, #7a9b57, #6B8E23);
+  background: linear-gradient(135deg, #E6A85A, #d99a49);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -183,14 +173,14 @@ body {
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(122, 155, 87, 0.3);
+  box-shadow: 0 6px 18px rgba(230,168,90,0.22);
   
 }
 
 .btn-generate:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(122, 155, 87, 0.4);
-  background: linear-gradient(135deg, #6B8E23, #556B2F);
+  box-shadow: 0 8px 24px rgba(230,168,90,0.28);
+  background: linear-gradient(135deg, #d99a49, #c58136);
 }
 
 /* Responsive Design */

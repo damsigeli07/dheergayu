@@ -59,11 +59,11 @@
 </section>
 
       <section class="graph-section" style="margin-top: 40px;">
-  <h2 style="text-align:center; color:#8B7355;">Monthly Appointments</h2>
+  <h2 style="text-align:center; color:#000;">Monthly Appointments</h2>
   <canvas id="appointmentsChart" style="max-width:100%; height:250px;"></canvas>
 </section>
       <section class="graph-section" style="margin-top: 40px;">
-  <h2 style="text-align:center; color:#8B7355;">Monthly Income</h2>
+  <h2 style="text-align:center; color:#000;">Monthly Income</h2>
   <canvas id="incomeChart" style="max-width:100%; height:250px;"></canvas>
 </section>
 
@@ -85,10 +85,15 @@
     data: {
       labels: ['Oct 15', 'Oct 16', 'Oct 17', 'Oct 18', 'Oct 19', 'Oct 20', 'Oct 21', 'Oct 22', 'Oct 23', 'Oct 24'],
       datasets: [{
-        label: 'Appointments',
-        data: [18, 22, 15, 20, 19, 25, 21, 23, 17, 9],
-        backgroundColor: '#84a939ff',
-        barPercentage: 0.6
+      label: 'Appointments',
+      data: [18, 22, 15, 20, 19, 25, 21, 23, 17, 9],
+      backgroundColor: '#d17f1b',
+      borderColor: '#b86115',
+      borderWidth: 1,
+      hoverBackgroundColor: '#d17f1b',
+      hoverBorderColor: '#9f5a12',
+      hoverBorderWidth: 2,
+      barPercentage: 0.6
     }]
     },
     options: {
@@ -121,7 +126,12 @@ const incomeChart = new Chart(incomeCtx, {
     datasets: [{
       label: 'Income (Rs.)',
       data: [67500, 83000, 50500, 72750, 70800, 110200, 72900, 83500, 61900, 9050],
-      backgroundColor: '#84a939ff',
+      backgroundColor: '#d17f1b',
+      borderColor: '#b86115',
+      borderWidth: 1,
+      hoverBackgroundColor: '#d17f1b',
+      hoverBorderColor: '#9f5a12',
+      hoverBorderWidth: 2,
       barPercentage: 0.6
     }]
   },

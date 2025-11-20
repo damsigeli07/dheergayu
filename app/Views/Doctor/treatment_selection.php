@@ -13,15 +13,15 @@ $appointment_id = $_GET['appointment_id'] ?? '';
     <meta charset="utf-8">
     <title>Book Ayurvedic Treatment</title>
     <style>
-    :root{--accent:#8b5e3c;--card:#ffffff;--muted:#9aa3a9}
+    :root{--accent:#FFB84D;--card:#ffffff;--muted:#9aa3a9}
     body{font-family:Arial,Helvetica,sans-serif;background:#f2f6f8;padding:30px;color:#333}
-    .page-title{font-size:36px;color:var(--accent);text-align:center;margin-bottom:22px;font-weight:700}
+    .page-title{font-size:36px;color:#000;text-align:center;margin-bottom:22px;font-weight:700}
     .card{max-width:920px;margin:0 auto;background:var(--card);border-radius:12px;padding:26px 30px;box-shadow:0 8px 28px rgba(28,44,56,0.06)}
-    .section-title{color:var(--accent);font-weight:600;margin-bottom:12px;border-bottom:1px solid #eee;padding-bottom:10px}
+    .section-title{color:#000;font-weight:600;margin-bottom:12px;border-bottom:1px solid #eee;padding-bottom:10px}
     select,input[type=date]{width:100%;padding:14px;border-radius:10px;border:1px solid #e6e6e6;background:#fff;font-size:15px}
     .field{margin-top:14px}
     .slots{margin-top:18px;min-height:60px}
-    .slot-btn{display:inline-block;margin:8px 8px 0 0;padding:10px 14px;border-radius:10px;border:1px solid #e1e1e1;background:#fff;cursor:pointer;color:#444}
+    .slot-btn{display:inline-block;margin:8px 8px 0 0;padding:10px 14px;border-radius:10px;border:1px solid #e1e1e1;background:#fff;cursor:pointer;color:#000}
     .slot-btn.selected{background:var(--accent);color:#fff;border-color:rgba(0,0,0,0.08)}
     .actions{margin-top:18px;text-align:right}
     .btn-save{background:var(--accent);color:#fff;padding:10px 16px;border:none;border-radius:8px;font-size:15px}
@@ -43,12 +43,12 @@ $appointment_id = $_GET['appointment_id'] ?? '';
       </div>
 
       <div class="field">
-        <label style="display:block;margin-bottom:6px;color:#666">Treatment Date</label>
+        <label style="display:block;margin-bottom:6px;color:#000;font-weight:600">Treatment Date</label>
         <input type="date" id="treatment_date" name="treatment_date" />
       </div>
 
       <div class="field">
-        <label style="display:block;margin-bottom:6px;color:#666">Description (optional)</label>
+        <label style="display:block;margin-bottom:6px;color:#000; font-weight:600">Description (optional)</label>
         <textarea id="treatment_description" name="treatment_description" rows="3" style="width:100%;padding:12px;border-radius:8px;border:1px solid #e6e6e6;resize:vertical" placeholder="Add optional notes for this booking (e.g. patient notes, requirements)"></textarea>
       </div>
     </div>
