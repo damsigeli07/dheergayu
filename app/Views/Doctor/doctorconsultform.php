@@ -84,20 +84,26 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                         </div>
 
                         <div class="form-group">
-                            <label for="recommended_treatment">Recommended Treatment</label>
-                            <select id="recommended_treatment" name="recommended_treatment">
-                                    <option value="">-- Select treatment --</option>
-                                    <option value="No need">No need</option>
-                                    <option value="Abhyanga">Abhyanga</option>
-                                    <option value="Shirodhara">Shirodhara</option>
-                                    <option value="Panchakarma">Panchakarma</option>
-                                    <option value="Udvartana">Udvartana</option>
-                                    <option value="Nasya">Nasya</option>
-                                    <option value="Vashpa Sweda">Vashpa Sweda</option>
-                                    <option value="Elakizhi">Elakizhi</option>
-                                    <option value="Basti">Basti</option>
-                                    
-                            </select>
+                            <label>Recommended Treatment</label>
+                            <div style="display:flex;gap:12px;align-items:center;">
+                                <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="recommended_treatment_choice" value="no_need" checked> No need</label>
+                                <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="recommended_treatment_choice" value="choose"> Select treatment details</label>
+                                <button type="button" id="open_treatment_selector" disabled style="background:#7a5a12;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Add</button>
+                            </div>
+
+                            <div id="treatment_summary" style="margin-top:8px;display:none;border:1px solid #ddd;padding:8px;border-radius:6px;">
+                                <strong>Selected:</strong>
+                                <div id="treatment_summary_text"></div>
+                                <div style="margin-top:6px;"><button type="button" id="edit_treatment_selection">Edit</button></div>
+                            </div>
+
+                            <!-- Hidden fields to include selection when submitting -->
+                            <input type="hidden" id="treatment_id" name="treatment_id" value="">
+                            <input type="hidden" id="treatment_name" name="treatment_name" value="">
+                            <input type="hidden" id="treatment_description" name="treatment_description" value="">
+                            <input type="hidden" id="treatment_date" name="treatment_date" value="">
+                            <input type="hidden" id="treatment_time" name="treatment_time" value="">
+                            <input type="hidden" id="treatment_payment" name="treatment_payment" value="">
                         </div>
 
 
@@ -307,7 +313,8 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
         const age = document.getElementById('age').value.trim();
         const gender = document.getElementById('gender').value;
         const diagnosis = document.getElementById('diagnosis').value.trim();
-        const treatment = document.getElementById('recommended_treatment').value.trim();
+        const treatmentChoice = document.querySelector('input[name="recommended_treatment_choice"]:checked')?.value || '';
+        const treatment = treatmentChoice === 'no_need' ? 'No need' : (document.getElementById('treatment_name').value || '');
         // ensure latest sync
         syncProductsField();
         const products = selectedProducts;
@@ -318,7 +325,8 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
         if (gender === "") errors.push("Please select gender.");
         if (diagnosis === "") errors.push("Diagnosis is required.");
         if (!products || products.length < 1) errors.push("Add at least one prescribed product.");
-        if (treatment === "") errors.push("Recommended treatment is required.");
+        if (treatmentChoice === '') errors.push("Recommended treatment is required.");
+        if (treatmentChoice === 'choose' && !document.getElementById('treatment_id').value) errors.push("You selected treatment details; please choose a treatment, date and time.");
 
         if (errors.length > 0) {
             alert(errors.join("\n"));
@@ -342,6 +350,83 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
             alert('Network error while saving consultation form.');
         });
     });
+
+    // Treatment selection popup handlers
+    const treatmentRadios = document.querySelectorAll('input[name="recommended_treatment_choice"]');
+    const openTreatmentBtn = document.getElementById('open_treatment_selector');
+    const editTreatmentBtn = document.getElementById('edit_treatment_selection');
+    const treatmentSummary = document.getElementById('treatment_summary');
+    const treatmentSummaryText = document.getElementById('treatment_summary_text');
+
+    function updateTreatmentButtonState() {
+        const choice = document.querySelector('input[name="recommended_treatment_choice"]:checked')?.value || '';
+        if (choice === 'choose') {
+            openTreatmentBtn.disabled = false;
+        } else {
+            openTreatmentBtn.disabled = true;
+            clearTreatmentSelection();
+        }
+    }
+
+    treatmentRadios.forEach(r => r.addEventListener('change', function() {
+        updateTreatmentButtonState();
+    }));
+
+    // initial state
+    updateTreatmentButtonState();
+
+    openTreatmentBtn.addEventListener('click', function() {
+        const appointmentId = document.querySelector('input[name="appointment_id"]').value || '';
+        window.open('/dheergayu/app/Views/Doctor/treatment_selection.php?appointment_id=' + encodeURIComponent(appointmentId), 'treatment_select', 'width=720,height=620,menubar=no,toolbar=no');
+    });
+
+    if (editTreatmentBtn) {
+        editTreatmentBtn.addEventListener('click', function() {
+            const appointmentId = document.querySelector('input[name="appointment_id"]').value || '';
+            window.open('/dheergayu/app/Views/Doctor/treatment_selection.php?appointment_id=' + encodeURIComponent(appointmentId), 'treatment_select', 'width=720,height=620,menubar=no,toolbar=no');
+        });
+    }
+
+    // Listen for popup message
+    window.addEventListener('message', function(event) {
+        try {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (data && data.type === 'treatment_selected') {
+                setTreatmentSelection(data.payload);
+                // automatically set radio to 'choose' when selection arrives
+                const chooseRadio = document.querySelector('input[name="recommended_treatment_choice"][value="choose"]');
+                if (chooseRadio) chooseRadio.checked = true;
+                updateTreatmentButtonState();
+            }
+        } catch (e) {
+            console.error('Invalid postMessage data', e);
+        }
+    });
+
+    function setTreatmentSelection(payload) {
+        document.getElementById('treatment_id').value = payload.id || '';
+        document.getElementById('treatment_name').value = payload.name || '';
+        document.getElementById('treatment_description').value = payload.description || '';
+        document.getElementById('treatment_date').value = payload.date || '';
+        document.getElementById('treatment_time').value = payload.time || '';
+        document.getElementById('treatment_payment').value = payload.payment || '';
+
+        var summaryHtml = `Treatment: ${payload.name || '-'}<br>Date: ${payload.date || '-'}<br>Time: ${payload.time || '-'}`;
+        if (payload.description) summaryHtml += `<br>Description: ${payload.description}`;
+        if (payload.payment) summaryHtml += `<br>Payment: ${payload.payment}`;
+        treatmentSummaryText.innerHTML = summaryHtml;
+        treatmentSummary.style.display = 'block';
+    }
+
+    function clearTreatmentSelection() {
+        document.getElementById('treatment_id').value = '';
+        document.getElementById('treatment_name').value = '';
+        document.getElementById('treatment_date').value = '';
+        document.getElementById('treatment_time').value = '';
+        document.getElementById('treatment_payment').value = '';
+        treatmentSummary.style.display = 'none';
+        treatmentSummaryText.innerHTML = '';
+    }
 
     function showSuccessDialog(message) {
         const overlay = document.createElement('div');
