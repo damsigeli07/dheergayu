@@ -94,7 +94,7 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                             <div id="treatment_summary" style="margin-top:8px;display:none;border:1px solid #ddd;padding:8px;border-radius:6px;">
                                 <strong>Selected:</strong>
                                 <div id="treatment_summary_text"></div>
-                                <div style="margin-top:6px;"><button type="button" id="edit_treatment_selection">Edit</button></div>
+                                <div style="margin-top:6px;"><button type="button" id="edit_treatment_selection" style="background:#7a5a12;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Edit</button></div>
                             </div>
 
                             <!-- Hidden fields to include selection when submitting -->
@@ -247,16 +247,18 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
     // Add products to cart table
     document.getElementById("add_product").addEventListener("click", function() {
         let product = document.getElementById("product_search").value.trim();
-        let qty = parseInt(document.getElementById("product_qty").value.trim());
+        let qtyRaw = document.getElementById("product_qty").value.trim();
+        let qty = parseInt(qtyRaw);
 
-        if (product === "" || qty === "" || qty <= 0) {
+        if (product === "" || qtyRaw === "" || isNaN(qty) || qty <= 0) {
             alert("Please enter product and valid quantity.");
             return;
         }
 
         // Check if quantity is available in database
+        let selectedOption = null;
         if (availableProducts.length > 0) {
-            const selectedOption = document.querySelector(`#product_list option[value="${product}"]`);
+            selectedOption = document.querySelector(`#product_list option[value="${product}"]`);
             if (selectedOption) {
                 const availableQty = parseInt(selectedOption.getAttribute('data-available-qty'));
                 if (qty > availableQty) {
@@ -281,8 +283,51 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
         syncProductsField();
 
         let row = document.createElement("tr");
+
+        // Prepare expiry placeholder; we'll try to load batch expiry dates if we have a product id
+        let expiryHtml = '<div class="expiry-info" style="font-size:12px;color:#666;margin-top:6px;">Loading expiry...</div>';
+
+        // If we have product id metadata, fetch batches to show expiry dates
+        const productId = selectedOption ? selectedOption.getAttribute('data-product-id') : null;
+        if (productId) {
+            fetch(`/dheergayu/public/api/batches/by-product?product_id=${encodeURIComponent(productId)}`)
+                .then(r => r.json())
+                .then(data => {
+                    let list = '';
+                    if (data && data.data && data.data.length > 0) {
+                        // sort by earliest expiry
+                        const batches = data.data.slice().sort((a,b) => {
+                            const da = a.exp ? new Date(a.exp) : new Date(8640000000000000);
+                            const db = b.exp ? new Date(b.exp) : new Date(8640000000000000);
+                            return da - db;
+                        });
+                        list = '<div class="expiry-info" style="font-size:12px;color:#666;margin-top:6px;">';
+                        batches.forEach((b,i) => {
+                            const exp = b.exp ? (new Date(b.exp)).toISOString().split('T')[0] : 'N/A';
+                            // Do not show batch number in consultation form; show expiry and available qty only
+                            list += `<div>Exp: ${exp} • Qty: ${b.quantity}</div>`;
+                        });
+                        list += '</div>';
+                    } else {
+                        list = '<div class="expiry-info" style="font-size:12px;color:#666;margin-top:6px;">No batch info</div>';
+                    }
+                    // find the expiry cell inside the row if it was appended already
+                    const expiryCell = row.querySelector('.expiry-cell');
+                    if (expiryCell) expiryCell.innerHTML = list;
+                })
+                .catch(err => {
+                    const expiryCell = row.querySelector('.expiry-cell');
+                    if (expiryCell) expiryCell.innerHTML = '<div class="expiry-info" style="font-size:12px;color:#666;margin-top:6px;">Batch data unavailable</div>';
+                });
+        } else {
+            expiryHtml = '<div class="expiry-info" style="font-size:12px;color:#666;margin-top:6px;">Batch info not available</div>';
+        }
+
         row.innerHTML = `
-            <td>${cleanProductName}</td>
+            <td>
+                ${cleanProductName}
+                <div class="expiry-cell">${expiryHtml}</div>
+            </td>
             <td>${qty}</td>
             <td><button type="button" class="remove-btn"> X </button></td>
         `;
