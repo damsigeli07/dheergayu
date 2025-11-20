@@ -49,8 +49,8 @@ body {
 }
 
 .search-input:focus {
-    border-color: #7a9b57;
-    box-shadow: 0 0 0 3px rgba(122, 155, 87, 0.1);
+    border-color: #E6A85A;
+    box-shadow: 0 0 0 3px rgba(230, 168, 90, 0.12);
 }
 
 /* Statistics Boxes */
@@ -68,13 +68,13 @@ body {
     border-radius: 8px;
     text-align: center;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #7a9b57;
+    border-left: 4px solid #E6A85A;
 }
 
 .stat-number {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #7a9b57;
+    color: #E6A85A;
     margin-bottom: 8px;
 }
 
@@ -109,13 +109,13 @@ body {
 
 .tab-btn.active {
     background: white;
-    color: #7a9b57;
-    border-bottom: 3px solid #7a9b57;
+    color: #E6A85A;
+    border-bottom: 3px solid #E6A85A;
 }
 
 .tab-btn:hover:not(.active) {
     background: #e9ecef;
-    color: #7a9b57;
+    color: #E6A85A;
 }
 
 /* Table Styles */
@@ -166,8 +166,8 @@ body {
 
 .status-badge.upcoming {
     background: #e8f5e9; /* pastel green */
-    color: #2e7d32;
-    border-color: #c8e6c9;
+    color: #7a5a2b;
+    border-color: #f3e6d5;
 }
 
 .status-badge.completed {
@@ -206,7 +206,7 @@ body {
     background-color: #ffb3b3;
  }
 .btn-start {
-    background-color: #5d9b57;
+    background-color: #E6A85A;
     color: #333;
     border: none;
     padding: 10px 18px;
@@ -218,11 +218,11 @@ body {
 }
 
 .btn-start:hover {
-    background-color: #4a7c47;
+    background-color: #C58F3F;
 }
 
 .btn-view {
-    background-color: #5d9b57;
+    background-color: #E6A85A;
     color: #333;
     border: none;
     padding: 10px 18px;
@@ -234,7 +234,7 @@ body {
 }
 
 .btn-view:hover {
-    background-color: #4a7c47;
+    background-color: #C58F3F;
 }
 
 .btn-edit {
@@ -304,9 +304,9 @@ body {
 }
 
 .pagination-btn:hover:not(:disabled) {
-    background: #5d9b57;
+    background: #E6A85A;
     color: #fff;
-    border-color: #5d9b57;
+    border-color: #E6A85A;
 }
 
 .pagination-btn:disabled {
@@ -315,9 +315,9 @@ body {
 }
 
 .pagination-btn.active {
-    background: #5d9b57;
+    background: #E6A85A;
     color: #fff;
-    border-color: #5d9b57;
+    border-color: #E6A85A;
 }
 
 .page-number {
@@ -345,7 +345,7 @@ body {
     }
 
     .tab-btn.active {
-        border-bottom: 3px solid #7a9b57;
+        border-bottom: 3px solid #E6A85A;
         border-right: none;
     }
 

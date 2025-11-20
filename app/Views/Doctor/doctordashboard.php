@@ -167,11 +167,11 @@ if (!empty($appointments)) {
     <!-- Modal for Consultation Form Data -->
     <div id="consultationModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
         <div id="consultationModalContent" style="background:linear-gradient(135deg,#f8fafc 0%,#e3e6f3 100%);padding:0;border-radius:16px;box-shadow:0 4px 24px #333;max-width:520px;width:90%;margin:auto;position:relative;">
-            <div style="padding:24px 32px 16px 32px;border-radius:16px 16px 0 0;background:#5d9b57;color:#fff;display:flex;align-items:center;justify-content:space-between;">
+            <div style="padding:24px 32px 16px 32px;border-radius:16px 16px 0 0;background:#E6A85A;color:#fff;display:flex;align-items:center;justify-content:space-between;">
                 <h2 style="margin:0;font-size:22px;font-weight:600;letter-spacing:1px;">Consultation Form Details</h2>
                 <div>
-                    <button onclick="toggleEditConsultationModal()" id="editConsultationBtn" style="background:#fff;color:#5d9b57;border:none;border-radius:8px;padding:6px 16px;font-size:15px;font-weight:500;cursor:pointer;box-shadow:0 2px 8px #5d9b5733;margin-right:10px;">Edit</button>
-                    <button onclick="closeConsultationModal()" style="background:#fff;color:#5d9b57;border:none;border-radius:50%;width:32px;height:32px;font-size:20px;cursor:pointer;box-shadow:0 2px 8px #5d9b5733;display:inline-flex;align-items:center;justify-content:center;">&times;</button>
+                    <button onclick="toggleEditConsultationModal()" id="editConsultationBtn" style="background:#fff;color:#E6A85A;border:none;border-radius:8px;padding:6px 16px;font-size:15px;font-weight:500;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;margin-right:10px;">Edit</button>
+                    <button onclick="closeConsultationModal()" style="background:#fff;color:#E6A85A;border:none;border-radius:50%;width:32px;height:32px;font-size:20px;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;display:inline-flex;align-items:center;justify-content:center;">&times;</button>
                 </div>
             </div>
             <div id="consultationFormData" style="padding:24px 32px 32px 32px;max-height:70vh;overflow-y:auto;"></div>
@@ -232,7 +232,7 @@ if (!empty($appointments)) {
                 for (var key in data) {
                     if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && isAllowed(key)) {
                         html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
-                        html += '<td style="font-weight:500;padding:10px 16px;color:#5d9b57;width:40%;border-radius:8px 0 0 8px;">' + labelFor(key) + '</td>';
+                        html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;border-radius:8px 0 0 8px;">' + labelFor(key) + '</td>';
                         var value = (data[key] !== null ? data[key] : '');
                         if (String(key).toLowerCase() === 'personal_products') {
                             try {
@@ -304,28 +304,28 @@ if (!empty($appointments)) {
                 for (var key in data) {
                     if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && isAllowed(key)) {
                         html += '<div style="margin-bottom:16px;">';
-                        html += '<label style="font-weight:500;color:#5d9b57;display:block;margin-bottom:6px;">' + labelFor(key) + '</label>';
+                        html += '<label style="font-weight:500;color:#E6A85A;display:block;margin-bottom:6px;">' + labelFor(key) + '</label>';
                         
                         if (key === 'personal_products') {
                             // Special handling for personal_products with dynamic product loading
                             html += '<div id="products-container">';
                             html += '<div style="margin-bottom:10px;">';
-                            html += '<input type="text" id="product_search" placeholder="Search products..." style="width:70%;padding:8px 12px;border:1px solid #5d9b57;border-radius:6px;font-size:15px;" list="product_list" />';
-                            html += '<input type="number" id="product_qty" placeholder="Qty" min="1" style="width:20%;padding:8px 12px;border:1px solid #5d9b57;border-radius:6px;font-size:15px;margin-left:5px;" />';
-                            html += '<button type="button" id="add_product" style="background:#5d9b57;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Add</button>';
+                            html += '<input type="text" id="product_search" placeholder="Search products..." style="width:70%;padding:8px 12px;border:1px solid #E6A85A;border-radius:6px;font-size:15px;" list="product_list" />';
+                            html += '<input type="number" id="product_qty" placeholder="Qty" min="1" style="width:20%;padding:8px 12px;border:1px solid #E6A85A;border-radius:6px;font-size:15px;margin-left:5px;" />';
+                            html += '<button type="button" id="add_product" style="background:#E6A85A;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Add</button>';
                             html += '</div>';
                             html += '<datalist id="product_list"></datalist>';
                             html += '<div id="selected_products"></div>';
                             html += '<input type="hidden" name="personal_products" id="personal_products_input" value="' + (data[key] !== null ? data[key] : '[]') + '" />';
                             html += '</div>';
                         } else {
-                            html += '<input type="text" name="' + key + '" value="' + (data[key] !== null ? data[key] : '') + '" style="width:100%;padding:8px 12px;border:1px solid #5d9b57;border-radius:6px;font-size:15px;" />';
+                            html += '<input type="text" name="' + key + '" value="' + (data[key] !== null ? data[key] : '') + '" style="width:100%;padding:8px 12px;border:1px solid #E6A85A;border-radius:6px;font-size:15px;" />';
                         }
                         html += '</div>';
                     }
                 }
-                html += '<button type="button" onclick="saveConsultationEdit()" style="background:#5d9b57;color:#fff;padding:10px 28px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px #5d9b5733;margin-top:10px;">Save</button>';
-                html += '<button type="button" onclick="toggleEditConsultationModal()" style="background:#fff;color:#5d9b57;padding:10px 28px;border:1px solid #5d9b57;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px #5d9b5733;margin-top:10px;margin-left:10px;">Cancel</button>';
+                html += '<button type="button" onclick="saveConsultationEdit()" style="background:#E6A85A;color:#fff;padding:10px 28px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;margin-top:10px;">Save</button>';
+                html += '<button type="button" onclick="toggleEditConsultationModal()" style="background:#fff;color:#E6A85A;padding:10px 28px;border:1px solid #E6A85A;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;margin-top:10px;margin-left:10px;">Cancel</button>';
                 html += '</form>';
                 content.innerHTML = html;
                 
@@ -403,7 +403,7 @@ if (!empty($appointments)) {
         
         selectedProducts.forEach((product, index) => {
             const div = document.createElement('div');
-            div.style.cssText = 'background:#f8f9fa;border:1px solid #5d9b57;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
+            div.style.cssText = 'background:#f8f9fa;border:1px solid #E6A85A;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
             div.innerHTML = `
                 <span>${product.product} x${product.qty}</span>
                 <button type="button" onclick="removeProduct(${index})" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Remove</button>
@@ -523,7 +523,7 @@ if (!empty($appointments)) {
         
         selectedProducts.forEach((product, index) => {
             const div = document.createElement('div');
-            div.style.cssText = 'background:#f8f9fa;border:1px solid #5d9b57;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
+            div.style.cssText = 'background:#f8f9fa;border:1px solid #E6A85A;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
             div.innerHTML = `
                 <span>${product.product} x${product.qty}</span>
                 <button type="button" onclick="removeProduct(${index})" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Remove</button>
