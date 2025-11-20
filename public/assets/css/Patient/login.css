@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap');
+
 * {
             margin: 0;
             padding: 0;
@@ -5,7 +8,7 @@
         }
 
         .form-container-main {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             display: flex;
@@ -36,7 +39,7 @@
         }
 
         .close-btn:hover {
-            color: #333;
+            color: #2d2d2d;
         }
 
         @keyframes fadeInUp {
@@ -52,7 +55,7 @@
         .login-link{
             text-align: center;
             margin-top: 10px;
-            color: #666;
+            color: #2d2d2d;
             font-size: 14px;
             display: flex;
             justify-content: center;
@@ -66,8 +69,8 @@
         }
 .user-link a {
     display: inline-block;
-    background: #94754b;
-    color: white;
+    background: #FFB84D;
+    color: #2d2d2d;
     padding: 6px 14px;   /* smaller padding */
     border-radius: 4px;  /* slightly rounded */
     font-size: 0.85rem;  /* smaller text */
@@ -80,12 +83,12 @@
 }
 
 .user-link a:hover {
-    background: #6f5738;
+    background: #FF8C42;
 }
 
 
 .header {
-    background: linear-gradient(135deg, #8B7355, #A0916B);
+    background: #2d2d2d;
     color: white;
     padding:  0.8rem 2rem;
     display: flex;
@@ -116,7 +119,7 @@
     background: none;
     border: none;
     padding: 0.6rem 1.5rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 1rem;
     cursor: pointer;
     color: white;
@@ -145,12 +148,13 @@
 
 
 .header-title {
-    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: 'Homemade Apple', cursive;
     font-size: 1.8rem;
-    font-weight: 700;
+    font-weight: 400;
     letter-spacing: 1px;
     margin: 0;
     margin-right: 2.5rem;
+    color: #FFB84D;
 }
 
 .logo {
@@ -160,8 +164,8 @@
 }
 
         .form_header {
-            background-color: #8B7355;
-            color: white;
+            background-color: #909090;
+            color: #ffffff;
             text-align: center;
             padding: 30px 20px;
             font-size: 22px;
@@ -179,7 +183,7 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #8B6F47;
+            color: #2d2d2d;
             font-weight: 500;
             font-size: 14px;
         }
@@ -196,9 +200,9 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: #8B6F47;
+            border-color: #FFB84D;
             background: white;
-            box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.1);
+            box-shadow: 0 0 0 3px rgba(255, 184, 77, 0.1);
             transform: translateY(-1px);
         }
 
@@ -213,7 +217,7 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #8B6F47;
+            color: #666;
             cursor: pointer;
             font-size: 18px;
         }
@@ -224,7 +228,7 @@
         }
 
         .forgot-password a {
-            color: #8B6F47;
+            color: #666;
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
@@ -236,8 +240,8 @@
 
         .submit-btn {
             width: 100%;
-            background-color: #28A745;
-            color: white;
+            background-color: #FFB84D;
+            color: #2d2d2d;
             border: none;
             padding: 15px;
             border-radius: 10px;
@@ -251,7 +255,8 @@
 
         .submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 10px 20px rgba(255, 184, 77, 0.3);
+            background-color: #FF8C42;
         }
 
         .submit-btn:active {
@@ -261,12 +266,12 @@
         .signup-link {
             text-align: center;
             margin-top: 25px;
-            color: #666;
+            color: #2d2d2d;
             font-size: 14px;
         }
 
         .signup-link a {
-            color: #8B6F47;
+            color: #666;
             text-decoration: none;
             font-weight: 600;
         }

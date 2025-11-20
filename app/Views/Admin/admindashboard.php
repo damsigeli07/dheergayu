@@ -10,15 +10,18 @@ $activeStaff           = 13;
 $newUsersRegistered    = 6;
 $ordersReceivedToday   = 10;
 $ordersValue           = 8450;
+$revenueProgress       = ($totalRevenueToday / $revenueTarget) * 100;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
   <script src="/dheergayu/public/assets/js/header.js"></script>
-  <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/admindashboard.css?v=1.2" />
+  <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/admindashboard.css?v=2.0" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="has-sidebar">
 
@@ -52,58 +55,190 @@ $ordersValue           = 8450;
     
     <!-- Main Content -->
     <div class="main-content">
-        <div class="dashboard-grid">
-            <div class="card green">
-                <div class="title">Ongoing Appointments: <?= $ongoingAppointments ?></div>
-                <div class="value"><?= $ongoingAppointments ?></div>
-                <div>Active Sessions<br><span style="font-size:0.95em;">Last updated: 2 mins ago</span></div>
-            </div>
-            <div class="card green">
-                <div class="title">Ongoing: <?= $ongoingTreatments ?> Treatments</div>
-                <div class="value"><?= $ongoingTreatments ?></div>
-                <div>In Progress<br><span style="font-size:0.95em;">Oil Massage, Steam Therapy</span></div>
-            </div>
-            <div class="card green">
-                <div class="title">Total Revenue Today</div>
-                <div class="value">Rs. <?= number_format($totalRevenueToday) ?></div>
-                <div>From <?= $completedAppointments ?> appointments<br>Target: Rs. <?= number_format($revenueTarget) ?></div>
-            </div>
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Dashboard Overview</h1>
+            <p class="page-subtitle">Welcome back! Here's what's happening today.</p>
+        </div>
 
-            <div class="card yellow">
-                <div class="title">Today Completed Appointments: <?= $completedAppointments ?></div>
-                <div class="value"><?= $completedAppointments ?></div>
-                <div>Successfully finished</div>
-            </div>
-            <div class="card yellow">
-                <div class="title">Inventory: <?= $inventoryAlerts ?> Alerts</div>
-                <div class="value"><span style="font-size:1.5em;">&#x26A0;</span> <?= $inventoryAlerts ?></div>
-                <div>Low Stock Items<br><?= implode(', ', $lowStockItems) ?></div>
-            </div>
-            <div class="card yellow">
-                <div class="title">Active Staff: <?= $activeStaff ?></div>
-                <div class="value"><?= $activeStaff ?></div>
-                <div>8 Therapists, 3 Admin, 2 Pharmacy<br><span style="font-size:0.95em;">All systems operational</span></div>
-            </div>
-
-            <div class="card blue">
-                <div class="title">New Users Registered: <?= $newUsersRegistered ?></div>
-                <div class="value"><?= $newUsersRegistered ?></div>
-                <div>This week<br>3 patients, 2 staff, 1 admin</div>
-            </div>
-            <div class="card purple">
-                <div class="title">Orders Received Today: <?= $ordersReceivedToday ?></div>
-                <div class="value"><?= $ordersReceivedToday ?></div>
-                <div>Total value: Rs. <?= number_format($ordersValue) ?></div>
-            </div>
-            <div class="card purple">
-                <div class="title">System Status</div>
-                <div class="system-status">
-                    <span class="ok">&#9679; All systems operational</span>
-                    <span class="warn">&#9679; <?= $inventoryAlerts ?> inventory alerts</span>
+        <!-- Overview Cards -->
+        <div class="overview-cards">
+            <div class="overview-card card-primary">
+                <div class="card-icon">📅</div>
+                <div class="card-content">
+                    <div class="card-label">Ongoing Appointments</div>
+                    <div class="card-value"><?= $ongoingAppointments ?></div>
+                    <div class="card-desc">Active sessions</div>
                 </div>
-                <div style="font-size: 0.97em; color: #666;">Last check: 5 mins ago</div>
+            </div>
+
+            <div class="overview-card card-secondary">
+                <div class="card-icon">💆</div>
+                <div class="card-content">
+                    <div class="card-label">Active Treatments</div>
+                    <div class="card-value"><?= $ongoingTreatments ?></div>
+                    <div class="card-desc">In progress</div>
+                </div>
+            </div>
+
+            <div class="overview-card card-accent">
+                <div class="card-icon">💰</div>
+                <div class="card-content">
+                    <div class="card-label">Today's Revenue</div>
+                    <div class="card-value">Rs. <?= number_format($totalRevenueToday) ?></div>
+                    <div class="card-desc">Target: Rs. <?= number_format($revenueTarget) ?></div>
+                </div>
+            </div>
+
+            <div class="overview-card card-success">
+                <div class="card-icon">✅</div>
+                <div class="card-content">
+                    <div class="card-label">Completed</div>
+                    <div class="card-value"><?= $completedAppointments ?></div>
+                    <div class="card-desc">Appointments today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Revenue Progress</h3>
+                    <span class="chart-badge">Today</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: <?= $revenueProgress ?>%"></div>
+                    </div>
+                    <div class="progress-info">
+                        <span>Rs. <?= number_format($totalRevenueToday) ?></span>
+                        <span><?= number_format($revenueProgress, 1) ?>% of target</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Appointments Status</h3>
+                    <span class="chart-badge">Today</span>
+                </div>
+                <canvas id="appointmentsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Stats and Activity Section -->
+        <div class="stats-section">
+            <div class="stats-card">
+                <div class="stats-header">
+                    <h3>Quick Stats</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-value"><?= $activeStaff ?></div>
+                            <div class="stat-label">Active Staff</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-info">
+                            <div class="stat-value"><?= $inventoryAlerts ?></div>
+                            <div class="stat-label">Inventory Alerts</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🆕</div>
+                        <div class="stat-info">
+                            <div class="stat-value"><?= $newUsersRegistered ?></div>
+                            <div class="stat-label">New Users</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-info">
+                            <div class="stat-value"><?= $ordersReceivedToday ?></div>
+                            <div class="stat-label">Orders Today</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-card">
+                <div class="activity-header">
+                    <h3>Recent Activity</h3>
+                    <a href="#" class="view-all">View All</a>
+                </div>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">📋</div>
+                        <div class="activity-content">
+                            <div class="activity-title"><?= $completedAppointments ?> appointments completed</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">⚠️</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Low stock alert: <?= implode(', ', $lowStockItems) ?></div>
+                            <div class="activity-time">5 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">👤</div>
+                        <div class="activity-content">
+                            <div class="activity-title"><?= $newUsersRegistered ?> new users registered this week</div>
+                            <div class="activity-time">1 day ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">💰</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Rs. <?= number_format($ordersValue) ?> in orders received</div>
+                            <div class="activity-time">2 days ago</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        // Appointments Chart
+        const ctx = document.getElementById('appointmentsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Ongoing', 'Pending'],
+                datasets: [{
+                    data: [<?= $completedAppointments ?>, <?= $ongoingAppointments ?>, 5],
+                    backgroundColor: [
+                        '#FFB84D',
+                        '#FF8C42',
+                        '#FFEED6'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                family: 'Roboto',
+                                size: 12
+                            },
+                            color: '#2d2d2d'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

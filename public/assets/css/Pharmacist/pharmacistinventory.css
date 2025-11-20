@@ -7,10 +7,12 @@
     box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 html, body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #f5f5f5;
-    color: #333;
+    color: #2d2d2d;
     line-height: 1.6;
 }
 
@@ -39,7 +41,7 @@ body {
 /* Section Title */
 .section-title {
     font-size: 1.25rem;
-    color: #8B7355;
+    color: #2d2d2d;
     font-weight: 600;
     margin-bottom: 0.75rem;
 }
@@ -85,7 +87,7 @@ body {
 }
 
 .overview-card.total {
-    border-left-color: #7a9b57;
+    border-left-color: #FFB84D;
 }
 
 .overview-icon {
@@ -96,21 +98,21 @@ body {
 .overview-content h3 {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #333;
+    color: #2d2d2d;
     margin-bottom: 0.4rem;
 }
 
 .overview-number {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #333;
+    color: #2d2d2d;
     margin: 0;
     line-height: 1;
 }
 
 .overview-desc {
     font-size: 0.8rem;
-    color: #666;
+    color: #2d2d2d;
     margin: 0;
     margin-top: 0.2rem;
 }
@@ -136,13 +138,13 @@ body {
     padding: 0.65rem 0.75rem;
     border-bottom: 1px solid #f0f0f0;
     text-align: left;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 0.9rem;
 }
 
 .inventory-table th {
-    background-color: #8B7355;
-    color: #fff;
+    background-color: #FFB84D;
+    color: #2d2d2d;
     font-weight: 600;
     font-size: 0.85rem;
 }
@@ -165,7 +167,7 @@ body {
     padding: 0.35rem 0.7rem;
     border: none;
     border-radius: 4px;
-    color: white;
+    color: #2d2d2d;
     font-size: 0.8rem;
     cursor: pointer;
     margin-right: 0.3rem;
@@ -173,11 +175,11 @@ body {
 }
 
 .btn-add-batch {
-    background-color: #28a745;
+    background-color: #FFB84D;
 }
 
 .btn-add-batch:hover {
-    background-color: #218838;
+    background-color: #FF8C42;
 }
 
 .btn-batches {
@@ -304,7 +306,7 @@ body {
 
 .modal-header h3 {
     margin: 0;
-    color: #333;
+    color: #2d2d2d;
     font-size: 1.1rem;
 }
 
@@ -318,7 +320,7 @@ body {
 }
 
 .close:hover {
-    color: #333;
+    color: #2d2d2d;
 }
 
 .modal-body {
@@ -338,13 +340,13 @@ body {
     padding: 0.85rem;
     border-radius: 8px;
     text-align: center;
-    border-left: 4px solid #7a9b57;
+    border-left: 4px solid #FFB84D;
 }
 
 .summary-card h4 {
     margin: 0 0 0.4rem 0;
     font-size: 0.85rem;
-    color: #666;
+    color: #2d2d2d;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -352,7 +354,7 @@ body {
 .total-qty, .total-batches {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #7a9b57;
+    color: #2d2d2d;
 }
 
 /* Batches Table */
@@ -378,9 +380,9 @@ body {
 }
 
 .batches-table th {
-    background-color: #f8f9fa;
+    background-color: #FFB84D;
     font-weight: 600;
-    color: #555;
+    color: #2d2d2d;
     font-size: 0.85rem;
 }
 
@@ -398,8 +400,8 @@ body {
 }
 
 .status-good {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: #FFF4E6;
+    color: #2d2d2d;
 }
 
 .status-warning {
@@ -426,11 +428,12 @@ body {
 }
 
 .btn-edit-batch {
-    background-color: #7a9b57;
+    background-color: #FFB84D;
+    color: #2d2d2d;
 }
 
 .btn-edit-batch:hover {
-    background-color: #6B8E23;
+    background-color: #FF8C42;
 }
 
 .btn-delete-batch {
@@ -458,7 +461,7 @@ body {
     display: block;
     margin-bottom: 0.35rem;
     font-weight: 600;
-    color: #333;
+    color: #2d2d2d;
     font-size: 0.9rem;
 }
 
@@ -473,7 +476,7 @@ body {
 
 .form-input:focus {
     outline: none;
-    border-color: #7a9b57;
+    border-color: #FFB84D;
     box-shadow: 0 0 0 3px rgba(122,155,87,0.1);
 }
 
@@ -481,7 +484,7 @@ body {
     display: block;
     margin-top: 0.25rem;
     font-size: 0.8rem;
-    color: #666;
+    color: #2d2d2d;
     font-style: italic;
 }
 
@@ -506,12 +509,12 @@ body {
 }
 
 .btn-submit {
-    background-color: #7a9b57;
-    color: white;
+    background-color: #FFB84D;
+    color: #2d2d2d;
 }
 
 .btn-submit:hover {
-    background-color: #6B8E23;
+    background-color: #FF8C42;
 }
 
 .btn-cancel {
