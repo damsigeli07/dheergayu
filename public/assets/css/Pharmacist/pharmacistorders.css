@@ -18,16 +18,24 @@ body {
 
 .main-content {
     width: calc(100vw - 180px);
-    max-width: none;
-    margin: 0;
-    padding: 1.25rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
     box-sizing: border-box;
 }
 
 .section-title {
     margin-bottom: 20px;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     color: #8B7355;
+}
+
+.table-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+    margin: 0 auto;
 }
 
 /* Header Navigation - Ensure nav buttons match header.css exactly */
@@ -48,10 +56,11 @@ body {
 
 .orders-table th,
 .orders-table td {
-    padding: 12px;
+    padding: 10px 8px;
     border: 1px solid #ccc;
     text-align: center;
     vertical-align: top;
+    font-size: 0.9rem;
 }
 
 .orders-table th {
@@ -68,8 +77,9 @@ body {
 
 .orders-table td .medicine-item {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     font-weight: 500;
+    font-size: 0.85rem;
 }
 
 /* ===========================
@@ -78,8 +88,8 @@ body {
 .btn-action {
     background-color: #37a762;   /* Green base */
     color: #fff;
-    padding: 8px 16px;           /* Slightly bigger */
-    font-size: 0.95rem;          /* Adjust font size */
+    padding: 6px 12px;           /* Smaller padding */
+    font-size: 0.85rem;          /* Smaller font */
     font-weight: 600;
     border: none;
     border-radius: 6px;          /* Rounded corners */
