@@ -17,9 +17,7 @@ html, body {
 /* ===========================
    HEADER OVERRIDES
    =========================== */
-.header-title {
-    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif !important;
-}
+/* Removed header-title override to use Inter font from header.css */
 
 /* Optional: prevent header shift */
 body {
