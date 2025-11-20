@@ -1,0 +1,79 @@
+/* Main Layout */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f8f4;
+}
+
+.container {
+    width: 85%;
+    margin: 30px auto;
+}
+
+h2 {
+    font-size: 26px;
+    font-weight: bold;
+    color: #2e4c28;
+    margin-bottom: 20px;
+}
+
+/* Table Box Styling */
+.table-box {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+/* Table Styling */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.styled-table thead {
+    background: #d3e8c8;
+}
+
+.styled-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    color: #2d4b25;
+}
+
+.styled-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e8e8e8;
+    color: #333;
+    font-size: 15px;
+}
+
+.styled-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Buttons */
+.btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.accept {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.reject {
+    background-color: #e57373;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
