@@ -8,7 +8,7 @@
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Doctor/doctordashboard.css">
 </head>
-<body>
+<body class="has-sidebar">
 <?php
 require_once __DIR__ . '/../../Models/AppointmentModel.php';
 $db = new mysqli('localhost', 'root', '', 'dheergayu_db'); // Update credentials if needed
@@ -31,27 +31,27 @@ if (!empty($appointments)) {
 	}
 }
 ?>
+    <!-- Sidebar -->
     <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <button class="nav-btn active">Appointments</button>
-                <a href="patienthistory.php" class="nav-btn">Patient History</a>
-                <a href="doctorreport.php" class="nav-btn">Reports</a>
-            </nav>
-        </div>
-        <div class="header-right">
+        <div class="header-top">
             <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
             <h1 class="header-title">Dheergayu</h1>
-
-            <div class="user-section">
-                <div class="user-icon" id="user-icon">👤</div>
-                <span class="user-role">Doctor</span>
-            <!-- Dropdown -->
-        <div class="user-dropdown" id="user-dropdown">
-            <a href="doctorprofile.php" class="profile-btn">Profile</a>
-            <a href="../patient/login.php" class="logout-btn">Logout</a>
         </div>
-
+        
+        <nav class="navigation">
+            <button class="nav-btn active">Appointments</button>
+            <a href="patienthistory.php" class="nav-btn">Patient History</a>
+            <a href="doctorreport.php" class="nav-btn">Reports</a>
+        </nav>
+        
+        <div class="user-section">
+            <div class="user-icon" id="user-icon">👤</div>
+            <span class="user-role">Doctor</span>
+            <!-- Dropdown -->
+            <div class="user-dropdown" id="user-dropdown">
+                <a href="doctorprofile.php" class="profile-btn">Profile</a>
+                <a href="../patient/login.php" class="logout-btn">Logout</a>
+            </div>
         </div>
     </header>
 

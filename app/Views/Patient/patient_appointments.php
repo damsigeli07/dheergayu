@@ -183,16 +183,47 @@ $appointments = $model->getAllAppointments($patient_id);
 
 
 function editAppointment(id, type, date, time) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editType').value = type;
-    document.getElementById('editDate').value = date;
-    document.getElementById('editTime').value = time;
-    document.getElementById('editDate').min = new Date().toISOString().split('T')[0];
+    console.log('Edit appointment called:', {id, type, date, time});
+    
+    // Check if modal elements exist
+    const editModal = document.getElementById('editModal');
+    const editId = document.getElementById('editId');
+    const editType = document.getElementById('editType');
+    const editDate = document.getElementById('editDate');
+    const editTime = document.getElementById('editTime');
+    
+    console.log('Modal elements found:', {
+        editModal: !!editModal,
+        editId: !!editId,
+        editType: !!editType,
+        editDate: !!editDate,
+        editTime: !!editTime
+    });
+    
+    if (!editModal || !editId || !editType || !editDate || !editTime) {
+        console.error('Missing modal elements');
+        alert('Error: Edit form not properly loaded');
+        return;
+    }
+    
+    editId.value = id;
+    editType.value = type;
+    editDate.value = date;
+    editTime.value = time;
+    editDate.min = new Date().toISOString().split('T')[0];
+    
+    console.log('Form values set:', {
+        id: editId.value,
+        type: editType.value,
+        date: editDate.value,
+        time: editTime.value
+    });
     
     // Load available slots for the current date
     loadEditSlots(date);
     
-    document.getElementById('editModal').style.display = 'block';
+    editModal.style.display = 'block';
+    console.log('Edit modal opened');
 }
 
 function loadEditSlots(date) {
@@ -249,6 +280,7 @@ function formatTime(time) {
 
         document.getElementById('editForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Edit form submitted');
             
             const formData = new FormData();
             formData.append('id', document.getElementById('editId').value);
@@ -256,18 +288,33 @@ function formatTime(time) {
             formData.append('date', document.getElementById('editDate').value);
             formData.append('time', document.getElementById('editTime').value);
 
+            console.log('Form data:', {
+                id: document.getElementById('editId').value,
+                type: document.getElementById('editType').value,
+                date: document.getElementById('editDate').value,
+                time: document.getElementById('editTime').value
+            });
+
             fetch('/dheergayu/public/api/update-appointment.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(res => res.json())
+            .then(res => {
+                console.log('Response status:', res.status);
+                return res.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
                     alert('Appointment updated successfully');
                     location.reload();
                 } else {
                     alert('Error: ' + (data.error || 'Failed to update'));
                 }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Network error: ' + error.message);
             });
             closeEditModal();
         });

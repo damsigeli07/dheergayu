@@ -10,28 +10,28 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
-<body>
+<body class="has-sidebar">
+  <!-- Sidebar -->
   <header class="header">
-    <div class="header-left">
-      <nav class="navigation">
-        <a href="doctordashboard.php" class="nav-btn">Appointments</a>
-        <a href="patienthistory.php" class="nav-btn">Patient History</a>
-        <button class="nav-btn active">Reports</button>
-      </nav>
-    </div>
-
-    <div class="header-right">
+    <div class="header-top">
       <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo" />
       <h1 class="header-title">Dheergayu</h1>
-      <div class="user-section">
-                <div class="user-icon" id="user-icon">👤</div>
-                <span class="user-role">Doctor</span>
-            <!-- Dropdown -->
-        <div class="user-dropdown" id="user-dropdown">
-            <a href="doctorprofile.php" class="profile-btn">Profile</a>
-            <a href="../patient/login.php" class="logout-btn">Logout</a>
-        </div>
     </div>
+    
+    <nav class="navigation">
+      <a href="doctordashboard.php" class="nav-btn">Appointments</a>
+      <a href="patienthistory.php" class="nav-btn">Patient History</a>
+      <button class="nav-btn active">Reports</button>
+    </nav>
+    
+    <div class="user-section">
+      <div class="user-icon" id="user-icon">👤</div>
+      <span class="user-role">Doctor</span>
+      <!-- Dropdown -->
+      <div class="user-dropdown" id="user-dropdown">
+        <a href="doctorprofile.php" class="profile-btn">Profile</a>
+        <a href="../patient/login.php" class="logout-btn">Logout</a>
+      </div>
     </div>
   </header>
 

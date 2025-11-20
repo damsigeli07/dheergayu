@@ -1,0 +1,292 @@
+/* ===========================
+   REQUEST PRODUCTS PAGE
+   =========================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.main-content {
+    padding: 1.25rem;
+    max-width: 100%;
+    width: calc(100% - 180px);
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.request-container {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid #5d9b57;
+}
+
+/* Request Form */
+.request-form-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.request-form {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.65rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #5d9b57;
+    box-shadow: 0 0 0 3px rgba(93, 155, 87, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #5d9b57 0%, #4a7c45 100%);
+    color: white;
+    border: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(93, 155, 87, 0.3);
+}
+
+.btn-reset {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-reset:hover {
+    background: #5a6268;
+}
+
+/* Request History */
+.request-history {
+    margin-top: 2rem;
+}
+
+.history-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.requests-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.requests-table thead {
+    background: linear-gradient(135deg, #5d9b57 0%, #4a7c45 100%);
+    color: white;
+}
+
+.requests-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.requests-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.requests-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.requests-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-accepted {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: slideDown 0.3s ease;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: #333;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem;
+    }
+
+    .request-container {
+        padding: 1.5rem;
+    }
+
+    .request-form-container {
+        padding: 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-submit,
+    .btn-reset {
+        width: 100%;
+    }
+
+    .requests-table {
+        font-size: 0.9rem;
+    }
+
+    .requests-table th,
+    .requests-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+

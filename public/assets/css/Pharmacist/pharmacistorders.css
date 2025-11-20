@@ -17,10 +17,11 @@ body {
 }
 
 .main-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-    width: 100%;
+    width: calc(100vw - 180px);
+    max-width: none;
+    margin: 0;
+    padding: 1.25rem;
+    box-sizing: border-box;
 }
 
 .section-title {
@@ -29,23 +30,12 @@ body {
     color: #8B7355;
 }
 
-/* Header Navigation */
-.header .navigation .nav-btn {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 16px;
-    font-weight: 500;
-    color: white;
-    text-decoration: none;
-}
-
-.header .navigation .nav-btn.active {
-    text-decoration: none;
-    font-weight: 600;
-}
-
+/* Header Navigation - Ensure nav buttons match header.css exactly */
+.header .navigation .nav-btn,
+.header .navigation .nav-btn.active,
 .header .navigation .nav-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 5px;
+    font-size: 0.9rem !important;
+    font-weight: 500;
 }
 
 /* Orders Table */

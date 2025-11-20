@@ -18,8 +18,10 @@ body {
     flex-direction: column;
     gap: 2rem;
     padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    width: calc(100vw - 180px);
+    margin: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .section-title {

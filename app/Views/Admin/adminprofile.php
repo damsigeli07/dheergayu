@@ -16,9 +16,37 @@ $pharmacist = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pharmacist Profile</title>
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
+    <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/adminprofile.css">
 </head>
-<body>
+<body class="has-sidebar">
+    <!-- Sidebar -->
+    <header class="header">
+        <div class="header-top">
+            <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
+            <h1 class="header-title">Dheergayu</h1>
+        </div>
+        
+        <nav class="navigation">
+            <a href="admindashboard.php" class="nav-btn">Home</a>
+            <a href="admininventory.php" class="nav-btn">Products</a>
+            <a href="admininventoryview.php" class="nav-btn">Inventory</a>
+            <a href="adminappointment.php" class="nav-btn">Appointments</a>
+            <a href="adminusers.php" class="nav-btn">Users</a>
+            <a href="admintreatment.php" class="nav-btn">Treatments</a>
+            <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
+        </nav>
+        
+        <div class="user-section">
+            <div class="user-icon" id="user-icon">👤</div>
+            <span class="user-role">Admin</span>
+            <div class="user-dropdown" id="user-dropdown">
+                <a href="adminprofile.php" class="profile-btn">Profile</a>
+                <a href="../patient/login.php" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
     <main class="profile-container">
         <!-- Close button -->
         <a href="admindashboard.php" class="btn-back">&times;</a>
