@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+// Check if user is logged in and is a supplier
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['user_type'] !== 'supplier') {
+    header("Location: ../patient/login.php");
+    exit();
+}
+
 // Example: Fetch supplied products from database
 // Replace with your real DB connection
 
@@ -45,82 +53,84 @@ $products = [
 
 ];
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supplier Dashboard - Ayurvedic System</title>
+    <title>Supplier Dashboard - Dheergayu</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
-<link rel="stylesheet" href="/dheergayu/public/assets/css/Supplier/supplierdashboard.css">
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Supplier/supplierdashboard.css">
 </head>
+<body class="has-sidebar">
 
-<body>
-
-<!-- Header with ribbon-style design -->
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <button class="nav-btn active">Home</button>
-                <a href="supplierrequest.php" class="nav-btn">Request</a>
-            </nav>
+  <!-- Sidebar -->
+  <header class="header">
+      <div class="header-top">
+          <img src="/dheergayu/public/assets/images/dheergayu.png" class="logo" alt="Logo" />
+          <h1 class="header-title">Dheergayu</h1>
+      </div>
+      
+      <nav class="navigation">
+          <button class="nav-btn active">Home</button>
+          <a href="supplierrequest.php" class="nav-btn">Request</a>
+          <a href="supplierprofile.php" class="nav-btn">Profile</a>
+      </nav>
+      
+      <div class="user-section">
+          <div class="user-icon" id="user-icon">👤</div>
+          <span class="user-role">Supplier</span>
+          <!-- Dropdown -->
+          <div class="user-dropdown" id="user-dropdown">
+              <a href="supplierprofile.php" class="profile-btn">Profile</a>
+              <a href="../patient/login.php" class="logout-btn">Logout</a>
+          </div>
+      </div>
+  </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Supplied Product Summary</h1>
+            <p class="page-subtitle">View all your supplied products and their status</p>
         </div>
-        <div class="header-right">
-            <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
-            <h1 class="header-title">Dheergayu</h1>
-            <div class="user-section">
-                <div class="user-icon" id="user-icon">👤</div>
-                <span class="user-role">Supplier</span>
-            <!-- Dropdown -->
-        <div class="user-dropdown" id="user-dropdown">
-            <a href="supplierprofile.php" class="profile-btn">Profile</a>
-            <a href="../patient/login.php" class="logout-btn">Logout</a>
+
+        <div class="table-card">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>MFD</th>
+                        <th>EXP</th>
+                        <th>Delivered Date</th>
+                        <th>Quantity</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                <?php foreach ($products as $p): ?>
+                    <tr>
+                        <td><?= $p['name']; ?></td>
+                        <td><?= $p['mfd']; ?></td>
+                        <td><?= $p['exp']; ?></td>
+                        <td><?= $p['delivered_date']; ?></td>
+                        <td><?= $p['quantity']; ?></td>
+                        <td><?= $p['amount']; ?></td>
+                        <td>
+                            <span class="status <?= strtolower($p['status']); ?>">
+                                <?= $p['status']; ?>
+                            </span>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+
+            </table>
         </div>
     </div>
-        </div>
-    </header>
-
-<!-- MAIN CONTENT -->
-<div class="container">
-    <h2 class="section-title">Supplied Product Summary</h2>
-
-    <div class="table-card">
-        <table class="styled-table">
-            <thead>
-                <tr>
-                    <th>Product Name</th>
-                    <th>MFD</th>
-                    <th>EXP</th>
-                    <th>Delivered Date</th>
-                    <th>Quantity</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-            <?php foreach ($products as $p): ?>
-                <tr>
-                    <td><?= $p['name']; ?></td>
-                    <td><?= $p['mfd']; ?></td>
-                    <td><?= $p['exp']; ?></td>
-                    <td><?= $p['delivered_date']; ?></td>
-                    <td><?= $p['quantity']; ?></td>
-                    <td><?= $p['amount']; ?></td>
-                    <td>
-                        <span class="status <?= strtolower($p['status']); ?>">
-                            <?= $p['status']; ?>
-                        </span>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-
-        </table>
-    </div>
-</div>
 
 </body>
 </html>

@@ -71,8 +71,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
 
-        // If neither matched
-        $error_message = "Invalid email or password.";
+        // 3) Try suppliers table
+        $stmt = $conn->prepare("SELECT id, supplier_name, contact_person, password, status FROM suppliers WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            // Check if password exists
+            if (empty($row['password']) || is_null($row['password'])) {
+                $error_message = "Password not set for this supplier. Please contact the administrator.";
+            } elseif (isset($row['status']) && strtolower($row['status']) !== 'active') {
+                $error_message = "Your supplier account is inactive. Please contact the administrator.";
+            } elseif (password_verify($password, $row['password'])) {
+                $_SESSION['logged_in'] = true;
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['user_email'] = $email;
+                $_SESSION['user_type'] = 'supplier';
+                $_SESSION['user_name'] = $row['supplier_name'];
+                $_SESSION['role'] = 'Supplier';
+                $_SESSION['name'] = $row['supplier_name'];
+                $_SESSION['contact_person'] = $row['contact_person'];
+
+                header("Location: ../Supplier/supplierdashboard.php");
+                exit();
+            } else {
+                // Password verification failed
+                $error_message = "Invalid email or password.";
+            }
+        }
+
+        // If none matched
+        if (empty($error_message)) {
+            $error_message = "Invalid email or password.";
+        }
     }
 }
 

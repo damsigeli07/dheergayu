@@ -87,11 +87,6 @@ $treatments = [
 $totalTreatments = count($treatments);
 $activeTreatments = count($treatments); // All are active
 $inactiveTreatments = 0;
-$totalRevenue = 0.0;
-
-foreach ($treatments as $treatment) {
-    $totalRevenue += (float)str_replace(',', '', $treatment['price']);
-}
 ?>
 
 <!DOCTYPE html>
@@ -161,15 +156,6 @@ foreach ($treatments as $treatment) {
                     <h3>Inactive Treatments</h3>
                     <p class="overview-number"><?= $inactiveTreatments ?></p>
                     <p class="overview-desc">Temporarily suspended</p>
-                </div>
-            </div>
-            
-            <div class="overview-card revenue">
-                <div class="overview-icon">💰</div>
-                <div class="overview-content">
-                    <h3>Total Revenue</h3>
-                    <p class="overview-number">Rs. <?= number_format($totalRevenue) ?></p>
-                    <p class="overview-desc">From active treatments</p>
                 </div>
             </div>
         </div>

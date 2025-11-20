@@ -40,16 +40,20 @@ class SupplierController {
                 'supplier_name' => trim($_POST['supplier_name'] ?? ''),
                 'contact_person' => trim($_POST['contact_person'] ?? ''),
                 'phone' => trim($_POST['phone'] ?? ''),
-                'email' => trim($_POST['email'] ?? '')
+                'email' => trim($_POST['email'] ?? ''),
+                'password' => trim($_POST['password'] ?? '')
             ];
 
             // Validate required fields
             if (empty($data['supplier_name']) || empty($data['contact_person']) || 
-                empty($data['phone']) || empty($data['email'])) {
+                empty($data['phone']) || empty($data['email']) || empty($data['password'])) {
                 $_SESSION['error'] = 'Please fill in all required fields.';
                 header('Location: addsupplier.php');
                 exit;
             }
+
+            // Hash the password
+            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
 
             // Validate email format
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
@@ -163,6 +167,72 @@ class SupplierController {
             header('Location: adminsuppliers.php');
             exit;
         }
+    }
+
+    public function deactivateSupplier() {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $id = $_GET['id'] ?? null;
+        if (!$id || !is_numeric($id)) {
+            $_SESSION['error'] = 'Invalid supplier ID.';
+            header('Location: adminsuppliers.php');
+            exit;
+        }
+
+        // Check if supplier exists
+        $supplier = $this->model->getSupplierById($id);
+        if (!$supplier) {
+            $_SESSION['error'] = 'Supplier not found.';
+            header('Location: adminsuppliers.php');
+            exit;
+        }
+
+        // Deactivate supplier
+        $result = $this->model->deactivateSupplier($id);
+
+        if ($result) {
+            $_SESSION['success'] = 'Supplier deactivated successfully!';
+        } else {
+            $_SESSION['error'] = 'Failed to deactivate supplier. Please try again.';
+        }
+
+        header('Location: adminsuppliers.php');
+        exit;
+    }
+
+    public function activateSupplier() {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $id = $_GET['id'] ?? null;
+        if (!$id || !is_numeric($id)) {
+            $_SESSION['error'] = 'Invalid supplier ID.';
+            header('Location: adminsuppliers.php');
+            exit;
+        }
+
+        // Check if supplier exists
+        $supplier = $this->model->getSupplierById($id);
+        if (!$supplier) {
+            $_SESSION['error'] = 'Supplier not found.';
+            header('Location: adminsuppliers.php');
+            exit;
+        }
+
+        // Activate supplier
+        $result = $this->model->activateSupplier($id);
+
+        if ($result) {
+            $_SESSION['success'] = 'Supplier activated successfully!';
+        } else {
+            $_SESSION['error'] = 'Failed to activate supplier. Please try again.';
+        }
+
+        header('Location: adminsuppliers.php');
+        exit;
     }
 
     public function deleteSupplier() {

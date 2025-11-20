@@ -12,7 +12,7 @@
 .header {
   background: #2d2d2d;
   color: #fff;
-  width: 180px;
+  width: 200px;
   min-height: 100vh;
   max-height: 100vh;
   position: fixed;
@@ -259,7 +259,7 @@
 
 /* Main content wrapper - add margin for sidebar */
 body.has-sidebar {
-  margin-left: 180px;
+  margin-left: 200px;
 }
 
 /* ===========================

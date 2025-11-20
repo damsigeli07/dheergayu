@@ -15,8 +15,11 @@ $controller = new SupplierController($conn);
 $action = $_GET['action'] ?? 'list';
 
 switch ($action) {
-    case 'delete':
-        $controller->deleteSupplier();
+    case 'deactivate':
+        $controller->deactivateSupplier();
+        break;
+    case 'activate':
+        $controller->activateSupplier();
         break;
     default:
         $suppliers = $controller->getModel()->getAllSuppliers();
@@ -33,111 +36,8 @@ switch ($action) {
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/adminsuppliers.css">
-    <style>
-        .main-content {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #8B7355;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .add-supplier-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-add-supplier {
-            background-color: #8B7355;
-            color: white;
-            border: none;
-            padding: 0.8rem 1.8rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .btn-add-supplier:hover {
-            background-color: #6F5B42;
-            transform: translateY(-2px);
-        }
-
-        .supplier-table-container {
-            overflow-x: auto;
-        }
-
-        .supplier-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .supplier-table th, .supplier-table td {
-            padding: 0.8rem 1rem;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .supplier-table th {
-            background-color: #f8f8f8;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .supplier-table tr:hover {
-            background-color: #f0f0f0;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .btn-edit, .btn-delete {
-            padding: 0.3rem 0.8rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: white;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-edit {
-            background-color: #7a9b57;
-        }
-
-        .btn-edit:hover {
-            background-color: #6B8E23;
-        }
-
-        .btn-delete {
-            background-color: #DC143C;
-        }
-
-        .btn-delete:hover {
-            background-color: #B91C3C;
-        }
-    </style>
 </head>
 <body class="has-sidebar">
-    <!-- Header -->
     <!-- Sidebar -->
     <header class="header">
         <div class="header-top">
@@ -168,7 +68,10 @@ switch ($action) {
 
     <!-- Main Content -->
     <main class="main-content">
-        <h2 class="section-title">Supplier Information</h2>
+        <div class="page-header">
+            <h1 class="page-title">Supplier Information</h1>
+            <p class="page-subtitle">Manage supplier accounts and information</p>
+        </div>
 
         <!-- Add Supplier Button -->
         <div class="add-supplier-container">
@@ -177,30 +80,16 @@ switch ($action) {
 
         <!-- Success/Error Messages -->
         <?php if (isset($_SESSION['success'])): ?>
-            <script>
-                console.log('Success message:', '<?php echo $_SESSION['success']; ?>');
-                alert('<?php echo addslashes($_SESSION['success']); ?>');
-            </script>
-            <div class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #c3e6cb;">
+            <div class="alert alert-success">
                 <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
             </div>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error'])): ?>
-            <script>
-                console.log('Error message:', '<?php echo $_SESSION['error']; ?>');
-                alert('<?php echo addslashes($_SESSION['error']); ?>');
-            </script>
-            <div class="alert alert-error" style="background-color: #f8d7da; color: #721c24; padding: 1rem; margin-bottom: 1rem; border-radius: 6px; border: 1px solid #f5c6cb;">
+            <div class="alert alert-error">
                 <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
             </div>
         <?php endif; ?>
-
-        <!-- Debug: Show all session data -->
-        <script>
-            console.log('All session data:', <?php echo json_encode($_SESSION); ?>);
-            alert('Page loaded - checking for session messages...');
-        </script>
 
         <!-- Supplier Table -->
         <div class="supplier-table-container">
@@ -211,28 +100,47 @@ switch ($action) {
                         <th>Contact Person</th>
                         <th>Phone</th>
                         <th>Email</th>
-                        <th>Actions</th>
+                        <th>Status</th>
+                        <th>Reg Date</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (!empty($suppliers)): ?>
                         <?php foreach ($suppliers as $supplier): ?>
+                            <?php 
+                                $status = isset($supplier['status']) ? strtolower($supplier['status']) : 'active';
+                                $isActive = ($status === 'active');
+                                $statusText = $isActive ? 'Active' : 'Inactive';
+                                $actionText = $isActive ? 'Deactivate' : 'Activate';
+                                $actionClass = $isActive ? 'btn-deactivate' : 'btn-activate';
+                                $actionUrl = $isActive ? 'deactivate' : 'activate';
+                                $regDate = isset($supplier['created_at']) ? $supplier['created_at'] : '-';
+                            ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($supplier['supplier_name']); ?></td>
                                 <td><?php echo htmlspecialchars($supplier['contact_person']); ?></td>
                                 <td><?php echo htmlspecialchars($supplier['phone']); ?></td>
                                 <td><?php echo htmlspecialchars($supplier['email']); ?></td>
-                                <td class="action-buttons">
+                                <td>
+                                    <span class="status <?php echo $isActive ? 'active' : 'inactive'; ?>">
+                                        <?php echo $statusText; ?>
+                                    </span>
+                                </td>
+                                <td><?php echo htmlspecialchars($regDate); ?></td>
+                                <td>
                                     <a href="editsupplier.php?id=<?php echo $supplier['id']; ?>" class="btn-edit">Edit</a>
-                                    <a href="?action=delete&id=<?php echo $supplier['id']; ?>" 
-                                       class="btn-delete" 
-                                       onclick="return confirm('Are you sure you want to delete this supplier? This action cannot be undone.')">Delete</a>
+                                    <a href="?action=<?php echo $actionUrl; ?>&id=<?php echo $supplier['id']; ?>" 
+                                       class="<?php echo $actionClass; ?>" 
+                                       onclick="return confirm('Are you sure you want to <?php echo strtolower($actionText); ?> this supplier?')">
+                                        <?php echo $actionText; ?>
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 2rem; color: #666;">
+                            <td colspan="7" class="no-data">
                                 No suppliers found. <a href="addsupplier.php">Add your first supplier</a>
                             </td>
                         </tr>
