@@ -5,11 +5,12 @@
     box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #f0f2f5;
-    color: #333;
+    color: #2d2d2d;
 }
 
 /* Main Content */
@@ -24,9 +25,10 @@ body {
 /* User Overview Cards */
 .user-overview {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
+    max-width: 1200px;
 }
 
 .overview-card {
@@ -59,21 +61,21 @@ body {
 .overview-content h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: #333;
+    color: #2d2d2d;
     margin-bottom: 0.5rem;
 }
 
 .overview-number {
     font-size: 2rem;
     font-weight: 700;
-    color: #333;
+    color: #2d2d2d;
     margin: 0;
     line-height: 1;
 }
 
 .overview-desc {
     font-size: 0.85rem;
-    color: #666;
+    color: #2d2d2d;
     margin: 0.25rem 0 0 0;
 }
 
@@ -87,7 +89,7 @@ body {
 }
 
 .overview-card.doctors .overview-icon {
-    background-color: #e8f5e8;
+    background-color: #FFF4E6;
 }
 
 .overview-card.patients .overview-icon {
@@ -126,9 +128,9 @@ tbody tr:hover {
 }
 
 .status.active {
-    color: #2E7D32;
+    color: #D4A574;
     font-weight: 600;
-    background: #e8f5e8;
+    background: #FFF4E6;
     border-radius: 20px;
     padding: 4px 12px;
     display: inline-block;
@@ -165,8 +167,8 @@ tbody tr:hover {
 }
 
 .activate-btn {
-    background: #2E7D32;
-    color: #fff;
+    background: #E6A85A;
+    color: #2d2d2d;
     border-radius: 6px;
     padding: 8px 16px;
     border: none;
@@ -174,7 +176,7 @@ tbody tr:hover {
 }
 
 .activate-btn:hover {
-    background: #1B5E20;
+    background: #D4A574;
     transform: translateY(-1px);
 }
 
@@ -202,8 +204,8 @@ tbody tr:hover {
 }
 
 .add-btn {
-    background: #419745;
-    color: #fff;
+    background: #E6A85A;
+    color: #2d2d2d;
     border-radius: 8px;
     padding: 12px 24px;
     border: none;
@@ -212,7 +214,7 @@ tbody tr:hover {
 }
 
 .add-btn:hover {
-    background: #1b5e20;
+    background: #D4A574;
     transform: translateY(-2px);
 }
 
@@ -279,20 +281,20 @@ tbody tr:hover {
     padding: 12px 24px;
     font-size: 16px;
     font-weight: 500;
-    color: #666;
+    color: #2d2d2d;
     cursor: pointer;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
 }
 
 .tab-btn:hover {
-    color: #5d9b57;
+    color: #E6A85A;
     background-color: #f8f9fa;
 }
 
 .tab-btn.active {
-    color: #5d9b57;
-    border-bottom-color: #5d9b57;
+    color: #E6A85A;
+    border-bottom-color: #E6A85A;
     background-color: #f8f9fa;
 }
 

@@ -5,10 +5,12 @@
     box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #f5f5f5;
-    color: #333;
+    color: #2d2d2d;
     line-height: 1.6;
 }
 
@@ -26,7 +28,7 @@ body {
 
 .section-title {
     font-size: 1.4rem;
-    color: #8B7355;
+    color: #E6A85A;
     font-weight: 600;
     margin-bottom: 1rem;
     text-align: center;
@@ -40,8 +42,8 @@ body {
 }
 
 .btn-add-supplier {
-    background-color: #8B7355;
-    color: white;
+    background-color: #E6A85A;
+    color: #2d2d2d;
     border: none;
     padding: 0.7rem 1.5rem;
     font-size: 1rem;
@@ -53,7 +55,7 @@ body {
 }
 
 .btn-add-supplier:hover {
-    background-color: #6F5B42;
+    background-color: #D4A574;
     transform: translateY(-2px);
 }
 
@@ -78,8 +80,8 @@ body {
 }
 
 .supplier-table th {
-    background-color: #8B7355;
-    color: #fff;
+    background-color: #E6A85A;
+    color: #2d2d2d;
     font-weight: 600;
     font-size: 1rem;
 }
@@ -89,7 +91,7 @@ body {
 }
 
 .supplier-table td {
-    color: #333;
+    color: #2d2d2d;
 }
 
 .supplier-table td:first-child {
@@ -114,11 +116,12 @@ body {
 }
 
 .btn-edit {
-    background-color: #7a9b57;
+    background-color: #E6A85A;
+    color: #2d2d2d;
 }
 
 .btn-edit:hover {
-    background-color: #6B8E23;
+    background-color: #D4A574;
 }
 
 .btn-delete {

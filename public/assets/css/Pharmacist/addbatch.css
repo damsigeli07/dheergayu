@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 .add-batch-form {
     background: white;
     padding: 2rem;
@@ -5,11 +7,12 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     max-width: 700px;
     margin: 2rem auto;
+    font-family: 'Roboto', sans-serif;
 }
 
 .form-title {
     text-align: center;
-    color: #8B7355;
+    color: #2d2d2d;
     font-size: 1.8rem;
     font-weight: 600;
     margin-bottom: 2rem;
@@ -23,7 +26,7 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #333;
+    color: #2d2d2d;
 }
 
 .form-input {
@@ -37,15 +40,15 @@
 
 .form-input:focus {
     outline: none;
-    border-color: #7a9b57;
-    box-shadow: 0 0 0 3px rgba(122,155,87,0.1);
+    border-color: #FFB84D;
+    box-shadow: 0 0 0 3px rgba(255,184,77,0.1);
 }
 
 .form-help {
     display: block;
     margin-top: 0.25rem;
     font-size: 0.8rem;
-    color: #666;
+    color: #2d2d2d;
     font-style: italic;
 }
 
@@ -70,12 +73,12 @@
 }
 
 .btn-submit {
-    background-color: #7a9b57;
-    color: white;
+    background-color: #FFB84D;
+    color: #2d2d2d;
 }
 
 .btn-submit:hover {
-    background-color: #6B8E23;
+    background-color: #FF8C42;
 }
 
 .btn-cancel {
@@ -103,7 +106,7 @@
 
 .status-info p {
     margin: 0;
-    color: #333;
+    color: #2d2d2d;
     font-size: 0.9rem;
 }
 

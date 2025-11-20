@@ -1,6 +1,8 @@
 /* General Styles */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 body {
-    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background: #f8f8f8;
     margin: 0;
     display: flex;
@@ -23,7 +25,7 @@ body {
 /* Heading */
 .main-container h2 {
     text-align: center;
-    color: #709e71; /* updated color */
+    color: #E6A85A;
     margin-bottom: 25px;
 }
 
@@ -36,11 +38,11 @@ form {
 
 label {
     font-weight: bold;
-    color: #595d48;
+    color: #2d2d2d;
 }
 
 label span {
-    color: #d19700;
+    color: #E6A85A;
 }
 
 input[type="text"],
@@ -57,7 +59,7 @@ select {
 
 input:focus,
 select:focus {
-    border-color: #709e71;
+    border-color: #E6A85A;
     outline: none;
 }
 
@@ -67,7 +69,7 @@ select:focus {
     align-items: center;
     gap: 10px;
     font-weight: bold;
-    color: #595d48;
+    color: #2d2d2d;
     margin-top: 10px;
 }
 
@@ -92,16 +94,16 @@ select:focus {
     font-weight: bold;
     cursor: pointer;
     border: none;
-    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* updated font */
-    color: #fff; /* text color white for contrast */
-    background-color: #709e71; /* updated background */
+    font-family: 'Roboto', sans-serif;
+    color: #2d2d2d;
+    background-color: #E6A85A;
     transition: background-color 0.3s;
 }
 
 /* Hover effect */
 .cancel-btn:hover,
 .submit-btn:hover {
-    background-color: #5a805a;
+    background-color: #D4A574;
 }
 
 /* Responsive */

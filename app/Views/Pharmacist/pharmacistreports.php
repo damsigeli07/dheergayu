@@ -89,14 +89,14 @@
                     label: 'Current Stock',
                     data: [12, 8, 3, 2, 1, 15, 3, 7],
                     backgroundColor: [
-                        '#7a9b57',
-                        '#8B7355',
-                        '#D2691E',
-                        '#D2691E',
-                        '#D2691E',
-                        '#7a9b57',
-                        '#D2691E',
-                        '#7a9b57'
+                        '#FFB84D',
+                        '#D4A574',
+                        '#FF8C42',
+                        '#FF8C42',
+                        '#FF8C42',
+                        '#FFB84D',
+                        '#FF8C42',
+                        '#FFB84D'
                     ],
                     borderColor: '#333',
                     borderWidth: 1

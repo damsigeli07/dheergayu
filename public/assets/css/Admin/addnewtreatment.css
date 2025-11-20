@@ -1,6 +1,8 @@
 /* General Styles */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background: #f8f8f8;
     margin: 0;
     display: flex;
@@ -23,9 +25,9 @@ body {
 /* Heading */
 .main-container h2 {
     text-align: center;
-    color: #709e71;
+    color: #E6A85A;
     margin-bottom: 25px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 /* Form Styles */
@@ -37,12 +39,12 @@ form {
 
 label {
     font-weight: bold;
-    color: #595d48;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2d2d2d;
+    font-family: 'Roboto', sans-serif;
 }
 
 label span {
-    color: #d19700;
+    color: #E6A85A;
 }
 
 input[type="text"],
@@ -60,7 +62,7 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-    border-color: #709e71;
+    border-color: #E6A85A;
     outline: none;
 }
 
@@ -80,15 +82,15 @@ select:focus {
     font-weight: bold;
     cursor: pointer;
     border: none;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #fff;
-    background-color: #709e71;
+    font-family: 'Roboto', sans-serif;
+    color: #2d2d2d;
+    background-color: #E6A85A;
     transition: background-color 0.3s, transform 0.2s;
 }
 
 .cancel-btn:hover,
 .submit-btn:hover {
-    background-color: #5a805a;
+    background-color: #D4A574;
     transform: translateY(-2px);
 }
 

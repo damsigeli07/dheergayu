@@ -5,10 +5,12 @@
     box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #f5f7fa;
-    color: #333;
+    color: #2d2d2d;
     line-height: 1.6;
 }
 
@@ -23,9 +25,10 @@ body {
 /* Treatment Overview Cards */
 .treatment-overview {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
+    max-width: 1200px;
 }
 
 .overview-card {
@@ -58,21 +61,21 @@ body {
 .overview-content h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: #333;
+    color: #2d2d2d;
     margin-bottom: 0.5rem;
 }
 
 .overview-number {
     font-size: 2rem;
     font-weight: 700;
-    color: #333;
+    color: #2d2d2d;
     margin: 0;
     line-height: 1;
 }
 
 .overview-desc {
     font-size: 0.85rem;
-    color: #666;
+    color: #2d2d2d;
     margin: 0.25rem 0 0 0;
 }
 
@@ -86,11 +89,11 @@ body {
 }
 
 .overview-card.active {
-    border-left: 4px solid #28a745;
+    border-left: 4px solid #E6A85A;
 }
 
 .overview-card.active .overview-icon {
-    background-color: rgba(40, 167, 69, 0.1);
+    background-color: rgba(230, 168, 90, 0.1);
 }
 
 .overview-card.inactive {
@@ -133,7 +136,7 @@ body {
 .search-icon {
     position: absolute;
     left: 12px;
-    color: #666;
+    color: #2d2d2d;
 }
 
 .search-input {
@@ -147,8 +150,8 @@ body {
 
 .search-input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: #E6A85A;
+    box-shadow: 0 0 0 3px rgba(230, 168, 90, 0.1);
 }
 
 .filter-container {
@@ -169,7 +172,7 @@ body {
 
 .filter-select:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: #E6A85A;
 }
 
 /* Add Treatment Section */
@@ -179,8 +182,8 @@ body {
 }
 
 .btn-add {
-    background: #28a745;
-    color: white;
+    background: #E6A85A;
+    color: #2d2d2d;
     padding: 14px 28px;
     border: none;
     border-radius: 8px;
@@ -194,9 +197,9 @@ body {
 }
 
 .btn-add:hover {
-    background: #218838;
+    background: #D4A574;
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 4px 8px rgba(230, 168, 90, 0.3);
 }
 
 /* Treatments Table */
@@ -215,11 +218,11 @@ body {
 }
 
 .treatments-table th {
-    background: #f8f9fa;
+    background: #E6A85A;
     padding: 1rem;
     text-align: left;
     font-weight: 600;
-    color: #495057;
+    color: #2d2d2d;
     border-bottom: 2px solid #e9ecef;
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -243,19 +246,19 @@ body {
 
 .treatment-info h4 {
     font-weight: 600;
-    color: #333;
+    color: #2d2d2d;
     margin-bottom: 0.25rem;
 }
 
 .treatment-id {
     font-size: 0.8rem;
-    color: #666;
+    color: #2d2d2d;
 }
 
 /* Treatment Description */
 .treatment-description {
     max-width: 250px;
-    color: #666;
+    color: #2d2d2d;
     line-height: 1.4;
 }
 
@@ -263,13 +266,13 @@ body {
 .duration {
     text-align: center;
     font-weight: 600;
-    color: #495057;
+    color: #2d2d2d;
 }
 
 /* Price Cell */
 .price {
     font-weight: 600;
-    color: #28a745;
+    color: #E6A85A;
     text-align: center;
 }
 
@@ -288,8 +291,8 @@ body {
 }
 
 .status-badge.active {
-    background: #d4edda;
-    color: #155724;
+    background: #FFF4E6;
+    color: #D4A574;
 }
 
 .status-badge.inactive {
