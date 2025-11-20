@@ -1,0 +1,104 @@
+/* ========== GLOBAL STYLES ========== */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f8f4;
+}
+
+/* ========== HEADER NAVIGATION ========== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background: #5c9d5c;
+    color: #fff;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.nav-menu a {
+    color: #fff;
+    margin: 0 15px;
+    text-decoration: none;
+    font-size: 17px;
+    padding: 8px 14px;
+}
+
+.nav-menu a.active,
+.nav-menu a:hover {
+    background: #4b874b;
+    border-radius: 6px;
+}
+
+.user-role {
+    font-weight: 600;
+}
+
+/* ========== MAIN CONTENT ========== */
+.container {
+    padding: 30px 50px;
+}
+
+.section-title {
+    font-size: 24px;
+    color: #2d4d2d;
+    margin-bottom: 20px;
+}
+
+/* ========== TABLE STYLING ========== */
+.table-card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+}
+
+.styled-table thead tr {
+    background: #d7ecd7;
+    color: #2d4d2d;
+    text-align: left;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.styled-table tbody tr:hover {
+    background: #f3faf3;
+}
+
+/* ========== STATUS BADGES ========== */
+.status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #fff;
+}
+
+.status.delivered {
+    background-color: #4caf50;
+}
+
+.status.pending {
+    background-color: #f0ad4e;
+}
+
+.status.processing {
+    background-color: #5bc0de;
+}
+
+.status.cancelled {
+    background-color: #d9534f;
+}
