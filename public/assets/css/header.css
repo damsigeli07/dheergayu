@@ -1,11 +1,16 @@
 /* ===========================
+   GOOGLE FONT IMPORT - INTER
+   =========================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ===========================
    SIDEBAR STYLES (VERTICAL)
    =========================== */
 
 /* Sidebar container */
 .header {
-  background: linear-gradient(180deg, #5d9b57 0%, #4a7c45 100%);
-  color: white;
+  background: linear-gradient(180deg, #4a7c45 0%, #3d6b3d 100%);
+  color: #fff;
   width: 180px;
   min-height: 100vh;
   max-height: 100vh;
@@ -14,7 +19,7 @@
   top: 0;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   overflow-y: auto;
 }
@@ -35,7 +40,7 @@
 }
 
 .header::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.4);
 }
 
 /* Subtle animated background overlay */
@@ -43,14 +48,14 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
   pointer-events: none;
 }
 
 /* Logo and Title Section */
 .header-top {
   padding: 1.5rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -85,13 +90,12 @@
 
 /* Title */
 .header-title {
-  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  color: white;
+  color: #fff;
   text-align: center;
   position: relative;
 }
@@ -111,7 +115,7 @@
   background: none;
   border: none;
   padding: 0.85rem 1rem;
-  font-family: inherit;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 0.9rem;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.9);
@@ -128,9 +132,9 @@
 
 .nav-btn.active {
   background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: #fff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .nav-btn.active::before {
@@ -141,13 +145,13 @@
   transform: translateY(-50%);
   width: 4px;
   height: 60%;
-  background: white;
+  background: #fff;
   border-radius: 0 4px 4px 0;
 }
 
 .nav-btn:not(.active):hover {
   background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: #fff;
 }
 
 /* ===========================
@@ -161,44 +165,39 @@
   gap: 0.5rem;
   padding: 1rem;
   margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   z-index: 1;
 }
 
 /* Icon (avatar) */
 .user-icon {
-  background: linear-gradient(145deg,
-              rgba(255, 255, 255, 0.25),
-              rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   padding: 0.4rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 .user-icon:hover {
-  background: linear-gradient(145deg,
-              rgba(255, 255, 255, 0.35),
-              rgba(255, 255, 255, 0.2));
+  background: rgba(255, 255, 255, 0.25);
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 .user-icon svg {
   width: 26px;
   height: 26px;
-  color: white;
+  color: #fff;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 /* User role text */
 .user-role {
-  color: white;
+  color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   text-align: center;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.5px;
 }
 
@@ -224,6 +223,7 @@
   color: #333;
   font-size: 0.95rem;
   font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   text-decoration: none;
   text-align: left;
   transition: background 0.2s ease, color 0.2s ease;
