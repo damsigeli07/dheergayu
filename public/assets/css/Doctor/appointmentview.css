@@ -3,15 +3,19 @@ body {
   background-color: #f4f6f9;
   margin: 0;
   padding: 20px;
+  padding-left: calc(180px + 20px);
 }
 
 .container {
   max-width: 800px;
-  margin: auto;
+  margin: 20px auto;
+  margin-left: calc(180px + 20px);
   background: #fff;
   padding: 30px;
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  width: calc(100vw - 180px - 40px);
+  box-sizing: border-box;
 }
 
 h1 {

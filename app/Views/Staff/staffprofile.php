@@ -16,9 +16,34 @@ $staff = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Profile</title>
-    <link rel="stylesheet" href="/DHEERGAYU/public/assets/css/Staff/staffprofile.css">
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
+    <script src="/dheergayu/public/assets/js/header.js"></script>
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Staff/staffprofile.css">
 </head>
-<body>
+<body class="has-sidebar">
+    <!-- Sidebar -->
+    <header class="header">
+        <div class="header-top">
+            <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
+            <h1 class="header-title">Dheergayu</h1>
+        </div>
+        
+        <nav class="navigation">
+            <a href="staffhome.php" class="nav-btn">Home</a>
+            <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
+            <a href="staffappointment.php" class="nav-btn">Appointment</a>
+            <a href="staffhomeReports.php" class="nav-btn">Reports</a>
+        </nav>
+        
+        <div class="user-section">
+            <div class="user-icon" id="user-icon">👤</div>
+            <span class="user-role">Staff</span>
+            <div class="user-dropdown" id="user-dropdown">
+                <a href="staffprofile.php" class="profile-btn">Profile</a>
+                <a href="../patient/login.php" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
     <main class="profile-container">
         <!-- Close button -->
         <a href="staffhome.php" class="btn-back">&times;</a>

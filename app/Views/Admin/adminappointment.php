@@ -253,34 +253,34 @@ function getStatusClass($status) {
     }
   </script>
 </head>
-<body>
+<body class="has-sidebar">
 
-  <!-- Unified Header (same as dashboard) -->
+  <!-- Sidebar -->
   <header class="header">
-    <div class="header-left">
+      <div class="header-top">
+          <img src="/dheergayu/public/assets/images/dheergayu.png" class="logo" alt="Logo" />
+          <h1 class="header-title">Dheergayu</h1>
+      </div>
+      
       <nav class="navigation">
-        <a href="admindashboard.php" class="nav-btn">Home</a>
-        <a href="admininventory.php" class="nav-btn">Products</a>
-        <a href="admininventoryview.php" class="nav-btn">Inventory</a>
-        <button class="nav-btn active">Appointments</button>
-        <a href="adminusers.php" class="nav-btn">Users</a>
-        <a href="admintreatment.php" class="nav-btn">Treatments</a>
-        <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
+          <a href="admindashboard.php" class="nav-btn">Home</a>
+          <a href="admininventory.php" class="nav-btn">Products</a>
+          <a href="admininventoryview.php" class="nav-btn">Inventory</a>
+          <button class="nav-btn active">Appointments</button>
+          <a href="adminusers.php" class="nav-btn">Users</a>
+          <a href="admintreatment.php" class="nav-btn">Treatments</a>
+          <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
       </nav>
-    </div>
-    <div class="header-right">
-      <img src="/dheergayu/public/assets/images/dheergayu.png" class="logo" alt="Logo" />
-      <h1 class="header-title">Dheergayu</h1>
+      
       <div class="user-section">
-                <div class="user-icon" id="user-icon">👤</div>
-                <span class="user-role">Admin</span>
-                <!-- Dropdown -->
-        <div class="user-dropdown" id="user-dropdown">
-            <a href="adminprofile.php" class="profile-btn">Profile</a>
-            <a href="../patient/login.php" class="logout-btn">Logout</a>
-        </div>
-      </div> 
-    </div>
+          <div class="user-icon" id="user-icon">👤</div>
+          <span class="user-role">Admin</span>
+          <!-- Dropdown -->
+          <div class="user-dropdown" id="user-dropdown">
+              <a href="adminprofile.php" class="profile-btn">Profile</a>
+              <a href="../patient/login.php" class="logout-btn">Logout</a>
+          </div>
+      </div>
   </header>
 
   <div class="container">

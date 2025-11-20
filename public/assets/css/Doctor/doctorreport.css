@@ -16,7 +16,10 @@ body {
 .report-container {
   max-width: 1200px;
   margin: 30px auto;
+  margin-left: calc(180px + 30px);
   padding: 30px;
+  width: calc(100vw - 180px - 60px);
+  box-sizing: border-box;
 }
 
 /* Report Header */
