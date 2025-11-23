@@ -16,152 +16,295 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     <title>Dheergayu - Dashboard</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/home.css?v=<?php echo time(); ?>">
 </head>
-
 <body>
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
-                <h1 class="header-title">Dheergayu</h1>
+
+    
+
+<header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <img src="/dheergayu/public/assets/images/Patient/logo_modern.png" alt="Dheergayu Logo"> 
+                <h1>DHEERGAYU <br> <span>AYURVEDIC MANAGEMENT CENTER</span></h1> 
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#">HOME</a></li>
+                    <li><a href="#">BOOKING</a></li>
+                    <li><a href="#">BLOG</a></li>
+                    <li><a href="#">SHOP</a></li>
+                </ul>
             </nav>
-        </div>
-        <div class="header-right" id="headerRight">
-            <?php if ($isLoggedIn): ?>
-                <!-- After login navigation -->
-                <a href="home.php" class="nav-btn">Home</a>
-                <a href="channeling.php" class="nav-btn" onclick="handleChanneling()">Consultations</a>
-                <a href="after_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Treatments</a>
-                <div class="profile-container">
-                    <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
-                    <div class="profile-dropdown" id="profileDropdown">
-                        <a href="patient_profile.php" class="dropdown-item" onclick="showMyProfile()">My Profile</a>
-                        <a href="patient_appointments.php" class="dropdown-item" onclick="showMyAppointments()">My Appointments</a>
-                        <a href="logout.php" class="dropdown-item" onclick="logout()">Logout</a>
+            <div class="header-right"> 
+                <div class="language-selector dropdown">
                     </div>
-                </div>
-                <span style="margin-left: 10px; font-size: 0.9em;"><?php echo htmlspecialchars($userType); ?></span>
-            <?php else: ?>
-                <!-- Before login navigation -->
-                <a href="home.php" class="nav-btn">Home</a>
-                <a href="before_login_treatment.php" class="nav-btn" onclick="handleTreatmentNavigation()">Our Treatments</a>
-                <a href="products.php" class="nav-btn">Our Products</a>
-                <a href="login.php" class="nav-btn">Login</a>
-            <?php endif; ?>
+            </div>
         </div>
     </header>
-
-    <?php if ($isLoggedIn): ?>
-        <div class="welcome-message" style="background: #e8f5e8; padding: 10px; text-align: center; margin-bottom: 20px;">
-            <p>Welcome back, <?php echo htmlspecialchars($userName); ?>! 🌿</p>
-        </div>
-    <?php endif; ?>
-
-    <main class="hero-section">
-        <div class="floating-circles">
-            <div class="circle circle1">
-                <img src="/dheergayu/public/assets/images/Patient/ayurveda-home-4.jpg" alt="Ayurvedic herbs and wellness">
+    <section class="hero-slider">
+        <div class="slider-container">
+            <div class="slide active" style="background-image: url('/dheergayu/public/assets/images/Patient/green8.png');">
+                <div class="hero-content">
+                    <p class="subtitle">Massage and therapy</p>
+                    <h2>DHEERGAYU TREATMENT CENTER</h2>
+                    <p>Give yourself a moment to relax. Find a minute to rejuvenate your body.</p>
+                    <button class="btn">MAKE AN APPOINTMENT</button>
+                </div>
             </div>
-            
-            <div class="circle circle2">
-                <img src="/dheergayu/public/assets/images/Patient/ayurveda-home-6.jpg" alt="Ayurvedic treatment">
+            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green2.jpg');">
+                <div class="hero-content">
+                    <p class="subtitle">Relax and Refresh</p>
+                    <h2>OUR TREATMENTS</h2>
+                    <p>Experience peace and harmony with our curated therapies.</p>
+                    <button class="btn">LEARN MORE</button>
+                </div>
             </div>
-            
-            <div class="circle circle3">
-                <img src="/dheergayu/public/assets/images/Patient/ayurveda-home_1.jpg" alt="Ayurvedic wellness">
-            </div>
-        </div>
-
-        <div class="hero-box">
-            <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="logo" width="100px" height="100px">
-            <h1>Natural Healing Journey</h1>
-            <p>Discover the power of traditional wellness through natural remedies, herbal medicine, and holistic healing practices</p>
-            <a href="doctors.php" class="cta-button" onclick="handleExploreServices()">Explore Our Services</a>
-        </div>
-    </main>
-
-    <div class="gallery">
-        <div class="gallery-item">
-            <div class="image-container">
-                <img src="/dheergayu/public/assets/images/Patient/health-treatments.jpg" alt="health-treatments">
-            </div>
-            <div class="content">
-                <h4>Therapeutic Treatments</h4>
-                <p>Experience authentic Ayurvedic spa therapies with herbal oils, healing potions, and traditional wellness practices.</p>
-                <a href="before_login_treatment.php" class="learn-more" onclick="handleTreatmentNavigation()">Our Treatments</a>
+            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green6.jpg');">
+                <div class="hero-content">
+                    <p class="subtitle">Wellness for You</p>
+                    <h2>AYURVEDIC HEALING</h2>
+                    <p>Discover ancient secrets for a balanced mind and body.</p>
+                    <button class="btn">EXPLORE SERVICES</button>
+                </div>
             </div>
         </div>
+        <div class="slider-dots"></div>
+    </section>
 
-        <div class="gallery-item">
-            <div class="image-container">
-                <img src="/dheergayu/public/assets/images/Patient/herbal-product.jpg" alt="natural-products">
-            </div>
-            <div class="content">
-                <h4>Natural Wellness Products</h4>
-                <p>Handcrafted essential oils, herbal soaps, and therapeutic products made with organic ingredients and traditional methods.</p>
-                <a href="products.php" class="learn-more">Our Products</a>
-            </div>
-        </div>
-    </div>
-
-    <section class="description-section">
-        <div class="description-container">
-            <div class="section-subtitle">Ancient Wisdom Meets Modern Care</div>
-            <h1 class="main-title">Where Ancient Traditions Meet Holistic Healing</h1>
-            <p class="description-text">
-                Discover serenity at Dheergayu, your trusted Ayurvedic wellness center. Rooted in age-old Ayurvedic traditions, we offer tailored wellness programs, from rejuvenation to stress relief. Indulge in personalized treatments, tranquil spaces and nourishing therapies as you embark on a transformative journey to harmonize your mind, body and spirit.
-            </p>
-            <button class="fact-sheet-btn" onclick="handleBookNow()">Book Now</button>
+    <section class="welcome-section">
+        <div class="container">
+            <p class="subtitle">Welcome to Our</p>
+            <h2>MASSAGE THERAPY CENTER</h2>
+            <p class="description">You deserve better than a rushed massage by a rookie therapist in a place that makes you feel more stressed</p>
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3>Dheergayu Ayurveda</h3>
-                <ul>
-                    <li><a href="home.php">Home</a></li>
-                    <li><a href="before_login_treatment.php">Treatments</a></li>
-                    <li><a href="products.php">Our products</a></li>
-                    <li><a href="doctors.php">About Us</a></li>
-                </ul>
+    <section class="promo-cards">
+        <div class="container">
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Weekly Deals" class="card-image">
+                </div>
+                <h3>Weekly Deals</h3>
+                <p>ONLY FOR NEWCOMERS</p>
+                <button class="btn card-btn">READ MORE</button>
             </div>
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="/dheergayu/public/assets/images/Patient/foot-massage.jpg" alt="Special Gifts" class="card-image">
+                </div>
+                <h3>Special Gifts</h3>
+                <p>GIFT CARDS AVAILABLE</p>
+                <button class="btn card-btn-alt">READ MORE</button>
+            </div>
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Book Online" class="card-image">
+                </div>
+                <h3>Book Now</h3>
+                <p>ONLINE APPOINTMENT</p>
+                <button class="btn card-btn">READ MORE</button>
+            </div>
+        </div>
+    </section>
 
-            <div class="footer-section">
-                <h3>Get in Touch</h3>
-                <div class="contact-info">
-                    <p><strong>Dheergayu Ayurveda Center</strong></p>
-                    <p><img src="/dheergayu/public/assets/images/Patient/email.jpg" alt="email" width="27px" height="17px" style="vertical-align: middle; margin-right: 8px;"> info@dheergayu.com</p>
-                    <p><img src="/dheergayu/public/assets/images/Patient/call.jpg" alt="call" width="19px" height="15px" style="vertical-align: middle; margin-right: 8px;"> +94 25 8858500</p>
+    <section class="we-offer-section">
+        <div class="container">
+            <div class="offer-content">
+                <p class="subtitle">Massage Studio</p>
+                <h2>WE OFFER HEALTHY SOLUTION</h2>
+                <div class="offer-buttons">
+                    <button class="btn about-us-btn">ABOUT US</button>
+                    <button class="btn get-in-touch-btn">GET IN TOUCH</button>
                 </div>
             </div>
+            <div class="offer-background">
+                <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Massage Background" class="offer-bg-image">
+            </div>
+        </div>
+    </section>
 
-            <div class="footer-section">
-                <h3>Stay Connected with Ayurveda</h3>
-                <p style="color: #666; margin-bottom: 20px;">Subscribe to our newsletter for wellness tips and updates</p>
-                <div class="social-links">
-                    <a href="#" onclick="openSocial('Facebook')">
-                        <img src="/dheergayu/public/assets/images/Patient/fb.jpg" alt="Facebook" width="27px" height="19px">
-                    </a>
-                    <a href="#" onclick="openSocial('Twitter')">
-                        <img src="/dheergayu/public/assets/images/Patient/x.jpg" alt="Twitter" width="27px" height="19px">
-                    </a>
-                    <a href="#" onclick="openSocial('Youtube')">
-                        <img src="/dheergayu/public/assets/images/Patient/youtube.jpg" alt="Youtube" width="27px" height="19px">
-                    </a>
+
+
+    <section class="gift-certificates">
+        <div class="container">
+            <p class="subtitle">Make an Order</p>
+            <h2>GIFT CERTIFICATES</h2>
+            <div class="decorative-line"></div>
+            <p class="description">There is no better gift to he ones we love than a gift of a healthy, therapeutic, or relaxing session of massage</p>
+
+            <div class="certificate-cards">
+                <div class="certificate-card">
+                    <p class="certificate-level silver">Silver</p>
+                    <div class="certificate-image-circle">
+                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Silver Certificate" class="circle-image">
+                        <span class="price-badge">$100</span>
+                    </div>
+                    <button class="btn certificate-btn">I WANT THIS CARD</button>
+                </div>
+                <div class="certificate-card">
+                    <p class="certificate-level gold">Gold</p>
+                    <div class="certificate-image-circle">
+                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Gold Certificate" class="circle-image">
+                        <span class="price-badge-alt">$300</span>
+                    </div>
+                    <button class="btn certificate-btn-alt">I WANT THIS CARD</button>
+                </div>
+                <div class="certificate-card">
+                    <p class="certificate-level platinum">Platinum</p>
+                    <div class="certificate-image-circle">
+                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Platinum Certificate" class="circle-image">
+                        <span class="price-badge">$500</span>
+                    </div>
+                    <button class="btn certificate-btn">I WANT THIS CARD</button>
                 </div>
             </div>
         </div>
+    </section>
 
+    <section class="products-section">
+        <div class="container">
+            <p class="subtitle">Premium Quality</p>
+            <h2>NATURAL BEAUTY PRODUCTS</h2>
+            <div class="decorative-line"></div>
+
+            <div class="product-grid">
+                <div class="product-item">
+                    <div class="product-image-box">
+                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Supreme Skincare">
+                    </div>
+                    <p class="product-category">BODY, COSMETICS, HYDRATION</p>
+                    <p class="product-name">SUPREME SKINCARE</p>
+                    <div class="stars">★★★★☆</div>
+                    <p class="product-price">$39.00 – $47.00</p>
+                </div>
+                <div class="product-item">
+                    <div class="product-image-box">
+                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Eye Contour Mask">
+                    </div>
+                    <p class="product-category">FACIAL, HYDRATION, SALE</p>
+                    <p class="product-name">EYE CONTOUR MASK</p>
+                    <div class="stars">★★★★☆</div>
+                    <p class="product-price">$47.00 – $57.00</p>
+                </div>
+                <div class="product-item">
+                    <div class="product-image-box">
+                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Black Rose Serum">
+                    </div>
+                    <p class="product-category">COSMETICS, HYDRATION, PROCEDURE</p>
+                    <p class="product-name">BLACK ROSE SERUM</p>
+                    <div class="stars">★★★★★</div>
+                    <p class="product-price">$89.00 – $99.00</p>
+                </div>
+                <div class="product-item">
+                    <div class="product-image-box">
+                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Natural Soft Soap">
+                    </div>
+                    <p class="product-category">CREAM, FACIAL, HYDRATION</p>
+                    <p class="product-name">NATURAL SOFT SOAP</p>
+                    <div class="stars">★★★☆☆</div>
+                    <p class="product-price">$30.00 – $35.00</p>
+                </div>
+            </div>
+            <button class="btn view-all-products-btn">VIEW ALL PRODUCTS</button>
+        </div>
+    </section>
+
+    <section class="massage-therapy-details">
+        <div class="container">
+            <div class="therapy-navigation">
+                <div class="nav-item active">
+                    <span class="icon">🛀</span>
+                    <span>GEOTHERMAL MASSAGE</span>
+                </div>
+                <div class="nav-item">
+                    <span class="icon">🤰</span>
+                    <span>PRENATAL MASSAGE</span>
+                </div>
+                <div class="nav-item">
+                    <span class="icon">👣</span>
+                    <span>REFLEXOLOGY MASSAGE</span>
+                </div>
+                <div class="nav-item">
+                    <span class="icon">👆</span>
+                    <span>TRIGGER POINT MASSAGE</span>
+                </div>
+                <div class="nav-item">
+                    <span class="icon">🤲</span>
+                    <span>MANUAL LYMPH MASSAGE</span>
+                </div>
+                <div class="nav-item">
+                    <span class="icon">🛌</span>
+                    <span>MYOFACIAL MASSAGE</span>
+                </div>
+            </div>
+            <div class="therapy-content">
+                <div class="therapy-image">
+                    <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Geothermal Massage">
+                </div>
+                <div class="therapy-description">
+                    <h2>GEOTHERMAL MASSAGE THERAPY</h2>
+                    <p>Massage is the manipulation of soft tissues in the body. The techniques are commonly applied with hands, fingers, or a device. Its purpose is for the treatment of body stress or pain:</p>
+                    <div class="list-columns">
+                        <ul>
+                            <li>• Back pain</li>
+                            <li>• Sciatica</li>
+                            <li>• Sleep disorder</li>
+                        </ul>
+                        <ul>
+                            <li>• Hip or leg pain</li>
+                            <li>• Muscle pain</li>
+                            <li>• Depression</li>
+                        </ul>
+                    </div>
+                    <button class="btn learn-more-btn">LEARN MORE</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-column">
+                <h3>HELLO</h3>
+                <p>Welcome to one of the best therapeutic massage studios in your area!</p>
+            </div>
+            <div class="footer-column">
+                <h3>OFFICE</h3>
+                <p>Germany —</p>
+                <p>785 15h Street, Office 478</p>
+                <p>Berlin, De 81566</p>
+                <p><a href="mailto:info@email.com" class="footer-link">info@email.com</a></p>
+                <p>+1 840 841 25 69</p>
+            </div>
+            <div class="footer-column">
+                <h3>LINKS</h3>
+                <ul>
+                    <li><a href="#" class="footer-link">Home</a></li>
+                    <li><a href="#" class="footer-link">Services</a></li>
+                    <li><a href="#" class="footer-link">About Us</a></li>
+                    <li><a href="#" class="footer-link">Booking</a></li>
+                    <li><a href="#" class="footer-link">Contacts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>GET IN TOUCH</h3>
+                <ul>
+                    <li><a href="#" class="social-link">f Facebook</a></li>
+                    <li><a href="#" class="social-link">x X</a></li>
+                    <li><a href="#" class="social-link">🏀 Dribble</a></li>
+                    <li><a href="#" class="social-link">📷 Instagram</a></li>
+                </ul>
+            </div>
+        </div>
         <div class="footer-bottom">
-            © 2024 Dheergayu Ayurveda. All rights reserved.<br>
-            Website Designed and Developed by <a href="#">eMarketing.lk</a><br>
-            <a href="#" onclick="navigateTo('Privacy Policy')">Privacy Policy</a> |
-            <a href="#" onclick="navigateTo('Terms of Service')">Terms And Condition</a> |
-            <a href="#" onclick="navigateTo('Site Map')">Sitemap</a>
+            <div class="container">
+                <p>ThemeREX © 2025. All Rights Reserved.</p>
+                <a href="#top" class="scroll-to-top">▲</a>
+            </div>
         </div>
     </footer>
 
-    <!-- Login Required Modal -->
+        <!-- Login Required Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeLoginModal()">&times;</span>
@@ -175,7 +318,8 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     </div>
 
     <script>
-        // Get login state from PHP
+
+                // Get login state from PHP
         const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
         const userType = '<?php echo htmlspecialchars($userType); ?>';
 
@@ -256,6 +400,83 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     }
                 }
             }
+        });
+
+        // Hero Slider JavaScript
+        const slides = document.querySelectorAll('.slide');
+        const sliderDots = document.querySelector('.slider-dots');
+        let currentSlide = 0;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === index) {
+                    slide.classList.add('active');
+                }
+            });
+            updateDots(index);
+        }
+
+        function createDots() {
+            slides.forEach((_, i) => {
+                const dot = document.createElement('span');
+                dot.classList.add('dot');
+                if (i === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => showSlide(i));
+                sliderDots.appendChild(dot);
+            });
+        }
+
+        function updateDots(index) {
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, i) => {
+                dot.classList.remove('active');
+                if (i === index) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        // Initialize slider
+        createDots();
+        showSlide(currentSlide);
+        setInterval(nextSlide, 5000); // Change slide every 5 seconds
+
+        // Therapy navigation active state (Simulates content switching)
+        const therapyNavItems = document.querySelectorAll('.therapy-navigation .nav-item');
+        therapyNavItems.forEach(item => {
+            item.addEventListener('click', () => {
+                therapyNavItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                // You would add code here to change the image and text in the .therapy-content
+            });
+        });
+
+         // Dropdown functionality (Header navigation)
+         document.querySelectorAll('.dropdown').forEach(dropdown => {
+            dropdown.addEventListener('click', function(event) {
+                // Toggle active class on click
+                this.classList.toggle('active');
+                event.stopPropagation(); // Prevent immediate closing
+            });
+        });
+
+        // Close dropdowns if clicking outside
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        });
+
+        // Scroll to top functionality
+        document.querySelector('.scroll-to-top').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     </script>
 </body>
