@@ -42,7 +42,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     </header>
     <section class="hero-slider">
         <div class="slider-container">
-            <div class="slide active" style="background-image: url('/dheergayu/public/assets/images/Patient/green8.png');">
+            <div class="slide active" style="background-image: url('/dheergayu/public/assets/images/Patient/green11.jpg');">
                 <div class="hero-content">
                     <p class="subtitle">Massage and therapy</p>
                     <h2>DHEERGAYU TREATMENT CENTER</h2>
@@ -50,12 +50,12 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     <button class="btn">MAKE AN APPOINTMENT</button>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green2.jpg');">
+            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green9.png');">
                 <div class="hero-content">
                     <p class="subtitle">Relax and Refresh</p>
                     <h2>OUR TREATMENTS</h2>
                     <p>Experience peace and harmony with our curated therapies.</p>
-                    <button class="btn">LEARN MORE</button>
+                    <button class="btn">MAKE AN APPOINTMENT</button>
                 </div>
             </div>
             <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green6.jpg');">
@@ -63,7 +63,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     <p class="subtitle">Wellness for You</p>
                     <h2>AYURVEDIC HEALING</h2>
                     <p>Discover ancient secrets for a balanced mind and body.</p>
-                    <button class="btn">EXPLORE SERVICES</button>
+                    <button class="btn">MAKE AN APPOINTMENT</button>
                 </div>
             </div>
         </div>
@@ -82,26 +82,26 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
         <div class="container">
             <div class="card">
                 <div class="card-image-container">
-                    <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Weekly Deals" class="card-image">
+                    <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Our_treatments" class="card-image">
                 </div>
-                <h3>Weekly Deals</h3>
-                <p>ONLY FOR NEWCOMERS</p>
+                <h3>Our Treatments</h3>
+                <p>FIRHNERIVH HFOERHFIUHER HRFEURH</p>
                 <button class="btn card-btn">READ MORE</button>
             </div>
             <div class="card">
                 <div class="card-image-container">
-                    <img src="/dheergayu/public/assets/images/Patient/foot-massage.jpg" alt="Special Gifts" class="card-image">
+                    <img src="/dheergayu/public/assets/images/Patient/herbal-product.jpg" alt="Special Gifts" class="card-image">
                 </div>
-                <h3>Special Gifts</h3>
-                <p>GIFT CARDS AVAILABLE</p>
+                <h3>Our Products</h3>
+                <p>FIRHNERIVH HFOERHFIUHER HRFEURH</p>
                 <button class="btn card-btn-alt">READ MORE</button>
             </div>
             <div class="card">
                 <div class="card-image-container">
-                    <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Book Online" class="card-image">
+                    <img src="/dheergayu/public/assets/images/Patient/stone2.jpg" alt="Book Online" class="card-image">
                 </div>
                 <h3>Book Now</h3>
-                <p>ONLINE APPOINTMENT</p>
+                <p>APPOINTMENTS ....</p>
                 <button class="btn card-btn">READ MORE</button>
             </div>
         </div>
