@@ -6,201 +6,295 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dheergayu - Treatment Appointment</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/before_login_treatment.css?v=<?php echo time(); ?>">
-
 </head>
 
 <body>
-
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
-                <h1 class="header-title">Dheergayu</h1>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <img src="/dheergayu/public/assets/images/Patient/logo_modern.png" alt="Dheergayu Logo">
+                <h1>DHEERGAYU <br> <span>AYURVEDIC MANAGEMENT CENTER</span></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="home.php">HOME</a></li>
+                    <li><a href="#" class="active">TREATMENTS</a></li>
+                    <li><a href="#">BOOKING</a></li>
+                    <li><a href="#">BLOG</a></li>
+                    <li><a href="#">SHOP</a></li>
+                </ul>
             </nav>
-        </div>
-        <div>
-            <a href="home.php" class="back-btn">← Back to Home</a>
+            <div class="header-right">
+                <a href="home.php" class="back-btn">← Back to Home</a>
+            </div>
         </div>
     </header>
 
-    <div class="treatments-container">
-        <div class="page-header">
-            <h1 class="main-title">Our Ayurvedic Treatments</h1>
-            <p class="treatments-subtitle">Discover our range of traditional Ayurvedic treatments for holistic wellness</p>
+    <section class="treatments-hero">
+        <div class="container">
+            <p class="subtitle">Discover Wellness</p>
+            <h2>OUR AYURVEDIC TREATMENTS</h2>
+            <div class="decorative-line"></div>
+            <p class="description">Experience the ancient healing wisdom of Ayurveda through our carefully curated treatments. Each therapy is designed to restore balance, promote natural healing, and enhance your overall well-being.</p>
         </div>
+    </section>
 
+    <section class="treatments-section">
+    <div class="container">
         <div class="treatments-grid">
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/asthma.png" alt="asthma" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Nasya</h3>
-                    <p class="treatment-description">Traditional full-body massage using warm herbal oils</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Asthma</li>
-                            <li>ENT Disorders</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Reduces stress and anxiety</li>
-                            <li>Improves blood circulation</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-30 min</h4>
-                        <h4 class="price-title">Price - Rs. 2,500.00</h4>
+            <!-- Treatment Card 1 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Full Steam Treatment" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Full Steam Treatment</div>
+                        <div class="treatment-tagline">COMPLETE BODY STEAM THERAPY</div>
+                        <p class="treatment-description">Complete body steam therapy with herbal infusions for deep relaxation and detoxification</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">60 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 6,000.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-                        <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/skin_diseases.jpg" alt="skin diseases" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Panchakarma Detox</h3>
-                    <p class="treatment-description">Complete detoxification and rejuvenation therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Diabetes</li>
-                            <li>Skin Diseases</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Deep detoxification</li>
-                            <li>Restores body balance</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-90 min</h4>
-                        <h4 class="price-title">Price - Rs. 9,000.00</h4>
+            <!-- Treatment Card 2 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/shirodhara1.jpg" alt="Shiro Dhara" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Shiro Dhara</div>
+                        <div class="treatment-tagline">MIND RELAXATION THERAPY</div>
+                        <p class="treatment-description">Gentle oil flow on forehead to calm the mind, relieve stress and promote deep relaxation</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">45 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 4,500.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/respiratory_disorders.jpg" alt="respiratory disorders" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Vashpa Sweda</h3>
-                    <p class="treatment-description">Nasal administration of herbal oils</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Respiratory Disorders</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Clears nasal passages</li>
-                            <li>Improves breathing</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-30 min</h4>
-                        <h4 class="price-title">Price - Rs. 3,500.00</h4>
+            <!-- Treatment Card 3 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/head-massage2.png" alt="Head Treatment" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Head Treatment</div>
+                        <div class="treatment-tagline">THERAPEUTIC HEAD CARE</div>
+                        <p class="treatment-description">Specialized Ayurvedic head massage and therapy to relieve tension and promote mental clarity</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">40 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 3,000.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/arthritis.jpg" alt="arthritis" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Elakizhi</h3>
-                    <p class="treatment-description">Specialized treatment for lower back pain</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Arthritis</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Reduces back pain</li>
-                            <li>Reduces stiffness</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-60 min</h4>
-                        <h4 class="price-title">Price - Rs. 7,000.00</h4>
+            <!-- Treatment Card 4 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/eye.jpg" alt="Eye Treatment" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Eye Treatment</div>
+                        <div class="treatment-tagline">VISION WELLNESS THERAPY</div>
+                        <p class="treatment-description">Soothing eye care treatment with herbal applications to reduce strain and improve vision health</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">30 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 2,000.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/paralysis.jpg" alt="paralysis" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Basti</h3>
-                    <p class="treatment-description">Traditional Ayurvedic foot massage</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Neurological Diseases and Paralysis</li>
-                            <li>Osteoporosis</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-45 min</h4>
-                        <h4 class="price-title">Price - Rs. 5,000.00</h4>
+            <!-- Treatment Card 5 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/nasya.jpg" alt="Nasya Treatment" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Nasya Treatment</div>
+                        <div class="treatment-tagline">NASAL THERAPY</div>
+                        <p class="treatment-description">Traditional nasal administration of herbal oils for respiratory wellness and sinus relief</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">45 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 4,500.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/bone_disorders.png" alt="bone disorders" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Abhyanga</h3>
-                    <p class="treatment-description">Energy point therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Dislocation Features of Joints & Bones</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-60 min</h4>
-                        <h4 class="price-title">Price - Rs. 5,000.00</h4>
+            <!-- Treatment Card 6 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/fat-burn.jpg" alt="Fat Burn Treatment" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Fat Burn Treatment</div>
+                        <div class="treatment-tagline">WEIGHT MANAGEMENT THERAPY</div>
+                        <p class="treatment-description">Specialized Ayurvedic treatment combining massage and herbal applications for weight reduction</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">50 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 3,000.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/ENT_disorders.jpg" alt="bone disorders" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Shirodhara</h3>
-                    <p class="treatment-description">Energy point therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Anxiety, Stress and Depression</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-45 min</h4>
-                        <h4 class="price-title">Price - Rs. 7,000.00</h4>
+            <!-- Treatment Card 7 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/foot.jpg" alt="Foot Treatment" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Foot Treatment</div>
+                        <div class="treatment-tagline">REFLEXOLOGY & CARE</div>
+                        <p class="treatment-description">Therapeutic foot massage with herbal oils to improve circulation and overall wellness</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">45 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 3,000.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="treatment-card">
-                <img src="/dheergayu/public/assets/images/Patient/health-treatments.jpg" alt="cholesterol" class="treatment-image">
-                <div class="treatment-content">
-                    <h3 class="treatment-name">Udvartana</h3>
-                    <p class="treatment-description">Energy point therapy</p>
-                    <div class="key-benefits">
-                        <h4 class="benefits-title">Condition</h4>
-                        <ul class="benefits-list">
-                            <li>Cholesterol</li>
-                        </ul>
-                        <h4 class="benefits-title">Key Benefits</h4>
-                        <ul class="benefits-list">
-                            <li>Relieves foot fatigue</li>
-                            <li>Improves circulation</li>
-                        </ul>
-                        <h4 class="benefits-title">Duration-45 min</h4>
-                        <h4 class="price-title">Price - Rs. 3,500.00</h4>
+
+            <!-- Treatment Card 8 -->
+            <div class="card-wrapper">
+                <img src="/dheergayu/public/assets/images/Patient/facial.jpg" alt="Facial Treatment" class="card-image">
+                
+                <div class="floating-card">
+                    <div class="text-content">
+                        <div class="treatment-title">Facial Treatment</div>
+                        <div class="treatment-tagline">NATURAL SKIN REJUVENATION</div>
+                        <p class="treatment-description">Ayurvedic facial using natural herbs and oils for glowing, healthy skin and deep nourishment</p>
+                        
+                        <div class="treatment-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value">50 minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Price:</span>
+                                <span class="detail-value price">Rs. 3,000.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</section>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-column">
+                <h3>HELLO</h3>
+                <p>Welcome to one of the best Ayurvedic wellness centers in your area!</p>
+            </div>
+            <div class="footer-column">
+                <h3>OFFICE</h3>
+                <p>Sri Lanka —</p>
+                <p>123 Wellness Street</p>
+                <p>Colombo, LK 00100</p>
+                <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
+                <p>+94 11 234 5678</p>
+            </div>
+            <div class="footer-column">
+                <h3>LINKS</h3>
+                <ul>
+                    <li><a href="home.php" class="footer-link">Home</a></li>
+                    <li><a href="#" class="footer-link">Treatments</a></li>
+                    <li><a href="#" class="footer-link">About Us</a></li>
+                    <li><a href="#" class="footer-link">Booking</a></li>
+                    <li><a href="#" class="footer-link">Contacts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>GET IN TOUCH</h3>
+                <ul>
+                    <li><a href="#" class="social-link">f Facebook</a></li>
+                    <li><a href="#" class="social-link">x X</a></li>
+                    <li><a href="#" class="social-link">in LinkedIn</a></li>
+                    <li><a href="#" class="social-link">📷 Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>Dheergayu © 2025. All Rights Reserved.</p>
+                <a href="#top" class="scroll-to-top">▲</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll to top
+        document.querySelector('.scroll-to-top')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Book Now button handler
+        document.querySelectorAll('.btn-book').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Please login to book this treatment');
+                window.location.href = 'login.php';
+            });
+        });
+    </script>
 </body>
 
 </html>
