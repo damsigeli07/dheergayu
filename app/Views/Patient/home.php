@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
@@ -42,12 +42,12 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     </header>
     <section class="hero-slider">
         <div class="slider-container">
-            <div class="slide active" style="background-image: url('/dheergayu/public/assets/images/Patient/green11.jpg');">
+            <div class="slide active" style="background-image: url('/dheergayu/public/assets/images/Patient/green6.jpg');">
                 <div class="hero-content">
                     <p class="subtitle">Massage and therapy</p>
                     <h2>DHEERGAYU TREATMENT CENTER</h2>
                     <p>Give yourself a moment to relax. Find a minute to rejuvenate your body.</p>
-                    <button class="btn">MAKE AN APPOINTMENT</button>
+                    <a href="/dheergayu/app/Views/Patient/before_login_treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
                 </div>
             </div>
             <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green9.png');">
@@ -55,15 +55,15 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     <p class="subtitle">Relax and Refresh</p>
                     <h2>OUR TREATMENTS</h2>
                     <p>Experience peace and harmony with our curated therapies.</p>
-                    <button class="btn">MAKE AN APPOINTMENT</button>
+                    <a href="/dheergayu/app/Views/Patient/before_login_treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green6.jpg');">
+            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green11.jpg');">
                 <div class="hero-content">
                     <p class="subtitle">Wellness for You</p>
                     <h2>AYURVEDIC HEALING</h2>
                     <p>Discover ancient secrets for a balanced mind and body.</p>
-                    <button class="btn">MAKE AN APPOINTMENT</button>
+                    <a href="/dheergayu/app/Views/Patient/before_login_treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
                 </div>
             </div>
         </div>
@@ -84,25 +84,34 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <div class="card-image-container">
                     <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Our_treatments" class="card-image">
                 </div>
-                <h3>Our Treatments</h3>
-                <p>FIRHNERIVH HFOERHFIUHER HRFEURH</p>
-                <button class="btn card-btn">READ MORE</button>
+                <div class="card-content">
+                    <h3>Weekly Deals</h3>
+                    <p class="card-title">ONLY FOR NEWCOMERS</p>
+                    <p>Experience the healing power of Ayurveda with exclusive offers for first-time visitors.</p>
+                    <button class="btn card-btn">READ MORE</button>
+                </div>
             </div>
             <div class="card">
                 <div class="card-image-container">
                     <img src="/dheergayu/public/assets/images/Patient/herbal-product.jpg" alt="Special Gifts" class="card-image">
                 </div>
-                <h3>Our Products</h3>
-                <p>FIRHNERIVH HFOERHFIUHER HRFEURH</p>
-                <button class="btn card-btn-alt">READ MORE</button>
+                <div class="card-content">
+                    <h3>Special Gifts</h3>
+                    <p class="card-title">GIFT CARDS AVAILABLE</p>
+                    <p>Give the gift of wellness with our premium Ayurvedic treatment gift certificates.</p>
+                    <button class="btn card-btn-alt">READ MORE</button>
+                </div>
             </div>
             <div class="card">
                 <div class="card-image-container">
                     <img src="/dheergayu/public/assets/images/Patient/stone2.jpg" alt="Book Online" class="card-image">
                 </div>
-                <h3>Book Now</h3>
-                <p>APPOINTMENTS ....</p>
-                <button class="btn card-btn">READ MORE</button>
+                <div class="card-content">
+                    <h3>Book Now</h3>
+                    <p class="card-title">ONLINE APPOINTMENT</p>
+                    <p>Schedule your healing journey with our expert Ayurvedic practitioners today.</p>
+                    <button class="btn card-btn">READ MORE</button>
+                </div>
             </div>
         </div>
     </section>
@@ -111,14 +120,11 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
         <div class="container">
             <div class="offer-content">
                 <p class="subtitle">Massage Studio</p>
-                <h2>WE OFFER HEALTHY SOLUTION</h2>
+                <h2>WE OFFER HEALTHY SOLUTIONS</h2>
                 <div class="offer-buttons">
                     <button class="btn about-us-btn">ABOUT US</button>
                     <button class="btn get-in-touch-btn">GET IN TOUCH</button>
                 </div>
-            </div>
-            <div class="offer-background">
-                <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Massage Background" class="offer-bg-image">
             </div>
         </div>
     </section>
@@ -212,51 +218,50 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     <section class="massage-therapy-details">
         <div class="container">
             <div class="therapy-navigation">
-                <div class="nav-item active">
+                <div class="nav-item active" data-therapy="geothermal">
                     <span class="icon">🛀</span>
                     <span>GEOTHERMAL MASSAGE</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" data-therapy="prenatal">
                     <span class="icon">🤰</span>
                     <span>PRENATAL MASSAGE</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" data-therapy="reflexology">
                     <span class="icon">👣</span>
                     <span>REFLEXOLOGY MASSAGE</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" data-therapy="trigger">
                     <span class="icon">👆</span>
                     <span>TRIGGER POINT MASSAGE</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" data-therapy="lymph">
                     <span class="icon">🤲</span>
                     <span>MANUAL LYMPH MASSAGE</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" data-therapy="myofacial">
                     <span class="icon">🛌</span>
                     <span>MYOFACIAL MASSAGE</span>
                 </div>
             </div>
             <div class="therapy-content">
                 <div class="therapy-image">
-                    <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Geothermal Massage">
+                    <img id="therapy-img" src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Massage Therapy">
                 </div>
                 <div class="therapy-description">
-                    <h2>GEOTHERMAL MASSAGE THERAPY</h2>
-                    <p>Massage is the manipulation of soft tissues in the body. The techniques are commonly applied with hands, fingers, or a device. Its purpose is for the treatment of body stress or pain:</p>
+                    <h2 id="therapy-title">GEOTHERMAL MASSAGE THERAPY</h2>
+                    <p id="therapy-desc">Massage is the manipulation of soft tissues in the body. The techniques are commonly applied with hands, fingers, or a device. Its purpose is for the treatment of body stress or pain:</p>
                     <div class="list-columns">
-                        <ul>
-                            <li>• Back pain</li>
-                            <li>• Sciatica</li>
-                            <li>• Sleep disorder</li>
+                        <ul id="therapy-list-1">
+                            <li>Back pain</li>
+                            <li>Sciatica</li>
+                            <li>Sleep disorder</li>
                         </ul>
-                        <ul>
-                            <li>• Hip or leg pain</li>
-                            <li>• Muscle pain</li>
-                            <li>• Depression</li>
+                        <ul id="therapy-list-2">
+                            <li>Hip or leg pain</li>
+                            <li>Muscle pain</li>
+                            <li>Depression</li>
                         </ul>
                     </div>
-                    <button class="btn learn-more-btn">LEARN MORE</button>
                 </div>
             </div>
         </div>
@@ -319,7 +324,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
 
     <script>
 
-                // Get login state from PHP
+        // Get login state from PHP
         const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
         const userType = '<?php echo htmlspecialchars($userType); ?>';
 
@@ -445,24 +450,85 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
         // Initialize slider
         createDots();
         showSlide(currentSlide);
-        setInterval(nextSlide, 5000); // Change slide every 5 seconds
+        setInterval(nextSlide, 5000);
 
-        // Therapy navigation active state (Simulates content switching)
+        // Make all "MAKE AN APPOINTMENT" buttons trigger the login modal
+        document.querySelectorAll('.hero-content .btn').forEach(btn => {
+            btn.addEventListener('click', handleBookNow);
+        });
+
+        // Therapy navigation with content switching
+        const therapyData = {
+            geothermal: {
+                title: "GEOTHERMAL MASSAGE THERAPY",
+                description: "Massage is the manipulation of soft tissues in the body. The techniques are commonly applied with hands, fingers, or a device. Its purpose is for the treatment of body stress or pain:",
+                list1: ["Back pain", "Sciatica", "Sleep disorder"],
+                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
+                image: "/dheergayu/public/assets/images/Patient/head-massage.jpg"
+            },
+            prenatal: {
+                title: "PREGNANCY OR PRENATAL MASSAGE",
+                description: "Pregnancy massage or prenatal massage is therapeutic massage that focuses on the special needs of the Mother-to-be. Pregnancy Massage Therapy can effectively treat and help with:",
+                list1: ["Back pain", "Sciatica", "Sleep disorder"],
+                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
+                image: "/dheergayu/public/assets/images/Patient/stone2.jpg"
+            },
+            reflexology: {
+                title: "REFLEXOLOGY MASSAGE",
+                description: "This is a type of massage that involves applying different amounts of pressure to the feet, hands, and ears, because these body parts are connected to certain organs, and it helps with:",
+                list1: ["Back pain", "Sciatica", "Sleep disorder"],
+                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
+                image: "/dheergayu/public/assets/images/Patient/herbal-product.jpg"
+            },
+            trigger: {
+                title: "TRIGGER POINT MASSAGE",
+                description: "Let your sore and painful spots feel the pressure that slowly turns into pleasure after our therapeutic trigger point massage. It is a great way to get rid of pain effectively:",
+                list1: ["Back pain", "Sciatica", "Sleep disorder"],
+                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
+                image: "/dheergayu/public/assets/images/Patient/treatments.png"
+            },
+            lymph: {
+                title: "MANUAL LYMPH MASSAGE",
+                description: "We help your body maintain its fluid balance with the most amazing lymph massage that is performed manually. You can lose up to 2 lbs after a session and get rid of:",
+                list1: ["Back pain", "Sciatica", "Sleep disorder"],
+                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
+                image: "/dheergayu/public/assets/images/Patient/head-massage.jpg"
+            },
+            myofacial: {
+                title: "MYOFACIAL MASSAGE",
+                description: "Myofascial therapy among other massages works the broader network of muscles that might be causing your pain and distress. Its purpose is for the treatment of body stress or pain:",
+                list1: ["Back pain", "Sciatica", "Sleep disorder"],
+                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
+                image: "/dheergayu/public/assets/images/Patient/stone2.jpg"
+            }
+        };
+
         const therapyNavItems = document.querySelectorAll('.therapy-navigation .nav-item');
         therapyNavItems.forEach(item => {
             item.addEventListener('click', () => {
                 therapyNavItems.forEach(nav => nav.classList.remove('active'));
                 item.classList.add('active');
-                // You would add code here to change the image and text in the .therapy-content
+                
+                const therapyType = item.getAttribute('data-therapy');
+                const data = therapyData[therapyType];
+                
+                document.getElementById('therapy-title').textContent = data.title;
+                document.getElementById('therapy-desc').textContent = data.description;
+                document.getElementById('therapy-img').src = data.image;
+                
+                const list1 = document.getElementById('therapy-list-1');
+                const list2 = document.getElementById('therapy-list-2');
+                
+                list1.innerHTML = data.list1.map(item => `<li>${item}</li>`).join('');
+                list2.innerHTML = data.list2.map(item => `<li>${item}</li>`).join('');
             });
         });
 
          // Dropdown functionality (Header navigation)
          document.querySelectorAll('.dropdown').forEach(dropdown => {
             dropdown.addEventListener('click', function(event) {
-                // Toggle active class on click
                 this.classList.toggle('active');
-                event.stopPropagation(); // Prevent immediate closing
+                event.stopPropagation();
             });
         });
 
@@ -477,6 +543,14 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
         document.querySelector('.scroll-to-top').addEventListener('click', function(e) {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('loginModal');
+            if (event.target === modal) {
+                closeLoginModal();
+            }
         });
     </script>
 </body>
