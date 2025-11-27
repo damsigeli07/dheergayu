@@ -52,7 +52,6 @@ if (isset($conn) && $conn instanceof mysqli) {
       <nav class="navigation">
           <a href="supplierdashboard.php" class="nav-btn">Home</a>
           <button class="nav-btn active">Request</button>
-          <a href="supplierprofile.php" class="nav-btn">Profile</a>
       </nav>
       
       <div class="user-section">
@@ -127,6 +126,35 @@ if (isset($conn) && $conn instanceof mysqli) {
             </table>
         </div>
     </div>
+
+<script>
+const supplierId = <?= json_encode($_SESSION['user_id']) ?>;
+
+function loadSupplierRequests() {
+    fetch('/dheergayu/public/api/get-supplier-requests.php?supplier_id=' + supplierId)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('supplierRequestsBody');
+            if (data.success && data.requests.length > 0) {
+                tbody.innerHTML = data.requests.map(req => `
+                    <tr>
+                        <td>${req.product_name}</td>
+                        <td>${req.quantity}</td>
+                        <td>${req.request_date}</td>
+                        <td><span class="status-badge status-${req.status}">${req.status}</span></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr><td colspan="4" style="text-align:center; padding:15px;">No requests found.</td></tr>
+                `;
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+loadSupplierRequests();
+</script>
 
 </body>
 </html>
