@@ -1,19 +1,33 @@
 <?php
 session_start();
 
-// Check if user is logged in and is a supplier
+require_once __DIR__ . '/../../../core/bootloader.php';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../Models/ProductRequestModel.php';
+
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['user_type'] !== 'supplier') {
     header("Location: ../patient/login.php");
     exit();
 }
 
-// request.php
-// Sample data (replace with your database results)
-$requests = [
-    ["product" => "Paspanguwa Pack", "quantity" => 40, "date" => "2025-08-30"],
-    ["product" => "Asamodagam Spirit", "quantity" => 20, "date" => "2025-08-31"],
-    ["product" => "Siddhalepa Balm", "quantity" => 50, "date" => "2025-09-20"]
-];
+$supplierId = $_SESSION['user_id'] ?? null;
+$requests = [];
+$requestsError = '';
+
+if ($supplierId) {
+    try {
+        $productRequestModel = new ProductRequestModel($conn);
+        $requests = $productRequestModel->getRequestsBySupplier($supplierId);
+    } catch (Throwable $e) {
+        $requestsError = 'Failed to load requests. Please try again later.';
+    }
+} else {
+    $requestsError = 'Unable to detect supplier account. Please log in again.';
+}
+
+if (isset($conn) && $conn instanceof mysqli) {
+    $conn->close();
+}
 ?>
 
 <!DOCTYPE html>
@@ -66,22 +80,49 @@ $requests = [
                         <th>Product Name</th>
                         <th>Quantity</th>
                         <th>Request Date</th>
+                        <th>Status</th>
+                        <th>Requested By</th>
                         <th>Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <?php foreach ($requests as $row): ?>
+                    <?php if ($requestsError): ?>
                         <tr>
-                            <td><?= $row["product"] ?></td>
-                            <td><?= $row["quantity"] ?></td>
-                            <td><?= $row["date"] ?></td>
-                            <td>
-                                <button class="btn accept">Accept</button>
-                                <button class="btn reject">Reject</button>
+                            <td colspan="6" style="text-align:center; padding: 20px; color: #c0392b;">
+                                <?= htmlspecialchars($requestsError) ?>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
+                    <?php elseif (empty($requests)): ?>
+                        <tr>
+                            <td colspan="6" style="text-align:center; padding: 20px;">
+                                No product requests yet. Pharmacists can send requests from their dashboard.
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($requests as $row): 
+                            $status = strtolower($row['status'] ?? 'pending');
+                            $fullName = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
+                            $displayName = $fullName !== '' ? $fullName : 'Pharmacist #' . ($row['pharmacist_id'] ?? 'N/A');
+                            $disabledAttr = $status !== 'pending' ? 'disabled' : '';
+                        ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row["product_name"] ?? 'Unknown') ?></td>
+                            <td><?= htmlspecialchars((string)($row["quantity"] ?? '0')) ?></td>
+                            <td><?= htmlspecialchars($row["request_date"] ?? '-') ?></td>
+                            <td>
+                                <span class="status-badge status-<?= htmlspecialchars($status) ?>">
+                                    <?= htmlspecialchars(ucfirst($status)) ?>
+                                </span>
+                            </td>
+                            <td><?= htmlspecialchars($displayName) ?></td>
+                            <td>
+                                <button class="btn accept" data-request-id="<?= (int)($row['id'] ?? 0) ?>" <?= $disabledAttr ?>>Accept</button>
+                                <button class="btn reject" data-request-id="<?= (int)($row['id'] ?? 0) ?>" <?= $disabledAttr ?>>Reject</button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
