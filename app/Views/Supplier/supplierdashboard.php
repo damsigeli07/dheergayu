@@ -75,7 +75,6 @@ $products = [
       <nav class="navigation">
           <button class="nav-btn active">Home</button>
           <a href="supplierrequest.php" class="nav-btn">Request</a>
-          <a href="supplierprofile.php" class="nav-btn">Profile</a>
       </nav>
       
       <div class="user-section">

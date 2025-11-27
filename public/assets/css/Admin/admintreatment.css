@@ -225,7 +225,6 @@ body {
     color: #2d2d2d;
     border-bottom: 2px solid #e9ecef;
     font-size: 0.85rem;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
@@ -286,7 +285,6 @@ body {
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
