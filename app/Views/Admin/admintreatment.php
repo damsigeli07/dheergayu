@@ -68,7 +68,7 @@ $db->close();
             <a href="admininventoryview.php" class="nav-btn">Inventory</a>
             <a href="adminappointment.php" class="nav-btn">Appointments</a>
             <a href="adminusers.php" class="nav-btn">Users</a>
-            <a href="admintreatment.php" class="nav-btn">Treatments</a>
+            <button class="nav-btn active">Treatments</button>
             <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
         </nav>
         
