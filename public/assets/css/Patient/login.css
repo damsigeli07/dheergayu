@@ -164,7 +164,7 @@
 }
 
         .form_header {
-            background-color: #909090;
+            background-color: #2d2d2d;
             color: #ffffff;
             text-align: center;
             padding: 30px 20px;
@@ -240,7 +240,7 @@
 
         .submit-btn {
             width: 100%;
-            background-color: #FFB84D;
+            background-color: #FF8C42;
             color: #2d2d2d;
             border: none;
             padding: 15px;
@@ -256,7 +256,7 @@
         .submit-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(255, 184, 77, 0.3);
-            background-color: #FF8C42;
+            background-color: #ed6c1b;
         }
 
         .submit-btn:active {
