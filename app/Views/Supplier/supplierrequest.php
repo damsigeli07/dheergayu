@@ -2,8 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/../../../core/bootloader.php';
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../Models/ProductRequestModel.php';
+require_once __DIR__ . '/../../../app/Models/ProductRequestModel.php';
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['user_type'] !== 'supplier') {
     header("Location: ../patient/login.php");
@@ -11,19 +10,13 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSI
 }
 
 $supplierId = $_SESSION['user_id'] ?? null;
-$requests = [];
-$requestsError = '';
-
-if ($supplierId) {
-    try {
-        $productRequestModel = new ProductRequestModel($conn);
-        $requests = $productRequestModel->getRequestsBySupplier($supplierId);
-    } catch (Throwable $e) {
-        $requestsError = 'Failed to load requests. Please try again later.';
-    }
-} else {
-    $requestsError = 'Unable to detect supplier account. Please log in again.';
+if (!$supplierId) {
+    header("Location: ../patient/login.php");
+    exit();
 }
+
+$productRequestModel = new ProductRequestModel($conn);
+$initialRequests = $productRequestModel->getRequestsBySupplier($supplierId);
 
 if (isset($conn) && $conn instanceof mysqli) {
     $conn->close();
@@ -85,74 +78,116 @@ if (isset($conn) && $conn instanceof mysqli) {
                     </tr>
                 </thead>
 
-                <tbody>
-                    <?php if ($requestsError): ?>
-                        <tr>
-                            <td colspan="6" style="text-align:center; padding: 20px; color: #c0392b;">
-                                <?= htmlspecialchars($requestsError) ?>
-                            </td>
-                        </tr>
-                    <?php elseif (empty($requests)): ?>
-                        <tr>
-                            <td colspan="6" style="text-align:center; padding: 20px;">
-                                No product requests yet. Pharmacists can send requests from their dashboard.
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($requests as $row): 
-                            $status = strtolower($row['status'] ?? 'pending');
-                            $fullName = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
-                            $displayName = $fullName !== '' ? $fullName : 'Pharmacist #' . ($row['pharmacist_id'] ?? 'N/A');
-                            $disabledAttr = $status !== 'pending' ? 'disabled' : '';
-                        ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row["product_name"] ?? 'Unknown') ?></td>
-                            <td><?= htmlspecialchars((string)($row["quantity"] ?? '0')) ?></td>
-                            <td><?= htmlspecialchars($row["request_date"] ?? '-') ?></td>
-                            <td>
-                                <span class="status-badge status-<?= htmlspecialchars($status) ?>">
-                                    <?= htmlspecialchars(ucfirst($status)) ?>
-                                </span>
-                            </td>
-                            <td><?= htmlspecialchars($displayName) ?></td>
-                            <td>
-                                <button class="btn accept" data-request-id="<?= (int)($row['id'] ?? 0) ?>" <?= $disabledAttr ?>>Accept</button>
-                                <button class="btn reject" data-request-id="<?= (int)($row['id'] ?? 0) ?>" <?= $disabledAttr ?>>Reject</button>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                <tbody id="supplierRequestsBody">
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding: 20px;">
+                            Loading product requests...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
 <script>
-const supplierId = <?= json_encode($_SESSION['user_id']) ?>;
+const supplierId = <?= json_encode($supplierId) ?>;
+const requestsBody = document.getElementById('supplierRequestsBody');
+const initialRequests = <?= json_encode($initialRequests) ?>;
 
-function loadSupplierRequests() {
-    fetch('/dheergayu/public/api/get-supplier-requests.php?supplier_id=' + supplierId)
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.getElementById('supplierRequestsBody');
-            if (data.success && data.requests.length > 0) {
-                tbody.innerHTML = data.requests.map(req => `
-                    <tr>
-                        <td>${req.product_name}</td>
-                        <td>${req.quantity}</td>
-                        <td>${req.request_date}</td>
-                        <td><span class="status-badge status-${req.status}">${req.status}</span></td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = `
-                    <tr><td colspan="4" style="text-align:center; padding:15px;">No requests found.</td></tr>
-                `;
-            }
-        })
-        .catch(err => console.error(err));
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
 }
 
+function buildActionButtons(request) {
+    const disabled = request.status !== 'pending' ? 'disabled' : '';
+    const requestId = request.id ?? 0;
+    return `
+        <button class="btn accept" data-request-id="${requestId}" ${disabled}>Accept</button>
+        <button class="btn reject" data-request-id="${requestId}" ${disabled}>Reject</button>
+    `;
+}
+
+function renderRequests(requests) {
+    if (!Array.isArray(requests) || requests.length === 0) {
+        requestsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 20px;">
+                    No product requests yet. Pharmacists can send requests from their dashboard.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const rows = requests.map((request) => {
+        const status = (request.status || 'pending').toLowerCase();
+        const fullName = `${request.first_name ?? ''} ${request.last_name ?? ''}`.trim();
+        const requester = fullName !== '' ? fullName : `Pharmacist #${request.pharmacist_id ?? 'N/A'}`;
+
+        return `
+            <tr>
+                <td>${escapeHtml(request.product_name || 'Unknown')}</td>
+                <td>${escapeHtml(String(request.quantity ?? '0'))}</td>
+                <td>${escapeHtml(request.request_date || '-')}</td>
+                <td>
+                    <span class="status-badge status-${status}">
+                        ${escapeHtml(status.charAt(0).toUpperCase() + status.slice(1))}
+                    </span>
+                </td>
+                <td>${escapeHtml(requester)}</td>
+                <td>${buildActionButtons(request)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    requestsBody.innerHTML = rows;
+}
+
+function renderInitial() {
+    if (Array.isArray(initialRequests) && initialRequests.length > 0) {
+        renderRequests(initialRequests);
+    } else {
+        requestsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 20px;">
+                    No product requests yet. Pharmacists can send requests from their dashboard.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+async function loadSupplierRequests() {
+    try {
+        const response = await fetch(`/dheergayu/public/api/get-supplier-requests.php?supplier_id=${supplierId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            renderRequests(data.requests);
+        } else {
+            requestsBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align:center; padding: 20px; color: #c0392b;">
+                        ${escapeHtml(data.message || 'Failed to load requests.')}
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Failed to load supplier requests:', error);
+        requestsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 20px; color: #c0392b;">
+                    Error loading requests. Please refresh the page.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+renderInitial();
 loadSupplierRequests();
 </script>
 
