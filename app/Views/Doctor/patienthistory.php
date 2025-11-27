@@ -93,114 +93,101 @@
 
 
 <script>
-  function validateSearchForm() {
+ 
+ function validateSearchForm() {
     let patientNo = document.getElementById("patient_no").value.trim();
     let patientName = document.getElementById("patient_name").value.trim();
-    let birthday = document.getElementById("birthday").value.trim();
+    let dob = document.getElementById("birthday").value.trim(); // rename variable to dob
 
     // Case 1: Patient Number only
     if (patientNo) {
-      if (!/^P[0-9]{3,}$/.test(patientNo)) {
-        alert("Patient Number must start with 'P' and be followed by digits (e.g., P001).");
-        return false;
-      }
-      performSearch({ patient_no: patientNo });
-      return false;
-    }
-
-    // Case 2: Patient Name + Birthday
-    if (patientName && birthday) {
-      if (!/^[A-Za-z ]{2,}$/.test(patientName)) {
-        alert("Patient Name should only contain letters and spaces.");
-        return false;
-      }
-      let today = new Date();
-      let enteredDate = new Date(birthday);
-      if (enteredDate > today) {
-        alert("Birthday cannot be a future date.");
-        return false;
-      }
-      performSearch({ patient_name: patientName, birthday: birthday });
-      return false;
-    }
-
-    alert("Please enter Patient Number OR (Patient Name and Birthday).");
-    return false;
-  }
-
-  function performSearch(params) {
-    let resultSection = document.getElementById("result-section");
-
-    
-    let dummyPatient = {
-      id: "    " , 
-      name: params.patient_name || "Saman",
-      birthday: params.birthday || "1985-03-15",
-      gender: "Male",
-      phone: "+94 77 123 4567",
-      address: "123 Ayurvedic Lane, Colombo",
-      history: [
-        {
-          visit: 1,
-          date: "2024-12-10",
-          doctor: "Dr. Perera",
-          diagnosis: "Back Pain",
-          treatment: "Herbal Oil Therapy",
-          prescription: "Neem Oil, Triphala Tablets"
-        },
-        {
-          visit: 2,
-          date: "2025-01-20",
-          doctor: "Dr. Silva",
-          diagnosis: "Migraine",
-          treatment: "Shirodhara",
-          prescription: "Brahmi Powder"
+        if (!/^P[0-9]{3,}$/.test(patientNo)) {
+            alert("Patient Number must start with 'P' and be followed by digits (e.g., P001).");
+            return false;
         }
-      ]
-    };
+        performSearch({ patient_no: patientNo });
+        return false;
+    }
 
-    // Build HTML
-    let html = `
-      <div class="patient-info-section">
-        <div class="patient-header">
-          <h3>Patient Details</h3>
-          <span class="patient-id">${dummyPatient.id}</span>
-        </div>
-        <div class="patient-details">
-          <div class="detail-row">
-            <div class="detail-item"><strong>Name:</strong> ${dummyPatient.name}</div>
-            <div class="detail-item"><strong>Birthday:</strong> ${dummyPatient.birthday}</div>
-            <div class="detail-item"><strong>Gender:</strong> ${dummyPatient.gender}</div>
-          </div>
-          <div class="detail-row">
-            <div class="detail-item"><strong>Phone:</strong> ${dummyPatient.phone}</div>
-            <div class="detail-item full-width"><strong>Address:</strong> ${dummyPatient.address}</div>
-          </div>
-        </div>
-      </div>
+    // Case 2: Patient Name + DOB
+    if (patientName && dob) {
+        if (!/^[A-Za-z ]{2,}$/.test(patientName)) {
+            alert("Patient Name should only contain letters and spaces.");
+            return false;
+        }
+        let today = new Date();
+        let enteredDate = new Date(dob);
+        if (enteredDate > today) {
+            alert("DOB cannot be a future date.");
+            return false;
+        }
+        performSearch({ patient_name: patientName, dob: dob });
+        return false;
+    }
 
-      <div class="history-section">
-        <h3>Patient History</h3>
-        <div class="history-timeline">
-    `;
+    alert("Please enter Patient Number OR (Patient Name and DOB).");
+    return false;
+}
 
-    dummyPatient.history.forEach((record) => {
-      html += `
-        <div class="history-record">
-          <div><strong>Visit:</strong> ${record.visit}</div>
-          <div><strong>Date:</strong> ${record.date}</div>
-          <div><strong>Doctor:</strong> ${record.doctor}</div>
-          <div><strong>Diagnosis:</strong> ${record.diagnosis}</div>
-          <div><strong>Treatment:</strong> ${record.treatment}</div>
-          <div><strong>Prescription:</strong> ${record.prescription}</div>
-          <hr>
+function performSearch(params) {
+    fetch("/dheergayu/app/Controllers/patienthistoryController.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params)
+    })
+    .then(res => res.json())
+    .then(data => {
+        let resultSection = document.getElementById("result-section");
+
+        if (!data.success) {
+            resultSection.innerHTML = `<p class="error-msg">${data.message}</p>`;
+            return;
+        }
+
+        let p = data.patient; // patient object from consultation_form
+        let history = data.history; // array of consultation records
+
+        let html = `
+        <div class="patient-info-section">
+            <div class="patient-header">
+                <h3>Patient Details</h3>
+                <span class="patient-id">${p.patient_no}</span>
+            </div>
+
+            <div class="patient-details">
+                <div class="detail-row">
+                    <div class="detail-item"><strong>Name:</strong> ${p.first_name} ${p.last_name}</div>
+                    <div class="detail-item"><strong>Age:</strong> ${p.age || 'N/A'}</div>
+                    <div class="detail-item"><strong>Gender:</strong> ${p.gender || 'N/A'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-item"><strong>Contact:</strong> ${p.contact_info || 'N/A'}</div>
+                </div>
+            </div>
         </div>
-      `;
+
+        <div class="history-section">
+            <h3>Patient History</h3>
+            <div class="history-timeline">
+        `;
+
+        history.forEach(record => {
+            html += `
+                <div class="history-record">
+                    <div><strong>Diagnosis:</strong> ${record.diagnosis || 'N/A'}</div>
+                    <div><strong>Product:</strong> ${record.personal_products || 'N/A'}</div>
+                    <div><strong>Treatment:</strong> ${record.recommended_treatment || 'N/A'}</div>
+                    <div><strong>Visited Date:</strong> ${record.created_at || 'N/A'}</div>
+                    <div><strong>Notes:</strong> ${record.notes || 'No'}</div>
+                    <hr>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        resultSection.innerHTML = html;
     });
-
-    html += `</div></div>`;
-    resultSection.innerHTML = html;
-  }
+}
 
   // Clear button logic
   document.getElementById("btn-clear").addEventListener("click", function () {

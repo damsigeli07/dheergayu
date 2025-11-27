@@ -1,9 +1,14 @@
 <?php
 // Popup-based treatment selector — returns selection to opener via postMessage
 $treatments = [
-    ['id' => 1, 'name' => 'Abhyanga'],
-    ['id' => 2, 'name' => 'Shirodhara'],
-    ['id' => 3, 'name' => 'Panchakarma'],
+    ['id' => 1, 'name' => 'Full Steam Treatment'],
+    ['id' => 2, 'name' => 'Shiro Dhara'],
+    ['id' => 3, 'name' => 'Head Treatment'],
+    ['id' => 4, 'name' => 'Eye Treatment'],
+    ['id' => 5, 'name' => 'Nasya Treatment'],
+    ['id' => 6, 'name' => 'Fat Burn Treatment'],
+    ['id' => 7, 'name' => 'Foot Treatment'],
+    ['id' => 8, 'name' => 'Facial Treatment'],
 ];
 $appointment_id = $_GET['appointment_id'] ?? '';
 $patient_id = $_GET['patient_id'] ?? '';
