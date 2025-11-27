@@ -64,11 +64,10 @@ $db->close();
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li><a href="home.php">HOME</a></li>
-                    <li><a href="#" class="active">TREATMENTS</a></li>
-                    <li><a href="#">BOOKING</a></li>
-                    <li><a href="#">BLOG</a></li>
-                    <li><a href="#">SHOP</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/treatment.php" class="active">TREATMENTS</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
                 </ul>
             </nav>
             <div class="header-right">
