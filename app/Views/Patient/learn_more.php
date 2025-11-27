@@ -115,7 +115,7 @@
                 Ready to experience the transformative power of natural herbal remedies? Our experienced practitioners are here to guide you toward optimal health and wellness.
             </p>
             <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="channeling.php" class="cta-button">Schedule Consultation</a>
+                <a href="channeling.php" class="cta-button">Treatments</a>
                 <a href="products.php" class="cta-button" style="background: transparent; color: #7c6e4f; border: 2px solid #7c6e4f;">Browse Products</a>
             </div>
         </section>

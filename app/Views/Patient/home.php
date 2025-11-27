@@ -144,7 +144,7 @@ if ($isLoggedIn && !empty($userName)) {
                 <h2>WE OFFER HEALTHY SOLUTIONS</h2>
                 <div class="offer-buttons">
                     <button class="btn about-us-btn"><a href="/dheergayu/app/Views/Patient/doctors.php">ABOUT US</a></button>
-                    <button class="btn get-in-touch-btn">GET IN TOUCH</button>
+                    <button class="btn get-in-touch-btn"><a href="/dheergayu/app/Views/Patient/learn_more.php">Learn More</a></button>
                 </div>
             </div>
         </div>
