@@ -1,0 +1,525 @@
+@import url('https://fonts.googleapis.com/css2?family=Allura&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f7f5f2;
+    scroll-behavior: smooth;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+/* Typography */
+.subtitle {
+    font-family: "Allura", cursive;
+    font-size: 35px;
+    color: #8c8c8c;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+h2 {
+    font-size: 38px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    color: #333;
+}
+
+.decorative-line {
+    width: 60px;
+    height: 1px;
+    background-color: #8c8c8c;
+    margin: 0 auto 30px;
+}
+
+.description {
+    text-align: center;
+    font-size: 17px;
+    color: #666;
+    margin-bottom: 40px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.8;
+}
+
+/* Header */
+.main-header {
+    background: linear-gradient(135deg, #2d2d2d 0%, #6f4403 100%);
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.main-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-header .logo {
+    display: flex;
+    align-items: center;
+}
+
+.main-header .logo img {
+    height: 57px;
+    margin-right: 15px;
+}
+
+.main-header .logo h1 {
+    font-size: 32px;
+    margin: 0;
+    line-height: 1.1;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Times New Roman', Times, serif;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.main-header .logo h1 span {
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    letter-spacing: 2px;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+/* Navigation */
+.main-nav ul {
+    display: flex;
+}
+
+.main-nav li {
+    margin-left: 30px;
+}
+
+.main-nav a {
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 10px 0;
+    transition: color 0.3s ease;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+    color: #e6a646;
+}
+
+.header-right .back-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.header-right .back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Treatments Hero Section */
+.treatments-hero {
+    padding: 80px 0 60px;
+    background: linear-gradient(135deg, #f9f5f0 0%, #fffbf5 100%);
+}
+
+.treatments-hero .subtitle {
+    color: #8c8c8c;
+    font-size: 38px;
+}
+
+.treatments-hero h2 {
+    font-size: 44px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.treatments-hero .description {
+    max-width: 900px;
+    font-size: 18px;
+    color: #555;
+}
+
+/* Treatments Section */
+.treatments-section {
+    padding: 60px 0 150px;
+}
+
+.treatments-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    row-gap: 120px;
+}
+
+/* Card Wrapper - Holds image + floating card */
+.card-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 250px;
+}
+
+/* Card Image */
+.card-image {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.card-wrapper:hover .card-image {
+    transform: scale(1.02);
+}
+
+/* Floating Card */
+.floating-card {
+    position: absolute;
+    bottom: -280px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 88%;
+    background-color: #ffffff;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.card-wrapper:hover .floating-card {
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+    transform: translateX(-50%) translateY(-5px);
+}
+
+/* Text Content */
+.text-content {
+    padding: 25px 20px 20px;
+}
+
+.treatment-title {
+    font-family: 'Great Vibes', cursive;
+    font-size: 2.2rem;
+    color: #556B2F;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.treatment-tagline {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    font-size: 0.85rem;
+    color: #8c8c8c;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+.treatment-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+
+/* Treatment Details */
+.treatment-details {
+    margin-bottom: 0;
+    text-align: left;
+    padding: 0 10px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+}
+
+.detail-value {
+    color: #666;
+    font-size: 13px;
+    text-align: right;
+}
+
+.detail-value.price {
+    color: #e6a646;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+/* Book Now Button */
+.btn-book {
+    background-color: #4B6237;
+    color: white;
+    text-decoration: none;
+    padding: 16px 0;
+    width: 100%;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: background 0.3s ease;
+    display: block;
+}
+
+.btn-book:hover {
+    background-color: #3a4d2b;
+}
+
+/* Footer */
+.main-footer {
+    background: linear-gradient(135deg, #2d2d2d 0%, #5e3800 100%);
+    color: white;
+    padding-top: 60px;
+}
+
+.main-footer .container {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #444;
+}
+
+.footer-column {
+    flex: 1;
+    min-width: 200px;
+}
+
+.footer-column h3 {
+    font-size: 20px;
+    text-transform: uppercase;
+    margin: 0 0 25px 0;
+    border-bottom: 2px solid #557945;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+.footer-column p {
+    margin: 5px 0;
+    color: #ccc;
+    font-size: 15px;
+}
+
+.footer-link,
+.social-link {
+    color: #ccc;
+    transition: color 0.3s;
+    display: block;
+    padding: 5px 0;
+}
+
+.footer-link:hover,
+.social-link:hover {
+    color: #557945;
+}
+
+.footer-bottom {
+    background-color: #1a1a1a;
+    padding: 15px 0;
+}
+
+.footer-bottom .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: none;
+    padding: 0 20px;
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 14px;
+    color: #888;
+}
+
+.scroll-to-top {
+    background-color: #e6a646;
+    color: white;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 20px;
+    transition: background-color 0.3s;
+}
+
+.scroll-to-top:hover {
+    background-color: #557945;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .treatments-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 35px;
+        row-gap: 110px;
+    }
+
+    .main-header .logo h1 {
+        font-size: 24px;
+    }
+
+    .main-nav {
+        display: none;
+    }
+
+    .card-image {
+        height: 350px;
+    }
+
+    .floating-card {
+        bottom: -75px;
+        width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .treatments-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        row-gap: 100px;
+    }
+
+    .treatments-hero h2 {
+        font-size: 36px;
+    }
+
+    .treatments-hero .subtitle {
+        font-size: 30px;
+    }
+
+    .treatments-hero .description {
+        font-size: 16px;
+    }
+
+    .card-image {
+        height: 320px;
+    }
+
+    .floating-card {
+        bottom: -70px;
+        width: 92%;
+    }
+
+    .treatment-title {
+        font-size: 2rem;
+    }
+
+    .main-footer .container {
+        flex-wrap: wrap;
+    }
+
+    .footer-column {
+        flex: 1 1 45%;
+        margin-bottom: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-header .logo h1 {
+        font-size: 18px;
+    }
+
+    .main-header .logo img {
+        height: 40px;
+    }
+
+    .treatments-hero {
+        padding: 60px 0 40px;
+    }
+
+    .treatments-hero h2 {
+        font-size: 28px;
+    }
+
+    .treatments-section {
+        padding: 40px 0 120px;
+    }
+
+    .treatments-grid {
+        row-gap: 90px;
+    }
+
+    .card-image {
+        height: 280px;
+    }
+
+    .floating-card {
+        bottom: -65px;
+        width: 94%;
+    }
+
+    .treatment-title {
+        font-size: 1.8rem;
+    }
+
+    .text-content {
+        padding: 20px 15px 15px;
+    }
+
+    .treatment-description {
+        font-size: 13px;
+    }
+
+    .detail-label,
+    .detail-value {
+        font-size: 12px;
+    }
+
+    .btn-book {
+        padding: 14px 0;
+        font-size: 0.8rem;
+    }
+
+    .header-right .back-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+}

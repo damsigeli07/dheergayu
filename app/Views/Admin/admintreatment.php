@@ -1,92 +1,47 @@
 <?php
-// Hardcoded treatments data from patient page
-$treatments = [
-    [
-        'id' => 1,
-        'name' => 'Nasya',
-        'description' => 'Traditional full-body massage using warm herbal oils',
-        'duration' => '30 min',
-        'price' => '2,500.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/asthma.png',
-        'conditions' => ['Asthma', 'ENT Disorders']
-    ],
-    [
-        'id' => 2,
-        'name' => 'Panchakarma Detox',
-        'description' => 'Complete detoxification and rejuvenation therapy',
-        'duration' => '90 min',
-        'price' => '9,000.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/skin_diseases.jpg',
-        'conditions' => ['Diabetes', 'Skin Diseases']
-    ],
-    [
-        'id' => 3,
-        'name' => 'Vashpa Sweda',
-        'description' => 'Nasal administration of herbal oils',
-        'duration' => '30 min',
-        'price' => '3,500.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/respiratory_disorders.jpg',
-        'conditions' => ['Respiratory Disorders']
-    ],
-    [
-        'id' => 4,
-        'name' => 'Elakizhi',
-        'description' => 'Specialized treatment for lower back pain',
-        'duration' => '60 min',
-        'price' => '7,000.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/arthritis.jpg',
-        'conditions' => ['Arthritis']
-    ],
-    [
-        'id' => 5,
-        'name' => 'Basti',
-        'description' => 'Traditional Ayurvedic foot massage',
-        'duration' => '45 min',
-        'price' => '5,000.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/paralysis.jpg',
-        'conditions' => ['Neurological Diseases and Paralysis', 'Osteoporosis']
-    ],
-    [
-        'id' => 6,
-        'name' => 'Abhyanga',
-        'description' => 'Energy point therapy',
-        'duration' => '60 min',
-        'price' => '5,000.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/bone_disorders.png',
-        'conditions' => ['Dislocation Features of Joints & Bones']
-    ],
-    [
-        'id' => 7,
-        'name' => 'Shirodhara',
-        'description' => 'Energy point therapy',
-        'duration' => '45 min',
-        'price' => '7,000.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/ENT_disorders.jpg',
-        'conditions' => ['Anxiety, Stress and Depression']
-    ],
-    [
-        'id' => 8,
-        'name' => 'Udvartana',
-        'description' => 'Energy point therapy',
-        'duration' => '45 min',
-        'price' => '3,500.00',
-        'status' => 'Active',
-        'image' => '/dheergayu/public/assets/images/Admin/health-treatments.jpg',
-        'conditions' => ['Cholesterol']
-    ]
-];
+// Fetch treatments from database
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+if ($db->connect_error) {
+    die("Connection failed: " . $db->connect_error);
+}
+
+// Fetch all treatments from treatment_list table
+$query = "SELECT treatment_id, treatment_name, description, duration, price, image, status 
+          FROM treatment_list 
+          ORDER BY treatment_id";
+$result = $db->query($query);
+
+$treatments = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $treatments[] = [
+            'id' => $row['treatment_id'],
+            'name' => $row['treatment_name'],
+            'description' => $row['description'] ?? '',
+            'duration' => $row['duration'] ?? '',
+            'price' => number_format($row['price'], 2, '.', ','),
+            'status' => $row['status'],
+            'image' => $row['image'] ?? '/dheergayu/public/assets/images/Admin/health-treatments.jpg'
+        ];
+    }
+}
 
 // Calculate statistics
 $totalTreatments = count($treatments);
-$activeTreatments = count($treatments); // All are active
-$inactiveTreatments = 0;
+$activeTreatments = count(array_filter($treatments, function($t) { return $t['status'] === 'Active'; }));
+$inactiveTreatments = count(array_filter($treatments, function($t) { return $t['status'] === 'Inactive'; }));
+
+// Get unique durations for filter
+$uniqueDurations = [];
+foreach ($treatments as $treatment) {
+    if (!empty($treatment['duration']) && !in_array($treatment['duration'], $uniqueDurations)) {
+        $uniqueDurations[] = $treatment['duration'];
+    }
+}
+sort($uniqueDurations);
+
+$db->close();
 ?>
 
 <!DOCTYPE html>
@@ -113,7 +68,7 @@ $inactiveTreatments = 0;
             <a href="admininventoryview.php" class="nav-btn">Inventory</a>
             <a href="adminappointment.php" class="nav-btn">Appointments</a>
             <a href="adminusers.php" class="nav-btn">Users</a>
-            <a href="admintreatment.php" class="nav-btn">Treatments</a>
+            <button class="nav-btn active">Treatments</button>
             <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
         </nav>
         
@@ -181,11 +136,9 @@ $inactiveTreatments = 0;
                 
                 <select class="filter-select" id="durationFilter">
                     <option value="">All Durations</option>
-                    <option value="30 min">30 min</option>
-                    <option value="45 min">45 min</option>
-                    <option value="60 min">60 min</option>
-                    <option value="75 min">75 min</option>
-                    <option value="90 min">90 min</option>
+                    <?php foreach ($uniqueDurations as $duration): ?>
+                        <option value="<?= htmlspecialchars($duration) ?>"><?= htmlspecialchars($duration) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
         </div>
@@ -211,38 +164,52 @@ $inactiveTreatments = 0;
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($treatments as $treatment): ?>
-                        <tr class="treatment-row <?= strtolower($treatment['status']) ?>">
-                            <td class="treatment-image">
-                                <img src="<?= htmlspecialchars($treatment['image']) ?>" 
-                                     alt="<?= htmlspecialchars($treatment['name']) ?>" 
-                                     class="treatment-thumbnail"
-                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
-                            </td>
-                            <td class="treatment-name">
-                                <div class="treatment-info">
-                                    <h4><?= htmlspecialchars($treatment['name']) ?></h4>
-                                    <span class="treatment-id">ID: <?= $treatment['id'] ?></span>
-                                </div>
-                            </td>
-                            <td class="treatment-description"><?= htmlspecialchars($treatment['description']) ?></td>
-                            <td class="duration"><?= htmlspecialchars($treatment['duration']) ?></td>
-                            <td class="price">Rs. <?= htmlspecialchars($treatment['price']) ?></td>
-                            <td class="status">
-                                <span class="status-badge <?= strtolower($treatment['status']) ?>">
-                                    <?= htmlspecialchars($treatment['status']) ?>
-                                </span>
-                            </td>
-                            <td class="actions">
-                                <button class="action-btn edit-btn" onclick="editTreatment(<?= $treatment['id'] ?>)">
-                                    ✏️ Edit
-                                </button>
-                                <button class="action-btn delete-btn" onclick="deleteTreatment(<?= $treatment['id'] ?>)">
-                                    🗑️ Delete
-                                </button>
+                    <?php if (empty($treatments)): ?>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: #666;">
+                                No treatments found. <a href="addnewtreatment.php" style="color: #E6A85A;">Add a new treatment</a>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
+                    <?php else: ?>
+                        <?php foreach ($treatments as $treatment): ?>
+                            <tr class="treatment-row <?= strtolower($treatment['status']) ?>">
+                                <td class="treatment-image">
+                                    <img src="<?= htmlspecialchars($treatment['image']) ?>" 
+                                         alt="<?= htmlspecialchars($treatment['name']) ?>" 
+                                         class="treatment-thumbnail"
+                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                                </td>
+                                <td class="treatment-name">
+                                    <div class="treatment-info">
+                                        <h4><?= htmlspecialchars($treatment['name']) ?></h4>
+                                        <span class="treatment-id">ID: <?= $treatment['id'] ?></span>
+                                    </div>
+                                </td>
+                                <td class="treatment-description"><?= htmlspecialchars($treatment['description']) ?></td>
+                                <td class="duration"><?= htmlspecialchars($treatment['duration']) ?></td>
+                                <td class="price">Rs. <?= htmlspecialchars($treatment['price']) ?></td>
+                                <td class="status">
+                                    <span class="status-badge <?= strtolower($treatment['status']) ?>">
+                                        <?= htmlspecialchars($treatment['status']) ?>
+                                    </span>
+                                </td>
+                                <td class="actions">
+                                    <button class="action-btn edit-btn" onclick="editTreatment(<?= $treatment['id'] ?>)">
+                                        Edit
+                                    </button>
+                                    <?php if ($treatment['status'] === 'Active'): ?>
+                                        <button class="action-btn delete-btn" onclick="deactivateTreatment(<?= $treatment['id'] ?>)">
+                                            Deactivate
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="action-btn activate-btn" onclick="activateTreatment(<?= $treatment['id'] ?>)">
+                                            Activate
+                                        </button>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -291,13 +258,90 @@ $inactiveTreatments = 0;
             });
         }
 
-        function editTreatment(id) {
-            alert('Edit functionality for treatment ID: ' + id + '\nThis would open an edit form for the treatment.');
+        async function editTreatment(id) {
+            // Fetch treatment data from server
+            try {
+                const formData = new FormData();
+                formData.append('treatment_id', id);
+                formData.append('action', 'get');
+                
+                const res = await fetch('/dheergayu/app/Controllers/TreatmentController.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await res.json();
+                if (result.success && result.treatment) {
+                    const t = result.treatment;
+                    // Build URL with query parameters
+                    const params = new URLSearchParams({
+                        treatment_id: t.treatment_id,
+                        treatment_name: t.treatment_name || '',
+                        description: t.description || '',
+                        duration: t.duration || '',
+                        price: t.price || '',
+                        status: t.status || 'Active'
+                    });
+                    window.location.href = 'addnewtreatment.php?' + params.toString();
+                } else {
+                    alert('Error: Could not load treatment data');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Failed to load treatment data: ' + err.message);
+            }
         }
 
-        function deleteTreatment(id) {
-            if (!confirm('Are you sure you want to delete this treatment? This action cannot be undone.')) return;
-            alert('Delete functionality for treatment ID: ' + id + '\nThis would delete the treatment from the system.');
+        async function deactivateTreatment(id) {
+            if (!confirm('Are you sure you want to deactivate this treatment? It will no longer be visible to patients.')) return;
+            
+            try {
+                const formData = new FormData();
+                formData.append('treatment_id', id);
+                formData.append('action', 'deactivate');
+                
+                const res = await fetch('/dheergayu/app/Controllers/TreatmentController.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    alert('✅ Treatment deactivated successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to deactivate treatment'));
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Failed to deactivate treatment: ' + err.message);
+            }
+        }
+
+        async function activateTreatment(id) {
+            if (!confirm('Are you sure you want to activate this treatment? It will be visible to patients.')) return;
+            
+            try {
+                const formData = new FormData();
+                formData.append('treatment_id', id);
+                formData.append('action', 'activate');
+                
+                const res = await fetch('/dheergayu/app/Controllers/TreatmentController.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    alert('✅ Treatment activated successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to activate treatment'));
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Failed to activate treatment: ' + err.message);
+            }
         }
 
     </script>

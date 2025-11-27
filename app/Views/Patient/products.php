@@ -1,3 +1,37 @@
+<?php
+$products = [];
+$productsError = '';
+
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+if ($db->connect_error) {
+    $productsError = 'Failed to load products. Please try again later.';
+} else {
+    $query = "SELECT product_id, name, price, description, image FROM products ORDER BY name ASC";
+    if ($result = $db->query($query)) {
+        while ($row = $result->fetch_assoc()) {
+            $imagePath = trim((string)($row['image'] ?? ''));
+            if ($imagePath !== '') {
+                $imagePath = '/dheergayu/public/assets/images/Admin/' . ltrim(str_replace('images/', '', $imagePath), '/');
+            } else {
+                $imagePath = '/dheergayu/public/assets/images/dheergayu.png';
+            }
+
+            $products[] = [
+                'id' => (int)$row['product_id'],
+                'name' => $row['name'] ?? 'Unnamed Product',
+                'price' => number_format((float)($row['price'] ?? 0), 2),
+                'description' => $row['description'] ?? 'No description available.',
+                'image' => $imagePath
+            ];
+        }
+        $result->free();
+    } else {
+        $productsError = 'Failed to load products. Please try again later.';
+    }
+    $db->close();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,113 +62,31 @@
             </div>
         </div>
 
-        <!-- First Row - 4 Products -->
         <div class="products-grid">
-            <!-- Product 1 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/paspanguwa.jpeg" alt="Paspanguwa Pack" class="product-img">
+            <?php if ($productsError): ?>
+                <div class="product-card" style="grid-column: 1 / -1; text-align:center;">
+                    <p><?= htmlspecialchars($productsError) ?></p>
                 </div>
-                <div class="product-info">
-                    <h3 class="product-name">Paspanguwa Pack</h3>
-                    <div class="product-price">Rs. 850</div>
-                    <p class="product-use">Traditional Ayurvedic medicine for fever, cold, and respiratory issues. Reduces body temperature and relieves cold symptoms.</p>
-                    <div class="product-availability">Available in Store</div>
+            <?php elseif (empty($products)): ?>
+                <div class="product-card" style="grid-column: 1 / -1; text-align:center;">
+                    <h3 class="product-name">No products available</h3>
+                    <p class="product-use">Please check back soon. Our pharmacy team is adding new wellness products.</p>
                 </div>
-            </div>
-
-            <!-- Product 2 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/asamodagam.jpg" alt="Asamodagam Spirit" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Asamodagam Spirit</h3>
-                    <div class="product-price">Rs. 650</div>
-                    <p class="product-use">Digestive tonic that improves appetite and digestion. Treats digestive disorders, bloating, and stomach discomfort.</p>
-                    <div class="product-availability">Available in Store</div>
-                </div>
-            </div>
-
-            <!-- Product 3 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/siddhalepa.png" alt="Siddhalepa Balm" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Siddhalepa Balm</h3>
-                    <div class="product-price">Rs. 450</div>
-                    <p class="product-use">Pain relief balm for headaches, muscle pain, and joint discomfort. Provides quick cooling relief.</p>
-                    <div class="product-availability">Available in Store</div>
-                </div>
-            </div>
-
-            <!-- Product 4 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Dashamoolarishta.jpeg" alt="Dashamoolarishta" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Dashamoolarishta</h3>
-                    <div class="product-price">Rs. 750</div>
-                    <p class="product-use">Traditional tonic made from ten roots. Strengthens the body, improves immunity, and treats various health conditions.</p>
-                    <div class="product-availability">Available in Store</div>
-                </div>
-            </div>
-        </div>
-        <!-- Second Row - 4 Products -->
-        <div class="products-grid">
-            <!-- Product 5 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Kothalahimbutu_Capsules.jpeg" alt="Kothalahimbutu Capsules" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">KothalahimbutuCapsules</h3>
-                    <div class="product-price">Rs. 1200</div>
-                    <p class="product-use">Natural supplement for joint health and mobility. Reduces inflammation and supports healthy cartilage.</p>
-                    <div class="product-availability">Available in Store</div>
-                </div>
-            </div>
-
-            <!-- Product 6 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Neem_Oil.jpg" alt="Neem Oil" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Neem Oil</h3>
-                    <div class="product-price">Rs. 380</div>
-                    <p class="product-use">Natural antiseptic oil for skin care. Treats acne, skin infections, and promotes healthy skin.</p>
-                    <div class="product-availability">Available in Store</div>
-                </div>
-            </div>
-
-            <!-- Product 7 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Pinda_Thailaya.jpeg" alt="Pinda Thailaya" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Pinda Thailaya</h3>
-                    <div class="product-price">Rs. 550</div>
-                    <p class="product-use">Therapeutic oil for Ayurvedic massage. Relieves muscle tension, improves circulation, and promotes relaxation.</p>
-                    <div class="product-availability">Available in Store</div>
-                </div>
-            </div>
-
-            <!-- Product 8 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Patient/Nirgundi_Oil.jpg" alt="Nirgundi Oil" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Nirgundi Oil</h3>
-                    <div class="product-price">Rs. 480</div>
-                    <p class="product-use">Traditional oil for pain relief and inflammation. Effective for joint pain, arthritis, and muscle soreness.</p>
-                    <div class="product-availability">Available in Store</div>
-                </div>
-            </div>
+            <?php else: ?>
+                <?php foreach ($products as $product): ?>
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
+                            <div class="product-price">Rs. <?= htmlspecialchars($product['price']) ?></div>
+                            <p class="product-use"><?= htmlspecialchars($product['description']) ?></p>
+                            <div class="product-availability">Available in Store</div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
 
         <!-- Footer Note -->
