@@ -159,6 +159,29 @@ h2 {
     align-items: center;
 }
 
+/* Login Button Styles */
+.login-btn {
+    background-color: transparent;
+    color: white;
+    padding: 10px 25px;
+    border: 2px solid white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: #e6a646;
+    border-color: #e6a646;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230, 166, 70, 0.4);
+}
+
 /* User Profile Dropdown Styles */
 .user-profile-container {
     position: relative;
