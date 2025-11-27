@@ -7,13 +7,6 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSI
     exit();
 }
 
-// request.php
-// Sample data (replace with your database results)
-$requests = [
-    ["product" => "Paspanguwa Pack", "quantity" => 40, "date" => "2025-08-30"],
-    ["product" => "Asamodagam Spirit", "quantity" => 20, "date" => "2025-08-31"],
-    ["product" => "Siddhalepa Balm", "quantity" => 50, "date" => "2025-09-20"]
-];
 ?>
 
 <!DOCTYPE html>
@@ -38,7 +31,6 @@ $requests = [
       <nav class="navigation">
           <a href="supplierdashboard.php" class="nav-btn">Home</a>
           <button class="nav-btn active">Request</button>
-          <a href="supplierprofile.php" class="nav-btn">Profile</a>
       </nav>
       
       <div class="user-section">
@@ -66,26 +58,49 @@ $requests = [
                         <th>Product Name</th>
                         <th>Quantity</th>
                         <th>Request Date</th>
-                        <th>Action</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
 
-                <tbody>
-                    <?php foreach ($requests as $row): ?>
-                        <tr>
-                            <td><?= $row["product"] ?></td>
-                            <td><?= $row["quantity"] ?></td>
-                            <td><?= $row["date"] ?></td>
-                            <td>
-                                <button class="btn accept">Accept</button>
-                                <button class="btn reject">Reject</button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
+                <tbody id="supplierRequestsBody">
+    <tr>
+        <td colspan="4" style="text-align:center; padding:20px;">Loading...</td>
+    </tr>
+</tbody>
+
+
             </table>
         </div>
     </div>
+
+<script>
+const supplierId = <?= json_encode($_SESSION['user_id']) ?>;
+
+function loadSupplierRequests() {
+    fetch('/dheergayu/public/api/get-supplier-requests.php?supplier_id=' + supplierId)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('supplierRequestsBody');
+            if (data.success && data.requests.length > 0) {
+                tbody.innerHTML = data.requests.map(req => `
+                    <tr>
+                        <td>${req.product_name}</td>
+                        <td>${req.quantity}</td>
+                        <td>${req.request_date}</td>
+                        <td><span class="status-badge status-${req.status}">${req.status}</span></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr><td colspan="4" style="text-align:center; padding:15px;">No requests found.</td></tr>
+                `;
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+loadSupplierRequests();
+</script>
 
 </body>
 </html>
