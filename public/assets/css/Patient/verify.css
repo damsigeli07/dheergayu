@@ -15,7 +15,7 @@
         }
 
     .header {
-    background: linear-gradient(135deg, #8B7355, #A0916B);
+    background-color: #2d2d2d;
     color: white;
     padding:  0.8rem 2rem;
     display: flex;
@@ -149,7 +149,7 @@
 
         .verify-btn {
             width: 100%;
-            background: linear-gradient(135deg, #5CB85C, #4CAF50);
+            background-color: #FF8C42;
             color: white;
             border: none;
             padding: 15px;
@@ -162,7 +162,7 @@
         }
 
         .verify-btn:hover {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
+            background-color: #ed6c1b;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
         }
