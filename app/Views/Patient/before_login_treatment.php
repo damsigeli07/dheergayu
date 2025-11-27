@@ -1,3 +1,50 @@
+<?php
+// Fetch active treatments from database
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+if ($db->connect_error) {
+    die("Connection failed: " . $db->connect_error);
+}
+
+// Fetch only active treatments from treatment_list table
+$query = "SELECT treatment_id, treatment_name, description, duration, price, image, status 
+          FROM treatment_list 
+          WHERE status = 'Active'
+          ORDER BY treatment_id";
+$result = $db->query($query);
+
+$treatments = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $treatments[] = [
+            'id' => $row['treatment_id'],
+            'name' => $row['treatment_name'],
+            'description' => $row['description'] ?? '',
+            'duration' => $row['duration'] ?? '',
+            'price' => number_format($row['price'], 2, '.', ','),
+            'image' => $row['image'] ?? '/dheergayu/public/assets/images/Patient/health-treatments.jpg'
+        ];
+    }
+}
+
+// Function to generate tagline from treatment name
+function generateTagline($treatmentName) {
+    $taglines = [
+        'Full Steam Treatment' => 'COMPLETE BODY STEAM THERAPY',
+        'Shiro Dhara' => 'MIND RELAXATION THERAPY',
+        'Head Treatment' => 'THERAPEUTIC HEAD CARE',
+        'Eye Treatment' => 'VISION WELLNESS THERAPY',
+        'Nasya Treatment' => 'NASAL THERAPY',
+        'Fat Burn Treatment' => 'WEIGHT MANAGEMENT THERAPY',
+        'Foot Treatment' => 'REFLEXOLOGY & CARE',
+        'Facial Treatment' => 'NATURAL SKIN REJUVENATION'
+    ];
+    
+    return $taglines[$treatmentName] ?? strtoupper(str_replace(' Treatment', ' THERAPY', $treatmentName));
+}
+
+$db->close();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -42,197 +89,38 @@
     <section class="treatments-section">
     <div class="container">
         <div class="treatments-grid">
-            <!-- Treatment Card 1 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Full Steam Treatment" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Full Steam Treatment</div>
-                        <div class="treatment-tagline">COMPLETE BODY STEAM THERAPY</div>
-                        <p class="treatment-description">Complete body steam therapy with herbal infusions for deep relaxation and detoxification</p>
+            <?php if (empty($treatments)): ?>
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                    <p>No treatments available at the moment. Please check back later.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($treatments as $treatment): ?>
+                    <div class="card-wrapper">
+                        <img src="<?= htmlspecialchars($treatment['image']) ?>" 
+                             alt="<?= htmlspecialchars($treatment['name']) ?>" 
+                             class="card-image">
                         
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">60 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 6,000.00</span>
+                        <div class="floating-card">
+                            <div class="text-content">
+                                <div class="treatment-title"><?= htmlspecialchars($treatment['name']) ?></div>
+                                <div class="treatment-tagline"><?= htmlspecialchars(generateTagline($treatment['name'])) ?></div>
+                                <p class="treatment-description"><?= htmlspecialchars($treatment['description']) ?></p>
+                                
+                                <div class="treatment-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Duration:</span>
+                                        <span class="detail-value"><?= htmlspecialchars($treatment['duration']) ?></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Price:</span>
+                                        <span class="detail-value price">Rs. <?= htmlspecialchars($treatment['price']) ?></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Treatment Card 2 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/shirodhara1.jpg" alt="Shiro Dhara" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Shiro Dhara</div>
-                        <div class="treatment-tagline">MIND RELAXATION THERAPY</div>
-                        <p class="treatment-description">Gentle oil flow on forehead to calm the mind, relieve stress and promote deep relaxation</p>
-                        
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">45 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 4,500.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Treatment Card 3 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/head-massage2.png" alt="Head Treatment" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Head Treatment</div>
-                        <div class="treatment-tagline">THERAPEUTIC HEAD CARE</div>
-                        <p class="treatment-description">Specialized Ayurvedic head massage and therapy to relieve tension and promote mental clarity</p>
-                        
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">40 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 3,000.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Treatment Card 4 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/eye.jpg" alt="Eye Treatment" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Eye Treatment</div>
-                        <div class="treatment-tagline">VISION WELLNESS THERAPY</div>
-                        <p class="treatment-description">Soothing eye care treatment with herbal applications to reduce strain and improve vision health</p>
-                        
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">30 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 2,000.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Treatment Card 5 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/nasya.jpg" alt="Nasya Treatment" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Nasya Treatment</div>
-                        <div class="treatment-tagline">NASAL THERAPY</div>
-                        <p class="treatment-description">Traditional nasal administration of herbal oils for respiratory wellness and sinus relief</p>
-                        
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">45 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 4,500.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Treatment Card 6 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/fat-burn.jpg" alt="Fat Burn Treatment" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Fat Burn Treatment</div>
-                        <div class="treatment-tagline">WEIGHT MANAGEMENT THERAPY</div>
-                        <p class="treatment-description">Specialized Ayurvedic treatment combining massage and herbal applications for weight reduction</p>
-                        
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">50 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 3,000.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Treatment Card 7 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/foot.jpg" alt="Foot Treatment" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Foot Treatment</div>
-                        <div class="treatment-tagline">REFLEXOLOGY & CARE</div>
-                        <p class="treatment-description">Therapeutic foot massage with herbal oils to improve circulation and overall wellness</p>
-                        
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">45 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 3,000.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Treatment Card 8 -->
-            <div class="card-wrapper">
-                <img src="/dheergayu/public/assets/images/Patient/facial.jpg" alt="Facial Treatment" class="card-image">
-                
-                <div class="floating-card">
-                    <div class="text-content">
-                        <div class="treatment-title">Facial Treatment</div>
-                        <div class="treatment-tagline">NATURAL SKIN REJUVENATION</div>
-                        <p class="treatment-description">Ayurvedic facial using natural herbs and oils for glowing, healthy skin and deep nourishment</p>
-                        
-                        <div class="treatment-details">
-                            <div class="detail-item">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value">50 minutes</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Price:</span>
-                                <span class="detail-value price">Rs. 3,000.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 </section>
