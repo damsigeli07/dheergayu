@@ -52,7 +52,7 @@ $db->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dheergayu - Treatment Appointment</title>
-    <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/before_login_treatment.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/treatment.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -64,11 +64,10 @@ $db->close();
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li><a href="home.php">HOME</a></li>
-                    <li><a href="#" class="active">TREATMENTS</a></li>
-                    <li><a href="#">BOOKING</a></li>
-                    <li><a href="#">BLOG</a></li>
-                    <li><a href="#">SHOP</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/treatment.php" class="active">TREATMENTS</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
                 </ul>
             </nav>
             <div class="header-right">
@@ -157,12 +156,6 @@ $db->close();
                     <li><a href="#" class="social-link">in LinkedIn</a></li>
                     <li><a href="#" class="social-link">📷 Instagram</a></li>
                 </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <div class="container">
-                <p>Dheergayu © 2025. All Rights Reserved.</p>
-                <a href="#top" class="scroll-to-top">▲</a>
             </div>
         </div>
     </footer>

@@ -28,10 +28,10 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
             </div>
             <nav class="main-nav">
                 <ul>
-                    <li><a href="#">HOME</a></li>
-                    <li><a href="#">BOOKING</a></li>
-                    <li><a href="#">BLOG</a></li>
-                    <li><a href="#">SHOP</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
                 </ul>
             </nav>
             <div class="header-right"> 
@@ -42,12 +42,12 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     </header>
     <section class="hero-slider">
         <div class="slider-container">
-            <div class="slide active" style="background-image: url('/dheergayu/public/assets/images/Patient/green6.jpg');">
+            <div class="slide active" style="background-image: url('/dheergayu/public/assets/images/Patient/green11.jpg');">
                 <div class="hero-content">
                     <p class="subtitle">Massage and therapy</p>
                     <h2>DHEERGAYU TREATMENT CENTER</h2>
                     <p>Give yourself a moment to relax. Find a minute to rejuvenate your body.</p>
-                    <a href="/dheergayu/app/Views/Patient/before_login_treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
+                    <a href="/dheergayu/app/Views/Patient/treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
                 </div>
             </div>
             <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green9.png');">
@@ -55,15 +55,15 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     <p class="subtitle">Relax and Refresh</p>
                     <h2>OUR TREATMENTS</h2>
                     <p>Experience peace and harmony with our curated therapies.</p>
-                    <a href="/dheergayu/app/Views/Patient/before_login_treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
+                    <a href="/dheergayu/app/Views/Patient/treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
                 </div>
             </div>
-            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green11.jpg');">
+            <div class="slide" style="background-image: url('/dheergayu/public/assets/images/Patient/green12.jpg');">
                 <div class="hero-content">
                     <p class="subtitle">Wellness for You</p>
                     <h2>AYURVEDIC HEALING</h2>
                     <p>Discover ancient secrets for a balanced mind and body.</p>
-                    <a href="/dheergayu/app/Views/Patient/before_login_treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
+                    <a href="/dheergayu/app/Views/Patient/treatment.php"><button class="btn">MAKE AN APPOINTMENT</button></a>
                 </div>
             </div>
         </div>
@@ -85,10 +85,9 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     <img src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Our_treatments" class="card-image">
                 </div>
                 <div class="card-content">
-                    <h3>Weekly Deals</h3>
-                    <p class="card-title">ONLY FOR NEWCOMERS</p>
-                    <p>Experience the healing power of Ayurveda with exclusive offers for first-time visitors.</p>
-                    <button class="btn card-btn">READ MORE</button>
+                    <h3>Treatments</h3>
+                    <p>Schedule your personalized treatment plan with our expert Ayurvedic practitioners.</p>
+                    <button class="btn certificate-btn"><a href="/dheergayu/app/Views/Patient/treatment.php">READ MORE</a></button>
                 </div>
             </div>
             <div class="card">
@@ -96,10 +95,9 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                     <img src="/dheergayu/public/assets/images/Patient/herbal-product.jpg" alt="Special Gifts" class="card-image">
                 </div>
                 <div class="card-content">
-                    <h3>Special Gifts</h3>
-                    <p class="card-title">GIFT CARDS AVAILABLE</p>
-                    <p>Give the gift of wellness with our premium Ayurvedic treatment gift certificates.</p>
-                    <button class="btn card-btn-alt">READ MORE</button>
+                    <h3>Products</h3>
+                    <p>Discover our range of authentic Ayurvedic products crafted to support your wellness journey.</p>
+                    <button class="btn certificate-btn"><a href="/dheergayu/app/Views/Patient/products.php">READ MORE</a></button>
                 </div>
             </div>
             <div class="card">
@@ -108,9 +106,8 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 </div>
                 <div class="card-content">
                     <h3>Book Now</h3>
-                    <p class="card-title">ONLINE APPOINTMENT</p>
                     <p>Schedule your healing journey with our expert Ayurvedic practitioners today.</p>
-                    <button class="btn card-btn">READ MORE</button>
+                    <button class="btn certificate-btn"><a href="/dheergayu/app/Views/Patient/channeling.php">READ MORE</a></button>
                 </div>
             </div>
         </div>
@@ -122,7 +119,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <p class="subtitle">Massage Studio</p>
                 <h2>WE OFFER HEALTHY SOLUTIONS</h2>
                 <div class="offer-buttons">
-                    <button class="btn about-us-btn">ABOUT US</button>
+                    <button class="btn about-us-btn"><a href="/dheergayu/app/Views/Patient/doctors.php">ABOUT US</a></button>
                     <button class="btn get-in-touch-btn">GET IN TOUCH</button>
                 </div>
             </div>
@@ -134,7 +131,7 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     <section class="gift-certificates">
         <div class="container">
             <p class="subtitle">Make an Order</p>
-            <h2>GIFT CERTIFICATES</h2>
+            <h2>TREATMENT COMBO SPECIAL PACKAGES</h2>
             <div class="decorative-line"></div>
             <p class="description">There is no better gift to he ones we love than a gift of a healthy, therapeutic, or relaxing session of massage</p>
 
@@ -142,26 +139,23 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <div class="certificate-card">
                     <p class="certificate-level silver">Silver</p>
                     <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Silver Certificate" class="circle-image">
-                        <span class="price-badge">$100</span>
+                        <img src="/dheergayu/public/assets/images/Patient/silver.jpg" alt="Silver Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn">I WANT THIS CARD</button>
+                    <button class="btn certificate-btn">Rs. 14,000.00</button>
                 </div>
                 <div class="certificate-card">
                     <p class="certificate-level gold">Gold</p>
                     <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Gold Certificate" class="circle-image">
-                        <span class="price-badge-alt">$300</span>
+                        <img src="/dheergayu/public/assets/images/Patient/health-treatments.jpg" alt="Gold Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn-alt">I WANT THIS CARD</button>
+                    <button class="btn certificate-btn-alt">Rs. 15,500.00</button>
                 </div>
                 <div class="certificate-card">
                     <p class="certificate-level platinum">Platinum</p>
                     <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Platinum Certificate" class="circle-image">
-                        <span class="price-badge">$500</span>
+                        <img src="/dheergayu/public/assets/images/Patient/platinum.jpg" alt="Platinum Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn">I WANT THIS CARD</button>
+                    <button class="btn certificate-btn">Rs. 8,000.00</button>
                 </div>
             </div>
         </div>
@@ -170,48 +164,8 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
     <section class="products-section">
         <div class="container">
             <p class="subtitle">Premium Quality</p>
-            <h2>NATURAL BEAUTY PRODUCTS</h2>
+            <h2>DHEERGAYU MASSAGE CENTER</h2>
             <div class="decorative-line"></div>
-
-            <div class="product-grid">
-                <div class="product-item">
-                    <div class="product-image-box">
-                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Supreme Skincare">
-                    </div>
-                    <p class="product-category">BODY, COSMETICS, HYDRATION</p>
-                    <p class="product-name">SUPREME SKINCARE</p>
-                    <div class="stars">★★★★☆</div>
-                    <p class="product-price">$39.00 – $47.00</p>
-                </div>
-                <div class="product-item">
-                    <div class="product-image-box">
-                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Eye Contour Mask">
-                    </div>
-                    <p class="product-category">FACIAL, HYDRATION, SALE</p>
-                    <p class="product-name">EYE CONTOUR MASK</p>
-                    <div class="stars">★★★★☆</div>
-                    <p class="product-price">$47.00 – $57.00</p>
-                </div>
-                <div class="product-item">
-                    <div class="product-image-box">
-                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Black Rose Serum">
-                    </div>
-                    <p class="product-category">COSMETICS, HYDRATION, PROCEDURE</p>
-                    <p class="product-name">BLACK ROSE SERUM</p>
-                    <div class="stars">★★★★★</div>
-                    <p class="product-price">$89.00 – $99.00</p>
-                </div>
-                <div class="product-item">
-                    <div class="product-image-box">
-                        <img src="/dheergayu/public/assets/images/Patient/treatments.png" alt="Natural Soft Soap">
-                    </div>
-                    <p class="product-category">CREAM, FACIAL, HYDRATION</p>
-                    <p class="product-name">NATURAL SOFT SOAP</p>
-                    <div class="stars">★★★☆☆</div>
-                    <p class="product-price">$30.00 – $35.00</p>
-                </div>
-            </div>
-            <button class="btn view-all-products-btn">VIEW ALL PRODUCTS</button>
         </div>
     </section>
 
@@ -274,37 +228,29 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 <p>Welcome to one of the best therapeutic massage studios in your area!</p>
             </div>
             <div class="footer-column">
-                <h3>OFFICE</h3>
-                <p>Germany —</p>
-                <p>785 15h Street, Office 478</p>
-                <p>Berlin, De 81566</p>
+                <h3>Main branch</h3>
+                <p>Colombo —</p>
+                <p>785 Street, Office 478</p>
+                <p>Colombo</p>
                 <p><a href="mailto:info@email.com" class="footer-link">info@email.com</a></p>
-                <p>+1 840 841 25 69</p>
+                <p>+94 712841259</p>
             </div>
             <div class="footer-column">
                 <h3>LINKS</h3>
                 <ul>
-                    <li><a href="#" class="footer-link">Home</a></li>
-                    <li><a href="#" class="footer-link">Services</a></li>
-                    <li><a href="#" class="footer-link">About Us</a></li>
-                    <li><a href="#" class="footer-link">Booking</a></li>
-                    <li><a href="#" class="footer-link">Contacts</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php" class="footer-link">Home</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/doctors.php" class="footer-link">About Us</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php" class="footer-link">Booking</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/contact.php" class="footer-link">Contacts</a></li>
                 </ul>
             </div>
             <div class="footer-column">
                 <h3>GET IN TOUCH</h3>
                 <ul>
-                    <li><a href="#" class="social-link">f Facebook</a></li>
-                    <li><a href="#" class="social-link">x X</a></li>
-                    <li><a href="#" class="social-link">🏀 Dribble</a></li>
-                    <li><a href="#" class="social-link">📷 Instagram</a></li>
+                    <li><a href="#" class="social-link"> Facebook</a></li>
+                    <li><a href="#" class="social-link"> X</a></li>
+                    <li><a href="#" class="social-link"> Instagram</a></li>
                 </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <div class="container">
-                <p>ThemeREX © 2025. All Rights Reserved.</p>
-                <a href="#top" class="scroll-to-top">▲</a>
             </div>
         </div>
     </footer>
@@ -478,28 +424,28 @@ $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
                 description: "This is a type of massage that involves applying different amounts of pressure to the feet, hands, and ears, because these body parts are connected to certain organs, and it helps with:",
                 list1: ["Back pain", "Sciatica", "Sleep disorder"],
                 list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/herbal-product.jpg"
+                image: "/dheergayu/public/assets/images/Patient/massage2.jpg"
             },
             trigger: {
                 title: "TRIGGER POINT MASSAGE",
                 description: "Let your sore and painful spots feel the pressure that slowly turns into pleasure after our therapeutic trigger point massage. It is a great way to get rid of pain effectively:",
                 list1: ["Back pain", "Sciatica", "Sleep disorder"],
                 list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/treatments.png"
+                image: "/dheergayu/public/assets/images/Patient/massage3.jpg"
             },
             lymph: {
                 title: "MANUAL LYMPH MASSAGE",
                 description: "We help your body maintain its fluid balance with the most amazing lymph massage that is performed manually. You can lose up to 2 lbs after a session and get rid of:",
                 list1: ["Back pain", "Sciatica", "Sleep disorder"],
                 list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/head-massage.jpg"
+                image: "/dheergayu/public/assets/images/Patient/massage4.jpg"
             },
             myofacial: {
                 title: "MYOFACIAL MASSAGE",
                 description: "Myofascial therapy among other massages works the broader network of muscles that might be causing your pain and distress. Its purpose is for the treatment of body stress or pain:",
                 list1: ["Back pain", "Sciatica", "Sleep disorder"],
                 list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/stone2.jpg"
+                image: "/dheergayu/public/assets/images/Patient/massage5.jpg"
             }
         };
 
