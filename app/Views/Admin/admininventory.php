@@ -1,16 +1,31 @@
 <?php
-// Sample data for demonstration
-$products = [
-    ["name"=>"Asamodagam", "image"=>"/dheergayu/public/assets/images/Admin/asamodagam.jpg"],
-    ["name"=>"Bala Thailaya", "image"=>"/dheergayu/public/assets/images/Admin/Bala Thailaya.png"],
-    ["name"=>"Dashamoolarishta", "image"=>"/dheergayu/public/assets/images/Admin/Dashamoolarishta.jpeg"],
-    ["name"=>"Kothalahimbutu Capsules", "image"=>"/dheergayu/public/assets/images/Admin/Kothalahimbutu Capsules.jpeg"],
-    ["name"=>"Neem Oil", "image"=>"/dheergayu/public/assets/images/Admin/Neem Oil.jpg"],
-    ["name"=>"Nirgundi Oil", "image"=>"/dheergayu/public/assets/images/Admin/Nirgundi Oil.jpg"],
-    ["name"=>"Paspanguwa", "image"=>"/dheergayu/public/assets/images/Admin/paspanguwa.jpeg"],
-    ["name"=>"Pinda Thailaya", "image"=>"/dheergayu/public/assets/images/Admin/Pinda Thailaya.jpeg"],
-    ["name"=>"Siddhalepa", "image"=>"/dheergayu/public/assets/images/Admin/siddhalepa.png"],
-];
+// Fetch products from database
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+if ($db->connect_error) {
+    die("Connection failed: " . $db->connect_error);
+}
+
+// Fetch all products from products table
+$query = "SELECT product_id, name, price, description, image FROM products ORDER BY product_id";
+$result = $db->query($query);
+
+$products = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        // Construct full image path - database stores "images/filename" but we need full path
+        $image_path = '/dheergayu/public/assets/images/Admin/' . str_replace('images/', '', $row['image']);
+        $products[] = [
+            'id' => $row['product_id'],
+            'name' => $row['name'],
+            'price' => number_format($row['price'], 2, '.', ','),
+            'description' => $row['description'],
+            'image' => $image_path
+        ];
+    }
+}
+
+$db->close();
 
 // Sample inventory batches (normally fetched from DB) - Multiple batches per product
 $inventoryBatches = [
@@ -130,135 +145,28 @@ foreach($inventoryData as $item) {
 
         <!-- Product Grid -->
         <div class="product-grid">
-
-            <!-- Product Card 1 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/paspanguwa.jpeg" alt="Paspanguwa Pack" class="product-img">
+            <?php if (empty($products)): ?>
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                    <p>No products found. <a href="add-product.php" style="color: #E6A85A;">Add a new product</a></p>
                 </div>
-                <div class="product-info">
-                    <h3 class="product-name">Paspanguwa Pack</h3>
-                    <p class="product-price">Price: Rs. 850</p>
-                    <p class="product-description">A traditional herbal remedy for digestive health and overall wellness.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
-            <!-- Product Card 2 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/asamodagam.jpg" alt="Asamodagam Spirit" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Asamodagam Spirit</h3>
-                    <p class="product-price">Price: Rs. 650</p>
-                    <p class="product-description">A potent herbal formulation to boost immunity and energy levels naturally.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
-            <!-- Product Card 3 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/siddhalepa.png" alt="Siddhalepa Balm" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Siddhalepa Balm</h3>
-                    <p class="product-price">Price: Rs. 450</p>
-                    <p class="product-description">Herbal balm for fast relief from headaches and muscle pain.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
-            <!-- Product Card 4 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/Dashamoolarishta.jpeg" alt="Dashamoolarishta" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Dashamoolarishta</h3>
-                    <p class="product-price">Price: Rs. 750</p>
-                    <p class="product-description">A traditional tonic to support digestion and enhance immunity.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
-            <!-- Product Card 5 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/Kothalahimbutu Capsules.jpeg" alt="Kothalahimbutu Capsules" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Kothalahimbutu Capsules</h3>
-                    <p class="product-price">Price: Rs. 1200</p>
-                    <p class="product-description">Capsules made from Kothalahimbutu herb to enhance stamina and vitality.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
-            <!-- Product Card 6 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/Neem Oil.jpg" alt="Neem Oil" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Neem Oil</h3>
-                    <p class="product-price">Price: Rs. 380</p>
-                    <p class="product-description">Pure neem oil for skin care, hair care, and general wellness.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
-            <!-- Product Card 7 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/Pinda Thailaya.jpeg" alt="Pinda Thailaya" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Pinda Thailaya</h3>
-                    <p class="product-price">Price: Rs. 550</p>
-                    <p class="product-description">Therapeutic oil for joint and muscle pain relief.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
-            <!-- Product Card 8 -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="/dheergayu/public/assets/images/Admin/Nirgundi Oil.jpg" alt="Nirgundi Oil" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">Nirgundi Oil</h3>
-                    <p class="product-price">Price: Rs. 480</p>
-                    <p class="product-description">Nirgundi oil for effective pain relief and inflammation reduction.</p>
-                </div>
-                <div class="product-actions">
-                    <button class="btn btn-edit">Edit</button>
-                    <button class="btn btn-delete">Delete</button>
-                </div>
-            </div>
-
+            <?php else: ?>
+                <?php foreach ($products as $product): ?>
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
+                            <p class="product-price">Price: Rs. <?= htmlspecialchars($product['price']) ?></p>
+                            <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>)">Edit</button>
+                            <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>)">Delete</button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
 
         <!-- Add New Product Button -->
@@ -266,5 +174,66 @@ foreach($inventoryData as $item) {
             <a href="add-product.php" class="btn-add-product">+ Add New Product</a>
         </div>
     </main>
+
+    <script>
+        async function editProduct(id) {
+            // Fetch product data from server
+            try {
+                const formData = new FormData();
+                formData.append('product_id', id);
+                formData.append('action', 'get');
+                
+                const res = await fetch('/dheergayu/app/Controllers/ProductController.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await res.json();
+                if (result.success && result.product) {
+                    const p = result.product;
+                    // Build URL with query parameters
+                    const params = new URLSearchParams({
+                        product_id: p.product_id,
+                        product_name: p.name || '',
+                        product_price: p.price || '',
+                        product_description: p.description || '',
+                        product_image: p.image || ''
+                    });
+                    window.location.href = 'add-product.php?' + params.toString();
+                } else {
+                    alert('Error: Could not load product data');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Failed to load product data: ' + err.message);
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
+            
+            try {
+                const formData = new FormData();
+                formData.append('product_id', id);
+                formData.append('action', 'delete');
+                
+                const res = await fetch('/dheergayu/app/Controllers/ProductController.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await res.json();
+                if (result.success) {
+                    alert('✅ Product deleted successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to delete product'));
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Failed to delete product: ' + err.message);
+            }
+        }
+    </script>
 </body>
 </html>

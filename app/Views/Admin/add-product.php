@@ -1,9 +1,38 @@
+<?php
+// Fetch product data from database if editing
+$productId = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
+$productName = '';
+$productPrice = '';
+$productDescription = '';
+$currentImage = '';
+
+if ($productId > 0) {
+    // Fetch product data from database
+    $db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+    if (!$db->connect_error) {
+        $stmt = $db->prepare("SELECT product_id, name, price, description, image FROM products WHERE product_id = ?");
+        $stmt->bind_param('i', $productId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $product = $result->fetch_assoc();
+        $stmt->close();
+        $db->close();
+        
+        if ($product) {
+            $productName = $product['name'] ?? '';
+            $productPrice = $product['price'] ?? '';
+            $productDescription = $product['description'] ?? '';
+            $currentImage = $product['image'] ?? '';
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Product - Admin Dashboard</title>
+    <title><?= $productId ? 'Edit Product' : 'Add New Product' ?> - Admin Dashboard</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/inventory-styles.css">
@@ -184,25 +213,29 @@
     
     <main class="main-content">
         <div class="add-product-form">
-            <h2 class="form-title">Add New Product</h2>
+            <h2 class="form-title"><?= $productId ? 'Edit Product' : 'Add New Product' ?></h2>
             
-            <form action="process-add-product.php" method="POST" enctype="multipart/form-data">
+            <form id="addProductForm" method="POST" enctype="multipart/form-data">
+                <?php if ($productId): ?>
+                <input type="hidden" name="product_id" value="<?= $productId ?>">
+                <?php endif; ?>
+                
                 <!-- Product Name -->
                 <div class="form-group">
                     <label for="product-name" class="form-label">Product Name</label>
-                    <input type="text" id="product-name" name="product_name" class="form-input" required placeholder="Enter product name">
+                    <input type="text" id="product-name" name="product_name" class="form-input" required placeholder="Enter product name" value="<?= htmlspecialchars($productName) ?>">
                 </div>
 
                 <!-- Product Price -->
                 <div class="form-group">
                     <label for="product-price" class="form-label">Price (Rs.)</label>
-                    <input type="number" id="product-price" name="product_price" class="form-input" required min="0" step="0.01" placeholder="Enter price">
+                    <input type="number" id="product-price" name="product_price" class="form-input" required min="0" step="0.01" placeholder="Enter price" value="<?= htmlspecialchars($productPrice) ?>">
                 </div>
 
                 <!-- Product Description -->
                 <div class="form-group">
                     <label for="product-description" class="form-label">Description</label>
-                    <textarea id="product-description" name="product_description" class="form-textarea" required placeholder="Enter product description"></textarea>
+                    <textarea id="product-description" name="product_description" class="form-textarea" required placeholder="Enter product description"><?= htmlspecialchars($productDescription) ?></textarea>
                 </div>
 
                 <!-- Product Image -->
@@ -212,15 +245,21 @@
                         <input type="file" id="product-image" name="product_image" accept="image/*">
                         <div class="upload-text">
                             <p>Click to upload product image</p>
-                            <p style="font-size: 0.8rem; margin-top: 0.5rem;">Supports: JPG, PNG, JPEG</p>
+                            <p style="font-size: 0.8rem; margin-top: 0.5rem;">Supports: JPG, PNG, JPEG. Leave empty to keep current image when editing.</p>
                         </div>
+                        <?php if ($productId > 0 && $currentImage): ?>
+                            <div style="margin-top: 10px;">
+                                <p style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Current Image:</p>
+                                <img src="/dheergayu/public/assets/images/Admin/<?= htmlspecialchars(str_replace('images/', '', $currentImage)) ?>" alt="Current product image" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;">
+                            </div>
+                        <?php endif; ?>
                         <div class="image-preview"></div>
                     </div>
                 </div>
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit">Add Product</button>
+                    <button type="submit" class="btn-submit"><?= $productId ? 'Save Changes' : 'Add Product' ?></button>
                     <a href="admininventory.php" class="btn-cancel">Cancel</a>
                 </div>
             </form>
@@ -239,6 +278,29 @@
                     previewDiv.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
                 }
                 reader.readAsDataURL(file);
+            }
+        });
+
+        // Form submission
+        document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = new FormData(form);
+            const isEdit = data.get('product_id');
+            const url = '/dheergayu/app/Controllers/ProductController.php';
+            try {
+                const res = await fetch(url, { method: 'POST', body: data });
+                const result = await res.json();
+                
+                if (result.success) {
+                    alert(isEdit ? '✅ Product updated successfully' : '✅ Product added successfully');
+                    window.location.href = 'admininventory.php';
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to save product'));
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Failed to save product: ' + err.message);
             }
         });
     </script>

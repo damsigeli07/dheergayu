@@ -39,7 +39,6 @@ $supplier = [
         <nav class="navigation">
             <a href="supplierdashboard.php" class="nav-btn">Home</a>
             <a href="supplierrequest.php" class="nav-btn">Request</a>
-            <button class="nav-btn active">Profile</button>
         </nav>
         
         <div class="user-section">
@@ -91,7 +90,7 @@ $supplier = [
         </div>
 
         <div class="edit-btn-container">
-            <a href="#" class="btn-edit-profile">Edit Profile</a>
+            <a href="suppliereditprofile.php" class="btn-edit-profile">Edit Profile</a>
         </div>
     </main>
 </body>

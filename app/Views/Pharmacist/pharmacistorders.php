@@ -17,6 +17,15 @@ while ($product = $productsQuery->fetch_assoc()) {
         'price' => (float)$product['price']
     ];
 }
+
+// Fetch dispatch statuses
+$dispatchStatuses = [];
+$dispatchQuery = $db->query("SELECT consultation_id, status FROM consultation_dispatches");
+if ($dispatchQuery) {
+    while ($row = $dispatchQuery->fetch_assoc()) {
+        $dispatchStatuses[$row['consultation_id']] = $row['status'];
+    }
+}
 $db->close();
 ?>
 <!DOCTYPE html>
@@ -66,7 +75,7 @@ $db->close();
                         <th>Consultation ID</th>
                         <th>Patient Name</th>
                         <th>Medicines Prescribed</th>
-                        <th>View Total</th>
+                        <th>Total</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -80,7 +89,8 @@ $db->close();
                                 $personalProducts = [];
                             }
                             ?>
-                            <tr>
+                            <?php $isDispatched = isset($dispatchStatuses[$consultation['id']]) && $dispatchStatuses[$consultation['id']] === 'Dispatched'; ?>
+                            <tr class="<?= $isDispatched ? 'row-dispatched' : '' ?>">
                                 <td><?= htmlspecialchars($consultation['id']) ?></td>
                                 <td><?= htmlspecialchars($consultation['first_name'] . ' ' . $consultation['last_name']) ?></td>
                                 <td>
@@ -95,8 +105,16 @@ $db->close();
                                         <span class="no-medicines">No medicines prescribed</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><button class="btn-action" onclick="calculateTotal('<?= $consultation['id'] ?>')">Calculate</button></td>
-                                <td><input type="checkbox" class="dispense-status"> Dispatched</td>
+                                <td><button class="btn-action" onclick="calculateTotal('<?= $consultation['id'] ?>')">View</button></td>
+                                <td class="status-cell">
+                                    <label class="dispatch-label">
+                                        <input type="checkbox"
+                                               class="dispense-status"
+                                               <?= $isDispatched ? 'checked' : '' ?>
+                                               onchange="toggleDispatch('<?= $consultation['id'] ?>', this.checked)">
+                                        Dispatched
+                                    </label>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -181,6 +199,27 @@ $db->close();
 
         function closeModal() {
             document.getElementById("receiptModal").style.display = "none";
+        }
+
+        async function toggleDispatch(consultationId, isDispatched) {
+            try {
+                const formData = new FormData();
+                formData.append('consultation_id', consultationId);
+                formData.append('dispatched', isDispatched ? '1' : '0');
+
+                const response = await fetch('/dheergayu/app/Controllers/pharmacist_dispatch.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (!result.success) {
+                    alert(result.message || 'Failed to update dispatch status');
+                }
+            } catch (error) {
+                console.error('Dispatch update failed', error);
+                alert('Failed to update dispatch status');
+            }
         }
     </script>
 </body>

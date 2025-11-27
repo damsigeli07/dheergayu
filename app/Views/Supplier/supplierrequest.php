@@ -1,19 +1,26 @@
 <?php
 session_start();
 
-// Check if user is logged in and is a supplier
+require_once __DIR__ . '/../../../core/bootloader.php';
+require_once __DIR__ . '/../../../app/Models/ProductRequestModel.php';
+
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['user_type'] !== 'supplier') {
     header("Location: ../patient/login.php");
     exit();
 }
 
-// request.php
-// Sample data (replace with your database results)
-$requests = [
-    ["product" => "Paspanguwa Pack", "quantity" => 40, "date" => "2025-08-30"],
-    ["product" => "Asamodagam Spirit", "quantity" => 20, "date" => "2025-08-31"],
-    ["product" => "Siddhalepa Balm", "quantity" => 50, "date" => "2025-09-20"]
-];
+$supplierId = $_SESSION['user_id'] ?? null;
+if (!$supplierId) {
+    header("Location: ../patient/login.php");
+    exit();
+}
+
+$productRequestModel = new ProductRequestModel($conn);
+$initialRequests = $productRequestModel->getRequestsBySupplier($supplierId);
+
+if (isset($conn) && $conn instanceof mysqli) {
+    $conn->close();
+}
 ?>
 
 <!DOCTYPE html>
@@ -38,7 +45,6 @@ $requests = [
       <nav class="navigation">
           <a href="supplierdashboard.php" class="nav-btn">Home</a>
           <button class="nav-btn active">Request</button>
-          <a href="supplierprofile.php" class="nav-btn">Profile</a>
       </nav>
       
       <div class="user-section">
@@ -66,26 +72,124 @@ $requests = [
                         <th>Product Name</th>
                         <th>Quantity</th>
                         <th>Request Date</th>
+                        <th>Status</th>
+                        <th>Requested By</th>
                         <th>Action</th>
                     </tr>
                 </thead>
 
-                <tbody>
-                    <?php foreach ($requests as $row): ?>
-                        <tr>
-                            <td><?= $row["product"] ?></td>
-                            <td><?= $row["quantity"] ?></td>
-                            <td><?= $row["date"] ?></td>
-                            <td>
-                                <button class="btn accept">Accept</button>
-                                <button class="btn reject">Reject</button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
+                <tbody id="supplierRequestsBody">
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding: 20px;">
+                            Loading product requests...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
+
+<script>
+const supplierId = <?= json_encode($supplierId) ?>;
+const requestsBody = document.getElementById('supplierRequestsBody');
+const initialRequests = <?= json_encode($initialRequests) ?>;
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+
+function buildActionButtons(request) {
+    const disabled = request.status !== 'pending' ? 'disabled' : '';
+    const requestId = request.id ?? 0;
+    return `
+        <button class="btn accept" data-request-id="${requestId}" ${disabled}>Accept</button>
+        <button class="btn reject" data-request-id="${requestId}" ${disabled}>Reject</button>
+    `;
+}
+
+function renderRequests(requests) {
+    if (!Array.isArray(requests) || requests.length === 0) {
+        requestsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 20px;">
+                    No product requests yet. Pharmacists can send requests from their dashboard.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    const rows = requests.map((request) => {
+        const status = (request.status || 'pending').toLowerCase();
+        const fullName = `${request.first_name ?? ''} ${request.last_name ?? ''}`.trim();
+        const requester = fullName !== '' ? fullName : `Pharmacist #${request.pharmacist_id ?? 'N/A'}`;
+
+        return `
+            <tr>
+                <td>${escapeHtml(request.product_name || 'Unknown')}</td>
+                <td>${escapeHtml(String(request.quantity ?? '0'))}</td>
+                <td>${escapeHtml(request.request_date || '-')}</td>
+                <td>
+                    <span class="status-badge status-${status}">
+                        ${escapeHtml(status.charAt(0).toUpperCase() + status.slice(1))}
+                    </span>
+                </td>
+                <td>${escapeHtml(requester)}</td>
+                <td>${buildActionButtons(request)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    requestsBody.innerHTML = rows;
+}
+
+function renderInitial() {
+    if (Array.isArray(initialRequests) && initialRequests.length > 0) {
+        renderRequests(initialRequests);
+    } else {
+        requestsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 20px;">
+                    No product requests yet. Pharmacists can send requests from their dashboard.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+async function loadSupplierRequests() {
+    try {
+        const response = await fetch(`/dheergayu/public/api/get-supplier-requests.php?supplier_id=${supplierId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            renderRequests(data.requests);
+        } else {
+            requestsBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align:center; padding: 20px; color: #c0392b;">
+                        ${escapeHtml(data.message || 'Failed to load requests.')}
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Failed to load supplier requests:', error);
+        requestsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 20px; color: #c0392b;">
+                    Error loading requests. Please refresh the page.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+renderInitial();
+loadSupplierRequests();
+</script>
 
 </body>
 </html>
