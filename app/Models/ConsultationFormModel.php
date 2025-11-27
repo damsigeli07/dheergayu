@@ -59,7 +59,7 @@ class ConsultationFormModel {
             return false;
         }
         $stmt->bind_param(
-            'ssissssssssssssiissiii',
+            'ssissssssssssssissiiii',
             $data['first_name'], $data['last_name'], $data['age'], $data['diagnosis'], $data['gender'],
             $data['personal_products'], $data['recommended_treatment'],
             $data['question_1'], $data['question_2'], $data['question_3'], $data['question_4'],
@@ -89,7 +89,7 @@ class ConsultationFormModel {
             return false;
         }
         $stmt->bind_param(
-            'ssissssssssssssiissiii',
+            'ssissssssssssssissiiii',
             $data['first_name'], $data['last_name'], $data['age'], $data['diagnosis'], $data['gender'],
             $data['personal_products'], $data['recommended_treatment'],
             $data['question_1'], $data['question_2'], $data['question_3'], $data['question_4'],

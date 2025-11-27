@@ -8,6 +8,8 @@
 </head>
 <body>
 <?php
+// Ensure core bootstrap (autoloader, config, sessions) is loaded so Core\Database and other classes are available
+require_once __DIR__ . '/../../../core/bootloader.php';
 require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
 ?>
     <div class="container">
@@ -100,11 +102,13 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                             </div>
 
                             <!-- Hidden fields to include selection when submitting -->
+                            <input type="hidden" id="recommended_treatment" name="recommended_treatment" value="">
                             <input type="hidden" id="treatment_id" name="treatment_id" value="">
                             <input type="hidden" id="treatment_name" name="treatment_name" value="">
                             <input type="hidden" id="treatment_description" name="treatment_description" value="">
                             <input type="hidden" id="treatment_date" name="treatment_date" value="">
                             <input type="hidden" id="treatment_time" name="treatment_time" value="">
+                            <input type="hidden" id="treatment_booking_id" name="treatment_booking_id" value="">
                             <input type="hidden" id="treatment_payment" name="treatment_payment" value="">
                         </div>
 
@@ -142,7 +146,8 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                                 <div class="info-value">
                                     <input type="text" name="contact_info" value="<?= isset($appointment['contact_info']) ? htmlspecialchars($appointment['contact_info']) : '' ?>">
                                 </div>
-                <input type="hidden" name="appointment_id" value="<?= isset($appointment['appointment_id']) ? htmlspecialchars($appointment['appointment_id']) : '' ?>">
+                                <input type="hidden" name="patient_id" value="<?= isset($appointment['patient_id']) ? htmlspecialchars($appointment['patient_id']) : '' ?>">
+                                <input type="hidden" name="appointment_id" value="<?= isset($appointment['appointment_id']) ? htmlspecialchars($appointment['appointment_id']) : '' ?>">
                             </div>
                         </div>
 
@@ -425,13 +430,17 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
 
     openTreatmentBtn.addEventListener('click', function() {
         const appointmentId = document.querySelector('input[name="appointment_id"]').value || '';
-        window.open('/dheergayu/app/Views/Doctor/treatment_selection.php?appointment_id=' + encodeURIComponent(appointmentId), 'treatment_select', 'width=720,height=620,menubar=no,toolbar=no');
+        const patientId = document.querySelector('input[name="patient_id"]').value || '';
+        const url = '/dheergayu/app/Views/Doctor/treatment_selection.php?appointment_id=' + encodeURIComponent(appointmentId) + '&patient_id=' + encodeURIComponent(patientId);
+        window.open(url, 'treatment_select', 'width=720,height=620,menubar=no,toolbar=no');
     });
 
     if (editTreatmentBtn) {
         editTreatmentBtn.addEventListener('click', function() {
             const appointmentId = document.querySelector('input[name="appointment_id"]').value || '';
-            window.open('/dheergayu/app/Views/Doctor/treatment_selection.php?appointment_id=' + encodeURIComponent(appointmentId), 'treatment_select', 'width=720,height=620,menubar=no,toolbar=no');
+            const patientId = document.querySelector('input[name="patient_id"]').value || '';
+            const url = '/dheergayu/app/Views/Doctor/treatment_selection.php?appointment_id=' + encodeURIComponent(appointmentId) + '&patient_id=' + encodeURIComponent(patientId);
+            window.open(url, 'treatment_select', 'width=720,height=620,menubar=no,toolbar=no');
         });
     }
 
@@ -458,6 +467,13 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
         document.getElementById('treatment_date').value = payload.date || '';
         document.getElementById('treatment_time').value = payload.time || '';
         document.getElementById('treatment_payment').value = payload.payment || '';
+        document.getElementById('treatment_booking_id').value = payload.booking_id || '';
+
+        const recommendedField = document.getElementById('recommended_treatment');
+        const summary = `Treatment: ${payload.name || '-'} | Date: ${payload.date || '-'} | Time: ${payload.time || '-'}` + (payload.description ? ` | Notes: ${payload.description}` : '');
+        if (recommendedField) {
+            recommendedField.value = summary;
+        }
 
         var summaryHtml = `Treatment: ${payload.name || '-'}<br>Date: ${payload.date || '-'}<br>Time: ${payload.time || '-'}`;
         if (payload.description) summaryHtml += `<br>Description: ${payload.description}`;
@@ -472,6 +488,8 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
         document.getElementById('treatment_date').value = '';
         document.getElementById('treatment_time').value = '';
         document.getElementById('treatment_payment').value = '';
+        document.getElementById('treatment_booking_id').value = '';
+        document.getElementById('recommended_treatment').value = '';
         treatmentSummary.style.display = 'none';
         treatmentSummaryText.innerHTML = '';
     }
