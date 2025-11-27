@@ -51,6 +51,35 @@ try {
         throw new Exception("Database connection failed: " . $db->connect_error);
     }
 
+    // Handle image upload
+    $image_path = null;
+    if (isset($_FILES['treatment_image']) && $_FILES['treatment_image']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = __DIR__ . '/../../public/assets/images/Patient/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        $file_extension = strtolower(pathinfo($_FILES['treatment_image']['name'], PATHINFO_EXTENSION));
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+        
+        if (!in_array($file_extension, $allowed_extensions)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid image format. Only JPG, JPEG, PNG, GIF are allowed.']);
+            exit;
+        }
+        
+        // Generate unique filename
+        $filename = 'treatment_' . time() . '_' . uniqid() . '.' . $file_extension;
+        $target_path = $upload_dir . $filename;
+        
+        if (move_uploaded_file($_FILES['treatment_image']['tmp_name'], $target_path)) {
+            // Save relative path for database
+            $image_path = '/dheergayu/public/assets/images/Patient/' . $filename;
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to upload image.']);
+            exit;
+        }
+    }
+
     // Get form data (admin form). Make description optional; duration/price are optional fields.
     $treatment_id = (int)($_POST['treatment_id'] ?? 0);
     // treat "treatment_type" as same as treatment_name if provided
@@ -58,56 +87,72 @@ try {
     $description = $_POST['description'] ?? null; // optional
     $duration = $_POST['duration'] ?? ''; // optional
     $price = (float)($_POST['price'] ?? 0);
-    $status = $_POST['status'] ?? 'active'; // default to active if not provided
+    $status = $_POST['status'] ?? 'Active'; // default to Active if not provided
     $action = $_POST['action'] ?? '';
 
-    // Check if this is a delete operation
-    if ($action === 'delete' && $treatment_id > 0) {
-        // DELETE treatment
+    // Check if this is a get operation (for editing)
+    if ($action === 'get' && $treatment_id > 0) {
         try {
-            // First, get the treatment data to move to deletedadmintreatment table
-            $stmt = $db->prepare("SELECT * FROM admin_treatment WHERE treatment_id = ?");
+            $stmt = $db->prepare("SELECT treatment_id, treatment_name, description, duration, price, image, status FROM treatment_list WHERE treatment_id = ?");
             $stmt->bind_param('i', $treatment_id);
             $stmt->execute();
             $result = $stmt->get_result();
             $treatment = $result->fetch_assoc();
             $stmt->close();
+            $db->close();
             
-            if (!$treatment) {
+            if ($treatment) {
+                echo json_encode(['success' => true, 'treatment' => $treatment]);
+            } else {
                 echo json_encode(['success' => false, 'message' => 'Treatment not found']);
-                exit;
             }
-            
-            $db->begin_transaction();
-            
-            // Insert into deletedadmintreatment table
-            $stmt1 = $db->prepare("INSERT INTO deletedadmintreatment (treatment_id, treatment_name, description, duration, price, status) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt1->bind_param('isssds', 
-                $treatment['treatment_id'], 
-                $treatment['treatment_name'], 
-                $treatment['description'], 
-                $treatment['duration'], 
-                $treatment['price'], 
-                $treatment['status']
-            );
-            $stmt1->execute();
-            $stmt1->close();
-            
-            // Delete from admin_treatment table
-            $stmt2 = $db->prepare("DELETE FROM admin_treatment WHERE treatment_id = ?");
-            $stmt2->bind_param('i', $treatment_id);
-            $stmt2->execute();
-            $stmt2->close();
-            
-            $db->commit();
-            $db->close();
-            echo json_encode(['success' => true, 'message' => 'Treatment deleted successfully']);
             exit;
-            
         } catch (Exception $e) {
-            $db->rollback();
             $db->close();
-            throw $e;
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    // Check if this is a deactivate operation
+    if ($action === 'deactivate' && $treatment_id > 0) {
+        try {
+            $stmt = $db->prepare("UPDATE treatment_list SET status = 'Inactive' WHERE treatment_id = ?");
+            $stmt->bind_param('i', $treatment_id);
+            
+            if ($stmt->execute()) {
+                $stmt->close();
+                $db->close();
+                echo json_encode(['success' => true, 'message' => 'Treatment deactivated successfully']);
+            } else {
+                throw new Exception("Failed to deactivate treatment: " . $stmt->error);
+            }
+            exit;
+        } catch (Exception $e) {
+            $db->close();
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    // Check if this is an activate operation
+    if ($action === 'activate' && $treatment_id > 0) {
+        try {
+            $stmt = $db->prepare("UPDATE treatment_list SET status = 'Active' WHERE treatment_id = ?");
+            $stmt->bind_param('i', $treatment_id);
+            
+            if ($stmt->execute()) {
+                $stmt->close();
+                $db->close();
+                echo json_encode(['success' => true, 'message' => 'Treatment activated successfully']);
+            } else {
+                throw new Exception("Failed to activate treatment: " . $stmt->error);
+            }
+            exit;
+        } catch (Exception $e) {
+            $db->close();
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            exit;
         }
     }
 
@@ -119,8 +164,36 @@ try {
             exit;
         }
 
-        $stmt = $db->prepare("UPDATE admin_treatment SET treatment_name = ?, description = ?, duration = ?, price = ?, status = ? WHERE treatment_id = ?");
-        $stmt->bind_param('sssdsi', $treatment_name, $description, $duration, $price, $status, $treatment_id);
+        // Get existing treatment to check for old image
+        $stmt_check = $db->prepare("SELECT image FROM treatment_list WHERE treatment_id = ?");
+        $stmt_check->bind_param('i', $treatment_id);
+        $stmt_check->execute();
+        $result_check = $stmt_check->get_result();
+        $existing_treatment = $result_check->fetch_assoc();
+        $stmt_check->close();
+        
+        // If new image uploaded, delete old image and use new one; otherwise keep existing
+        $final_image_path = $image_path;
+        if ($image_path && $existing_treatment && !empty($existing_treatment['image'])) {
+            // Delete old image file
+            $old_image_path_db = $existing_treatment['image'];
+            $old_image_path = preg_replace('#^/dheergayu/#', '', $old_image_path_db);
+            $full_old_path = __DIR__ . '/../../' . $old_image_path;
+            if (file_exists($full_old_path)) {
+                @unlink($full_old_path);
+            }
+        } elseif (!$image_path && $existing_treatment) {
+            // Keep existing image if no new image uploaded
+            $final_image_path = $existing_treatment['image'];
+        }
+
+        if ($final_image_path) {
+            $stmt = $db->prepare("UPDATE treatment_list SET treatment_name = ?, description = ?, duration = ?, price = ?, image = ?, status = ? WHERE treatment_id = ?");
+            $stmt->bind_param('sssdssi', $treatment_name, $description, $duration, $price, $final_image_path, $status, $treatment_id);
+        } else {
+            $stmt = $db->prepare("UPDATE treatment_list SET treatment_name = ?, description = ?, duration = ?, price = ?, status = ? WHERE treatment_id = ?");
+            $stmt->bind_param('sssdsi', $treatment_name, $description, $duration, $price, $status, $treatment_id);
+        }
         
         if ($stmt->execute()) {
             $affected_rows = $stmt->affected_rows;
@@ -144,14 +217,19 @@ try {
 
         // Get next treatment_id
         $nextId = 1;
-        $res = $db->query("SELECT COALESCE(MAX(treatment_id), 0) + 1 AS next_id FROM admin_treatment");
+        $res = $db->query("SELECT COALESCE(MAX(treatment_id), 0) + 1 AS next_id FROM treatment_list");
         if ($res) {
             $row = $res->fetch_assoc();
             $nextId = (int)$row['next_id'];
         }
 
-        $stmt = $db->prepare("INSERT INTO admin_treatment (treatment_id, treatment_name, description, duration, price, status) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('isssds', $nextId, $treatment_name, $description, $duration, $price, $status);
+        // Default image if none provided
+        if (!$image_path) {
+            $image_path = '/dheergayu/public/assets/images/Patient/health-treatments.jpg';
+        }
+
+        $stmt = $db->prepare("INSERT INTO treatment_list (treatment_id, treatment_name, description, duration, price, image, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('isssdss', $nextId, $treatment_name, $description, $duration, $price, $image_path, $status);
 
         if ($stmt->execute()) {
             $stmt->close();

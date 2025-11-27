@@ -337,6 +337,16 @@ body {
     transform: translateY(-1px);
 }
 
+.activate-btn {
+    background: #28a745;
+    color: white;
+}
+
+.activate-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
 /* Row Status Classes */
 .treatment-row.inactive {
     background-color: #f8f9fa;
