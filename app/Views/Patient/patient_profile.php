@@ -32,19 +32,27 @@ $history = $model->getRecentMedicalHistory($user_id);
 </head>
 
 <body>
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
-                <h1 class="header-title">Dheergayu</h1>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <img src="/dheergayu/public/assets/images/Patient/logo_modern.png" alt="Dheergayu Logo">
+                <h1>DHEERGAYU <br> <span>AYURVEDIC MANAGEMENT CENTER</span></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                </ul>
             </nav>
-        </div>
-        <div>
-            <a href="home.php" class="back-btn">← Back to Home</a>
+            <div class="header-right">
+                <a href="home.php" class="back-btn">← Back to Home</a>
+            </div>
         </div>
     </header>
 
-    <div class="container">
+    <div class="content-wrapper">
         <div class="page-header">
             <h1 class="page-title">My Profile</h1>
         </div>
@@ -320,6 +328,42 @@ $history = $model->getRecentMedicalHistory($user_id);
             </div>
         </div>
     </div>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-column">
+                <h3>HELLO</h3>
+                <p>Welcome to one of the best Ayurvedic wellness centers in your area!</p>
+            </div>
+            <div class="footer-column">
+                <h3>OFFICE</h3>
+                <p>Sri Lanka —</p>
+                <p>123 Wellness Street</p>
+                <p>Colombo, LK 00100</p>
+                <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
+                <p>+94 11 234 5678</p>
+            </div>
+            <div class="footer-column">
+                <h3>LINKS</h3>
+                <ul>
+                    <li><a href="home.php" class="footer-link">Home</a></li>
+                    <li><a href="treatment.php" class="footer-link">Treatments</a></li>
+                    <li><a href="#" class="footer-link">About Us</a></li>
+                    <li><a href="channeling.php" class="footer-link">Booking</a></li>
+                    <li><a href="#" class="footer-link">Contacts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>GET IN TOUCH</h3>
+                <ul>
+                    <li><a href="#" class="social-link">f Facebook</a></li>
+                    <li><a href="#" class="social-link">x X</a></li>
+                    <li><a href="#" class="social-link">in LinkedIn</a></li>
+                    <li><a href="#" class="social-link">📷 Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
 
     <script>
         function showTab(tabName) {

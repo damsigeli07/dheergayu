@@ -12,6 +12,174 @@ require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
 $model = new AppointmentModel($conn);
 $patient_id = $_SESSION['user_id'];
 $appointments = $model->getAllAppointments($patient_id);
+
+// Helper functions
+function getTreatmentPrice($conn, $treatment_type) {
+    $treatment_map = [
+        'Asthma' => 'Abhyanga',
+        'Diabetes' => 'Abhyanga',
+        'Skin Diseases' => 'Shirodhara',
+        'Respiratory Disorders' => 'Shirodhara',
+        'Arthritis' => 'Panchakarma',
+        'ENT Disorders' => 'Udvartana',
+        'Neurological Diseases' => 'Panchakarma',
+        'Osteoporosis' => 'Vashpa Sweda',
+        'Stress and Depression' => 'Shirodhara',
+        'Cholesterol' => 'Nasya'
+    ];
+    
+    $stmt = $conn->prepare("SELECT price FROM treatment_list WHERE treatment_name = ?");
+    $stmt->bind_param("s", $treatment_type);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    if ($result) {
+        return $result['price'];
+    }
+    
+    if (isset($treatment_map[$treatment_type])) {
+        $mapped_name = $treatment_map[$treatment_type];
+        $stmt = $conn->prepare("SELECT price FROM treatment_list WHERE treatment_name = ?");
+        $stmt->bind_param("s", $mapped_name);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        if ($result) {
+            return $result['price'];
+        }
+    }
+    
+    return 2000.00;
+}
+
+function renderAppointmentCard($apt, $conn) {
+    $type = $apt['type'];
+    $isConsultation = $type === 'consultation';
+    $status = $apt['status'];
+    
+    if ($isConsultation) {
+        $fee = 2000;
+    } else {
+        $fee = getTreatmentPrice($conn, $apt['treatment_type']);
+    }
+    
+    echo '<div class="appointment-card ' . $type . '">';
+    echo '<div class="appointment-header">';
+    echo '<div class="appointment-type ' . $type . '">' . ucfirst($type) . '</div>';
+    echo '<div class="appointment-status status-' . strtolower($status) . '">' . $status . '</div>';
+    echo '</div>';
+    echo '<div class="appointment-details">';
+    
+    if ($isConsultation) {
+        echo '<div class="detail-item">';
+        echo '<span class="detail-label">Doctor</span>';
+        echo '<span class="detail-value">' . ($apt['doctor_name'] ?? 'General Consultation') . '</span>';
+        echo '</div>';
+    } else {
+        echo '<div class="detail-item">';
+        echo '<span class="detail-label">Treatment</span>';
+        echo '<span class="detail-value">' . ($apt['treatment_type'] ?? 'N/A') . '</span>';
+        echo '</div>';
+    }
+    
+    echo '<div class="detail-item">';
+    echo '<span class="detail-label">Date & Time</span>';
+    echo '<span class="detail-value">' . date('M d, Y - h:i A', strtotime($apt['appointment_date'] . ' ' . $apt['appointment_time'])) . '</span>';
+    echo '</div>';
+    
+    echo '<div class="detail-item">';
+    echo '<span class="detail-label">Fee</span>';
+    echo '<span class="detail-value">Rs ' . number_format($fee, 2) . '</span>';
+    echo '</div>';
+    
+    if ($status !== 'Cancelled') {
+        echo '<div class="detail-item">';
+        echo '<span class="detail-label">Payment Status</span>';
+        $paymentColor = ($apt['payment_status'] ?? 'Pending') === 'Completed' ? '#28a745' : '#ff9800';
+        echo '<span class="detail-value" style="color: ' . $paymentColor . ';">' . ($apt['payment_status'] ?? 'Pending') . '</span>';
+        echo '</div>';
+    }
+    
+    echo '</div>';
+    
+    if ($status !== 'Cancelled') {
+        echo '<div class="appointment-actions">';
+        if (($apt['payment_status'] ?? 'Pending') !== 'Completed') {
+            echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Pay Now</button>';
+        }
+        echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\')">Edit</button>';
+        echo '<button class="action-btn btn-danger" onclick="cancelAppointment(' . $apt['id'] . ', \'' . $type . '\')">Cancel</button>';
+        echo '</div>';
+    }
+    
+    echo '</div>';
+}
+
+function countAll($appointments) {
+    return count($appointments['consultations'] ?? []) + count($appointments['treatments'] ?? []);
+}
+
+function countUpcoming($appointments) {
+    $count = 0;
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') $count++;
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') $count++;
+    }
+    return $count;
+}
+
+function getAllAppointments($appointments) {
+    $all = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        $apt['type'] = 'consultation';
+        $all[] = $apt;
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        $apt['type'] = 'treatment';
+        $all[] = $apt;
+    }
+    usort($all, fn($a, $b) => strtotime($b['appointment_date']) <=> strtotime($a['appointment_date']));
+    return $all;
+}
+
+function getUpcomingAppointments($appointments) {
+    $upcoming = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') {
+            $apt['type'] = 'consultation';
+            $upcoming[] = $apt;
+        }
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') {
+            $apt['type'] = 'treatment';
+            $upcoming[] = $apt;
+        }
+    }
+    usort($upcoming, fn($a, $b) => strtotime($a['appointment_date']) <=> strtotime($b['appointment_date']));
+    return $upcoming;
+}
+
+function getCancelledAppointments($appointments) {
+    $cancelled = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        if ($apt['status'] === 'Cancelled') {
+            $apt['type'] = 'consultation';
+            $cancelled[] = $apt;
+        }
+    }
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        if ($apt['status'] === 'Cancelled') {
+            $apt['type'] = 'treatment';
+            $cancelled[] = $apt;
+        }
+    }
+    return $cancelled;
+}
 ?>
 
 <!DOCTYPE html>
@@ -23,19 +191,27 @@ $appointments = $model->getAllAppointments($patient_id);
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/patient_appointments.css?v=<?php echo time(); ?>">
 </head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
-                <h1 class="header-title">Dheergayu</h1>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <img src="/dheergayu/public/assets/images/Patient/logo_modern.png" alt="Dheergayu Logo">
+                <h1>DHEERGAYU <br> <span>AYURVEDIC MANAGEMENT CENTER</span></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                </ul>
             </nav>
-        </div>
-        <div>
-            <a href="home.php" class="back-btn">← Back to Home</a>
+            <div class="header-right">
+                <a href="home.php" class="back-btn">← Back to Home</a>
+            </div>
         </div>
     </header>
 
-    <div class="container">
+    <div class="content-wrapper">
         <div class="page-header">
             <h1 class="page-title">My Appointments</h1>
             <p class="page-subtitle">Manage your consultations and treatments</p>
@@ -169,6 +345,42 @@ $appointments = $model->getAllAppointments($patient_id);
         </div>
     </div>
 
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-column">
+                <h3>HELLO</h3>
+                <p>Welcome to one of the best Ayurvedic wellness centers in your area!</p>
+            </div>
+            <div class="footer-column">
+                <h3>OFFICE</h3>
+                <p>Sri Lanka —</p>
+                <p>123 Wellness Street</p>
+                <p>Colombo, LK 00100</p>
+                <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
+                <p>+94 11 234 5678</p>
+            </div>
+            <div class="footer-column">
+                <h3>LINKS</h3>
+                <ul>
+                    <li><a href="home.php" class="footer-link">Home</a></li>
+                    <li><a href="treatment.php" class="footer-link">Treatments</a></li>
+                    <li><a href="#" class="footer-link">About Us</a></li>
+                    <li><a href="channeling.php" class="footer-link">Booking</a></li>
+                    <li><a href="#" class="footer-link">Contacts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>GET IN TOUCH</h3>
+                <ul>
+                    <li><a href="#" class="social-link">f Facebook</a></li>
+                    <li><a href="#" class="social-link">x X</a></li>
+                    <li><a href="#" class="social-link">in LinkedIn</a></li>
+                    <li><a href="#" class="social-link">📷 Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
     <script>
         let currentCancelId = null;
         let currentCancelType = null;
@@ -181,98 +393,71 @@ $appointments = $model->getAllAppointments($patient_id);
             event.target.classList.add('active');
         }
 
-
-function editAppointment(id, type, date, time) {
-    console.log('Edit appointment called:', {id, type, date, time});
-    
-    // Check if modal elements exist
-    const editModal = document.getElementById('editModal');
-    const editId = document.getElementById('editId');
-    const editType = document.getElementById('editType');
-    const editDate = document.getElementById('editDate');
-    const editTime = document.getElementById('editTime');
-    
-    console.log('Modal elements found:', {
-        editModal: !!editModal,
-        editId: !!editId,
-        editType: !!editType,
-        editDate: !!editDate,
-        editTime: !!editTime
-    });
-    
-    if (!editModal || !editId || !editType || !editDate || !editTime) {
-        console.error('Missing modal elements');
-        alert('Error: Edit form not properly loaded');
-        return;
-    }
-    
-    editId.value = id;
-    editType.value = type;
-    editDate.value = date;
-    editTime.value = time;
-    editDate.min = new Date().toISOString().split('T')[0];
-    
-    console.log('Form values set:', {
-        id: editId.value,
-        type: editType.value,
-        date: editDate.value,
-        time: editTime.value
-    });
-    
-    // Load available slots for the current date
-    loadEditSlots(date);
-    
-    editModal.style.display = 'block';
-    console.log('Edit modal opened');
-}
-
-function loadEditSlots(date) {
-    if (!date) return;
-    
-    fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
-        .then(res => res.json())
-        .then(data => {
-            const timeSelect = document.getElementById('editTime');
-            const currentTime = timeSelect.value; // Store current selection
+        function editAppointment(id, type, date, time) {
+            const editModal = document.getElementById('editModal');
+            const editId = document.getElementById('editId');
+            const editType = document.getElementById('editType');
+            const editDate = document.getElementById('editDate');
+            const editTime = document.getElementById('editTime');
             
-            // Clear existing options except the first one
-            timeSelect.innerHTML = '<option value="">Select Time</option>';
-            
-            if (data.slots && data.slots.length > 0) {
-                data.slots.forEach(slot => {
-                    const option = document.createElement('option');
-                    option.value = slot.time;
-                    option.textContent = formatTime(slot.time);
-                    
-                    // Disable if booked or locked (but not if it's the current selection)
-                    if ((slot.status === 'booked' || slot.status === 'locked') && slot.time !== currentTime) {
-                        option.disabled = true;
-                        option.textContent += ' (Not Available)';
-                    }
-                    
-                    timeSelect.appendChild(option);
-                });
-                
-                // Re-select the current time if it exists
-                if (currentTime) {
-                    timeSelect.value = currentTime;
-                }
+            if (!editModal || !editId || !editType || !editDate || !editTime) {
+                alert('Error: Edit form not properly loaded');
+                return;
             }
+            
+            editId.value = id;
+            editType.value = type;
+            editDate.value = date;
+            editTime.value = time;
+            editDate.min = new Date().toISOString().split('T')[0];
+            
+            loadEditSlots(date);
+            editModal.style.display = 'block';
+        }
+
+        function loadEditSlots(date) {
+            if (!date) return;
+            
+            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+                .then(res => res.json())
+                .then(data => {
+                    const timeSelect = document.getElementById('editTime');
+                    const currentTime = timeSelect.value;
+                    
+                    timeSelect.innerHTML = '<option value="">Select Time</option>';
+                    
+                    if (data.slots && data.slots.length > 0) {
+                        data.slots.forEach(slot => {
+                            const option = document.createElement('option');
+                            option.value = slot.time;
+                            option.textContent = formatTime(slot.time);
+                            
+                            if ((slot.status === 'booked' || slot.status === 'locked') && slot.time !== currentTime) {
+                                option.disabled = true;
+                                option.textContent += ' (Not Available)';
+                            }
+                            
+                            timeSelect.appendChild(option);
+                        });
+                        
+                        if (currentTime) {
+                            timeSelect.value = currentTime;
+                        }
+                    }
+                });
+        }
+
+        document.getElementById('editDate').addEventListener('change', function() {
+            loadEditSlots(this.value);
         });
-}
 
-document.getElementById('editDate').addEventListener('change', function() {
-    loadEditSlots(this.value);
-});
-function formatTime(time) {
-    const [hours, minutes] = time.split(':');
-    const h = parseInt(hours);
-    const period = h >= 12 ? 'PM' : 'AM';
-    const displayHours = h % 12 || 12;
-    return `${displayHours}:${minutes} ${period}`;
-}
-
-
+        function formatTime(time) {
+            const [hours, minutes] = time.split(':');
+            const h = parseInt(hours);
+            const period = h >= 12 ? 'PM' : 'AM';
+            const displayHours = h % 12 || 12;
+            return `${displayHours}:${minutes} ${period}`;
+        }
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
@@ -280,7 +465,6 @@ function formatTime(time) {
 
         document.getElementById('editForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log('Edit form submitted');
             
             const formData = new FormData();
             formData.append('id', document.getElementById('editId').value);
@@ -288,23 +472,12 @@ function formatTime(time) {
             formData.append('date', document.getElementById('editDate').value);
             formData.append('time', document.getElementById('editTime').value);
 
-            console.log('Form data:', {
-                id: document.getElementById('editId').value,
-                type: document.getElementById('editType').value,
-                date: document.getElementById('editDate').value,
-                time: document.getElementById('editTime').value
-            });
-
             fetch('/dheergayu/public/api/update-appointment.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(res => {
-                console.log('Response status:', res.status);
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                console.log('Response data:', data);
                 if (data.success) {
                     alert('Appointment updated successfully');
                     location.reload();
@@ -313,7 +486,6 @@ function formatTime(time) {
                 }
             })
             .catch(error => {
-                console.error('Fetch error:', error);
                 alert('Network error: ' + error.message);
             });
             closeEditModal();
@@ -365,176 +537,3 @@ function formatTime(time) {
     </script>
 </body>
 </html>
-
-<?php
-function getTreatmentPrice($conn, $treatment_type) {
-    // Normalize treatment names for database matching
-    $treatment_map = [
-        'Asthma' => 'Abhyanga',
-        'Diabetes' => 'Abhyanga',
-        'Skin Diseases' => 'Shirodhara',
-        'Respiratory Disorders' => 'Shirodhara',
-        'Arthritis' => 'Panchakarma',
-        'ENT Disorders' => 'Udvartana',
-        'Neurological Diseases' => 'Panchakarma',
-        'Osteoporosis' => 'Vashpa Sweda',
-        'Stress and Depression' => 'Shirodhara',
-        'Cholesterol' => 'Nasya'
-    ];
-    
-    // Check if it's directly a treatment from treatment_list
-    $stmt = $conn->prepare("SELECT price FROM treatment_list WHERE treatment_name = ?");
-    $stmt->bind_param("s", $treatment_type);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-    
-    if ($result) {
-        return $result['price'];
-    }
-    
-    // If not found, try mapped treatment
-    if (isset($treatment_map[$treatment_type])) {
-        $mapped_name = $treatment_map[$treatment_type];
-        $stmt = $conn->prepare("SELECT price FROM treatment_list WHERE treatment_name = ?");
-        $stmt->bind_param("s", $mapped_name);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        
-        if ($result) {
-            return $result['price'];
-        }
-    }
-    
-    return 2000.00;
-}
-
-function renderAppointmentCard($apt, $conn) {
-    $type = $apt['type'];
-    $isConsultation = $type === 'consultation';
-    $status = $apt['status'];
-    
-    // Get fee
-    if ($isConsultation) {
-        $fee = 2000;
-    } else {
-        $fee = getTreatmentPrice($conn, $apt['treatment_type']);
-    }
-    
-    echo '<div class="appointment-card ' . $type . '">';
-    echo '<div class="appointment-header">';
-    echo '<div class="appointment-type ' . $type . '">' . ucfirst($type) . '</div>';
-    echo '<div class="appointment-status status-' . strtolower($status) . '">' . $status . '</div>';
-    echo '</div>';
-    echo '<div class="appointment-details">';
-    
-    if ($isConsultation) {
-        echo '<div class="detail-item">';
-        echo '<span class="detail-label">Doctor</span>';
-        echo '<span class="detail-value">' . ($apt['doctor_name'] ?? 'General Consultation') . '</span>';
-        echo '</div>';
-    } else {
-        echo '<div class="detail-item">';
-        echo '<span class="detail-label">Treatment</span>';
-        echo '<span class="detail-value">' . ($apt['treatment_type'] ?? 'N/A') . '</span>';
-        echo '</div>';
-    }
-    
-    echo '<div class="detail-item">';
-    echo '<span class="detail-label">Date & Time</span>';
-    echo '<span class="detail-value">' . date('M d, Y - h:i A', strtotime($apt['appointment_date'] . ' ' . $apt['appointment_time'])) . '</span>';
-    echo '</div>';
-    
-    echo '<div class="detail-item">';
-    echo '<span class="detail-label">Fee</span>';
-    echo '<span class="detail-value">Rs ' . number_format($fee, 2) . '</span>';
-    echo '</div>';
-    
-    if ($status !== 'Cancelled') {
-        echo '<div class="detail-item">';
-        echo '<span class="detail-label">Payment Status</span>';
-        $paymentColor = ($apt['payment_status'] ?? 'Pending') === 'Completed' ? '#28a745' : '#ff9800';
-        echo '<span class="detail-value" style="color: ' . $paymentColor . ';">' . ($apt['payment_status'] ?? 'Pending') . '</span>';
-        echo '</div>';
-    }
-    
-    echo '</div>';
-    
-    if ($status !== 'Cancelled') {
-        echo '<div class="appointment-actions">';
-        if (($apt['payment_status'] ?? 'Pending') !== 'Completed') {
-            echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Pay Now</button>';
-        }
-        echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\')">Edit</button>';
-        echo '<button class="action-btn btn-danger" onclick="cancelAppointment(' . $apt['id'] . ', \'' . $type . '\')">Cancel</button>';
-        echo '</div>';
-    }
-    
-    echo '</div>';
-}
-
-function countAll($appointments) {
-    return count($appointments['consultations'] ?? []) + count($appointments['treatments'] ?? []);
-}
-
-function countUpcoming($appointments) {
-    $count = 0;
-    foreach ($appointments['consultations'] ?? [] as $apt) {
-        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') $count++;
-    }
-    foreach ($appointments['treatments'] ?? [] as $apt) {
-        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') $count++;
-    }
-    return $count;
-}
-
-function getAllAppointments($appointments) {
-    $all = [];
-    foreach ($appointments['consultations'] ?? [] as $apt) {
-        $apt['type'] = 'consultation';
-        $all[] = $apt;
-    }
-    foreach ($appointments['treatments'] ?? [] as $apt) {
-        $apt['type'] = 'treatment';
-        $all[] = $apt;
-    }
-    usort($all, fn($a, $b) => strtotime($b['appointment_date']) <=> strtotime($a['appointment_date']));
-    return $all;
-}
-
-function getUpcomingAppointments($appointments) {
-    $upcoming = [];
-    foreach ($appointments['consultations'] ?? [] as $apt) {
-        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') {
-            $apt['type'] = 'consultation';
-            $upcoming[] = $apt;
-        }
-    }
-    foreach ($appointments['treatments'] ?? [] as $apt) {
-        if ($apt['status'] !== 'Cancelled' && $apt['status'] !== 'Completed') {
-            $apt['type'] = 'treatment';
-            $upcoming[] = $apt;
-        }
-    }
-    usort($upcoming, fn($a, $b) => strtotime($a['appointment_date']) <=> strtotime($b['appointment_date']));
-    return $upcoming;
-}
-
-function getCancelledAppointments($appointments) {
-    $cancelled = [];
-    foreach ($appointments['consultations'] ?? [] as $apt) {
-        if ($apt['status'] === 'Cancelled') {
-            $apt['type'] = 'consultation';
-            $cancelled[] = $apt;
-        }
-    }
-    foreach ($appointments['treatments'] ?? [] as $apt) {
-        if ($apt['status'] === 'Cancelled') {
-            $apt['type'] = 'treatment';
-            $cancelled[] = $apt;
-        }
-    }
-    return $cancelled;
-}
-?>

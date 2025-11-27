@@ -42,19 +42,22 @@ if ($isLoggedIn && !empty($userName)) {
                 </ul>
             </nav>
             <div class="header-right">
-                <!-- User Profile Icon (Only show if logged in) -->
                 <?php if ($isLoggedIn): ?>
-                <div class="user-profile-container" id="userProfile">
-                    <div class="user-icon" id="userIcon">
-                        <?php echo htmlspecialchars($userInitial); ?>
-                        <div class="user-tooltip"><?php echo htmlspecialchars($userName); ?></div>
+                    <!-- User Profile Icon (Show when logged in) -->
+                    <div class="user-profile-container" id="userProfile">
+                        <div class="user-icon" id="userIcon">
+                            <?php echo htmlspecialchars($userInitial); ?>
+                            <div class="user-tooltip"><?php echo htmlspecialchars($userName); ?></div>
+                        </div>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="patient_profile.php" class="dropdown-item">Profile</a>
+                            <a href="patient_appointments.php" class="dropdown-item">My Appointments</a>
+                            <a href="logout.php" class="dropdown-item logout" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
+                        </div>
                     </div>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <a href="patient_profile.php" class="dropdown-item">Profile</a>
-                        <a href="patient_appointments.php" class="dropdown-item">My Appointments</a>
-                        <a href="logout.php" class="dropdown-item logout" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
-                    </div>
-                </div>
+                <?php else: ?>
+                    <!-- Login Button (Show when not logged in) -->
+                    <button class="login-btn" onclick="window.location.href='/dheergayu/app/Views/Patient/login.php'">Login</button>
                 <?php endif; ?>
             </div>
         </div>
@@ -144,7 +147,7 @@ if ($isLoggedIn && !empty($userName)) {
                 <h2>WE OFFER HEALTHY SOLUTIONS</h2>
                 <div class="offer-buttons">
                     <button class="btn about-us-btn"><a href="/dheergayu/app/Views/Patient/doctors.php">ABOUT US</a></button>
-                    <button class="btn get-in-touch-btn">GET IN TOUCH</button>
+                    <button class="btn get-in-touch-btn"><a href="/dheergayu/app/Views/Patient/learn_more.php">Learn More</a></button>
                 </div>
             </div>
         </div>
