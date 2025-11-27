@@ -313,7 +313,7 @@ h2 {
 
 /* Footer */
 .main-footer {
-    background-color: #222;
+    background: linear-gradient(135deg, #2d2d2d 0%, #5e3800 100%);
     color: white;
     padding-top: 60px;
 }
