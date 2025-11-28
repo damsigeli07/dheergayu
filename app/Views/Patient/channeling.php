@@ -26,29 +26,27 @@ $userEmail = $_SESSION['user_email'] ?? '';
 </head>
 
 <body>
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
-                <h1 class="header-title">Dheergayu</h1>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <img src="/dheergayu/public/assets/images/Patient/logo_modern.png" alt="Dheergayu Logo">
+                <h1>DHEERGAYU <br> <span>AYURVEDIC MANAGEMENT CENTER</span></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php" class="active">BOOKING</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                </ul>
             </nav>
-        </div>
-        <div class="header-right">
-            <a href="home.php" class="nav-btn">Home</a>
-            <a href="channeling.php" class="nav-btn active">Consultations</a>
-            <a href="treatment.php" class="nav-btn">Treatments</a>
-            <div class="profile-container">
-                <button class="profile-btn" onclick="toggleProfileDropdown()">👤</button>
-                <div class="profile-dropdown" id="profileDropdown">
-                    <a href="patient_profile.php" class="dropdown-item">My Profile</a>
-                    <a href="patient_appointments.php" class="dropdown-item">My Appointments</a>
-                    <a href="logout.php" class="dropdown-item">Logout</a>
-                </div>
+            <div class="header-right">
+                <a href="home.php" class="back-btn">← Back to Home</a>
             </div>
         </div>
     </header>
 
-    <div class="container">
+    <div class="content-wrapper">
         <div class="page-header">
             <h1 class="main-title">Book Ayurvedic Consultation</h1>
         </div>
@@ -119,6 +117,42 @@ $userEmail = $_SESSION['user_email'] ?? '';
         </div>
     </div>
 
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-column">
+                <h3>HELLO</h3>
+                <p>Welcome to one of the best Ayurvedic wellness centers in your area!</p>
+            </div>
+            <div class="footer-column">
+                <h3>OFFICE</h3>
+                <p>Sri Lanka —</p>
+                <p>123 Wellness Street</p>
+                <p>Colombo, LK 00100</p>
+                <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
+                <p>+94 11 234 5678</p>
+            </div>
+            <div class="footer-column">
+                <h3>LINKS</h3>
+                <ul>
+                    <li><a href="home.php" class="footer-link">Home</a></li>
+                    <li><a href="treatment.php" class="footer-link">Treatments</a></li>
+                    <li><a href="learn_more.php" class="footer-link">About Us</a></li>
+                    <li><a href="channeling.php" class="footer-link">Booking</a></li>
+                    <li><a href="#" class="footer-link">Contacts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>GET IN TOUCH</h3>
+                <ul>
+                    <li><a href="#" class="social-link">Facebook</a></li>
+                    <li><a href="#" class="social-link">X</a></li>
+                    <li><a href="#" class="social-link">LinkedIn</a></li>
+                    <li><a href="#" class="social-link">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
     <script>
         let selectedTimeSlot = '';
         let consultationDate = document.getElementById('consultationDate');
@@ -132,68 +166,64 @@ $userEmail = $_SESSION['user_email'] ?? '';
         });
 
         function loadAvailableSlots(date) {
-    fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('slotsContainer');
-            if (data.slots && data.slots.length > 0) {
-                container.innerHTML = data.slots.map(slot => {
-                    let className = 'time-slot';
-                    let disabled = '';
-                    let onclick = `selectSlot(this, '${slot.time}')`;
-                    
-                    if (slot.status === 'booked') {
-                        className += ' slot-booked';
-                        disabled = 'disabled';
-                        onclick = '';
-                    } else if (slot.status === 'locked') {
-                        className += ' slot-locked';
-                        disabled = 'disabled';
-                        onclick = '';
+            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('slotsContainer');
+                    if (data.slots && data.slots.length > 0) {
+                        container.innerHTML = data.slots.map(slot => {
+                            let className = 'time-slot';
+                            let disabled = '';
+                            let onclick = `selectSlot(this, '${slot.time}')`;
+                            
+                            if (slot.status === 'booked') {
+                                className += ' slot-booked';
+                                disabled = 'disabled';
+                                onclick = '';
+                            } else if (slot.status === 'locked') {
+                                className += ' slot-locked';
+                                disabled = 'disabled';
+                                onclick = '';
+                            }
+                            
+                            return `<button type="button" class="${className}" ${disabled} onclick="${onclick}">${formatTime(slot.time)}</button>`;
+                        }).join('');
+                    } else {
+                        container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
                     }
-                    
-                    return `<button type="button" class="${className}" ${disabled} onclick="${onclick}">${formatTime(slot.time)}</button>`;
-                }).join('');
-            } else {
-                container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
-            }
-        });
-}
-
-function selectSlot(button, slot) {
-    const date = document.getElementById('treatmentDate').value; // Changed from consultationDate
-    
-    // Release previous lock if any
-    if (selectedTimeSlot) {
-        fetch('/dheergayu/public/api/release-slot.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `date=${date}&time=${selectedTimeSlot}`
-        });
-    }
-    
-    // Lock the new slot
-    fetch('/dheergayu/public/api/lock-slot.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `date=${date}&time=${slot}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
-            button.classList.add('selected');
-            selectedTimeSlot = slot;
-            updateSummary();
-            checkFormValidity();
-        } else {
-            alert('This slot is no longer available. Please select another.');
-            loadAvailableSlots(date); // Refresh slots
+                });
         }
-    });
-}
 
-
+        function selectSlot(button, slot) {
+            const date = document.getElementById('consultationDate').value;
+            
+            if (selectedTimeSlot) {
+                fetch('/dheergayu/public/api/release-slot.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `date=${date}&time=${selectedTimeSlot}`
+                });
+            }
+            
+            fetch('/dheergayu/public/api/lock-slot.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: `date=${date}&time=${slot}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
+                    button.classList.add('selected');
+                    selectedTimeSlot = slot;
+                    updateSummary();
+                    checkFormValidity();
+                } else {
+                    alert('This slot is no longer available. Please select another.');
+                    loadAvailableSlots(date);
+                }
+            });
+        }
 
         function formatTime(time) {
             const [hours, minutes] = time.split(':');
@@ -202,8 +232,6 @@ function selectSlot(button, slot) {
             const displayHours = h % 12 || 12;
             return `${displayHours}:${minutes} ${period}`;
         }
-
-
 
         function updateSummary() {
             const date = document.getElementById('consultationDate').value;
@@ -272,16 +300,6 @@ function selectSlot(button, slot) {
                     }
                 })
                 .catch(err => alert('Error: ' + err));
-        });
-
-        function toggleProfileDropdown() {
-            document.getElementById('profileDropdown').classList.toggle('show');
-        }
-
-        window.addEventListener('click', function(e) {
-            if (!e.target.matches('.profile-btn')) {
-                document.getElementById('profileDropdown').classList.remove('show');
-            }
         });
     </script>
 </body>

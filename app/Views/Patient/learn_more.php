@@ -7,21 +7,23 @@
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/learn_more.css?v=<?php echo time(); ?>">
 </head>
 <body>
-
-
-    <header class="header">
-        <div class="header-left">
-            <nav class="navigation">
-                <img src="/dheergayu/public/assets/images/Patient/dheergayu.png" alt="Dheergayu Logo" class="logo">
-                <h1 class="header-title">Dheergayu</h1>
+    <header class="main-header">
+        <div class="container-header">
+            <div class="logo">
+                <img src="/dheergayu/public/assets/images/Patient/logo_modern.png" alt="Dheergayu Logo">
+                <h1>DHEERGAYU <br> <span>AYURVEDIC MANAGEMENT CENTER</span></h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                </ul>
             </nav>
-        </div>
-        <div class="header-right">
-            <a href="home.php" class="nav-btn">Home</a>
-            <a href="channeling.php" class="nav-btn">Consultations</a>
-            <a href="treatment.php" class="nav-btn">Our Treatments</a>
-            <a href="products.php" class="nav-btn">Our Products</a>
-            <a href="Signup.php" class="nav-btn"><u>Book Now</u></a>
+            <div class="header-right">
+                <a href="home.php" class="back-btn">← Back to Home</a>
+            </div>
         </div>
     </header>
 
@@ -49,7 +51,7 @@
                     </ul>
                 </div>
                 <div class="section-image">
-                    <img src="/dheergayu/public/assets/images/Patient/herbal-product.jpg">
+                    <img src="/dheergayu/public/assets/images/Patient/herbal-product.jpg" alt="Traditional Preparation">
                 </div>
             </div>
         </section>
@@ -57,7 +59,7 @@
         <section class="section">
             <div class="section-content reverse">
                 <div class="section-image">
-                    <img src="/dheergayu/public/assets/images/Patient/ayurveda-home-6.jpg">
+                    <img src="/dheergayu/public/assets/images/Patient/ayurveda-home-6.jpg" alt="Healing Tea">
                 </div>
                 <div class="section-text">
                     <h2 class="section-title">Healing Tea Blends</h2>
@@ -72,7 +74,6 @@
                         <li>Anti-inflammatory properties</li>
                     </ul>                
                 </div>
-                
             </div>
         </section>
 
@@ -90,10 +91,9 @@
                         <li>Fair trade partnerships with growers</li>
                         <li>Seasonal freshness guaranteed</li>
                     </ul>
-                  
                 </div>
                 <div class="section-image">
-                    <img src="/dheergayu/public/assets/images/Patient/ayurveda-home-5.jpg">
+                    <img src="/dheergayu/public/assets/images/Patient/ayurveda-home-5.jpg" alt="Natural Ingredients">
                 </div>
             </div>
         </section>
@@ -109,7 +109,7 @@
     </section>
 
     <div class="container">
-        <section style="text-align: center; padding: 3rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <section style="text-align: center; padding: 3rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 40px;">
             <h2 style="font-size: 2.5rem; color: #7c6e4f; margin-bottom: 1rem;">Begin Your Natural Healing Journey</h2>
             <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
                 Ready to experience the transformative power of natural herbal remedies? Our experienced practitioners are here to guide you toward optimal health and wellness.
@@ -121,21 +121,53 @@
         </section>
     </div>
 
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-column">
+                <h3>HELLO</h3>
+                <p>Welcome to one of the best Ayurvedic wellness centers in your area!</p>
+            </div>
+            <div class="footer-column">
+                <h3>OFFICE</h3>
+                <p>Sri Lanka —</p>
+                <p>123 Wellness Street</p>
+                <p>Colombo, LK 00100</p>
+                <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
+                <p>+94 11 234 5678</p>
+            </div>
+            <div class="footer-column">
+                <h3>LINKS</h3>
+                <ul>
+                    <li><a href="home.php" class="footer-link">Home</a></li>
+                    <li><a href="treatment.php" class="footer-link">Treatments</a></li>
+                    <li><a href="learn_more.php" class="footer-link">About Us</a></li>
+                    <li><a href="channeling.php" class="footer-link">Booking</a></li>
+                    <li><a href="#" class="footer-link">Contacts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>GET IN TOUCH</h3>
+                <ul>
+                    <li><a href="#" class="social-link">Facebook</a></li>
+                    <li><a href="#" class="social-link">X</a></li>
+                    <li><a href="#" class="social-link">LinkedIn</a></li>
+                    <li><a href="#" class="social-link">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        // Smooth scrolling
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
+                    target.scrollIntoView({ behavior: 'smooth' });
                 }
             });
         });
 
-        // Parallax effect for hero
         window.addEventListener('scroll', () => {
             const scrolled = window.pageYOffset;
             const hero = document.querySelector('.hero-banner');
@@ -144,7 +176,6 @@
             }
         });
 
-        // Intersection Observer for animations
         const sections = document.querySelectorAll('.section');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
