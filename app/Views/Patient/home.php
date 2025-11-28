@@ -164,23 +164,23 @@ if ($isLoggedIn && !empty($userName)) {
                 <div class="certificate-card">
                     <p class="certificate-level silver">Silver</p>
                     <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/silver.jpg" alt="Silver Certificate" class="circle-image">
+                        <img src="/dheergayu/public/assets/images/Patient/silver2.jpg" alt="Silver Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn">Rs. 14,000.00</button>
+                    <button class="btn certificate-btn">14 000 LKR</button>
                 </div>
                 <div class="certificate-card">
                     <p class="certificate-level gold">Gold</p>
                     <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/health-treatments.jpg" alt="Gold Certificate" class="circle-image">
+                        <img src="/dheergayu/public/assets/images/Patient/silver.jpg" alt="Gold Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn-alt">Rs. 15,500.00</button>
+                    <button class="btn certificate-btn-alt">15 500 LKR</button>
                 </div>
                 <div class="certificate-card">
                     <p class="certificate-level platinum">Platinum</p>
                     <div class="certificate-image-circle">
                         <img src="/dheergayu/public/assets/images/Patient/platinum.jpg" alt="Platinum Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn">Rs. 8,000.00</button>
+                    <button class="btn certificate-btn">8 000 LKR</button>
                 </div>
             </div>
         </div>
@@ -253,23 +253,24 @@ if ($isLoggedIn && !empty($userName)) {
         <div class="container">
             <div class="footer-column">
                 <h3>HELLO</h3>
-                <p>Welcome to one of the best therapeutic massage studios in your area!</p>
+                <p>Welcome to one of the best Ayurvedic wellness centers in your area!</p>
             </div>
             <div class="footer-column">
-                <h3>Main branch</h3>
-                <p>Colombo —</p>
-                <p>785 Street, Office 478</p>
-                <p>Colombo</p>
-                <p><a href="mailto:info@email.com" class="footer-link">info@email.com</a></p>
-                <p>+94 712841259</p>
+                <h3>OFFICE</h3>
+                <p>Sri Lanka —</p>
+                <p>123 Wellness Street</p>
+                <p>Colombo, LK 00100</p>
+                <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
+                <p>+94 11 234 5678</p>
             </div>
             <div class="footer-column">
                 <h3>LINKS</h3>
                 <ul>
-                    <li><a href="/dheergayu/app/Views/Patient/home.php" class="footer-link">Home</a></li>
-                    <li><a href="/dheergayu/app/Views/Patient/doctors.php" class="footer-link">About Us</a></li>
-                    <li><a href="#" onclick="handleBooking(event)" class="footer-link">Booking</a></li>
-                    <li><a href="/dheergayu/app/Views/Patient/contact.php" class="footer-link">Contacts</a></li>
+                    <li><a href="home.php" class="footer-link">Home</a></li>
+                    <li><a href="treatment.php" class="footer-link">Treatments</a></li>
+                    <li><a href="learn_more.php" class="footer-link">About Us</a></li>
+                    <li><a href="channeling.php" class="footer-link">Booking</a></li>
+                    <li><a href="#" class="footer-link">Contacts</a></li>
                 </ul>
             </div>
             <div class="footer-column">
@@ -277,6 +278,7 @@ if ($isLoggedIn && !empty($userName)) {
                 <ul>
                     <li><a href="#" class="social-link">Facebook</a></li>
                     <li><a href="#" class="social-link">X</a></li>
+                    <li><a href="#" class="social-link">LinkedIn</a></li>
                     <li><a href="#" class="social-link">Instagram</a></li>
                 </ul>
             </div>

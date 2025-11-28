@@ -364,7 +364,7 @@ function getCancelledAppointments($appointments) {
                 <ul>
                     <li><a href="home.php" class="footer-link">Home</a></li>
                     <li><a href="treatment.php" class="footer-link">Treatments</a></li>
-                    <li><a href="#" class="footer-link">About Us</a></li>
+                    <li><a href="learn_more.php" class="footer-link">About Us</a></li>
                     <li><a href="channeling.php" class="footer-link">Booking</a></li>
                     <li><a href="#" class="footer-link">Contacts</a></li>
                 </ul>
@@ -372,10 +372,10 @@ function getCancelledAppointments($appointments) {
             <div class="footer-column">
                 <h3>GET IN TOUCH</h3>
                 <ul>
-                    <li><a href="#" class="social-link">f Facebook</a></li>
-                    <li><a href="#" class="social-link">x X</a></li>
-                    <li><a href="#" class="social-link">in LinkedIn</a></li>
-                    <li><a href="#" class="social-link">📷 Instagram</a></li>
+                    <li><a href="#" class="social-link">Facebook</a></li>
+                    <li><a href="#" class="social-link">X</a></li>
+                    <li><a href="#" class="social-link">LinkedIn</a></li>
+                    <li><a href="#" class="social-link">Instagram</a></li>
                 </ul>
             </div>
         </div>
