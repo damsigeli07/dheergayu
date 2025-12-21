@@ -374,7 +374,7 @@ h2 {
     align-items: center;
     justify-content: flex-start;
     color: white;
-    text-align: left;
+    text-align: left;   
 }
 
 .slide::before {
@@ -493,6 +493,7 @@ h2 {
     max-width: 350px;
     overflow: hidden;
     display: flex;
+    border-radius: 5px;
     flex-direction: column;
 }
 
@@ -658,15 +659,17 @@ h2 {
 }
 
 .certificate-btn {
-    background-color: #557945;
+    background-color: #e6a646;
     width: 100%;
     padding: 15px 0;
+    border-radius: 5px;
 }
 
 .certificate-btn-alt {
     background-color: #e6a646;
     width: 100%;
     padding: 15px 0;
+    border-radius: 5px;
 }
 
 /* Products Section */
@@ -692,6 +695,7 @@ h2 {
     background-color: white;
     padding: 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-radius: 5px;
 }
 
 .nav-item {
@@ -707,6 +711,7 @@ h2 {
     border-bottom: 1px solid #f0f0f0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    
 }
 
 .nav-item .icon {
@@ -739,6 +744,7 @@ h2 {
     background-color: white;
     padding: 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-radius: 5px;
 }
 
 .therapy-image {
