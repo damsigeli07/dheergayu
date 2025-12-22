@@ -102,10 +102,8 @@ function escapeHtml(str) {
 
 function buildActionButtons(request) {
     const disabled = request.status !== 'pending' ? 'disabled' : '';
-    const requestId = request.id ?? 0;
     return `
-        <button class="btn accept" data-request-id="${requestId}" ${disabled}>Accept</button>
-        <button class="btn reject" data-request-id="${requestId}" ${disabled}>Reject</button>
+        <button class="btn delivered" data-request-id="${request.id}" ${disabled}>Delivered</button>
     `;
 }
 
@@ -186,6 +184,30 @@ async function loadSupplierRequests() {
         `;
     }
 }
+
+document.addEventListener("click", async function(e) {
+    if (e.target.classList.contains("delivered")) {
+        const requestId = e.target.getAttribute("data-request-id");
+
+        const formData = new FormData();
+        formData.append("request_id", requestId);
+
+        const response = await fetch('/dheergayu/public/api/update-request-status.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Marked as Delivered!");
+            loadSupplierRequests();
+        } else {
+            alert("Failed to update status.");
+        }
+    }
+});
+
 
 renderInitial();
 loadSupplierRequests();

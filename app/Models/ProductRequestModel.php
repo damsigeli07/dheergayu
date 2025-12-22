@@ -93,6 +93,13 @@ class ProductRequestModel {
         $stmt->close();
         return $result;
     }
+
+    public function markAsDelivered($requestId) {
+    $stmt = $this->conn->prepare("UPDATE product_requests SET status = 'delivered' WHERE id = ?");
+    $stmt->bind_param("i", $requestId);
+    return $stmt->execute();
+    }
+
 }
 ?>
 
