@@ -366,5 +366,200 @@ class AppointmentModel {
         
         return $result;
     }
+
+    // READ: Get all staff appointments with consultation forms submitted, grouped by treatment type (room allocation)
+    public function getStaffAppointmentsWithConsultations() {
+        $sql = "
+            SELECT 
+                a.appointment_id,
+                a.patient_no,
+                a.patient_name,
+                a.appointment_datetime,
+                a.status,
+                cf.recommended_treatment,
+                cf.diagnosis,
+                COALESCE(
+                    CASE 
+                        WHEN cf.recommended_treatment LIKE '%Udwarthana%' THEN 'Udwarthana'
+                        WHEN cf.recommended_treatment LIKE '%Nasya%' THEN 'Nasya Karma'
+                        WHEN cf.recommended_treatment LIKE '%Shirodhara%' THEN 'Shirodhara'
+                        WHEN cf.recommended_treatment LIKE '%Basti%' THEN 'Basti'
+                        WHEN cf.recommended_treatment LIKE '%Panchakarma%' THEN 'Panchakarma Detox'
+                        WHEN cf.recommended_treatment LIKE '%Vashpa%' THEN 'Vashpa Sweda'
+                        WHEN cf.recommended_treatment LIKE '%Abhyanga%' THEN 'Abhyanga Massage'
+                        WHEN cf.recommended_treatment LIKE '%Elakizhi%' THEN 'Elakizhi'
+                        ELSE 'General'
+                    END,
+                    'General'
+                ) as treatment_room,
+                CASE 
+                    WHEN cf.id IS NOT NULL THEN 'Consultation Submitted'
+                    ELSE 'Pending Consultation'
+                END as consultation_status
+            FROM appointments a
+            LEFT JOIN consultationforms cf ON a.appointment_id = cf.appointment_id
+            WHERE a.status IN ('Confirmed', 'Completed')
+            ORDER BY a.appointment_datetime DESC
+        ";
+        
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Prepare failed: " . $this->conn->error);
+            return [];
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $appointments = [];
+        while ($row = $result->fetch_assoc()) {
+            $appointments[] = $row;
+        }
+        $stmt->close();
+        return $appointments;
+    }
+
+    // READ: Get staff appointments and attach booking details from treatment_bookings and treatment_slots
+    public function getStaffAppointmentsWithConsultationsAndBookings() {
+        $appointments = $this->getStaffAppointmentsWithConsultations();
+
+        foreach ($appointments as &$apt) {
+            $apt['booking_id'] = null;
+            $apt['booking_date'] = '';
+            $apt['slot_id'] = null;
+            $apt['slot_time'] = '';
+
+            // Query booking using treatment_booking_id from consultationforms table
+            $cf_stmt = $this->conn->prepare("SELECT treatment_booking_id FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+            if ($cf_stmt) {
+                $appt_id = $apt['appointment_id'];
+                $cf_stmt->bind_param('i', $appt_id);
+                $cf_stmt->execute();
+                $cf_res = $cf_stmt->get_result();
+                if ($cf_row = $cf_res->fetch_assoc()) {
+                    $bookingId = $cf_row['treatment_booking_id'];
+                    if ($bookingId) {
+                        // Query booking details
+                        $stmt = $this->conn->prepare("SELECT booking_date, slot_id FROM treatment_bookings WHERE booking_id = ? LIMIT 1");
+                        if ($stmt) {
+                            $stmt->bind_param('i', $bookingId);
+                            $stmt->execute();
+                            $res = $stmt->get_result();
+                            if ($row = $res->fetch_assoc()) {
+                                $apt['booking_id'] = $bookingId;
+                                $apt['booking_date'] = $row['booking_date'];
+                                $apt['slot_id'] = $row['slot_id'];
+
+                                // fetch slot_time
+                                $sStmt = $this->conn->prepare("SELECT slot_time FROM treatment_slots WHERE slot_id = ? LIMIT 1");
+                                if ($sStmt) {
+                                    $slot_id = $row['slot_id'];
+                                    $sStmt->bind_param('i', $slot_id);
+                                    $sStmt->execute();
+                                    $sRes = $sStmt->get_result();
+                                    if ($sRow = $sRes->fetch_assoc()) {
+                                        $apt['slot_time'] = $sRow['slot_time'];
+                                    }
+                                    $sStmt->close();
+                                }
+                            }
+                            $stmt->close();
+                        }
+                    }
+                }
+                $cf_stmt->close();
+            }
+        }
+
+        return $appointments;
+    }
+
+    // READ: Get staff appointments filtered by room/treatment type
+    public function getStaffAppointmentsByRoom($treatment_room = null) {
+        $appointments = $this->getStaffAppointmentsWithConsultations();
+        
+        if ($treatment_room && $treatment_room !== 'All') {
+            $appointments = array_filter($appointments, function($apt) use ($treatment_room) {
+                return $apt['treatment_room'] === $treatment_room;
+            });
+        }
+        
+        return array_values($appointments);
+    }
+
+    // READ: Get unique treatment rooms from appointments
+    public function getAvailableTreatmentRooms() {
+        $appointments = $this->getStaffAppointmentsWithConsultations();
+        $rooms = array_unique(array_column($appointments, 'treatment_room'));
+        return array_values($rooms);
+    }
+
+    // READ: Get staff appointments by treatment room type
+    public function getStaffAppointmentsByTreatmentType($treatment_type) {
+        $appointments = $this->getStaffAppointmentsWithConsultations();
+        
+        if (!$treatment_type) {
+            return $appointments;
+        }
+        
+        $filtered = array_filter($appointments, function($apt) use ($treatment_type) {
+            return $apt['treatment_room'] === $treatment_type;
+        });
+        
+        return array_values($filtered);
+    }
+
+    // UPDATE: Start/update treatment status
+    public function updateTreatmentStatus($appointment_id, $status, $start_time = null) {
+        $sql = "UPDATE appointments SET status = ?";
+        
+        if ($start_time) {
+            $sql .= ", treatment_start_time = ?";
+        }
+        
+        $sql .= " WHERE appointment_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        
+        if (!$stmt) {
+            error_log("Prepare failed: " . $this->conn->error);
+            return false;
+        }
+        
+        if ($start_time) {
+            $stmt->bind_param("ssi", $status, $start_time, $appointment_id);
+        } else {
+            $stmt->bind_param("si", $status, $appointment_id);
+        }
+        
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    // READ: Check if appointment time slot is current (within ±15 minutes)
+    public function isTimeSlotActive($appointment_datetime) {
+        $appointment_time = strtotime($appointment_datetime);
+        $current_time = time();
+        $time_diff = abs($current_time - $appointment_time);
+        
+        // Allow 15 minutes before and after the appointment time
+        return $time_diff <= (15 * 60);
+    }
+
+    // READ: Get appointment by ID
+    public function getAppointmentById($appointment_id) {
+        $sql = "SELECT * FROM appointments WHERE appointment_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        if (!$stmt) {
+            return null;
+        }
+        
+        $stmt->bind_param("i", $appointment_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $appointment = $result->fetch_assoc();
+        $stmt->close();
+        return $appointment;
+    }
 }
 ?>

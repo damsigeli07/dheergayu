@@ -51,22 +51,24 @@ class ConsultationFormModel {
             first_name, last_name, age, diagnosis, gender, personal_products, recommended_treatment,
             question_1, question_2, question_3, question_4, notes, patient_no, last_visit_date,
             total_visits, contact_info, check_patient_vitals, review_previous_medications,
-            update_patient_history, follow_up_appointment, send_to_pharmacy, appointment_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            update_patient_history, follow_up_appointment, send_to_pharmacy, appointment_id, treatment_booking_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             error_log("Prepare failed: " . $this->conn->error);
             return false;
         }
+        // Prepare treatment_booking_id variable for binding
+        $treatment_booking_id = $data['treatment_booking_id'] ?? null;
         $stmt->bind_param(
-            'ssissssssssssssissiiii',
+            'ssissssssssssssissiiiii',
             $data['first_name'], $data['last_name'], $data['age'], $data['diagnosis'], $data['gender'],
             $data['personal_products'], $data['recommended_treatment'],
             $data['question_1'], $data['question_2'], $data['question_3'], $data['question_4'],
             $data['notes'], $data['patient_no'], $data['last_visit_date'], $data['total_visits'],
             $data['contact_info'], $data['check_patient_vitals'], $data['review_previous_medications'],
             $data['update_patient_history'], $data['follow_up_appointment'], $data['send_to_pharmacy'],
-            $data['appointment_id']
+            $data['appointment_id'], $treatment_booking_id
         );
         $success = $stmt->execute();
         if (!$success) {
@@ -81,22 +83,24 @@ class ConsultationFormModel {
             first_name = ?, last_name = ?, age = ?, diagnosis = ?, gender = ?, personal_products = ?, recommended_treatment = ?,
             question_1 = ?, question_2 = ?, question_3 = ?, question_4 = ?, notes = ?, patient_no = ?, last_visit_date = ?,
             total_visits = ?, contact_info = ?, check_patient_vitals = ?, review_previous_medications = ?,
-            update_patient_history = ?, follow_up_appointment = ?, send_to_pharmacy = ?
+            update_patient_history = ?, follow_up_appointment = ?, send_to_pharmacy = ?, treatment_booking_id = ?
             WHERE appointment_id = ?";
         $stmt = $this->conn->prepare($sql);
         if (!$stmt) {
             error_log("Prepare failed: " . $this->conn->error);
             return false;
         }
+        // Prepare treatment_booking_id variable for binding
+        $treatment_booking_id = $data['treatment_booking_id'] ?? null;
         $stmt->bind_param(
-            'ssissssssssssssissiiii',
+            'ssissssssssssssissiiiii',
             $data['first_name'], $data['last_name'], $data['age'], $data['diagnosis'], $data['gender'],
             $data['personal_products'], $data['recommended_treatment'],
             $data['question_1'], $data['question_2'], $data['question_3'], $data['question_4'],
             $data['notes'], $data['patient_no'], $data['last_visit_date'], $data['total_visits'],
             $data['contact_info'], $data['check_patient_vitals'], $data['review_previous_medications'],
             $data['update_patient_history'], $data['follow_up_appointment'], $data['send_to_pharmacy'],
-            $data['appointment_id']
+            $treatment_booking_id, $data['appointment_id']
         );
         $success = $stmt->execute();
         if (!$success) {
