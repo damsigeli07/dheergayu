@@ -165,6 +165,25 @@ $userEmail = $_SESSION['user_email'] ?? '';
             }
         });
 
+        // Function to check if a time slot is in the past
+        function isSlotInPast(selectedDate, slotTime) {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            
+            // If selected date is not today, slot is not in the past
+            if (selectedDate !== today) {
+                return false;
+            }
+            
+            // Parse the slot time
+            const [hours, minutes] = slotTime.split(':').map(Number);
+            const slotDateTime = new Date();
+            slotDateTime.setHours(hours, minutes, 0, 0);
+            
+            // Check if slot time has passed
+            return slotDateTime < now;
+        }
+
         function loadAvailableSlots(date) {
             fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
                 .then(res => res.json())
@@ -176,7 +195,12 @@ $userEmail = $_SESSION['user_email'] ?? '';
                             let disabled = '';
                             let onclick = `selectSlot(this, '${slot.time}')`;
                             
-                            if (slot.status === 'booked') {
+                            // Check if slot is in the past
+                            if (isSlotInPast(date, slot.time)) {
+                                className += ' slot-locked';
+                                disabled = 'disabled';
+                                onclick = '';
+                            } else if (slot.status === 'booked') {
                                 className += ' slot-booked';
                                 disabled = 'disabled';
                                 onclick = '';
@@ -196,6 +220,12 @@ $userEmail = $_SESSION['user_email'] ?? '';
 
         function selectSlot(button, slot) {
             const date = document.getElementById('consultationDate').value;
+            
+            // Double-check if slot is in the past before allowing selection
+            if (isSlotInPast(date, slot)) {
+                alert('This time slot has already passed. Please select a future time.');
+                return;
+            }
             
             if (selectedTimeSlot) {
                 fetch('/dheergayu/public/api/release-slot.php', {
@@ -279,10 +309,18 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 alert('Please select a time slot');
                 return;
             }
+            
+            const date = document.getElementById('consultationDate').value;
+            
+            // Final check before booking
+            if (isSlotInPast(date, selectedTimeSlot)) {
+                alert('This time slot has already passed. Please select a future time.');
+                return;
+            }
 
             const formData = new FormData(this);
             formData.append('treatment_type', 'General Consultation');
-            formData.append('appointment_date', document.getElementById('consultationDate').value);
+            formData.append('appointment_date', date);
             formData.append('appointment_time', selectedTimeSlot);
             formData.append('payment_method', 'onsite');
 

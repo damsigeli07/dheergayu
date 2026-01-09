@@ -111,6 +111,7 @@ $history = $model->getRecentMedicalHistory($user_id);
                                         <input type="date" id="date_of_birth" name="date_of_birth" 
                                                value="<?php echo $profile['date_of_birth'] ?? ''; ?>" 
                                                disabled>
+                                        <small id="dobError" style="color: #dc3545; display: none; font-size: 12px; margin-top: 5px;">Date must be between 1925 and 2007</small>
                                     </div>
                                     <div class="form-group">
                                         <label for="gender">Gender *</label>
@@ -195,9 +196,10 @@ $history = $model->getRecentMedicalHistory($user_id);
                                     </div>
                                     <div class="form-group">
                                         <label for="weight">Weight (kg)</label>
-                                        <input type="number" id="weight" name="weight" step="0.01"
+                                        <input type="number" id="weight" name="weight" step="0.01" min="1" max="300"
                                                value="<?php echo $profile['weight'] ?? ''; ?>" 
                                                disabled>
+                                        <small id="weightError" style="color: #dc3545; display: none; font-size: 12px; margin-top: 5px;">Weight must be between 1-300 kg</small>
                                     </div>
                                 </div>
 
@@ -374,6 +376,49 @@ $history = $model->getRecentMedicalHistory($user_id);
             event.target.classList.add('active');
         }
 
+        // DOB Validation Function
+        function validateDOB() {
+            const dobInput = document.getElementById('date_of_birth');
+            const dobError = document.getElementById('dobError');
+            
+            if (!dobInput.value || dobInput.disabled) {
+                dobError.style.display = 'none';
+                return true;
+            }
+            
+            const dob = new Date(dobInput.value);
+            const year = dob.getFullYear();
+            
+            if (year < 1925 || year > 2007) {
+                dobError.style.display = 'block';
+                return false;
+            }
+            
+            dobError.style.display = 'none';
+            return true;
+        }
+
+        // Weight Validation Function
+        function validateWeight() {
+            const weightInput = document.getElementById('weight');
+            const weightError = document.getElementById('weightError');
+            
+            if (!weightInput.value || weightInput.disabled) {
+                weightError.style.display = 'none';
+                return true;
+            }
+            
+            const weight = parseFloat(weightInput.value);
+            
+            if (weight < 1 || weight > 300) {
+                weightError.style.display = 'block';
+                return false;
+            }
+            
+            weightError.style.display = 'none';
+            return true;
+        }
+
         function enableEditing() {
             const form = document.getElementById('personalInfoForm');
             const inputs = form.querySelectorAll('input:not([name="action"]), select, textarea');
@@ -388,6 +433,9 @@ $history = $model->getRecentMedicalHistory($user_id);
             buttons[0].style.display = 'none';
             buttons[1].style.display = 'inline-block';
             buttons[2].style.display = 'inline-block';
+            
+            // Add real-time DOB validation
+            document.getElementById('date_of_birth').addEventListener('change', validateDOB);
         }
 
         function cancelEditing() {
@@ -403,6 +451,9 @@ $history = $model->getRecentMedicalHistory($user_id);
             buttons[0].style.display = 'none';
             buttons[1].style.display = 'inline-block';
             buttons[2].style.display = 'inline-block';
+            
+            // Add real-time weight validation
+            document.getElementById('weight').addEventListener('input', validateWeight);
         }
 
         function cancelMedicalEditing() {
@@ -448,9 +499,15 @@ $history = $model->getRecentMedicalHistory($user_id);
             }, 3000);
         }
 
-        // Personal Info Form Submit
+        // Personal Info Form Submit with Validation
         document.getElementById('personalInfoForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // Validate DOB before submission
+            if (!validateDOB()) {
+                showErrorMessage('Please enter a valid date of birth (between 1925 and 2007)');
+                return;
+            }
             
             const formData = new FormData(this);
             
@@ -472,9 +529,15 @@ $history = $model->getRecentMedicalHistory($user_id);
             });
         });
 
-        // Medical Info Form Submit
+        // Medical Info Form Submit with Validation
         document.getElementById('medicalInfoForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            // Validate weight before submission
+            if (!validateWeight()) {
+                showErrorMessage('Please enter a valid weight (between 1-300 kg)');
+                return;
+            }
             
             const formData = new FormData(this);
             

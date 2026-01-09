@@ -1,5 +1,5 @@
 <?php
-//session_start();
+session_start();
 
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
@@ -166,21 +166,21 @@ if ($isLoggedIn && !empty($userName)) {
                     <div class="certificate-image-circle">
                         <img src="/dheergayu/public/assets/images/Patient/silver2.jpg" alt="Silver Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn">14 000 LKR</button>
+                    <h3 class="price">14 000 LKR</h3>
                 </div>
                 <div class="certificate-card">
                     <p class="certificate-level gold">Gold</p>
                     <div class="certificate-image-circle">
                         <img src="/dheergayu/public/assets/images/Patient/silver.jpg" alt="Gold Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn-alt">15 500 LKR</button>
+                    <h3 class="price">15 500 LKR</h3>
                 </div>
                 <div class="certificate-card">
                     <p class="certificate-level platinum">Platinum</p>
                     <div class="certificate-image-circle">
                         <img src="/dheergayu/public/assets/images/Patient/platinum.jpg" alt="Platinum Certificate" class="circle-image">
                     </div>
-                    <button class="btn certificate-btn">8 000 LKR</button>
+                    <h3 class="price">8 000 LKR</h3>
                 </div>
             </div>
         </div>
