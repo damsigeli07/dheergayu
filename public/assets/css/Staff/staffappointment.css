@@ -120,7 +120,8 @@ body {
 /* Actions */
 .actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
+    align-items: center;
 }
 
 .action-btn {
@@ -139,6 +140,55 @@ body {
 
 .delete-btn { background-color: #dc3545; color: white; }
 .delete-btn:hover { background-color: #c82333; transform: translateY(-1px); }
+
+/* Button Styles - Matching Doctor Dashboard */
+.btn-start {
+    background-color: #E6A85A;
+    color: #333;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-start:hover {
+    background-color: #C58F3F;
+}
+
+.btn-cancel {
+    background-color: #ffe0e0;
+    color: #333;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-cancel:hover {
+    background-color: #ffb3b3;
+}
+
+.btn-view {
+    background-color: #E6A85A;
+    color: #333;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-view:hover {
+    background-color: #C58F3F;
+}
 
 /* Pagination */
 .pagination {
@@ -178,8 +228,14 @@ body {
     .search-section { flex-direction: column; align-items: stretch; }
     .search-input { width: 100%; margin-bottom: 10px; }
     .appointments-table { font-size: 12px; min-width: 600px; }
-    .actions { flex-direction: column; gap: 4px; }
+    .actions { flex-direction: column; gap: 8px; }
     .action-btn { padding: 4px 8px; font-size: 10px; }
+    .btn-start, .btn-cancel, .btn-view {
+        width: 100%;
+        text-align: center;
+        padding: 8px 15px;
+        font-size: 12px;
+    }
     .table-container { overflow-x: auto; }
 }
 

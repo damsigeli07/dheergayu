@@ -16,29 +16,8 @@ require_once __DIR__ . '/../../Models/AppointmentModel.php';
 $db = new mysqli('localhost', 'root', '', 'dheergayu_db');
 $appointmentModel = new AppointmentModel($db);
 
-// Get filter from GET parameter
-$selectedRoom = isset($_GET['room']) ? $_GET['room'] : 'All';
-
-// Fetch appointments with consultation forms and booking details
-if ($selectedRoom === 'All') {
-    $appointments = $appointmentModel->getStaffAppointmentsWithConsultationsAndBookings();
-} else {
-    $appointments = $appointmentModel->getStaffAppointmentsWithConsultationsAndBookings();
-    // filter by treatment type if requested
-    $appointments = array_filter($appointments, function($a) use ($selectedRoom) {
-        return ($a['treatment_room'] ?? '') === $selectedRoom;
-    });
-    $appointments = array_values($appointments);
-}
-
-// Filter to show ONLY appointments with submitted consultation forms
-$appointments = array_filter($appointments, function($apt) {
-    return $apt['consultation_status'] === 'Consultation Submitted';
-});
-$appointments = array_values($appointments);
-
-// Get available treatment rooms for filter
-$availableRooms = $appointmentModel->getAvailableTreatmentRooms();
+// Fetch appointments from appointments table (same as doctor dashboard)
+$appointments = $appointmentModel->getAllDoctorAppointments();
 
 // If no appointments found, use empty array
 if (!$appointments) {
@@ -57,23 +36,28 @@ if (!$appointments) {
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Staff/staffappointment.css?v=1.1">
     <style>
         .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 500;
             text-transform: uppercase;
+            display: inline-block;
+            border: 1px solid transparent;
         }
-        .status-badge.pending {
-            background-color: #FFF4E6;
-            color: #E6A85A;
+        .status-badge.upcoming {
+            background: #e8f5e9;
+            color: #7a5a2b;
+            border-color: #f3e6d5;
         }
         .status-badge.completed {
-            background-color: #FFF4E6;
-            color: #D4A574;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-color: #bbdefb;
         }
         .status-badge.cancelled {
-            background-color: #f8d7da;
-            color: #721c24;
+            background: #ffebee !important;
+            color: #c62828 !important;
+            border-color: #ffcdd2 !important;
         }
     </style>
     <script>
@@ -96,56 +80,93 @@ if (!$appointments) {
             }
         }
 
-        function filterByRoom() {
-            const roomFilter = document.getElementById('room-filter');
-            const selectedRoom = roomFilter.value;
+        function showCancelReason(btn, appointmentNo) {
+            const confirmBox = document.createElement('div');
+            confirmBox.style.position = 'fixed';
+            confirmBox.style.top = '0';
+            confirmBox.style.left = '0';
+            confirmBox.style.width = '100vw';
+            confirmBox.style.height = '100vh';
+            confirmBox.style.background = 'rgba(0,0,0,0.2)';
+            confirmBox.style.display = 'flex';
+            confirmBox.style.alignItems = 'center';
+            confirmBox.style.justifyContent = 'center';
+            confirmBox.style.zIndex = '9999';
+            confirmBox.innerHTML = `<div style="background:#f7fafc;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #b2bec3;text-align:center;max-width:350px;">
+                <p style='font-size:16px;margin-bottom:10px;'>Please provide a reason for cancellation:</p>
+                <textarea id='cancel-reason' style='width:90%;height:60px;border-radius:6px;border:1px solid #b2bec3;margin-bottom:18px;'></textarea><br>
+                <button id='cancel-no-btn' style='background:#b2dfdb;color:#333;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;'>No</button>
+                <button id='cancel-next-btn' style='background:#e57373;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;'>Next</button>
+            </div>`;
+            document.body.appendChild(confirmBox);
             
-            // Redirect with room parameter
-            if (selectedRoom === 'All') {
-                window.location.href = 'staffappointment.php';
-            } else {
-                window.location.href = 'staffappointment.php?room=' + encodeURIComponent(selectedRoom);
-            }
+            document.getElementById('cancel-no-btn').addEventListener('click', function() {
+                document.body.removeChild(confirmBox);
+            });
+            
+            document.getElementById('cancel-next-btn').addEventListener('click', function() {
+                showFinalCancelConfirm(appointmentNo, confirmBox);
+            });
         }
 
-        function startTreatment(appointmentId) {
-            const confirmed = confirm('Are you sure you want to start this treatment? Make sure the patient is present and ready.');
+        function showFinalCancelConfirm(appointmentNo, previousDialog) {
+            const reason = document.getElementById('cancel-reason').value.trim();
+            if (!reason) {
+                alert('Please enter a reason.');
+                return;
+            }
             
-            if (!confirmed) return;
+            document.body.removeChild(previousDialog);
+            
+            const confirmBox = document.createElement('div');
+            confirmBox.style.position = 'fixed';
+            confirmBox.style.top = '0';
+            confirmBox.style.left = '0';
+            confirmBox.style.width = '100vw';
+            confirmBox.style.height = '100vh';
+            confirmBox.style.background = 'rgba(0,0,0,0.2)';
+            confirmBox.style.display = 'flex';
+            confirmBox.style.alignItems = 'center';
+            confirmBox.style.justifyContent = 'center';
+            confirmBox.style.zIndex = '9999';
+            confirmBox.innerHTML = `<div style="background:#f7fafc;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #b2bec3;text-align:center;max-width:350px;">
+                <p style='font-size:16px;margin-bottom:20px;'>Are you sure you want to cancel this appointment?</p>
+                <button id='final-cancel-no-btn' style='background:#b2dfdb;color:#333;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;'>No</button>
+                <button id='final-cancel-yes-btn' style='background:#e57373;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;'>Yes</button>
+            </div>`;
+            document.body.appendChild(confirmBox);
+            
+            document.getElementById('final-cancel-no-btn').addEventListener('click', function() {
+                document.body.removeChild(confirmBox);
+            });
+            
+            document.getElementById('final-cancel-yes-btn').addEventListener('click', function() {
+                submitCancelReason(appointmentNo, reason, confirmBox);
+            });
+        }
+
+        function submitCancelReason(appointmentNo, reason, dialogElement) {
+            document.body.removeChild(dialogElement);
             
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/dheergayu/public/api/update-treatment-status.php', true);
+            xhr.open('POST', '/dheergayu/app/Controllers/AppointmentController.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            alert('Treatment started successfully!');
-                            location.reload();
-                        } else {
-                            alert('Error: ' + (response.message || 'Failed to start treatment'));
-                        }
-                    } catch (e) {
-                        alert('Error processing response: ' + e.message);
-                    }
-                } else {
-                    alert('Server error: ' + xhr.status);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    alert('Appointment cancelled!');
+                    setTimeout(function(){ location.reload(); }, 1200);
                 }
             };
-            
-            xhr.onerror = function() {
-                alert('Network error. Please try again.');
-            };
-            
-            xhr.send('appointment_id=' + appointmentId + '&action=start_treatment');
+            xhr.send('action=cancel&appointment_id=' + encodeURIComponent(appointmentNo) + '&reason=' + encodeURIComponent(reason));
         }
 
-        function viewConsultationForm(appointmentId) {
+        function showCancelDetails(reason) {
+            alert('Cancellation Reason:\n' + reason);
+        }
+
+        function showConsultationModal(appointmentId) {
             const modal = document.getElementById('consultationModal');
             const content = document.getElementById('consultationContent');
-            
             content.innerHTML = '<p style="text-align: center; color: #999;">Loading consultation form...</p>';
             modal.style.display = 'flex';
             
@@ -160,7 +181,6 @@ if (!$appointments) {
                         if (data && Object.keys(data).length > 0) {
                             let html = '<div style="background: #f9f9f9; padding: 15px; border-radius: 6px;">';
                             
-                            // Patient Information
                             html += '<h3 style="color: #E6A85A; margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Patient Information</h3>';
                             html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">';
                             html += '<p><strong>Name:</strong> ' + (data.first_name ? data.first_name + ' ' + (data.last_name || '') : 'N/A') + '</p>';
@@ -169,14 +189,12 @@ if (!$appointments) {
                             html += '<p><strong>Contact:</strong> ' + (data.contact_info || 'N/A') + '</p>';
                             html += '</div>';
                             
-                            // Clinical Information
                             html += '<h3 style="color: #E6A85A; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Clinical Information</h3>';
                             html += '<div style="margin-bottom: 20px;">';
                             html += '<p><strong>Diagnosis:</strong></p>';
                             html += '<p style="background: white; padding: 10px; border-radius: 4px; border-left: 3px solid #E6A85A;">' + (data.diagnosis || 'N/A') + '</p>';
                             html += '</div>';
                             
-                            // Recommended Treatment
                             if (data.recommended_treatment) {
                                 html += '<div style="margin-bottom: 20px;">';
                                 html += '<p><strong>Recommended Treatment:</strong></p>';
@@ -184,7 +202,6 @@ if (!$appointments) {
                                 html += '</div>';
                             }
                             
-                            // Special Notes
                             if (data.notes) {
                                 html += '<div style="margin-bottom: 20px;">';
                                 html += '<p><strong>Special Notes/Instructions:</strong></p>';
@@ -192,7 +209,6 @@ if (!$appointments) {
                                 html += '</div>';
                             }
                             
-                            // Prescribed Products
                             if (data.personal_products && data.personal_products !== '[]') {
                                 try {
                                     const products = JSON.parse(data.personal_products);
@@ -211,7 +227,6 @@ if (!$appointments) {
                                 }
                             }
                             
-                            // Additional Notes
                             html += '<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">';
                             html += '<p style="font-size: 13px; color: #666; margin: 0;"><strong>Previous Visits:</strong> ' + (data.total_visits || '0') + '</p>';
                             html += '</div>';
@@ -287,17 +302,6 @@ if (!$appointments) {
                         <input type="text" class="search-input" placeholder="Search" onkeyup="searchTable()">
                         <button class="search-btn" onclick="searchTable()">🔍</button>
                     </div>
-                    <div class="filter-section" style="display: flex; gap: 10px; align-items: center;">
-                        <label for="room-filter" style="font-weight: 600; color: #333;">Filter by Room:</label>
-                        <select id="room-filter" class="room-filter" onchange="filterByRoom()" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ddd; font-size: 14px;">
-                            <option value="All" <?php echo $selectedRoom === 'All' ? 'selected' : ''; ?>>All Rooms</option>
-                            <?php foreach ($availableRooms as $room): ?>
-                                <option value="<?php echo htmlspecialchars($room); ?>" <?php echo $selectedRoom === $room ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($room); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
                 </div>
             </div>
 
@@ -308,125 +312,54 @@ if (!$appointments) {
                             <th>Appointment ID</th>
                             <th>Patient No.</th>
                             <th>Patient Name</th>
-                            <th>Date and Time</th>
-                            <th>Treatment Room</th>
-                            <th>Consultation Notes</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($appointments)): ?>
-                            <?php foreach ($appointments as $appointment): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($appointment['appointment_id'] ?? ''); ?></td>
-                                <td><?php echo htmlspecialchars($appointment['patient_no'] ?? ''); ?></td>
-                                <td class="patient-name"><?php echo htmlspecialchars($appointment['patient_name'] ?? ''); ?></td>
-                                <td class="date-time">
-                                    <?php if (!empty($appointment['booking_date']) || !empty($appointment['slot_time'])): ?>
-                                        <?php echo htmlspecialchars(($appointment['booking_date'] ?? '') . ' ' . ($appointment['slot_time'] ?? '')); ?>
-                                    <?php else: ?>
-                                        <?php echo htmlspecialchars($appointment['appointment_datetime'] ?? ''); ?>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <span class="room-badge" style="background-color: #E6A85A; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
-                                        <?php echo htmlspecialchars($appointment['treatment_room'] ?? 'General'); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn-view-notes" onclick="viewConsultationForm(<?php echo $appointment['appointment_id']; ?>)" 
-                                        style="background: #2196F3; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">
-                                        View Notes
-                                    </button>
-                                </td>
-                                <td>
-                                    <?php
-                                    // Determine if booking is upcoming or completed based on booking_date + slot_time
-                                    $now = time(); // Current timestamp
-                                    $is_completed = false;
-                                    $is_not_completed = false;
-                                    $can_start = false;
-
-                                    if (!empty($appointment['booking_date']) && !empty($appointment['slot_time'])) {
-                                        // Combine booking_date and slot_time for full datetime comparison
-                                        $booking_datetime = $appointment['booking_date'] . ' ' . $appointment['slot_time'];
-                                        $booking_ts = strtotime($booking_datetime);
-                                        
-                                        if ($booking_ts >= $now) {
-                                            // Upcoming treatment (date + time is in future) - show Start button
-                                            $can_start = true;
-                                        } else {
-                                            // Past booking (date + time has passed)
-                                            $status_lower = strtolower($appointment['status'] ?? '');
-                                            if ($status_lower === 'completed') {
-                                                // Marked as completed - show Completed label
-                                                $is_completed = true;
-                                            } else {
-                                                // Time slot has passed but not marked as completed - show Not Completed
-                                                $is_not_completed = true;
-                                            }
-                                        }
-                                    } else if (!empty($appointment['booking_date'])) {
-                                        // Only date available, check against today
-                                        $booking_ts = strtotime($appointment['booking_date']);
-                                        $today_ts = strtotime(date('Y-m-d'));
-                                        
-                                        if ($booking_ts >= $today_ts) {
-                                            $can_start = true;
-                                        } else {
-                                            // Past booking
-                                            $status_lower = strtolower($appointment['status'] ?? '');
-                                            if ($status_lower === 'completed') {
-                                                $is_completed = true;
-                                            } else {
-                                                $is_not_completed = true;
-                                            }
-                                        }
-                                    } else if (!empty($appointment['appointment_datetime'])) {
-                                        // Fallback to appointment_datetime if booking_date not set
-                                        $appt_ts = strtotime($appointment['appointment_datetime']);
-                                        if ($appt_ts >= $now) {
-                                            $can_start = true;
-                                        } else {
-                                            // Past appointment
-                                            $status_lower = strtolower($appointment['status'] ?? '');
-                                            if ($status_lower === 'completed') {
-                                                $is_completed = true;
-                                            } else {
-                                                $is_not_completed = true;
-                                            }
-                                        }
+                            <?php foreach ($appointments as $apt): ?>
+                                <?php
+                                    $statusUpper = strtoupper(isset($apt['status']) ? trim($apt['status']) : '');
+                                    if ($statusUpper === 'PENDING' || $statusUpper === 'CONFIRMED') {
+                                        $status = 'Upcoming';
+                                    } elseif ($statusUpper === 'COMPLETED') {
+                                        $status = 'Completed';
+                                    } elseif ($statusUpper === 'CANCELLED') {
+                                        $status = 'Cancelled';
+                                    } else {
+                                        $status = $apt['status'];
                                     }
-                                    ?>
-                                    <?php if ($is_completed): ?>
-                                        <span style="background: #4CAF50; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block;">
-                                            ✓ Completed
-                                        </span>
-                                    <?php elseif ($is_not_completed): ?>
-                                        <span style="background: #FF9800; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block;">
-                                            ✗ Not Completed
-                                        </span>
-                                    <?php elseif ($can_start): ?>
-                                    <?php
-                                        $tpUrl = 'treatment_progress.php?appointment_id=' . urlencode($appointment['appointment_id']);
-                                        if (!empty($appointment['booking_id'])) {
-                                            $tpUrl .= '&booking_id=' . urlencode($appointment['booking_id']);
-                                        }
-                                    ?>
-                                    <a href="<?php echo $tpUrl; ?>" 
-                                    style="background: #4CAF50; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; text-decoration: none; display: inline-block;">
-                                        Start
-                                    </a>
-                                    <?php else: ?>
-                                        <span style="color: #999; font-size: 12px;">Not upcoming</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
+                                ?>
+                                <tr class="appointment-row <?= strtolower($status) ?>" data-status="<?= strtolower($status) ?>">
+                                    <td><?= htmlspecialchars($apt['appointment_id']) ?></td>
+                                    <td><?= htmlspecialchars($apt['patient_no']) ?></td>
+                                    <td><?= htmlspecialchars($apt['patient_name']) ?></td>
+                                    <td><?= htmlspecialchars($apt['appointment_datetime']) ?></td>
+                                    <td>
+                                        <?php if ($status === 'Upcoming') : ?>
+                                            <span class="status-badge upcoming">Upcoming</span>
+                                        <?php elseif ($status === 'Completed') : ?>
+                                            <span class="status-badge completed">Completed</span>
+                                        <?php elseif ($status === 'Cancelled') : ?>
+                                            <span class="status-badge cancelled">Cancelled</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="actions">
+                                        <?php if ($status === 'Upcoming') : ?>
+                                            <button class="btn-start" onclick="window.open('doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>', '_blank')">Start Consultation</button>
+                                            <button class="btn-cancel" onclick="showCancelReason(this, '<?= htmlspecialchars($apt['appointment_id']) ?>')">Cancel</button>
+                                        <?php elseif ($status === 'Completed') : ?>
+                                            <button class="btn-view" onclick="showConsultationModal(<?= htmlspecialchars($apt['appointment_id']) ?>)">View</button>
+                                        <?php elseif ($status === 'Cancelled') : ?>
+                                            <button class="btn-view" onclick="showCancelDetails('<?= htmlspecialchars($apt['reason'] ?? '') ?>')">View</button>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 20px;">No appointments with submitted consultation forms found.</td>
-                            </tr>
+                            <tr><td colspan="6">No appointments found.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

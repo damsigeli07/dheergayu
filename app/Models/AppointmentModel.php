@@ -428,45 +428,54 @@ class AppointmentModel {
             $apt['slot_id'] = null;
             $apt['slot_time'] = '';
 
-            // Query booking using treatment_booking_id from consultationforms table
-            $cf_stmt = $this->conn->prepare("SELECT treatment_booking_id FROM consultationforms WHERE appointment_id = ? LIMIT 1");
-            if ($cf_stmt) {
-                $appt_id = $apt['appointment_id'];
-                $cf_stmt->bind_param('i', $appt_id);
-                $cf_stmt->execute();
-                $cf_res = $cf_stmt->get_result();
-                if ($cf_row = $cf_res->fetch_assoc()) {
-                    $bookingId = $cf_row['treatment_booking_id'];
-                    if ($bookingId) {
-                        // Query booking details
-                        $stmt = $this->conn->prepare("SELECT booking_date, slot_id FROM treatment_bookings WHERE booking_id = ? LIMIT 1");
-                        if ($stmt) {
-                            $stmt->bind_param('i', $bookingId);
-                            $stmt->execute();
-                            $res = $stmt->get_result();
-                            if ($row = $res->fetch_assoc()) {
-                                $apt['booking_id'] = $bookingId;
-                                $apt['booking_date'] = $row['booking_date'];
-                                $apt['slot_id'] = $row['slot_id'];
+            // Check if treatment_booking_id column exists before querying
+            $columnExists = false;
+            $checkColumn = $this->conn->query("SHOW COLUMNS FROM consultationforms LIKE 'treatment_booking_id'");
+            if ($checkColumn && $checkColumn->num_rows > 0) {
+                $columnExists = true;
+            }
 
-                                // fetch slot_time
-                                $sStmt = $this->conn->prepare("SELECT slot_time FROM treatment_slots WHERE slot_id = ? LIMIT 1");
-                                if ($sStmt) {
-                                    $slot_id = $row['slot_id'];
-                                    $sStmt->bind_param('i', $slot_id);
-                                    $sStmt->execute();
-                                    $sRes = $sStmt->get_result();
-                                    if ($sRow = $sRes->fetch_assoc()) {
-                                        $apt['slot_time'] = $sRow['slot_time'];
+            if ($columnExists) {
+                // Query booking using treatment_booking_id from consultationforms table
+                $cf_stmt = $this->conn->prepare("SELECT treatment_booking_id FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+                if ($cf_stmt) {
+                    $appt_id = $apt['appointment_id'];
+                    $cf_stmt->bind_param('i', $appt_id);
+                    $cf_stmt->execute();
+                    $cf_res = $cf_stmt->get_result();
+                    if ($cf_row = $cf_res->fetch_assoc()) {
+                        $bookingId = $cf_row['treatment_booking_id'] ?? null;
+                        if ($bookingId) {
+                            // Query booking details
+                            $stmt = $this->conn->prepare("SELECT booking_date, slot_id FROM treatment_bookings WHERE booking_id = ? LIMIT 1");
+                            if ($stmt) {
+                                $stmt->bind_param('i', $bookingId);
+                                $stmt->execute();
+                                $res = $stmt->get_result();
+                                if ($row = $res->fetch_assoc()) {
+                                    $apt['booking_id'] = $bookingId;
+                                    $apt['booking_date'] = $row['booking_date'];
+                                    $apt['slot_id'] = $row['slot_id'];
+
+                                    // fetch slot_time
+                                    $sStmt = $this->conn->prepare("SELECT slot_time FROM treatment_slots WHERE slot_id = ? LIMIT 1");
+                                    if ($sStmt) {
+                                        $slot_id = $row['slot_id'];
+                                        $sStmt->bind_param('i', $slot_id);
+                                        $sStmt->execute();
+                                        $sRes = $sStmt->get_result();
+                                        if ($sRow = $sRes->fetch_assoc()) {
+                                            $apt['slot_time'] = $sRow['slot_time'];
+                                        }
+                                        $sStmt->close();
                                     }
-                                    $sStmt->close();
                                 }
+                                $stmt->close();
                             }
-                            $stmt->close();
                         }
                     }
+                    $cf_stmt->close();
                 }
-                $cf_stmt->close();
             }
         }
 
