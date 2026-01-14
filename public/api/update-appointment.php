@@ -23,7 +23,6 @@ if (isset($_SESSION['user_type']) && $_SESSION['user_type'] !== 'patient') {
 
 try {
     require_once __DIR__ . '/../../config/config.php';
-    require_once __DIR__ . '/../../app/Models/AppointmentModel.php';
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => 'Configuration error: ' . $e->getMessage()]);
     exit;
@@ -40,11 +39,10 @@ try {
         exit;
     }
 
-    $model = new AppointmentModel($conn);
-    $table = ($type === 'consultation') ? 'consultations' : 'treatments';
+    $table = ($type === 'consultation') ? 'consultations' : 'consultations';
 
     // Get current appointment details
-    $stmt = $conn->prepare("SELECT appointment_date, appointment_time FROM $table WHERE id = ? AND patient_id = ?");
+    $stmt = $conn->prepare("SELECT appointment_date, appointment_time, doctor_id FROM $table WHERE id = ? AND patient_id = ?");
     $stmt->bind_param("ii", $id, $_SESSION['user_id']);
     $stmt->execute();
     $current = $stmt->get_result()->fetch_assoc();
@@ -61,29 +59,31 @@ try {
         exit;
     }
 
-    // Check if new slot is available
-    if (!$model->isSlotAvailable($date, $time)) {
-        echo json_encode(['success' => false, 'error' => 'Selected slot is no longer available']);
-        exit;
-    }
+    // Check if new slot is available for the same doctor
+    $checkQuery = "SELECT id FROM consultations 
+                   WHERE appointment_date = ? 
+                   AND appointment_time = ? 
+                   AND doctor_id = ?
+                   AND status != 'Cancelled'";
+    $checkStmt = $conn->prepare($checkQuery);
+    $checkStmt->bind_param('ssi', $date, $time, $current['doctor_id']);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
 
-    // Try to lock the new slot
-    if (!$model->lockSlot($date, $time, $_SESSION['user_id'])) {
-        echo json_encode(['success' => false, 'error' => 'Unable to secure the selected slot']);
+    if ($checkResult->num_rows > 0) {
+        echo json_encode(['success' => false, 'error' => 'Selected slot is no longer available']);
+        $checkStmt->close();
         exit;
     }
+    $checkStmt->close();
 
     // Update the appointment
     $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ? WHERE id = ? AND patient_id = ?");
     $stmt->bind_param("ssii", $date, $time, $id, $_SESSION['user_id']);
 
     if ($stmt->execute()) {
-        // Release the lock after successful update
-        $model->releaseSlot($date, $time, $_SESSION['user_id']);
         echo json_encode(['success' => true]);
     } else {
-        // Release lock if update failed
-        $model->releaseSlot($date, $time, $_SESSION['user_id']);
         echo json_encode(['success' => false, 'error' => 'Failed to update appointment']);
     }
 

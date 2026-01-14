@@ -1,6 +1,4 @@
 <?php
-// public/api/cancel-appointment.php
-
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
 header('Content-Type: application/json');
@@ -12,17 +10,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../app/Models/AppointmentModel.php';
-
-$model = new AppointmentModel($conn);
-
-// Get appointment details before cancellation
-$table = ($type === 'consultation') ? 'consultations' : 'treatments';
-$stmt = $conn->prepare("SELECT appointment_date, appointment_time FROM $table WHERE id = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$appointment = $stmt->get_result()->fetch_assoc();
-$stmt->close();
 
 $id = intval($_POST['id'] ?? 0);
 $type = $_POST['type'] ?? 'consultation';
@@ -32,13 +19,35 @@ if (!$id) {
     exit;
 }
 
-if ($model->cancelAppointment($id, $type)) {
+// Get appointment details before cancellation
+$table = ($type === 'consultation') ? 'consultations' : 'consultations';
+$stmt = $conn->prepare("SELECT appointment_date, appointment_time FROM $table WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$appointment = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+// Cancel the appointment
+$updateStmt = $conn->prepare("UPDATE $table SET status = 'Cancelled' WHERE id = ?");
+$updateStmt->bind_param("i", $id);
+
+if ($updateStmt->execute()) {
     // Release any locks on this slot when cancelled
     if ($appointment) {
-        $model->releaseSlot($appointment['appointment_date'], $appointment['appointment_time'], $_SESSION['user_id']);
+        $deleteStmt = $conn->prepare("DELETE FROM consultations 
+                                       WHERE appointment_date = ? 
+                                       AND appointment_time = ? 
+                                       AND status = 'locked'");
+        $deleteStmt->bind_param("ss", $appointment['appointment_date'], $appointment['appointment_time']);
+        $deleteStmt->execute();
+        $deleteStmt->close();
     }
+    
     echo json_encode(['success' => true, 'message' => 'Appointment cancelled successfully']);
 } else {
     echo json_encode(['error' => 'Failed to cancel appointment']);
 }
+
+$updateStmt->close();
+$conn->close();
 ?>
