@@ -130,6 +130,15 @@ $patient_id = $_GET['patient_id'] ?? '';
                 if (seen.has(s.slot_time)) return false; // filter duplicate times
                 seen.add(s.slot_time);
                 return true;
+            }).sort((a, b) => {
+                // Convert time strings to comparable format (HH:MM:SS)
+                const timeA = a.slot_time.split(':').map(Number);
+                const timeB = b.slot_time.split(':').map(Number);
+                
+                // Compare hours first, then minutes, then seconds
+                if (timeA[0] !== timeB[0]) return timeA[0] - timeB[0];
+                if (timeA[1] !== timeB[1]) return timeA[1] - timeB[1];
+                return (timeA[2] || 0) - (timeB[2] || 0);
             });
 
             if (slots.length === 0) {

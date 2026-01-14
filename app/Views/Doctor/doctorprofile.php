@@ -6,7 +6,11 @@ $doctor = [
     'email' => 'doctor1@gmail.com',
     'contact' => '+94 74 166 4838',
     'address' => '26, Samagi Road, Mahara, Sri Lanka',
-    'gender' => 'Male'
+    'gender' => 'Male',
+    'specialization' => 'Cardiology',
+    'license_number' => 'DOC123456',
+    'experience' => '10 years',
+    'qualification' => 'MBBS, MD'
 ];
 ?>
 
@@ -79,6 +83,22 @@ $doctor = [
             <div class="profile-item">
                 <span class="label">Gender:</span>
                 <span class="value"><?php echo $doctor['gender']; ?></span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Specialization:</span>
+                <span class="value"><?php echo $doctor['specialization']; ?></span>
+            </div>
+            <div class="profile-item">
+                <span class="label">License Number:</span>
+                <span class="value"><?php echo $doctor['license_number']; ?></span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Experience:</span>
+                <span class="value"><?php echo $doctor['experience']; ?></span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Qualification:</span>
+                <span class="value"><?php echo $doctor['qualification']; ?></span>
             </div>
         </div>
 

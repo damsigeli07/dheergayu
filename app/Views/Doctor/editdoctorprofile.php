@@ -6,7 +6,11 @@ $doctor = [
     'email' => 'doctordheergayu@gmail.com',
     'contact' => '+94 74 166 4838',
     'address' => '26, Samagi Road, Mahara, Sri Lanka',
-    'gender' => 'Male'
+    'gender' => 'Male',
+    'specialization' => 'Cardiology',
+    'license_number' => 'DOC123456',
+    'experience' => '10 years',
+    'qualification' => 'MBBS, MD'
 ];
 ?>
 
@@ -88,6 +92,25 @@ $doctor = [
                     <option value="Female" <?php echo ($doctor['gender']=='Female')?'selected':''; ?>>Female</option>
                     <option value="Other" <?php echo ($doctor['gender']=='Other')?'selected':''; ?>>Other</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="specialization">Specialization:</label>
+                <input type="text" id="specialization" name="specialization" value="<?php echo $doctor['specialization']; ?>" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="license_number">License Number:</label>
+                <input type="text" id="license_number" name="license_number" value="<?php echo $doctor['license_number']; ?>" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="experience">Experience:</label>
+                <input type="text" id="experience" name="experience" value="<?php echo $doctor['experience']; ?>" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="qualification">Qualification:</label>
+                <input type="text" id="qualification" name="qualification" value="<?php echo $doctor['qualification']; ?>" required>
             </div>
             
             <div class="form-actions">
