@@ -119,8 +119,8 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                         </div>
                     </div>
 
-                    <div class="right-section">
-                        <div class="auto-filled-section">
+                    <!--<div class="right-section">-->
+                    <!--    <div class="auto-filled-section">
                             <h3>Auto-filled data</h3>
                             
                             <div class="info-group">
@@ -145,10 +145,10 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                                 <strong>Contact Info:</strong>
                                 <div class="info-value">
                                     <input type="text" name="contact_info" value="<?= isset($appointment['contact_info']) ? htmlspecialchars($appointment['contact_info']) : '' ?>">
-                                </div>
+                                </div> -->
                                 <input type="hidden" name="patient_id" value="<?= isset($appointment['patient_id']) ? htmlspecialchars($appointment['patient_id']) : '' ?>">
                                 <input type="hidden" name="appointment_id" value="<?= isset($appointment['appointment_id']) ? htmlspecialchars($appointment['appointment_id']) : '' ?>">
-                            </div>
+                        <!--    </div>
                         </div>
 
                         <div class="checklist-section">
@@ -158,8 +158,8 @@ require_once __DIR__ . '/../../Controllers/ConsultationFormController.php';
                             <div class="checklist-item">- Update patient history</div>
                             <div class="checklist-item">- Follow-up appointment</div>
                             <div class="checklist-item">- Send to pharmacy</div>
-                        </div>
-                    </div>
+                        </div> -->
+                    <!--</div>-->
                 </div>
 
                 <div class="button-container">
