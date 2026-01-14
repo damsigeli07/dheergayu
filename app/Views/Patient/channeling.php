@@ -13,6 +13,16 @@ $model = new AppointmentModel($conn);
 
 $userName = $_SESSION['user_name'] ?? '';
 $userEmail = $_SESSION['user_email'] ?? '';
+
+// Fetch doctor schedules
+$scheduleQuery = "SELECT * FROM doctor_schedule WHERE is_active = 1 ORDER BY 
+    FIELD(day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), 
+    start_time";
+$scheduleResult = $conn->query($scheduleQuery);
+$doctorSchedules = [];
+while ($row = $scheduleResult->fetch_assoc()) {
+    $doctorSchedules[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -23,6 +33,9 @@ $userEmail = $_SESSION['user_email'] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dheergayu - Book Consultation</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/channeling.css?v=<?php echo time(); ?>">
+    <style>
+
+    </style>
 </head>
 
 <body>
@@ -49,6 +62,38 @@ $userEmail = $_SESSION['user_email'] ?? '';
     <div class="content-wrapper">
         <div class="page-header">
             <h1 class="main-title">Book Ayurvedic Consultation</h1>
+        </div>
+
+        <!-- Doctor Timetable Section -->
+        <div class="timetable-section">
+            <h3 class="timetable-title">Doctor Availability Schedule</h3>
+            <div class="timetable-grid">
+                <?php
+                // Group schedules by doctor
+                $doctorGroups = [];
+                foreach ($doctorSchedules as $schedule) {
+                    $doctorGroups[$schedule['doctor_name']][] = $schedule;
+                }
+
+                foreach ($doctorGroups as $doctorName => $schedules):
+                ?>
+                    <div class="doctor-schedule-card">
+                        <div class="doctor-name"><?php echo htmlspecialchars($doctorName); ?></div>
+                        <?php foreach ($schedules as $schedule): ?>
+                            <div class="schedule-item">
+                                <span class="schedule-day"><?php echo htmlspecialchars($schedule['day_of_week']); ?></span>
+                                <span class="schedule-time">
+                                    <?php 
+                                    echo date('g:i A', strtotime($schedule['start_time'])); 
+                                    echo ' - '; 
+                                    echo date('g:i A', strtotime($schedule['end_time'])); 
+                                    ?>
+                                </span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
 
         <div class="booking-content">
@@ -155,6 +200,8 @@ $userEmail = $_SESSION['user_email'] ?? '';
 
     <script>
         let selectedTimeSlot = '';
+        let selectedDoctorId = null;
+        let selectedDoctorName = '';
         let consultationDate = document.getElementById('consultationDate');
 
         consultationDate.min = new Date().toISOString().split('T')[0];
@@ -165,22 +212,18 @@ $userEmail = $_SESSION['user_email'] ?? '';
             }
         });
 
-        // Function to check if a time slot is in the past
         function isSlotInPast(selectedDate, slotTime) {
             const now = new Date();
             const today = now.toISOString().split('T')[0];
             
-            // If selected date is not today, slot is not in the past
             if (selectedDate !== today) {
                 return false;
             }
             
-            // Parse the slot time
             const [hours, minutes] = slotTime.split(':').map(Number);
             const slotDateTime = new Date();
             slotDateTime.setHours(hours, minutes, 0, 0);
             
-            // Check if slot time has passed
             return slotDateTime < now;
         }
 
@@ -193,9 +236,8 @@ $userEmail = $_SESSION['user_email'] ?? '';
                         container.innerHTML = data.slots.map(slot => {
                             let className = 'time-slot';
                             let disabled = '';
-                            let onclick = `selectSlot(this, '${slot.time}')`;
+                            let onclick = `selectSlot(this, '${slot.time}', ${slot.doctor_id}, '${slot.doctor_name}')`;
                             
-                            // Check if slot is in the past
                             if (isSlotInPast(date, slot.time)) {
                                 className += ' slot-locked';
                                 disabled = 'disabled';
@@ -210,7 +252,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
                                 onclick = '';
                             }
                             
-                            return `<button type="button" class="${className}" ${disabled} onclick="${onclick}">${formatTime(slot.time)}</button>`;
+                            return `<button type="button" class="${className}" ${disabled} onclick="${onclick}" title="${slot.doctor_name}">${formatTime(slot.time)}<br><small style="font-size:11px;">${slot.doctor_name}</small></button>`;
                         }).join('');
                     } else {
                         container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
@@ -218,10 +260,9 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 });
         }
 
-        function selectSlot(button, slot) {
+        function selectSlot(button, slot, doctorId, doctorName) {
             const date = document.getElementById('consultationDate').value;
             
-            // Double-check if slot is in the past before allowing selection
             if (isSlotInPast(date, slot)) {
                 alert('This time slot has already passed. Please select a future time.');
                 return;
@@ -246,6 +287,8 @@ $userEmail = $_SESSION['user_email'] ?? '';
                     document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
                     button.classList.add('selected');
                     selectedTimeSlot = slot;
+                    selectedDoctorId = doctorId;
+                    selectedDoctorName = doctorName;
                     updateSummary();
                     checkFormValidity();
                 } else {
@@ -278,6 +321,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 summary = `
                     <div style="color: #333;">
                         <p><strong>Service:</strong> Ayurvedic Consultation</p>
+                        <p><strong>Doctor:</strong> ${selectedDoctorName}</p>
                         <p><strong>Date:</strong> ${formattedDate}</p>
                         <p><strong>Time:</strong> ${formatTime(selectedTimeSlot)}</p>
                         <p><strong>Duration:</strong> 30-45 minutes</p>
@@ -312,7 +356,6 @@ $userEmail = $_SESSION['user_email'] ?? '';
             
             const date = document.getElementById('consultationDate').value;
             
-            // Final check before booking
             if (isSlotInPast(date, selectedTimeSlot)) {
                 alert('This time slot has already passed. Please select a future time.');
                 return;
@@ -323,6 +366,8 @@ $userEmail = $_SESSION['user_email'] ?? '';
             formData.append('appointment_date', date);
             formData.append('appointment_time', selectedTimeSlot);
             formData.append('payment_method', 'onsite');
+            formData.append('doctor_id', selectedDoctorId);
+            formData.append('doctor_name', selectedDoctorName);
 
             fetch('/dheergayu/public/api/book-treatment.php', {
                     method: 'POST',
@@ -331,7 +376,7 @@ $userEmail = $_SESSION['user_email'] ?? '';
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Consultation booked successfully!');
+                        alert('Consultation booked successfully with ' + selectedDoctorName + '!');
                         window.location.href = 'patient_appointments.php';
                     } else {
                         alert('Error: ' + (data.error || 'Failed to book consultation'));
