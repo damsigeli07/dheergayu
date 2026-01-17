@@ -1,8 +1,12 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 
-// Include database connection
+// Include database connection - Fix the path
 require_once(dirname(__DIR__, 3) . "/config/config.php");
+
 
 $error_message = '';
 
@@ -25,6 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['user_email'] = $email;
                 $_SESSION['user_type'] = 'patient';
+                $_SESSION['user_role'] = 'patient';
                 $_SESSION['user_name'] = $row['first_name'] . ' ' . $row['last_name'];
                 $_SESSION['role'] = 'Patient';
                 $_SESSION['name'] = $_SESSION['user_name'];
@@ -33,6 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 exit();
             }
         }
+        $stmt->close();
 
         // 2) Try users table
         $stmt = $conn->prepare("SELECT id, first_name, last_name, password, role FROM users WHERE email = ?");
@@ -46,6 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['user_email'] = $email;
                 $_SESSION['user_type'] = strtolower($row['role']);
+                $_SESSION['user_role'] = strtolower($row['role']);
                 $_SESSION['user_name'] = $row['first_name'] . ' ' . $row['last_name'];
                 $_SESSION['role'] = $row['role'];
                 $_SESSION['name'] = $_SESSION['user_name'];
@@ -70,6 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 exit();
             }
         }
+        $stmt->close();
 
         // 3) Try suppliers table
         $stmt = $conn->prepare("SELECT id, supplier_name, contact_person, password, status FROM suppliers WHERE email = ?");
@@ -78,7 +86,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $result = $stmt->get_result();
 
         if ($row = $result->fetch_assoc()) {
-            // Check if password exists
             if (empty($row['password']) || is_null($row['password'])) {
                 $error_message = "Password not set for this supplier. Please contact the administrator.";
             } elseif (isset($row['status']) && strtolower($row['status']) !== 'active') {
@@ -88,6 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['user_email'] = $email;
                 $_SESSION['user_type'] = 'supplier';
+                $_SESSION['user_role'] = 'supplier';
                 $_SESSION['user_name'] = $row['supplier_name'];
                 $_SESSION['role'] = 'Supplier';
                 $_SESSION['name'] = $row['supplier_name'];
@@ -96,12 +104,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 header("Location: ../Supplier/supplierdashboard.php");
                 exit();
             } else {
-                // Password verification failed
                 $error_message = "Invalid email or password.";
             }
         }
+        $stmt->close();
 
-        // If none matched
         if (empty($error_message)) {
             $error_message = "Invalid email or password.";
         }
@@ -169,37 +176,35 @@ $conn->close();
     </div>
 </div>
 
-    <script>
-        function togglePassword() {
-            const field = document.getElementById('password');
-            const toggle = document.querySelector('.password-toggle');
-            if (field.type === 'password') {
-                field.type = 'text';
-                toggle.textContent = '🙈';
-            } else {
-                field.type = 'password';
-                toggle.textContent = '👁';
-            }
+<script>
+    function togglePassword() {
+        const field = document.getElementById('password');
+        const toggle = document.querySelector('.password-toggle');
+        if (field.type === 'password') {
+            field.type = 'text';
+            toggle.textContent = '🙈';
+        } else {
+            field.type = 'password';
+            toggle.textContent = '👁';
         }
+    }
 
-        // Add loading state to login button
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('loginBtn');
-            submitBtn.textContent = 'LOGGING IN...';
-            submitBtn.disabled = true;
-        });
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('loginBtn');
+        submitBtn.textContent = 'LOGGING IN...';
+        submitBtn.disabled = true;
+    });
 
-        // Add input animation effects
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'scale(1.02)';
         });
-    </script>
-    
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'scale(1)';
+        });
+    });
+</script>
+
 </body>
 </html>

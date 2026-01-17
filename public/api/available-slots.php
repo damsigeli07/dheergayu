@@ -1,12 +1,13 @@
 <?php
-// Disable error display to prevent HTML in JSON response
+// Disable ALL output before JSON response
+error_reporting(0);
 ini_set('display_errors', 0);
-error_reporting(E_ALL);
 
-// Set proper headers
+// Set proper headers FIRST
 header('Content-Type: application/json');
 
-session_start();
+// Start output buffering
+ob_start();
 
 try {
     require_once __DIR__ . '/../../config/config.php';
@@ -14,12 +15,13 @@ try {
     $date = $_GET['date'] ?? '';
 
     if (!$date) {
+        ob_end_clean();
         echo json_encode(['error' => 'Date required']);
         exit;
     }
 
     // Get day of week from date
-    $dayOfWeek = date('l', strtotime($date)); // e.g., "Monday"
+    $dayOfWeek = date('l', strtotime($date));
 
     // Find doctors working on this day
     $scheduleQuery = "SELECT doctor_id, doctor_name, start_time, end_time 
@@ -42,8 +44,8 @@ try {
         $currentSlot = clone $start;
         while ($currentSlot < $end) {
             $slotTime = $currentSlot->format('H:i:s');
-
-            // Check if slot is already booked for this doctor in 'consultations' table
+            
+            // Check if slot is already booked for this doctor
             $checkQuery = "SELECT status FROM consultations 
                            WHERE appointment_date = ? 
                            AND appointment_time = ? 
@@ -81,9 +83,12 @@ try {
         return strcmp($a['time'], $b['time']);
     });
 
+    ob_end_clean();
     echo json_encode(['slots' => $availableSlots]);
     
 } catch (Exception $e) {
+    ob_end_clean();
     echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
 }
+exit;
 ?>

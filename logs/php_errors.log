@@ -1,0 +1,10 @@
+[16-Jan-2026 10:48:03 Europe/Berlin] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in C:\xampp\htdocs\dheergayu\public\api\book-consultation.php:170
+Stack trace:
+#0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(170): mysqli_stmt->bind_param('iisssisssssss', 3, 1, 'Dr. Silva', 'P0016', 'Amashi Vithanag...', 21, 'Female', 'patient1@gmail....', '1234567898', 'General Consult...', '2026-01-19', '09:00:00', 'Pending', 'onsite')
+#1 {main}
+  thrown in C:\xampp\htdocs\dheergayu\public\api\book-consultation.php on line 170
+[16-Jan-2026 11:11:26 Europe/Berlin] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in C:\xampp\htdocs\dheergayu\public\api\book-consultation.php:170
+Stack trace:
+#0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(170): mysqli_stmt->bind_param('iisssisssssss', 3, 1, 'Dr. Silva', 'P0016', 'Amashi Vithanag...', 18, 'Female', 'patient1@gmail....', '1234456789', 'General Consult...', '2026-01-19', '11:00:00', 'Pending', 'onsite')
+#1 {main}
+  thrown in C:\xampp\htdocs\dheergayu\public\api\book-consultation.php on line 170

@@ -11,7 +11,7 @@ require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
 
 $model = new AppointmentModel($conn);
 $patient_id = $_SESSION['user_id'];
-$appointments = $model->getAllAppointments($patient_id);
+$appointments = $model->getPatientAppointments($patient_id); // CHANGED THIS LINE
 
 // Helper functions
 function getTreatmentPrice($conn, $treatment_type) {
@@ -382,158 +382,288 @@ function getCancelledAppointments($appointments) {
     </footer>
 
     <script>
-        let currentCancelId = null;
-        let currentCancelType = null;
+// Patient Appointments Page - JavaScript Functions
+// Add to existing patient_appointments.php at the end of the script tag
 
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById(tabName + '-tab').style.display = 'block';
-            event.target.classList.add('active');
-        }
+let currentCancelId = null;
+let currentCancelType = null;
 
-        function editAppointment(id, type, date, time) {
-            const editModal = document.getElementById('editModal');
-            const editId = document.getElementById('editId');
-            const editType = document.getElementById('editType');
-            const editDate = document.getElementById('editDate');
-            const editTime = document.getElementById('editTime');
-            
-            if (!editModal || !editId || !editType || !editDate || !editTime) {
-                alert('Error: Edit form not properly loaded');
-                return;
-            }
-            
-            editId.value = id;
-            editType.value = type;
-            editDate.value = date;
-            editTime.value = time;
-            editDate.min = new Date().toISOString().split('T')[0];
-            
-            loadEditSlots(date);
-            editModal.style.display = 'block';
-        }
+function showTab(tabName) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById(tabName + '-tab').style.display = 'block';
+    event.target.classList.add('active');
+}
 
-        function loadEditSlots(date) {
-            if (!date) return;
-            
-            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
-                .then(res => res.json())
-                .then(data => {
-                    const timeSelect = document.getElementById('editTime');
-                    const currentTime = timeSelect.value;
-                    
-                    timeSelect.innerHTML = '<option value="">Select Time</option>';
-                    
-                    if (data.slots && data.slots.length > 0) {
-                        data.slots.forEach(slot => {
-                            const option = document.createElement('option');
-                            option.value = slot.time;
-                            option.textContent = formatTime(slot.time);
-                            
-                            if ((slot.status === 'booked' || slot.status === 'locked') && slot.time !== currentTime) {
-                                option.disabled = true;
-                                option.textContent += ' (Not Available)';
-                            }
-                            
-                            timeSelect.appendChild(option);
-                        });
-                        
-                        if (currentTime) {
-                            timeSelect.value = currentTime;
-                        }
-                    }
+function editAppointment(id, type, date, time) {
+    const editModal = document.getElementById('editModal');
+    const editId = document.getElementById('editId');
+    const editType = document.getElementById('editType');
+    const editDate = document.getElementById('editDate');
+    const editTime = document.getElementById('editTime');
+    
+    if (!editModal || !editId || !editType || !editDate || !editTime) {
+        alert('Error: Edit form not properly loaded');
+        return;
+    }
+    
+    editId.value = id;
+    editType.value = type;
+    editDate.value = date;
+    editTime.value = time;
+    editDate.min = new Date().toISOString().split('T')[0];
+    
+    // Load available slots based on type
+    if (type === 'treatment') {
+        loadTreatmentEditSlots(date, id);
+    } else {
+        loadEditSlots(date);
+    }
+    
+    editModal.style.display = 'block';
+}
+
+function loadTreatmentEditSlots(date, bookingId) {
+    if (!date) return;
+    
+    // Get treatment info from booking
+    fetch(`/dheergayu/public/api/treatment-booking-handler.php?action=get_booking&booking_id=${bookingId}`)
+        .then(res => res.json())
+        .then(bookingData => {
+            if (bookingData.success && bookingData.booking) {
+                const treatmentId = bookingData.booking.treatment_id;
+                
+                // Load available slots for this treatment
+                const formData = new FormData();
+                formData.append('treatment_id', treatmentId);
+                formData.append('date', date);
+                
+                return fetch('/dheergayu/public/api/treatment_selection.php?action=loadSlots', {
+                    method: 'POST',
+                    body: formData
                 });
-        }
-
-        document.getElementById('editDate').addEventListener('change', function() {
-            loadEditSlots(this.value);
-        });
-
-        function formatTime(time) {
-            const [hours, minutes] = time.split(':');
-            const h = parseInt(hours);
-            const period = h >= 12 ? 'PM' : 'AM';
-            const displayHours = h % 12 || 12;
-            return `${displayHours}:${minutes} ${period}`;
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+            } else {
+                throw new Error('Failed to get booking info');
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const timeSelect = document.getElementById('editTime');
+            const currentTime = timeSelect.value;
             
-            const formData = new FormData();
-            formData.append('id', document.getElementById('editId').value);
-            formData.append('type', document.getElementById('editType').value);
-            formData.append('date', document.getElementById('editDate').value);
-            formData.append('time', document.getElementById('editTime').value);
-
-            fetch('/dheergayu/public/api/update-appointment.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Appointment updated successfully');
-                    location.reload();
-                } else {
-                    alert('Error: ' + (data.error || 'Failed to update'));
+            timeSelect.innerHTML = '<option value="">Select Time</option>';
+            
+            if (data.success && data.slots && data.slots.length > 0) {
+                data.slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.slot_time;
+                    option.textContent = formatTime(slot.slot_time);
+                    option.setAttribute('data-slot-id', slot.slot_id);
+                    
+                    if (slot.booked && slot.slot_time !== currentTime) {
+                        option.disabled = true;
+                        option.textContent += ' (Not Available)';
+                    }
+                    
+                    timeSelect.appendChild(option);
+                });
+                
+                if (currentTime) {
+                    timeSelect.value = currentTime;
                 }
-            })
-            .catch(error => {
-                alert('Network error: ' + error.message);
-            });
-            closeEditModal();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading treatment slots:', error);
+            alert('Error loading available slots');
         });
+}
 
-        function cancelAppointment(id, type) {
-            currentCancelId = id;
-            currentCancelType = type;
-            document.getElementById('cancelModal').style.display = 'block';
-        }
-
-        function confirmCancel() {
-            const formData = new FormData();
-            formData.append('id', currentCancelId);
-            formData.append('type', currentCancelType);
-
-            fetch('/dheergayu/public/api/cancel-appointment.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Appointment cancelled successfully');
-                    location.reload();
-                } else {
-                    alert('Error: ' + (data.error || 'Failed to cancel'));
+function loadEditSlots(date) {
+    if (!date) return;
+    
+    fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            const timeSelect = document.getElementById('editTime');
+            const currentTime = timeSelect.value;
+            
+            timeSelect.innerHTML = '<option value="">Select Time</option>';
+            
+            if (data.slots && data.slots.length > 0) {
+                data.slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.time;
+                    option.textContent = formatTime(slot.time);
+                    
+                    if ((slot.status === 'booked' || slot.status === 'locked') && slot.time !== currentTime) {
+                        option.disabled = true;
+                        option.textContent += ' (Not Available)';
+                    }
+                    
+                    timeSelect.appendChild(option);
+                });
+                
+                if (currentTime) {
+                    timeSelect.value = currentTime;
                 }
-            });
-            closeCancelModal();
-        }
-
-        function closeCancelModal() {
-            document.getElementById('cancelModal').style.display = 'none';
-            currentCancelId = null;
-            currentCancelType = null;
-        }
-
-        function payNow(id, type) {
-            window.location.href = `payment.php?appointment_id=${id}&type=${type}`;
-        }
-
-        window.addEventListener('click', function(e) {
-            const editModal = document.getElementById('editModal');
-            const cancelModal = document.getElementById('cancelModal');
-            if (e.target === editModal) closeEditModal();
-            if (e.target === cancelModal) closeCancelModal();
+            }
         });
+}
+
+document.getElementById('editDate').addEventListener('change', function() {
+    const type = document.getElementById('editType').value;
+    const id = document.getElementById('editId').value;
+    
+    if (type === 'treatment') {
+        loadTreatmentEditSlots(this.value, id);
+    } else {
+        loadEditSlots(this.value);
+    }
+});
+
+function formatTime(time) {
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayHours = h % 12 || 12;
+    return `${displayHours}:${minutes} ${period}`;
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const id = document.getElementById('editId').value;
+    const type = document.getElementById('editType').value;
+    const date = document.getElementById('editDate').value;
+    const timeSelect = document.getElementById('editTime');
+    const time = timeSelect.value;
+    
+    if (type === 'treatment') {
+        // Get slot_id from selected option
+        const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+        const slotId = selectedOption.getAttribute('data-slot-id');
+        
+        const formData = new FormData();
+        formData.append('action', 'reschedule');
+        formData.append('booking_id', id);
+        formData.append('new_slot_id', slotId);
+        formData.append('new_date', date);
+        
+        fetch('/dheergayu/public/api/treatment-booking-handler.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Treatment rescheduled successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || data.message || 'Failed to reschedule'));
+            }
+        })
+        .catch(error => {
+            alert('Network error: ' + error.message);
+        });
+    } else {
+        // Consultation update
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('type', type);
+        formData.append('date', date);
+        formData.append('time', time);
+
+        fetch('/dheergayu/public/api/update-appointment.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Appointment updated successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to update'));
+            }
+        })
+        .catch(error => {
+            alert('Network error: ' + error.message);
+        });
+    }
+    
+    closeEditModal();
+});
+
+function cancelAppointment(id, type) {
+    currentCancelId = id;
+    currentCancelType = type;
+    document.getElementById('cancelModal').style.display = 'block';
+}
+
+function confirmCancel() {
+    if (currentCancelType === 'treatment') {
+        const formData = new FormData();
+        formData.append('action', 'cancel');
+        formData.append('booking_id', currentCancelId);
+        formData.append('reason', 'Cancelled by patient');
+
+        fetch('/dheergayu/public/api/treatment-booking-handler.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Treatment booking cancelled successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || data.message || 'Failed to cancel'));
+            }
+        });
+    } else {
+        const formData = new FormData();
+        formData.append('id', currentCancelId);
+        formData.append('type', currentCancelType);
+
+        fetch('/dheergayu/public/api/cancel-appointment.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Appointment cancelled successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to cancel'));
+            }
+        });
+    }
+    closeCancelModal();
+}
+
+function closeCancelModal() {
+    document.getElementById('cancelModal').style.display = 'none';
+    currentCancelId = null;
+    currentCancelType = null;
+}
+
+function payNow(id, type) {
+    window.location.href = `payment.php?appointment_id=${id}&type=${type}`;
+}
+
+window.addEventListener('click', function(e) {
+    const editModal = document.getElementById('editModal');
+    const cancelModal = document.getElementById('cancelModal');
+    if (e.target === editModal) closeEditModal();
+    if (e.target === cancelModal) closeCancelModal();
+});
     </script>
 </body>
 </html>

@@ -1,8 +1,111 @@
 <?php
 session_start();
 
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
+    exit;
+}
+
+// IMPORTANT: Only patients can book consultations
+$user_role = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? $_SESSION['role'] ?? '');
+if ($user_role !== 'patient') {
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Access Denied - Dheergayu</title>
+        <style>
+            body {
+                font-family: 'Roboto', Arial, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                padding: 20px;
+            }
+            .error-container {
+                background: white;
+                border-radius: 20px;
+                padding: 40px;
+                max-width: 500px;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            }
+            .error-icon {
+                font-size: 64px;
+                margin-bottom: 20px;
+            }
+            h1 {
+                color: #333;
+                margin-bottom: 10px;
+                font-size: 28px;
+            }
+            p {
+                color: #666;
+                line-height: 1.6;
+                margin-bottom: 30px;
+            }
+            .role-info {
+                background: #f0f0f0;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                font-size: 14px;
+            }
+            .btn-group {
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .btn {
+                padding: 12px 30px;
+                border-radius: 25px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: all 0.3s;
+                display: inline-block;
+            }
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            }
+            .btn-secondary {
+                background: #f0f0f0;
+                color: #333;
+            }
+            .btn-secondary:hover {
+                background: #e0e0e0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="error-container">
+            <div class="error-icon">🚫</div>
+            <h1>Access Restricted</h1>
+            <p>Only patients can book consultations through this page.</p>
+            <div class="role-info">
+                <strong>Your current role:</strong> <?php echo ucfirst($user_role); ?><br>
+                <strong>Logged in as:</strong> <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?>
+            </div>
+            <p>Please log in with a patient account to book a consultation.</p>
+            <div class="btn-group">
+                <a href="login.php" class="btn btn-primary">Login as Patient</a>
+                <a href="home.php" class="btn btn-secondary">Go to Home</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
     exit;
 }
 
@@ -11,8 +114,20 @@ require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
 
 $model = new AppointmentModel($conn);
 
+// Get patient information (only for patients)
 $userName = $_SESSION['user_name'] ?? '';
 $userEmail = $_SESSION['user_email'] ?? '';
+
+// Fetch patient details from patients table to ensure we have correct info
+$patientStmt = $conn->prepare("SELECT first_name, last_name, email FROM patients WHERE id = ?");
+$patientStmt->bind_param('i', $_SESSION['user_id']);
+$patientStmt->execute();
+$patientResult = $patientStmt->get_result();
+if ($patientData = $patientResult->fetch_assoc()) {
+    $userName = $patientData['first_name'] . ' ' . $patientData['last_name'];
+    $userEmail = $patientData['email'];
+}
+$patientStmt->close();
 
 // Fetch doctor schedules
 $scheduleQuery = "SELECT * FROM doctor_schedule WHERE is_active = 1 ORDER BY 
@@ -33,9 +148,6 @@ while ($row = $scheduleResult->fetch_assoc()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dheergayu - Book Consultation</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/channeling.css?v=<?php echo time(); ?>">
-    <style>
-
-    </style>
 </head>
 
 <body>
@@ -69,7 +181,6 @@ while ($row = $scheduleResult->fetch_assoc()) {
             <h3 class="timetable-title">Doctor Availability Schedule</h3>
             <div class="timetable-grid">
                 <?php
-                // Group schedules by doctor
                 $doctorGroups = [];
                 foreach ($doctorSchedules as $schedule) {
                     $doctorGroups[$schedule['doctor_name']][] = $schedule;
@@ -170,7 +281,7 @@ while ($row = $scheduleResult->fetch_assoc()) {
             </div>
             <div class="footer-column">
                 <h3>OFFICE</h3>
-                <p>Sri Lanka —</p>
+                <p>Sri Lanka –</p>
                 <p>123 Wellness Street</p>
                 <p>Colombo, LK 00100</p>
                 <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
@@ -199,191 +310,213 @@ while ($row = $scheduleResult->fetch_assoc()) {
     </footer>
 
     <script>
-        let selectedTimeSlot = '';
-        let selectedDoctorId = null;
-        let selectedDoctorName = '';
-        let consultationDate = document.getElementById('consultationDate');
+// Use the FIXED JavaScript from earlier that I provided
+let selectedTimeSlot = '';
+let selectedDoctorId = null;
+let selectedDoctorName = '';
+let consultationDate = document.getElementById('consultationDate');
 
-        consultationDate.min = new Date().toISOString().split('T')[0];
+consultationDate.min = new Date().toISOString().split('T')[0];
 
-        consultationDate.addEventListener('change', function() {
-            if (this.value) {
-                loadAvailableSlots(this.value);
-            }
-        });
+consultationDate.addEventListener('change', function() {
+    if (this.value) {
+        loadAvailableSlots(this.value);
+    }
+});
 
-        function isSlotInPast(selectedDate, slotTime) {
-            const now = new Date();
-            const today = now.toISOString().split('T')[0];
-            
-            if (selectedDate !== today) {
-                return false;
-            }
-            
-            const [hours, minutes] = slotTime.split(':').map(Number);
-            const slotDateTime = new Date();
-            slotDateTime.setHours(hours, minutes, 0, 0);
-            
-            return slotDateTime < now;
-        }
+function isSlotInPast(selectedDate, slotTime) {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
+    if (selectedDate !== today) {
+        return false;
+    }
+    
+    const [hours, minutes] = slotTime.split(':').map(Number);
+    const slotDateTime = new Date();
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    
+    return slotDateTime < now;
+}
 
-        function loadAvailableSlots(date) {
-            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
-                .then(res => res.json())
-                .then(data => {
-                    const container = document.getElementById('slotsContainer');
-                    if (data.slots && data.slots.length > 0) {
-                        container.innerHTML = data.slots.map(slot => {
-                            let className = 'time-slot';
-                            let disabled = '';
-                            let onclick = `selectSlot(this, '${slot.time}', ${slot.doctor_id}, '${slot.doctor_name}')`;
-                            
-                            if (isSlotInPast(date, slot.time)) {
-                                className += ' slot-locked';
-                                disabled = 'disabled';
-                                onclick = '';
-                            } else if (slot.status === 'booked') {
-                                className += ' slot-booked';
-                                disabled = 'disabled';
-                                onclick = '';
-                            } else if (slot.status === 'locked') {
-                                className += ' slot-locked';
-                                disabled = 'disabled';
-                                onclick = '';
-                            }
-                            
-                            return `<button type="button" class="${className}" ${disabled} onclick="${onclick}" title="${slot.doctor_name}">${formatTime(slot.time)}<br><small style="font-size:11px;">${slot.doctor_name}</small></button>`;
-                        }).join('');
-                    } else {
-                        container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
+function loadAvailableSlots(date) {
+    fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('slotsContainer');
+            if (data.slots && data.slots.length > 0) {
+                container.innerHTML = data.slots.map(slot => {
+                    let className = 'time-slot';
+                    let disabled = '';
+                    let onclick = `selectSlot(this, '${slot.time}', ${slot.doctor_id}, '${slot.doctor_name.replace(/'/g, "\\'")}')`;
+                    
+                    if (isSlotInPast(date, slot.time)) {
+                        className += ' slot-locked';
+                        disabled = 'disabled';
+                        onclick = '';
+                    } else if (slot.status === 'booked') {
+                        className += ' slot-booked';
+                        disabled = 'disabled';
+                        onclick = '';
+                    } else if (slot.status === 'locked') {
+                        className += ' slot-locked';
+                        disabled = 'disabled';
+                        onclick = '';
                     }
-                });
-        }
-
-        function selectSlot(button, slot, doctorId, doctorName) {
-            const date = document.getElementById('consultationDate').value;
-            
-            if (isSlotInPast(date, slot)) {
-                alert('This time slot has already passed. Please select a future time.');
-                return;
+                    
+                    return `<button type="button" class="${className}" ${disabled} onclick="${onclick}" title="${slot.doctor_name}">${formatTime(slot.time)}<br><small style="font-size:11px;">${slot.doctor_name}</small></button>`;
+                }).join('');
+            } else {
+                container.innerHTML = '<p style="padding: 20px; color: #999;">No slots available for this date</p>';
             }
-            
-            if (selectedTimeSlot) {
-                fetch('/dheergayu/public/api/release-slot.php', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: `date=${date}&time=${selectedTimeSlot}`
-                });
-            }
-            
-            fetch('/dheergayu/public/api/lock-slot.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: `date=${date}&time=${slot}`
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
-                    button.classList.add('selected');
-                    selectedTimeSlot = slot;
-                    selectedDoctorId = doctorId;
-                    selectedDoctorName = doctorName;
-                    updateSummary();
-                    checkFormValidity();
-                } else {
-                    alert('This slot is no longer available. Please select another.');
-                    loadAvailableSlots(date);
-                }
-            });
-        }
-
-        function formatTime(time) {
-            const [hours, minutes] = time.split(':');
-            const h = parseInt(hours);
-            const period = h >= 12 ? 'PM' : 'AM';
-            const displayHours = h % 12 || 12;
-            return `${displayHours}:${minutes} ${period}`;
-        }
-
-        function updateSummary() {
-            const date = document.getElementById('consultationDate').value;
-
-            let summary = '<p style="color: #999;">Fill in details to see summary</p>';
-            if (date && selectedTimeSlot) {
-                const dateObj = new Date(date);
-                const formattedDate = dateObj.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                summary = `
-                    <div style="color: #333;">
-                        <p><strong>Service:</strong> Ayurvedic Consultation</p>
-                        <p><strong>Doctor:</strong> ${selectedDoctorName}</p>
-                        <p><strong>Date:</strong> ${formattedDate}</p>
-                        <p><strong>Time:</strong> ${formatTime(selectedTimeSlot)}</p>
-                        <p><strong>Duration:</strong> 30-45 minutes</p>
-                        <p><strong>Consultation Fee:</strong> Rs 2,000.00</p>
-                        <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
-                        <p style="color: #5CB85C; font-weight: 700; font-size: 15px;">✓ Ready to book</p>
-                    </div>
-                `;
-            }
-            document.getElementById('summaryContent').innerHTML = summary;
-        }
-
-        function checkFormValidity() {
-            const form = document.getElementById('consultationForm');
-            const fields = ['patientName', 'age', 'gender', 'email', 'phone'];
-            const allFilled = fields.every(id => document.getElementById(id).value.trim());
-            document.getElementById('bookBtn').disabled = !(allFilled && selectedTimeSlot);
-        }
-
-        document.querySelectorAll('input, select').forEach(field => {
-            field.addEventListener('change', checkFormValidity);
-            field.addEventListener('input', checkFormValidity);
+        })
+        .catch(error => {
+            console.error('Error loading slots:', error);
+            document.getElementById('slotsContainer').innerHTML = '<p style="padding: 20px; color: #c33;">Error loading slots. Please try again.</p>';
         });
+}
 
-        document.getElementById('consultationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+function selectSlot(button, slot, doctorId, doctorName) {
+    const date = document.getElementById('consultationDate').value;
+    
+    if (isSlotInPast(date, slot)) {
+        alert('This time slot has already passed. Please select a future time.');
+        return;
+    }
+    
+    document.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedTimeSlot = slot;
+    selectedDoctorId = doctorId;
+    selectedDoctorName = doctorName;
+    updateSummary();
+    checkFormValidity();
+}
 
-            if (!selectedTimeSlot) {
-                alert('Please select a time slot');
-                return;
-            }
-            
-            const date = document.getElementById('consultationDate').value;
-            
-            if (isSlotInPast(date, selectedTimeSlot)) {
-                alert('This time slot has already passed. Please select a future time.');
-                return;
-            }
+function formatTime(time) {
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayHours = h % 12 || 12;
+    return `${displayHours}:${minutes} ${period}`;
+}
 
-            const formData = new FormData(this);
-            formData.append('treatment_type', 'General Consultation');
-            formData.append('appointment_date', date);
-            formData.append('appointment_time', selectedTimeSlot);
-            formData.append('payment_method', 'onsite');
-            formData.append('doctor_id', selectedDoctorId);
-            formData.append('doctor_name', selectedDoctorName);
+function updateSummary() {
+    const date = document.getElementById('consultationDate').value;
 
-            fetch('/dheergayu/public/api/book-treatment.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Consultation booked successfully with ' + selectedDoctorName + '!');
-                        window.location.href = 'patient_appointments.php';
-                    } else {
-                        alert('Error: ' + (data.error || 'Failed to book consultation'));
-                    }
-                })
-                .catch(err => alert('Error: ' + err));
+    let summary = '<p style="color: #999;">Fill in details to see summary</p>';
+    if (date && selectedTimeSlot) {
+        const dateObj = new Date(date);
+        const formattedDate = dateObj.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
+        summary = `
+            <div style="color: #333;">
+                <p><strong>Service:</strong> Ayurvedic Consultation</p>
+                <p><strong>Doctor:</strong> ${selectedDoctorName}</p>
+                <p><strong>Date:</strong> ${formattedDate}</p>
+                <p><strong>Time:</strong> ${formatTime(selectedTimeSlot)}</p>
+                <p><strong>Duration:</strong> 30-45 minutes</p>
+                <p><strong>Consultation Fee:</strong> Rs 2,000.00</p>
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+                <p style="color: #5CB85C; font-weight: 700; font-size: 15px;">✓ Ready to book</p>
+            </div>
+        `;
+    }
+    document.getElementById('summaryContent').innerHTML = summary;
+}
+
+function checkFormValidity() {
+    const form = document.getElementById('consultationForm');
+    const fields = ['patientName', 'age', 'gender', 'email', 'phone'];
+    const allFilled = fields.every(id => document.getElementById(id).value.trim());
+    document.getElementById('bookBtn').disabled = !(allFilled && selectedTimeSlot);
+}
+
+document.querySelectorAll('input, select').forEach(field => {
+    field.addEventListener('change', checkFormValidity);
+    field.addEventListener('input', checkFormValidity);
+});
+
+document.getElementById('consultationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    if (!selectedTimeSlot) {
+        alert('Please select a time slot');
+        return;
+    }
+    
+    if (!selectedDoctorId) {
+        alert('Doctor information is missing. Please select a slot again.');
+        return;
+    }
+    
+    const date = document.getElementById('consultationDate').value;
+    
+    if (isSlotInPast(date, selectedTimeSlot)) {
+        alert('This time slot has already passed. Please select a future time.');
+        return;
+    }
+
+    const submitBtn = document.getElementById('bookBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Booking...';
+
+    const formData = new FormData(this);
+    formData.append('treatment_type', 'General Consultation');
+    formData.append('appointment_date', date);
+    formData.append('appointment_time', selectedTimeSlot);
+    formData.append('payment_method', 'onsite');
+    formData.append('doctor_id', selectedDoctorId);
+    formData.append('doctor_name', selectedDoctorName);
+
+    console.log('Sending booking with doctor_id:', selectedDoctorId, 'doctor_name:', selectedDoctorName);
+
+    fetch('/dheergayu/public/api/book-consultation.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text();
+    })
+    .then(text => {
+        console.log('Server response:', text);
+        
+        if (!text || text.trim() === '') {
+            throw new Error('Empty response from server');
+        }
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Invalid JSON response:', text);
+            throw new Error('Server returned invalid response: ' + text.substring(0, 100));
+        }
+    })
+    .then(data => {
+        console.log('Parsed response:', data);
+        
+        if (data.success) {
+            alert('Consultation booked successfully with ' + selectedDoctorName + '!');
+            window.location.href = 'patient_appointments.php';
+        } else {
+            alert('Error: ' + (data.error || 'Failed to book consultation'));
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Book Consultation';
+        }
+    })
+    .catch(err => {
+        console.error('Booking error:', err);
+        alert('Error: ' + err.message + '. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Book Consultation';
+    });
+});
     </script>
 </body>
 
