@@ -109,9 +109,9 @@
                                     <strong>Patient:</strong> John Doe
                                 </div>
                                 <div class="order-medicines">
-                                    <span class="medicine-tag">Paspanguwa Pack x2</span>
-                                    <span class="medicine-tag">Asamodagam Spirit x1</span>
-                                    <span class="medicine-tag">Siddhalepa Balm x1</span>
+                                    <span class="medicine-tag">Ashwagandha Capsules x2</span>
+                                    <span class="medicine-tag">Arawindasawaya x1</span>
+                                    <span class="medicine-tag">Arjunarishtaya x1</span>
                                 </div>
                                 <div class="order-footer">
                                     <span class="consultation-ref">Consultation #101</span>
@@ -128,8 +128,9 @@
                                     <strong>Patient:</strong> Jane Smith
                                 </div>
                                 <div class="order-medicines">
-                                    <span class="medicine-tag">Dashamoolarishta x2</span>
-                                    <span class="medicine-tag">Herbal Tea Mix x3</span>
+                                    <span class="medicine-tag">Kothalahimbutu Capsules x2</span>
+                                    <span class="medicine-tag">Abayarishtaya x1</span>
+                                    <span class="medicine-tag">Kanakasawaya x1</span>
                                 </div>
                                 <div class="order-footer">
                                     <span class="consultation-ref">Consultation #102</span>
@@ -146,9 +147,9 @@
                                     <strong>Patient:</strong> Robert Johnson
                                 </div>
                                 <div class="order-medicines">
-                                    <span class="medicine-tag">Neem Paste x1</span>
-                                    <span class="medicine-tag">Medicated Oil x2</span>
-                                    <span class="medicine-tag">Turmeric Powder x1</span>
+                                    <span class="medicine-tag">Chandanasawaya x1</span>
+                                    <span class="medicine-tag">Amurtharishtaya x2</span>
+                                    <span class="medicine-tag">Arawindasawaya x1</span>
                                 </div>
                                 <div class="order-footer">
                                     <span class="consultation-ref">Consultation #103</span>
@@ -175,8 +176,8 @@
                                     <strong>Patient:</strong> Sarah Williams
                                 </div>
                                 <div class="order-medicines">
-                                    <span class="medicine-tag">Ayurvedic Massage Oil x2</span>
-                                    <span class="medicine-tag">Herbal Steam Herbs x1</span>
+                                    <span class="medicine-tag">Ashwagandha Capsules x2</span>
+                                    <span class="medicine-tag">Arjunarishtaya x1</span>
                                 </div>
                                 <div class="order-footer">
                                     <span class="consultation-ref">Consultation #104</span>
@@ -193,8 +194,8 @@
                                     <strong>Patient:</strong> Michael Brown
                                 </div>
                                 <div class="order-medicines">
-                                    <span class="medicine-tag">Paspanguwa Pack x1</span>
-                                    <span class="medicine-tag">Siddhalepa Balm x2</span>
+                                    <span class="medicine-tag">Kothalahimbutu Capsules x1</span>
+                                    <span class="medicine-tag">Kanakasawaya x2</span>
                                 </div>
                                 <div class="order-footer">
                                     <span class="consultation-ref">Consultation #105</span>

@@ -34,6 +34,28 @@ if (!file_exists($asamodagamAdminPath) && file_exists($asamodagamPharmacistPath)
 }
 $db->query("UPDATE patient_products SET image = 'images/asamodagam.jpg' WHERE name LIKE '%Asamodagam%' AND image != 'images/asamodagam.jpg'");
 
+// Delete all existing admin products and create new ones
+$db->query("DELETE FROM products WHERE COALESCE(product_type, 'admin') = 'admin'");
+
+// Create the 8 new admin products with appropriate images
+$newAdminProducts = [
+    ['name' => 'Ashwagandha Capsules', 'price' => 560.00, 'description' => 'Herbal capsules for stress management and energy support.', 'image' => 'images/Ahwaganda.png'],
+    ['name' => 'Kothalahimbutu Capsules', 'price' => 450.00, 'description' => 'Capsules for blood sugar control and metabolic health.', 'image' => 'images/Kothalahibutu.png'],
+    ['name' => 'Arawindasawaya', 'price' => 650.00, 'description' => 'Ayurvedic syrup for children\'s digestion and immunity.', 'image' => 'images/Arawindasawaya.jpg'],
+    ['name' => 'Chandanasawaya', 'price' => 680.00, 'description' => 'Liquid preparation for urinary tract and body heat regulation.', 'image' => 'images/chandanasawaya.jpg'],
+    ['name' => 'Kanakasawaya', 'price' => 720.00, 'description' => 'Herbal formulation for cough, asthma, and respiratory conditions.', 'image' => 'images/kanakasawaya.jpg'],
+    ['name' => 'Abayarishtaya', 'price' => 1200.00, 'description' => 'Fermented Ayurvedic tonic for digestion and constipation relief.', 'image' => 'images/abayarishtaya.jpg'],
+    ['name' => 'Amurtharishtaya', 'price' => 780.00, 'description' => 'Ayurvedic arishta for fever, immunity, and liver function.', 'image' => 'images/amurtharishtaya.jpg'],
+    ['name' => 'Arjunarishtaya', 'price' => 1150.00, 'description' => 'Classical preparation for heart health and circulation support.', 'image' => 'images/ARJUNARISHTAYA.jpg']
+];
+
+foreach ($newAdminProducts as $product) {
+    $stmt = $db->prepare("INSERT INTO products (name, price, description, image, product_type) VALUES (?, ?, ?, ?, 'admin')");
+    $stmt->bind_param('sdss', $product['name'], $product['price'], $product['description'], $product['image']);
+    $stmt->execute();
+    $stmt->close();
+}
+
 // Fetch admin products (product_type = 'admin' or NULL for backward compatibility)
 $query = "SELECT product_id, name, price, description, image, COALESCE(product_type, 'admin') as product_type 
           FROM products 

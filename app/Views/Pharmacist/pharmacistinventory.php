@@ -5,88 +5,138 @@ use App\Models\BatchModel;
 
 $model = new BatchModel();
 
-// Products and image mapping (by product name)
-$productRows = $model->getProducts();
-$productNameToId = [];
-foreach ($productRows as $row) {
-    $productNameToId[$row['name']] = (int)$row['id'];
+// Database connection
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+// Function to get product image
+function get_product_image($image_path, $name, $type = 'admin') {
+    if (!empty($image_path)) {
+        $basePath = $type === 'admin' ? '/dheergayu/public/assets/images/Admin/' : '/dheergayu/public/assets/images/Admin/';
+        return $basePath . str_replace('images/', '', $image_path);
+    }
+    return '/dheergayu/public/assets/images/Pharmacist/dheergayu.png';
 }
 
-// Get suppliers from database using direct database connection
+// Get admin products from products table
+$adminProductsQuery = "SELECT product_id, name, price, description, image 
+                       FROM products 
+                       WHERE COALESCE(product_type, 'admin') = 'admin' 
+                       ORDER BY name";
+$adminProductsResult = $db->query($adminProductsQuery);
+
+$adminProducts = [];
+$adminProductNameToId = [];
+$allProductRows = []; // For the add batch form
+
+if ($adminProductsResult && $adminProductsResult->num_rows > 0) {
+    while ($row = $adminProductsResult->fetch_assoc()) {
+        $productId = (int)$row['product_id'];
+        $adminProductNameToId[$row['name']] = $productId;
+        $allProductRows[] = ['id' => $productId, 'name' => $row['name']];
+        
+        // Get batch information for this product (admin products)
+        $batches = $model->getBatchesByProductId($productId, 'admin');
+        $totalQuantity = 0;
+        $earliestExp = null;
+        $batchesCount = count($batches);
+        
+        foreach ($batches as $batch) {
+            $totalQuantity += (int)$batch['quantity'];
+            if ($batch['exp']) {
+                if (!$earliestExp || $batch['exp'] < $earliestExp) {
+                    $earliestExp = $batch['exp'];
+                }
+            }
+        }
+        
+        $adminProducts[] = [
+            'id' => $productId,
+            'name' => $row['name'],
+            'price' => $row['price'],
+            'description' => $row['description'],
+            'image' => get_product_image($row['image'], $row['name'], 'admin'),
+            'total_quantity' => $totalQuantity,
+            'earliest_exp' => $earliestExp,
+            'batches_count' => $batchesCount
+        ];
+    }
+}
+
+// Get patient products from patient_products table
+$patientProductsQuery = "SELECT product_id, name, price, description, image 
+                          FROM patient_products 
+                          ORDER BY name";
+$patientProductsResult = $db->query($patientProductsQuery);
+
+$patientProducts = [];
+$patientProductNameToId = [];
+
+if ($patientProductsResult && $patientProductsResult->num_rows > 0) {
+    while ($row = $patientProductsResult->fetch_assoc()) {
+        $productId = (int)$row['product_id'];
+        $patientProductNameToId[$row['name']] = $productId;
+        $allProductRows[] = ['id' => $productId, 'name' => $row['name']];
+        
+        // Get batch information for this product (patient products)
+        $batches = $model->getBatchesByProductId($productId, 'patient');
+        $totalQuantity = 0;
+        $earliestExp = null;
+        $batchesCount = count($batches);
+        
+        foreach ($batches as $batch) {
+            $totalQuantity += (int)$batch['quantity'];
+            if ($batch['exp']) {
+                if (!$earliestExp || $batch['exp'] < $earliestExp) {
+                    $earliestExp = $batch['exp'];
+                }
+            }
+        }
+        
+        $patientProducts[] = [
+            'id' => $productId,
+            'name' => $row['name'],
+            'price' => $row['price'],
+            'description' => $row['description'],
+            'image' => get_product_image($row['image'], $row['name'], 'patient'),
+            'total_quantity' => $totalQuantity,
+            'earliest_exp' => $earliestExp,
+            'batches_count' => $batchesCount
+        ];
+    }
+}
+
+// Get suppliers from database
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../Models/SupplierModel.php';
 $supplierModel = new SupplierModel($conn);
 $suppliers = $supplierModel->getAllSuppliers();
 
- 
-
-function product_image_for(string $name): string {
-    $n = strtolower($name);
-    if (strpos($n, 'asamodagam') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/asamodagam.jpg';
-    }
-    if (strpos($n, 'paspanguwa') !== false || strpos($n, 'pasapanguwa') !== false || strpos($n, 'pasanguwa') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/paspanguwa.jpeg';
-    }
-    if (strpos($n, 'siddhalepa') !== false || strpos($n, 'sidhalepa') !== false || strpos($n, 'siddalepa') !== false || strpos($n, 'siddphalepa') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/siddhalepa.png';
-    }
-    if (strpos($n, 'bala') !== false && strpos($n, 'thailaya') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/Bala Thailaya.png';
-    }
-    if (strpos($n, 'dashamoolarishta') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/Dashamoolarishta.jpeg';
-    }
-    if (strpos($n, 'kothalahimbutu') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/Kothalahimbutu Capsules.jpeg';
-    }
-    if (strpos($n, 'neem') !== false && strpos($n, 'oil') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/Neem Oil.jpg';
-    }
-    if (strpos($n, 'nirgundi') !== false && strpos($n, 'oil') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/Nirgundi Oil.jpg';
-    }
-    if (strpos($n, 'pinda') !== false && strpos($n, 'thailaya') !== false) {
-        return '/dheergayu/public/assets/images/Pharmacist/Pinda Thailaya.jpeg';
-    }
-    return '/dheergayu/public/assets/images/Pharmacist/dheergayu.png';
-}
-
-// Inventory overview from DB
-$overview = $model->getInventoryOverview();
-
 // Calculate statistics from database
 $criticalStockCount = 0;
 $lowStockCount = 0;
 $expiringSoonCount = 0;
+$today = new DateTime();
+$thirtyDaysFromNow = (new DateTime())->add(new DateInterval('P30D'));
 
-foreach ($overview as $row) {
-    $qty = (int)$row['total_quantity'];
+$allProducts = array_merge($adminProducts, $patientProducts);
+foreach ($allProducts as $item) {
+    $qty = (int)$item['total_quantity'];
     if ($qty <= 5) { 
         $criticalStockCount++; 
     } elseif ($qty <= 15) { 
         $lowStockCount++; 
     }
-}
-
-// Check for products with batches that have "Expiring Soon" status
-$expiringProducts = [];
-foreach ($overview as $row) {
-    $productId = $row['product_id'];
-    $batches = $model->getBatchesByProductId($productId);
     
-    foreach ($batches as $batch) {
-        if ($batch['status'] === 'Expiring Soon') {
-            if (!in_array($productId, $expiringProducts)) {
-                $expiringProducts[] = $productId;
+    if ($item['earliest_exp']) {
+        $expDate = new DateTime($item['earliest_exp']);
+        if ($expDate <= $thirtyDaysFromNow && $expDate >= $today) {
                 $expiringSoonCount++;
-            }
-            break; // Only count the product once
         }
     }
 }
 
-$totalProducts = count($overview);
+$totalProducts = count($allProducts);
+$db->close();
 ?>
 
 <!DOCTYPE html>
@@ -99,6 +149,26 @@ $totalProducts = count($overview);
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Pharmacist/pharmacistinventory.css">
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Pharmacist/addbatch.css">
+    <style>
+        .inventory-section {
+            margin-bottom: 3rem;
+        }
+        .section-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .section-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d2d2d;
+            margin-bottom: 0.5rem;
+        }
+        .section-header p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+    </style>
 </head>
 <body class="has-sidebar">
 <header class="header">
@@ -128,6 +198,62 @@ $totalProducts = count($overview);
 <main class="main-content">
         <h2 class="section-title">Stock Management</h2>
 
+    <!-- Admin Products Inventory Table -->
+    <div class="inventory-section">
+        <div class="section-header">
+            <h3>Admin Products Inventory</h3>
+            <p>Inventory management for admin products</p>
+            </div>
+            
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Medicine</th>
+                    <th>Total Quantity</th>
+                    <th>Earliest Expiry</th>
+                    <th>Batches</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($adminProducts)): ?>
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #666;">No admin products found.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach($adminProducts as $item): ?>
+                        <tr data-product="<?= htmlspecialchars($item['name']) ?>" data-type="admin" data-product-id="<?= $item['id'] ?>">
+                            <td><img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="prod-img"></td>
+                            <td><?= htmlspecialchars($item['name']) ?></td>
+                            <td class="quantity-cell">
+                                <span class="total-quantity"><?= $item['total_quantity'] ?></span>
+                                <?php if($item['total_quantity'] <= 5): ?>
+                                    <span class="stock-warning critical">Critical</span>
+                                <?php elseif($item['total_quantity'] <= 15): ?>
+                                    <span class="stock-warning low">Low</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="earliest-expiry"><?= $item['earliest_exp'] ? htmlspecialchars($item['earliest_exp']) : '-' ?></td>
+                            <td class="batches-count"><?= $item['batches_count'] ?> batch<?= $item['batches_count'] > 1 ? 'es' : '' ?></td>
+                            <td>
+                                <button class="btn-add-batch" onclick="addBatch('<?= htmlspecialchars($item['name']) ?>', <?= $item['id'] ?>)">Add Batch</button>
+                                <button class="btn-batches" onclick="viewBatches('<?= htmlspecialchars($item['name']) ?>', <?= $item['id'] ?>)">View Batches</button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+            </div>
+            
+    <!-- Patient Products Inventory Table -->
+    <div class="inventory-section">
+        <div class="section-header">
+            <h3>Patient Products Inventory</h3>
+            <p>Inventory management for patient products</p>
+        </div>
+
     <table class="inventory-table">
         <thead>
             <tr>
@@ -139,31 +265,36 @@ $totalProducts = count($overview);
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody id="inventoryTableBody">
-                <?php foreach($overview as $item): ?>
-                <tr data-product="<?= htmlspecialchars($item['product']) ?>">
-                <?php $img = product_image_for($item['product']); ?>
-                <td><img src="<?= $img ?>" alt="<?= htmlspecialchars($item['product']) ?>" class="prod-img"></td>
-                    <td><?= htmlspecialchars($item['product']) ?></td>
+            <tbody>
+                <?php if (empty($patientProducts)): ?>
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #666;">No patient products found.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach($patientProducts as $item): ?>
+                        <tr data-product="<?= htmlspecialchars($item['name']) ?>" data-type="patient" data-product-id="<?= $item['id'] ?>">
+                            <td><img src="<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="prod-img"></td>
+                            <td><?= htmlspecialchars($item['name']) ?></td>
                     <td class="quantity-cell">
-                        <span class="total-quantity"><?= (int)$item['total_quantity'] ?></span>
-                        <?php if((int)$item['total_quantity'] <= 5): ?>
+                                <span class="total-quantity"><?= $item['total_quantity'] ?></span>
+                                <?php if($item['total_quantity'] <= 5): ?>
                             <span class="stock-warning critical">Critical</span>
-                        <?php elseif((int)$item['total_quantity'] <= 15): ?>
+                                <?php elseif($item['total_quantity'] <= 15): ?>
                             <span class="stock-warning low">Low</span>
                         <?php endif; ?>
                     </td>
-                    
                     <td class="earliest-expiry"><?= $item['earliest_exp'] ? htmlspecialchars($item['earliest_exp']) : '-' ?></td>
-                    <td class="batches-count"><?= (int)$item['batches_count'] ?> batch<?= (int)$item['batches_count'] > 1 ? 'es' : '' ?></td>
+                            <td class="batches-count"><?= $item['batches_count'] ?> batch<?= $item['batches_count'] > 1 ? 'es' : '' ?></td>
                     <td>
-                        <button class="btn-add-batch" onclick="addBatch('<?= htmlspecialchars($item['product']) ?>')">Add Batch</button>
-                        <button class="btn-batches" onclick="viewBatches('<?= htmlspecialchars($item['product']) ?>')">View Batches</button>
+                                <button class="btn-add-batch" onclick="addBatch('<?= htmlspecialchars($item['name']) ?>', <?= $item['id'] ?>)">Add Batch</button>
+                                <button class="btn-batches" onclick="viewBatches('<?= htmlspecialchars($item['name']) ?>', <?= $item['id'] ?>)">View Batches</button>
                 </td>
             </tr>
             <?php endforeach; ?>
+                <?php endif; ?>
         </tbody>
     </table>
+    </div>
 
 </main>
 
@@ -252,8 +383,8 @@ $totalProducts = count($overview);
                         <label for="product">Product *</label>
                         <select name="product" id="product" class="form-input" required>
                             <option value="">Select Product</option>
-                            <?php foreach($productRows as $p): ?>
-                            <option value="<?= htmlspecialchars($p['name']) ?>"><?= htmlspecialchars($p['name']) ?></option>
+                        <?php foreach($allProductRows as $p): ?>
+                        <option value="<?= htmlspecialchars($p['name']) ?>" data-product-id="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -306,13 +437,15 @@ $totalProducts = count($overview);
     </div>
 
 <script>
-        const productNameToId = <?= json_encode($productNameToId) ?>;
+    const adminProductNameToId = <?= json_encode($adminProductNameToId) ?>;
+    const patientProductNameToId = <?= json_encode($patientProductNameToId) ?>;
+    const allProductNameToId = { ...adminProductNameToId, ...patientProductNameToId };
 
-        function addBatch(productName) {
-            openAddBatchModal(productName);
+    function addBatch(productName, productId) {
+        openAddBatchModal(productName, productId);
         }
 
-        function openAddBatchModal(productName) {
+    function openAddBatchModal(productName, productId) {
             const modal = document.getElementById('addBatchModal');
             const productSelect = document.getElementById('product');
             
@@ -323,7 +456,7 @@ $totalProducts = count($overview);
             
             // Manufacturing date: cannot be in the future (max = today)
             mfdInput.max = today;
-            mfdInput.value = ''; // Don't set default date
+        mfdInput.value = '';
             
             // Expiry date: cannot be in the past (min = today)
             expInput.min = today;
@@ -331,7 +464,10 @@ $totalProducts = count($overview);
             
             if (productName) {
                 for (const option of productSelect.options) {
-                    option.selected = option.value === productName;
+                if (option.value === productName) {
+                    option.selected = true;
+                    break;
+                }
                 }
             }
             // Suggest next batch number
@@ -343,19 +479,19 @@ $totalProducts = count($overview);
             document.getElementById('addBatchModal').style.display = 'none';
         }
 
-        
-
-        async function viewBatches(productName) {
+    async function viewBatches(productName, productId) {
             const modal = document.getElementById('batchModal');
             const modalTitle = document.getElementById('modalTitle');
             const batchDetails = document.getElementById('batchDetails');
             
             modalTitle.textContent = `Batch Details - ${productName}`;
-            const productId = productNameToId[productName];
             let rows = [];
             if (productId) {
                 try {
-                    const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                    // Determine product_source from the row
+                    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                    const productSource = row && row.getAttribute('data-type') === 'patient' ? 'patient' : 'admin';
+                    const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
                     const data = await res.json();
                     rows = data.data || [];
                 } catch (e) { console.error(e); }
@@ -416,8 +552,8 @@ $totalProducts = count($overview);
                             <td>${batch.supplier}</td>
                             <td><span class="status-badge ${statusClass}">${status}</span></td>
                             <td>
-                                <button class="btn-edit-batch" onclick="openEditBatchModal('${productName}', '${batch.batch_number}')">Edit</button>
-                                <button class="btn-delete-batch" onclick="deleteBatch('${productName}', '${batch.batch_number}')">Delete</button>
+                            <button class="btn-edit-batch" onclick="openEditBatchModal('${productName}', ${productId}, '${batch.batch_number}')">Edit</button>
+                            <button class="btn-delete-batch" onclick="deleteBatch('${productName}', ${productId}, '${batch.batch_number}')">Delete</button>
                             </td>
                         </tr>
                     `;
@@ -441,11 +577,13 @@ $totalProducts = count($overview);
             document.getElementById('batchModal').style.display = 'none';
         }
 
-        async function openEditBatchModal(productName, batchNumber) {
-            const productId = productNameToId[productName];
+    async function openEditBatchModal(productName, productId, batchNumber) {
             let batch = null;
             try {
-                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                // Determine product_source from the row
+                const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                const productSource = row && row.getAttribute('data-type') === 'patient' ? 'patient' : 'admin';
+                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
                 const data = await res.json();
                 const rows = data.data || [];
                 batch = rows.find(b => String(b.batch_number) === String(batchNumber));
@@ -458,7 +596,34 @@ $totalProducts = count($overview);
             document.getElementById('edit_quantity').value = batch.quantity;
             document.getElementById('edit_mfd').value = batch.mfd;
             document.getElementById('edit_exp').value = batch.exp;
-            document.getElementById('edit_supplier').value = batch.supplier;
+            
+            // Set supplier - trim and find matching option
+            const supplierSelect = document.getElementById('edit_supplier');
+            const supplierValue = (batch.supplier || '').trim();
+            supplierSelect.value = ''; // Reset first
+            
+            // Try exact match first
+            for (let option of supplierSelect.options) {
+                if (option.value.trim() === supplierValue) {
+                    option.selected = true;
+                    break;
+                }
+            }
+            
+            // If no exact match found, try case-insensitive match
+            if (supplierSelect.value === '') {
+                for (let option of supplierSelect.options) {
+                    if (option.value.trim().toLowerCase() === supplierValue.toLowerCase()) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            }
+            
+            // If still no match, set the value directly (might add new supplier)
+            if (supplierSelect.value === '' && supplierValue) {
+                supplierSelect.value = supplierValue;
+            }
             
             // Auto-calculate status based on expiry date
             const autoStatus = calculateStatus(batch.exp);
@@ -471,10 +636,7 @@ $totalProducts = count($overview);
             document.getElementById('editBatchModal').style.display = 'none';
         }
 
-        
-
-        async function deleteBatch(productName, batchNumber) {
-            const productId = productNameToId[productName];
+    async function deleteBatch(productName, productId, batchNumber) {
             if (!confirm(`Delete Batch: ${batchNumber}\n\nProduct: ${productName}\n\nThis action cannot be undone. Proceed?`)) return;
             const form = new FormData();
             form.append('product_id', productId);
@@ -483,8 +645,8 @@ $totalProducts = count($overview);
             const data = await res.json();
             if (data.success) {
                 alert('✅ Batch deleted');
-                viewBatches(productName);
-                await updateMainTableQuantity(productName);
+            viewBatches(productName, productId);
+            await updateMainTableQuantity(productName, productId);
             } else {
                 alert('❌ Delete failed');
             }
@@ -494,13 +656,13 @@ $totalProducts = count($overview);
         window.onclick = function(event) {
             const modal = document.getElementById('batchModal');
             const addModal = document.getElementById('addBatchModal');
+        const editModal = document.getElementById('editBatchModal');
             if (event.target == modal) {
                 modal.style.display = 'none';
             }
             if (event.target == addModal) {
                 addModal.style.display = 'none';
             }
-            const editModal = document.getElementById('editBatchModal');
             if (event.target == editModal) {
                 editModal.style.display = 'none';
             }
@@ -523,10 +685,12 @@ $totalProducts = count($overview);
         }
 
         // Update main table quantity after edit/delete
-        async function updateMainTableQuantity(productName) {
-            const productId = productNameToId[productName];
+    async function updateMainTableQuantity(productName, productId) {
             try {
-                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                // Determine product_source from the row
+                const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                const productSource = row && row.getAttribute('data-type') === 'patient' ? 'patient' : 'admin';
+                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
                 const data = await res.json();
                 const rows = data.data || [];
                 
@@ -567,13 +731,22 @@ $totalProducts = count($overview);
         document.getElementById('addBatchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const productName = document.getElementById('product').value;
-            const productId = productNameToId[productName];
+        const selectedOption = document.getElementById('product').options[document.getElementById('product').selectedIndex];
+        const productId = selectedOption ? selectedOption.getAttribute('data-product-id') : allProductNameToId[productName];
+        
             if (!productId) { alert('❌ Invalid product'); return; }
             const formEl = e.target;
             const expDate = formEl.exp.value;
             const autoStatus = calculateStatus(expDate);
+            // Determine product_source from selected product
+            const selectedOption = document.getElementById('product').options[document.getElementById('product').selectedIndex];
+            const productName = selectedOption ? selectedOption.value : '';
+            const isPatientProduct = patientProductNameToId.hasOwnProperty(productName);
+            const productSource = isPatientProduct ? 'patient' : 'admin';
+            
             const payload = new FormData();
             payload.append('product_id', productId);
+            payload.append('product_source', productSource);
             payload.append('batch_number', formEl.batch_number.value);
             payload.append('quantity', formEl.quantity.value);
             payload.append('mfd', formEl.mfd.value);
@@ -585,15 +758,15 @@ $totalProducts = count($overview);
             if (data.success) {
                 alert('✅ Batch added');
                 closeAddBatchModal();
-                await updateMainTableQuantity(productName);
+            await updateMainTableQuantity(productName, productId);
+            // Reload page to refresh all data
+            location.reload();
             } else {
                 alert('❌ Failed to add batch');
             }
         });
 
-        // =============================
         // Batch number auto-suggest
-        // =============================
         function getPrefixForProduct(name) {
             const n = name.toLowerCase();
             if (n.includes('asamodagam')) return 'ASM';
@@ -605,17 +778,31 @@ $totalProducts = count($overview);
             if (n.includes('nirgundi') && n.includes('oil')) return 'NRO';
             if (n.includes('pinda') && n.includes('thailaya')) return 'PTL';
             if (n.includes('bala') && n.includes('thailaya')) return 'BLT';
+        if (n.includes('ashwagandha')) return 'ASH';
+        if (n.includes('arawindasawaya')) return 'ARS';
+        if (n.includes('chandanasawaya')) return 'CDS';
+        if (n.includes('kanakasawaya')) return 'KNS';
+        if (n.includes('abayarishtaya')) return 'ABY';
+        if (n.includes('amurtharishtaya')) return 'AMR';
+        if (n.includes('arjunarishtaya')) return 'ARJ';
+        if (n.includes('samahan')) return 'SMH';
             return (name.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0,3) || 'BAT');
         }
 
         async function suggestNextBatchNumber() {
             const productName = document.getElementById('product').value;
             if (!productName) return;
-            const productId = productNameToId[productName];
+        const selectedOption = document.getElementById('product').options[document.getElementById('product').selectedIndex];
+        const productId = selectedOption ? selectedOption.getAttribute('data-product-id') : allProductNameToId[productName];
+        if (!productId) return;
+        
             const prefix = getPrefixForProduct(productName);
             let maxNum = 0;
             try {
-                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                // Determine product_source
+                const isPatientProduct = patientProductNameToId.hasOwnProperty(productName);
+                const productSource = isPatientProduct ? 'patient' : 'admin';
+                const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
                 const data = await res.json();
                 const rows = data.data || [];
                 rows.forEach(b => {
@@ -639,9 +826,7 @@ $totalProducts = count($overview);
             const mfdDate = this.value;
             const expInput = document.getElementById('exp');
             if (mfdDate) {
-                // Set minimum expiry date to manufacturing date
                 expInput.min = mfdDate;
-                // If current expiry date is before manufacturing date, clear it
                 if (expInput.value && expInput.value < mfdDate) {
                     expInput.value = '';
                 }
@@ -677,11 +862,12 @@ $totalProducts = count($overview);
         document.getElementById('editBatchForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const productName = document.getElementById('edit_product_name_hidden').value;
+        const productId = document.getElementById('edit_product_id').value;
             const expDate = document.getElementById('edit_exp').value;
             const autoStatus = calculateStatus(expDate);
             
             const payload = new FormData();
-            payload.append('product_id', document.getElementById('edit_product_id').value);
+        payload.append('product_id', productId);
             payload.append('batch_number', document.getElementById('edit_batch_number').value);
             payload.append('quantity', document.getElementById('edit_quantity').value);
             payload.append('mfd', document.getElementById('edit_mfd').value);
@@ -693,8 +879,8 @@ $totalProducts = count($overview);
             if (data.success) {
                 alert('✅ Batch updated');
                 closeEditBatchModal();
-                viewBatches(productName);
-                await updateMainTableQuantity(productName);
+            viewBatches(productName, productId);
+            await updateMainTableQuantity(productName, productId);
             } else {
                 alert('❌ Update failed');
             }

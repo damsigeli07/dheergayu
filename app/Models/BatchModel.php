@@ -79,12 +79,20 @@ class BatchModel {
     }
 
     /** Get all batches of a product */
-    public function getBatchesByProductId(int $productId): array {
-        $stmt = $this->db->prepare("
-            SELECT product_id, batch_number, quantity, mfd, exp, supplier, status 
-            FROM batches WHERE product_id = ? ORDER BY mfd DESC
-        ");
-        $stmt->bind_param('i', $productId);
+    public function getBatchesByProductId(int $productId, ?string $productSource = null): array {
+        if ($productSource) {
+            $stmt = $this->db->prepare("
+                SELECT product_id, batch_number, quantity, mfd, exp, supplier, status 
+                FROM batches WHERE product_id = ? AND product_source = ? ORDER BY mfd DESC
+            ");
+            $stmt->bind_param('is', $productId, $productSource);
+        } else {
+            $stmt = $this->db->prepare("
+                SELECT product_id, batch_number, quantity, mfd, exp, supplier, status 
+                FROM batches WHERE product_id = ? ORDER BY mfd DESC
+            ");
+            $stmt->bind_param('i', $productId);
+        }
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
@@ -102,12 +110,12 @@ class BatchModel {
     }
 
     /** Create new batch */
-    public function createBatch(int $productId, string $batchNumber, int $quantity, string $mfd, string $exp, string $supplier, string $status): bool {
+    public function createBatch(int $productId, string $batchNumber, int $quantity, string $mfd, string $exp, string $supplier, string $status, ?string $productSource = 'admin'): bool {
         $stmt = $this->db->prepare("
-            INSERT INTO batches (product_id, batch_number, quantity, mfd, exp, supplier, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO batches (product_id, product_source, batch_number, quantity, mfd, exp, supplier, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param('isissss', $productId, $batchNumber, $quantity, $mfd, $exp, $supplier, $status);
+        $stmt->bind_param('isisssss', $productId, $productSource, $batchNumber, $quantity, $mfd, $exp, $supplier, $status);
         $ok = $stmt->execute();
         $stmt->close();
         return $ok;

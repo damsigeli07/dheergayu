@@ -8,12 +8,18 @@ $consultationModel = new ConsultationFormModel($db);
 // Get all consultation forms
 $consultations = $consultationModel->getAllConsultationForms();
 
-// Get product prices
+// Get product prices and list of admin products
 $productPrices = [];
-$productsQuery = $db->query("SELECT product_id, name, price FROM products");
+$adminProducts = [];
+$productsQuery = $db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
 while ($product = $productsQuery->fetch_assoc()) {
     $productPrices[$product['name']] = [
         'id' => $product['product_id'],
+        'price' => (float)$product['price']
+    ];
+    $adminProducts[] = [
+        'id' => $product['product_id'],
+        'name' => $product['name'],
         'price' => (float)$product['price']
     ];
 }
@@ -95,11 +101,15 @@ $db->close();
                             <div class="medicines-section">
                                 <div class="medicines-label">Medicines Prescribed</div>
                                 <div class="medicines-list">
-                                    <?php if (!empty($personalProducts)): ?>
-                                        <?php foreach ($personalProducts as $product): ?>
+                                    <?php 
+                                    // Hardcode medicines from products table (show first 3-4 products as sample)
+                                    $hardcodedMedicines = array_slice($adminProducts, 0, min(4, count($adminProducts)));
+                                    $hardcodedQuantities = [2, 1, 3, 2]; // Fixed quantities for each medicine
+                                    if (!empty($hardcodedMedicines)): ?>
+                                        <?php foreach ($hardcodedMedicines as $index => $product): ?>
                                             <div class="medicine-card">
-                                                <span class="medicine-name"><?= htmlspecialchars($product['product'] ?? '') ?></span>
-                                                <span class="medicine-qty">x<?= htmlspecialchars($product['qty'] ?? '0') ?></span>
+                                                <span class="medicine-name"><?= htmlspecialchars($product['name']) ?></span>
+                                                <span class="medicine-qty">x<?= $hardcodedQuantities[$index] ?? 1 ?></span>
                                             </div>
                                         <?php endforeach; ?>
                                     <?php else: ?>
@@ -192,6 +202,9 @@ $db->close();
         // Product prices from database
         const productPrices = <?= json_encode($productPrices) ?>;
         
+        // Admin products from database (hardcoded for receipts)
+        const adminProducts = <?= json_encode($adminProducts) ?>;
+        
         // Consultation data from database
         const consultations = <?= json_encode($consultations) ?>;
 
@@ -203,24 +216,19 @@ $db->close();
                 return;
             }
 
-            // Parse personal products
-            let personalProducts = [];
-            try {
-                personalProducts = JSON.parse(consultation.personal_products || '[]');
-            } catch (e) {
-                console.error('Error parsing personal products:', e);
-                personalProducts = [];
-            }
+            // Use hardcoded medicines from products table (first 3-4 products)
+            const hardcodedMedicines = adminProducts.slice(0, Math.min(4, adminProducts.length));
+            const hardcodedQuantities = [2, 1, 3, 2]; // Fixed quantities for each medicine
 
             const tbody = document.querySelector("#receiptTable tbody");
             tbody.innerHTML = "";
             let total = 0;
 
-            personalProducts.forEach(product => {
-                const productName = product.product || '';
-                const quantity = parseInt(product.qty) || 0;
+            hardcodedMedicines.forEach((product, index) => {
+                const productName = product.name || '';
+                const quantity = hardcodedQuantities[index] || 1;
                 const priceInfo = productPrices[productName];
-                const unitPrice = priceInfo ? priceInfo.price : 0;
+                const unitPrice = priceInfo ? priceInfo.price : product.price || 0;
                 const amount = quantity * unitPrice;
                 total += amount;
                 

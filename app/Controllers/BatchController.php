@@ -19,7 +19,8 @@ class BatchController extends Controller {
     public function batches(): void {
         $productId = (int)($_GET['product_id'] ?? 0);
         if (!$productId) { $this->json(['error' => 'product_id required'], 400); return; }
-        $rows = $this->model->getBatchesByProductId($productId);
+        $productSource = $_GET['product_source'] ?? null;
+        $rows = $this->model->getBatchesByProductId($productId, $productSource);
         $this->json(['data' => $rows]);
     }
 
@@ -31,6 +32,7 @@ class BatchController extends Controller {
         }
         if (!$productId) { $this->json(['error' => 'product_id required'], 400); return; }
 
+        $productSource = trim($payload['product_source'] ?? 'admin');
         $ok = $this->model->createBatch(
             $productId,
             trim($payload['batch_number'] ?? ''),
@@ -38,7 +40,8 @@ class BatchController extends Controller {
             trim($payload['mfd'] ?? ''),
             trim($payload['exp'] ?? ''),
             trim($payload['supplier'] ?? ''),
-            trim($payload['status'] ?? 'Good')
+            trim($payload['status'] ?? 'Good'),
+            $productSource
         );
         $this->json(['success' => $ok]);
     }
