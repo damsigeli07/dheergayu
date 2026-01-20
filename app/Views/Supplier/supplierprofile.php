@@ -37,7 +37,6 @@ $supplier = [
         </div>
         
         <nav class="navigation">
-            <a href="supplierdashboard.php" class="nav-btn">Home</a>
             <a href="supplierrequest.php" class="nav-btn">Request</a>
         </nav>
         
@@ -53,7 +52,7 @@ $supplier = [
     </header>
     <main class="profile-container">
         <!-- Close button -->
-        <a href="supplierdashboard.php" class="btn-back">&times;</a>
+        <a href="supplierrequest.php" class="btn-back">&times;</a>
 
         <h1 class="profile-title">My Profile</h1>
         
