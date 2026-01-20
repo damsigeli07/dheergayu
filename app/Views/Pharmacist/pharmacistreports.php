@@ -1,3 +1,70 @@
+<?php
+require_once __DIR__ . '/../../../core/bootloader.php';
+
+use App\Models\BatchModel;
+
+$model = new BatchModel();
+
+// Get inventory overview from database
+$overview = $model->getInventoryOverview();
+
+// Get expiring items (within 30 days)
+$expiringItems = [];
+$today = new DateTime();
+$thirtyDaysFromNow = clone $today;
+$thirtyDaysFromNow->modify('+30 days');
+
+foreach ($overview as $row) {
+    $productId = $row['product_id'];
+    $productName = $row['product'];
+    $batches = $model->getBatchesByProductId($productId);
+    
+    foreach ($batches as $batch) {
+        if ($batch['exp']) {
+            $expDate = new DateTime($batch['exp']);
+            if ($expDate <= $thirtyDaysFromNow && $expDate >= $today) {
+                // Group by product and expiry month
+                $expMonth = $expDate->format('M Y');
+                $key = $productName . '_' . $expMonth;
+                
+                if (!isset($expiringItems[$key])) {
+                    $expiringItems[$key] = [
+                        'product' => $productName,
+                        'expiry' => $expMonth,
+                        'count' => 0
+                    ];
+                }
+                $expiringItems[$key]['count'] += (int)$batch['quantity'];
+            }
+        }
+    }
+}
+
+// Sort expiring items by expiry date
+usort($expiringItems, function($a, $b) {
+    return strtotime($a['expiry']) - strtotime($b['expiry']);
+});
+
+// Prepare chart data
+$chartLabels = [];
+$chartData = [];
+$chartColors = [];
+
+foreach ($overview as $row) {
+    $qty = (int)$row['total_quantity'];
+    $chartLabels[] = $row['product'];
+    $chartData[] = $qty;
+    
+    // Color coding based on stock level
+    if ($qty <= 5) {
+        $chartColors[] = '#FF6B6B'; // Critical - Red
+    } elseif ($qty <= 15) {
+        $chartColors[] = '#FF8C42'; // Low - Orange
+    } else {
+        $chartColors[] = '#FFB84D'; // Normal - Yellow
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,18 +116,19 @@
             <!-- Expiring Stock Alerts -->
             <div class="expiring-alerts">
                 <h3>⚠️ Expiring Stock Alerts</h3>
-                <div class="alert-item">
-                    <span class="alert-product">Siddhalepa Balm</span>
-                    <span class="alert-date">Expires: Nov 2025 (3 items)</span>
-                </div>
-                <div class="alert-item">
-                    <span class="alert-product">Dashamoolarishta</span>
-                    <span class="alert-date">Expires: Dec 2025 (2 items)</span>
-                </div>
-                <div class="alert-item">
-                    <span class="alert-product">Kothalahimbutu Capsules</span>
-                    <span class="alert-date">Expires: Jan 2026 (1 item)</span>
-                </div>
+                <?php if (!empty($expiringItems)): ?>
+                    <?php foreach ($expiringItems as $item): ?>
+                        <div class="alert-item">
+                            <span class="alert-product"><?= htmlspecialchars($item['product']) ?></span>
+                            <span class="alert-date">Expires: <?= htmlspecialchars($item['expiry']) ?> (<?= $item['count'] ?> item<?= $item['count'] > 1 ? 's' : '' ?>)</span>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="alert-item">
+                        <span class="alert-product">No items expiring soon</span>
+                        <span class="alert-date">All items are within safe expiry range</span>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <!-- Main Chart -->
@@ -79,25 +147,20 @@
     </main>
 
     <script>
-        // Stock Levels Chart
+        // Stock Levels Chart - Using actual data from database
         const stockCtx = document.getElementById('stockChart').getContext('2d');
+        const chartLabels = <?= json_encode($chartLabels) ?>;
+        const chartData = <?= json_encode($chartData) ?>;
+        const chartColors = <?= json_encode($chartColors) ?>;
+        
         new Chart(stockCtx, {
             type: 'bar',
             data: {
-                labels: ['Paspanguwa', 'Asamodagam', 'Siddhalepa', 'Dashamoolarishta', 'Kothalahimbutu', 'Neem Oil', 'Pinda Thailaya', 'Nirgundi Oil'],
+                labels: chartLabels,
                 datasets: [{
                     label: 'Current Stock',
-                    data: [12, 8, 3, 2, 1, 15, 3, 7],
-                    backgroundColor: [
-                        '#FFB84D',
-                        '#D4A574',
-                        '#FF8C42',
-                        '#FF8C42',
-                        '#FF8C42',
-                        '#FFB84D',
-                        '#FF8C42',
-                        '#FFB84D'
-                    ],
+                    data: chartData,
+                    backgroundColor: chartColors,
                     borderColor: '#333',
                     borderWidth: 1
                 }]
@@ -115,6 +178,10 @@
                         title: {
                             display: true,
                             text: 'Products'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
                         }
                     },
                     y: {

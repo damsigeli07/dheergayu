@@ -37,49 +37,284 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Main Content -->
-        <div class="main-dashboard">
-            <h2 class="section-title">Patient Orders Summary</h2>
-            
-            <div class="orders-overview">
-                <div class="overview-card">
-                    <h3 class="card-title">Current Orders</h3>
-                    <div class="order-item">
-                        <span class="consultation-id">Consultation #101</span>
-                        <span class="patient-name">John Doe</span>
-                        <div class="medicines">
-                            <span class="medicine">Paspanguwa Pack x2</span>
-                            <span class="medicine">Asamodagam Spirit x1</span>
-                        </div>
-                        <span class="status pending">Pending</span>
-                    </div>
-                    <div class="order-item">
-                        <span class="consultation-id">Consultation #102</span>
-                        <span class="patient-name">Jane Smith</span>
-                        <div class="medicines">
-                            <span class="medicine">Siddhalepa Balm x1</span>
-                            <span class="medicine">Dashamoolarishta x2</span>
-                        </div>
-                        <span class="status pending">Pending</span>
+        <div class="dashboard-container">
+            <!-- Welcome Header -->
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Pharmacist Dashboard</h1>
+                <p class="dashboard-subtitle">Welcome back! Here's your overview for today.</p>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card pending-card">
+                    <div class="card-icon">📋</div>
+                    <div class="card-content">
+                        <h3 class="card-label">Pending Orders</h3>
+                        <p class="card-value">12</p>
+                        <span class="card-change">+3 from yesterday</span>
                     </div>
                 </div>
                 
-                <div class="inventory-alerts">
-                    <div class="alert-item">
-                        <h4 class="alert-title">⚠️ Low Stock Items</h4>
-                        <ul class="alert-list">
-                            <li>Turmeric Powder - 2 kg remaining</li>
-                            <li>Ayurvedic Massage Oil - 1 bottle left</li>
-                            <li>Herbal Steam Herbs - 3 packets</li>
-                        </ul>
+                <div class="summary-card dispatched-card">
+                    <div class="card-icon">✅</div>
+                    <div class="card-content">
+                        <h3 class="card-label">Dispatched Today</h3>
+                        <p class="card-value">8</p>
+                        <span class="card-change">Ready for pickup</span>
                     </div>
-                    <div class="alert-item">
-                        <h4 class="alert-title">⏰ Expiring Soon</h4>
-                        <ul class="alert-list">
-                            <li>Neem Paste - Expires in 5 days</li>
-                            <li>Herbal Tea Mix - Expires in 7 days</li>
-                            <li>Medicated Oil - Expires in 10 days</li>
-                        </ul>
+                </div>
+                
+                <div class="summary-card low-stock-card">
+                    <div class="card-icon">⚠️</div>
+                    <div class="card-content">
+                        <h3 class="card-label">Low Stock Items</h3>
+                        <p class="card-value">5</p>
+                        <span class="card-change">Requires attention</span>
+                    </div>
+                </div>
+                
+                <div class="summary-card expiring-card">
+                    <div class="card-icon">⏰</div>
+                    <div class="card-content">
+                        <h3 class="card-label">Expiring Soon</h3>
+                        <p class="card-value">7</p>
+                        <span class="card-change">Within 10 days</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Orders Section -->
+                <div class="orders-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Orders</h2>
+                        <a href="pharmacistorders.php" class="view-all-link">View All →</a>
+                    </div>
+                    
+                    <!-- Pending Orders -->
+                    <div class="order-group">
+                        <h3 class="order-group-title">
+                            <span class="status-badge pending-badge">Pending</span>
+                            <span class="order-count">5 orders</span>
+                        </h3>
+                        
+                        <div class="order-list">
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <span class="order-id">Order #ORD-2024-001</span>
+                                    <span class="order-date">Today, 10:30 AM</span>
+                                </div>
+                                <div class="order-patient">
+                                    <strong>Patient:</strong> John Doe
+                                </div>
+                                <div class="order-medicines">
+                                    <span class="medicine-tag">Paspanguwa Pack x2</span>
+                                    <span class="medicine-tag">Asamodagam Spirit x1</span>
+                                    <span class="medicine-tag">Siddhalepa Balm x1</span>
+                                </div>
+                                <div class="order-footer">
+                                    <span class="consultation-ref">Consultation #101</span>
+                                    <button class="action-button dispatch-btn">Mark as Dispatched</button>
+                                </div>
+                            </div>
+                            
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <span class="order-id">Order #ORD-2024-002</span>
+                                    <span class="order-date">Today, 09:15 AM</span>
+                                </div>
+                                <div class="order-patient">
+                                    <strong>Patient:</strong> Jane Smith
+                                </div>
+                                <div class="order-medicines">
+                                    <span class="medicine-tag">Dashamoolarishta x2</span>
+                                    <span class="medicine-tag">Herbal Tea Mix x3</span>
+                                </div>
+                                <div class="order-footer">
+                                    <span class="consultation-ref">Consultation #102</span>
+                                    <button class="action-button dispatch-btn">Mark as Dispatched</button>
+                                </div>
+                            </div>
+                            
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <span class="order-id">Order #ORD-2024-003</span>
+                                    <span class="order-date">Today, 08:45 AM</span>
+                                </div>
+                                <div class="order-patient">
+                                    <strong>Patient:</strong> Robert Johnson
+                                </div>
+                                <div class="order-medicines">
+                                    <span class="medicine-tag">Neem Paste x1</span>
+                                    <span class="medicine-tag">Medicated Oil x2</span>
+                                    <span class="medicine-tag">Turmeric Powder x1</span>
+                                </div>
+                                <div class="order-footer">
+                                    <span class="consultation-ref">Consultation #103</span>
+                                    <button class="action-button dispatch-btn">Mark as Dispatched</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dispatched Orders -->
+                    <div class="order-group">
+                        <h3 class="order-group-title">
+                            <span class="status-badge dispatched-badge">Dispatched</span>
+                            <span class="order-count">3 orders</span>
+                        </h3>
+                        
+                        <div class="order-list">
+                            <div class="order-card dispatched">
+                                <div class="order-header">
+                                    <span class="order-id">Order #ORD-2024-004</span>
+                                    <span class="order-date">Today, 11:00 AM</span>
+                                </div>
+                                <div class="order-patient">
+                                    <strong>Patient:</strong> Sarah Williams
+                                </div>
+                                <div class="order-medicines">
+                                    <span class="medicine-tag">Ayurvedic Massage Oil x2</span>
+                                    <span class="medicine-tag">Herbal Steam Herbs x1</span>
+                                </div>
+                                <div class="order-footer">
+                                    <span class="consultation-ref">Consultation #104</span>
+                                    <span class="dispatched-label">✓ Dispatched</span>
+                                </div>
+                            </div>
+                            
+                            <div class="order-card dispatched">
+                                <div class="order-header">
+                                    <span class="order-id">Order #ORD-2024-005</span>
+                                    <span class="order-date">Today, 10:00 AM</span>
+                                </div>
+                                <div class="order-patient">
+                                    <strong>Patient:</strong> Michael Brown
+                                </div>
+                                <div class="order-medicines">
+                                    <span class="medicine-tag">Paspanguwa Pack x1</span>
+                                    <span class="medicine-tag">Siddhalepa Balm x2</span>
+                                </div>
+                                <div class="order-footer">
+                                    <span class="consultation-ref">Consultation #105</span>
+                                    <span class="dispatched-label">✓ Dispatched</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Section -->
+                <div class="alerts-section">
+                    <!-- Low Stock Alert -->
+                    <div class="alert-card low-stock-alert">
+                        <div class="alert-header">
+                            <div class="alert-icon-wrapper">
+                                <span class="alert-icon">⚠️</span>
+                            </div>
+                            <h3 class="alert-title">Low Stock Items</h3>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Turmeric Powder</span>
+                                    <span class="item-detail">2 kg remaining</span>
+                                </div>
+                                <span class="item-status critical">Critical</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Ayurvedic Massage Oil</span>
+                                    <span class="item-detail">1 bottle left</span>
+                                </div>
+                                <span class="item-status critical">Critical</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Herbal Steam Herbs</span>
+                                    <span class="item-detail">3 packets</span>
+                                </div>
+                                <span class="item-status warning">Low</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Neem Paste</span>
+                                    <span class="item-detail">5 units</span>
+                                </div>
+                                <span class="item-status warning">Low</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Medicated Oil</span>
+                                    <span class="item-detail">4 bottles</span>
+                                </div>
+                                <span class="item-status warning">Low</span>
+                            </div>
+                        </div>
+                        <a href="pharmacistinventory.php" class="alert-action-link">View Inventory →</a>
+                    </div>
+
+                    <!-- Expiring Items Alert -->
+                    <div class="alert-card expiring-alert">
+                        <div class="alert-header">
+                            <div class="alert-icon-wrapper">
+                                <span class="alert-icon">⏰</span>
+                            </div>
+                            <h3 class="alert-title">Expiring Soon</h3>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Neem Paste</span>
+                                    <span class="item-detail">Expires in 5 days</span>
+                                </div>
+                                <span class="item-status urgent">Urgent</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Herbal Tea Mix</span>
+                                    <span class="item-detail">Expires in 7 days</span>
+                                </div>
+                                <span class="item-status urgent">Urgent</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Medicated Oil</span>
+                                    <span class="item-detail">Expires in 10 days</span>
+                                </div>
+                                <span class="item-status warning">Soon</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Dashamoolarishta</span>
+                                    <span class="item-detail">Expires in 12 days</span>
+                                </div>
+                                <span class="item-status warning">Soon</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Paspanguwa Pack</span>
+                                    <span class="item-detail">Expires in 15 days</span>
+                                </div>
+                                <span class="item-status warning">Soon</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Siddhalepa Balm</span>
+                                    <span class="item-detail">Expires in 18 days</span>
+                                </div>
+                                <span class="item-status warning">Soon</span>
+                            </div>
+                            <div class="alert-item">
+                                <div class="alert-item-info">
+                                    <span class="item-name">Ayurvedic Massage Oil</span>
+                                    <span class="item-detail">Expires in 20 days</span>
+                                </div>
+                                <span class="item-status warning">Soon</span>
+                            </div>
+                        </div>
+                        <a href="pharmacistinventory.php" class="alert-action-link">View Inventory →</a>
                     </div>
                 </div>
             </div>
