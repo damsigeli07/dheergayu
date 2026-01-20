@@ -35,7 +35,6 @@ $supplier = [
         </div>
         
         <nav class="navigation">
-            <a href="supplierhome.php" class="nav-btn">Home</a>
             <a href="supplierrequest.php" class="nav-btn">Request</a>
         </nav>
         

@@ -43,7 +43,6 @@ if (isset($conn) && $conn instanceof mysqli) {
       </div>
       
       <nav class="navigation">
-          <a href="supplierdashboard.php" class="nav-btn">Home</a>
           <button class="nav-btn active">Request</button>
       </nav>
       

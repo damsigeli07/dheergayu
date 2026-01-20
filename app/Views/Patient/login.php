@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['name'] = $row['supplier_name'];
                 $_SESSION['contact_person'] = $row['contact_person'];
 
-                header("Location: ../Supplier/supplierdashboard.php");
+                header("Location: ../Supplier/supplierrequest.php");
                 exit();
             } else {
                 // Password verification failed
