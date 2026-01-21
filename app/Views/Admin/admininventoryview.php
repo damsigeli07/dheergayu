@@ -363,7 +363,7 @@ $db->close();
             let rows = [];
             if (productId) {
                 try {
-                    const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}`);
+                    const res = await fetch(`/dheergayu/public/index.php/api/batches/by-product?product_id=${productId}`);
                     const data = await res.json();
                     rows = data.data || [];
             } catch (e) { 
