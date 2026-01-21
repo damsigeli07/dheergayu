@@ -45,19 +45,21 @@ body {
 }
 
 .main-content {
-    display: flex;
-    gap: 30px;
+    /*display: flex;
+    gap: 30px; */
     margin-bottom: 30px;
 }
 
 .left-section {
-    flex: 2;
+    /*flex: 2;*/
+    width:100%
 }
 
-.right-section {
-    flex: 1;
+/*.right-section {
+    /*flex: 1;
+    display: none;
 }
-
+*/
 .left-section h2 {
     color: #000;
     font-size: 20px;
@@ -212,61 +214,7 @@ body {
 }
 
 /* --- Right Side --- */
-.auto-filled-section {
-    background-color: #fff7ef; /* light orange tint */
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(209,127,27,0.12);
-}
 
-.auto-filled-section h3 {
-    color: #d17f1b; /* theme color for auto-filled title */
-    font-size: 14px;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.info-group {
-    margin-bottom: 15px;
-}
-
-.info-group strong {
-    color: #d17f1b;
-    font-size: 14px;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.info-value {
-    color: #333;
-    font-size: 13px;
-    margin-bottom: 3px;
-}
-
-.auto-filled-section .info-value input {
-    background-color: #fffaf0; /* subtle theme tint for inputs */
-}
-
-.checklist-section {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-.checklist-section h3 {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 15px;
-}
-
-.checklist-item {
-    color: #666;
-    font-size: 12px;
-    margin-bottom: 8px;
-    padding-left: 5px;
-}
 
 /* --- Buttons --- */
 .button-container {
