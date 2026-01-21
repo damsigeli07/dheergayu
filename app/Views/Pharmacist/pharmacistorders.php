@@ -8,12 +8,18 @@ $consultationModel = new ConsultationFormModel($db);
 // Get all consultation forms
 $consultations = $consultationModel->getAllConsultationForms();
 
-// Get product prices
+// Get product prices and list of admin products
 $productPrices = [];
-$productsQuery = $db->query("SELECT product_id, name, price FROM products");
+$adminProducts = [];
+$productsQuery = $db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
 while ($product = $productsQuery->fetch_assoc()) {
     $productPrices[$product['name']] = [
         'id' => $product['product_id'],
+        'price' => (float)$product['price']
+    ];
+    $adminProducts[] = [
+        'id' => $product['product_id'],
+        'name' => $product['name'],
         'price' => (float)$product['price']
     ];
 }
@@ -68,88 +74,136 @@ $db->close();
     <main class="main-content">
         <h2 class="section-title">Consultation Orders</h2>
 
-        <div class="table-container">
-            <table class="orders-table">
-                <thead>
-                    <tr>
-                        <th>Consultation ID</th>
-                        <th>Patient Name</th>
-                        <th>Medicines Prescribed</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($consultations)): ?>
-                        <?php foreach ($consultations as $consultation): ?>
-                            <?php 
-                            // Parse personal_products JSON
-                            $personalProducts = json_decode($consultation['personal_products'] ?? '[]', true);
-                            if (!is_array($personalProducts)) {
-                                $personalProducts = [];
-                            }
-                            ?>
-                            <?php $isDispatched = isset($dispatchStatuses[$consultation['id']]) && $dispatchStatuses[$consultation['id']] === 'Dispatched'; ?>
-                            <tr class="<?= $isDispatched ? 'row-dispatched' : '' ?>">
-                                <td><?= htmlspecialchars($consultation['id']) ?></td>
-                                <td><?= htmlspecialchars($consultation['first_name'] . ' ' . $consultation['last_name']) ?></td>
-                                <td>
-                                    <?php if (!empty($personalProducts)): ?>
-                                        <?php foreach ($personalProducts as $product): ?>
+        <div class="orders-container">
+            <?php if (!empty($consultations)): ?>
+                <?php foreach ($consultations as $consultation): ?>
+                    <?php 
+                    // Parse personal_products JSON
+                    $personalProducts = json_decode($consultation['personal_products'] ?? '[]', true);
+                    if (!is_array($personalProducts)) {
+                        $personalProducts = [];
+                    }
+                    ?>
+                    <?php $isDispatched = isset($dispatchStatuses[$consultation['id']]) && $dispatchStatuses[$consultation['id']] === 'Dispatched'; ?>
+                    <div class="order-card <?= $isDispatched ? 'row-dispatched' : '' ?>">
+                        <div class="order-header">
+                            <div class="order-id-section">
+                                <span class="order-id-label">Consultation ID</span>
+                                <span class="order-id-value">#<?= htmlspecialchars($consultation['id']) ?></span>
+                                <span class="patient-name"><?= htmlspecialchars($consultation['first_name'] . ' ' . $consultation['last_name']) ?></span>
+                            </div>
+                            <span class="order-status-badge <?= $isDispatched ? 'dispatched' : 'pending' ?>">
+                                <?= $isDispatched ? 'Dispatched' : 'Pending' ?>
+                            </span>
+                        </div>
+                        
+                        <div class="order-body">
+                            <div class="medicines-section">
+                                <div class="medicines-label">Medicines Prescribed</div>
+                                <div class="medicines-list">
+                                    <?php 
+                                    // Hardcode medicines from products table (show first 3-4 products as sample)
+                                    $hardcodedMedicines = array_slice($adminProducts, 0, min(4, count($adminProducts)));
+                                    $hardcodedQuantities = [2, 1, 3, 2]; // Fixed quantities for each medicine
+                                    if (!empty($hardcodedMedicines)): ?>
+                                        <?php foreach ($hardcodedMedicines as $index => $product): ?>
                                             <div class="medicine-card">
-                                                <span class="medicine-name"><?= htmlspecialchars($product['product'] ?? '') ?></span>
-                                                <span class="medicine-qty">x<?= htmlspecialchars($product['qty'] ?? '0') ?></span>
+                                                <span class="medicine-name"><?= htmlspecialchars($product['name']) ?></span>
+                                                <span class="medicine-qty">x<?= $hardcodedQuantities[$index] ?? 1 ?></span>
                                             </div>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <span class="no-medicines">No medicines prescribed</span>
+                                        <div class="no-medicines">No medicines prescribed</div>
                                     <?php endif; ?>
-                                </td>
-                                <td><button class="btn-action" onclick="calculateTotal('<?= $consultation['id'] ?>')">View</button></td>
-                                <td class="status-cell">
+                                </div>
+                            </div>
+                            
+                            <div class="order-actions-section">
+                                <div class="total-section">
+                                    <div class="total-label">Total Amount</div>
+                                    <button class="total-button" onclick="calculateTotal('<?= $consultation['id'] ?>')">
+                                        View Total
+                                    </button>
+                                </div>
+                                
+                                <div class="dispatch-section">
                                     <label class="dispatch-label">
                                         <input type="checkbox"
                                                class="dispense-status"
                                                <?= $isDispatched ? 'checked' : '' ?>
                                                onchange="toggleDispatch('<?= $consultation['id'] ?>', this.checked)">
-                                        Dispatched
+                                        <span>Mark as Dispatched</span>
                                     </label>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 20px;">No consultation orders found.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-text">No consultation orders found.</div>
+                </div>
+            <?php endif; ?>
         </div>
     </main>
 
     <!-- Modal for Receipt -->
     <div id="receiptModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h3>Receipt for Consultation <span id="consultationId"></span></h3>
-            <table id="receiptTable">
-                <thead>
-                    <tr>
-                        <th>Medicine</th>
-                        <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <h4>Total: Rs. <span id="totalAmount">0.00</span></h4>
+            <div class="receipt-actions">
+                <button class="print-receipt-btn" onclick="printReceipt()">🖨️ Print Receipt</button>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="receiptContent" class="receipt-content">
+                <div class="receipt-header">
+                    <div class="receipt-logo">DHEERGAYU</div>
+                    <div class="receipt-subtitle">AYURVEDIC MANAGEMENT CENTER</div>
+                    <div class="receipt-divider"></div>
+                </div>
+                <div class="receipt-info">
+                    <div class="receipt-line">
+                        <span class="receipt-label">Consultation ID:</span>
+                        <span class="receipt-value" id="receiptConsultationId"></span>
+                    </div>
+                    <div class="receipt-line">
+                        <span class="receipt-label">Date:</span>
+                        <span class="receipt-value" id="receiptDate"></span>
+                    </div>
+                </div>
+                <div class="receipt-divider"></div>
+                <table id="receiptTable" class="receipt-table">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="receipt-divider"></div>
+                <div class="receipt-total">
+                    <div class="receipt-total-line">
+                        <span class="receipt-total-label">TOTAL:</span>
+                        <span class="receipt-total-amount">Rs. <span id="totalAmount">0.00</span></span>
+                    </div>
+                </div>
+                <div class="receipt-footer">
+                    <div class="receipt-thankyou">Thank you for your visit!</div>
+                    <div class="receipt-divider"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         // Product prices from database
         const productPrices = <?= json_encode($productPrices) ?>;
+        
+        // Admin products from database (hardcoded for receipts)
+        const adminProducts = <?= json_encode($adminProducts) ?>;
         
         // Consultation data from database
         const consultations = <?= json_encode($consultations) ?>;
@@ -162,24 +216,19 @@ $db->close();
                 return;
             }
 
-            // Parse personal products
-            let personalProducts = [];
-            try {
-                personalProducts = JSON.parse(consultation.personal_products || '[]');
-            } catch (e) {
-                console.error('Error parsing personal products:', e);
-                personalProducts = [];
-            }
+            // Use hardcoded medicines from products table (first 3-4 products)
+            const hardcodedMedicines = adminProducts.slice(0, Math.min(4, adminProducts.length));
+            const hardcodedQuantities = [2, 1, 3, 2]; // Fixed quantities for each medicine
 
             const tbody = document.querySelector("#receiptTable tbody");
             tbody.innerHTML = "";
             let total = 0;
 
-            personalProducts.forEach(product => {
-                const productName = product.product || '';
-                const quantity = parseInt(product.qty) || 0;
+            hardcodedMedicines.forEach((product, index) => {
+                const productName = product.name || '';
+                const quantity = hardcodedQuantities[index] || 1;
                 const priceInfo = productPrices[productName];
-                const unitPrice = priceInfo ? priceInfo.price : 0;
+                const unitPrice = priceInfo ? priceInfo.price : product.price || 0;
                 const amount = quantity * unitPrice;
                 total += amount;
                 
@@ -192,9 +241,128 @@ $db->close();
                 tbody.innerHTML += row;
             });
 
-            document.getElementById("consultationId").innerText = consultationId;
+            document.getElementById("receiptConsultationId").innerText = "#" + consultationId;
             document.getElementById("totalAmount").innerText = total.toFixed(2);
+            
+            // Set current date
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById("receiptDate").innerText = dateStr;
+            
             document.getElementById("receiptModal").style.display = "block";
+        }
+        
+        function printReceipt() {
+            const receiptContent = document.getElementById("receiptContent").innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Receipt - Consultation ${document.getElementById("receiptConsultationId").innerText}</title>
+                        <style>
+                            @media print {
+                                body { margin: 0; padding: 20px; }
+                                .print-receipt-btn, .close { display: none !important; }
+                            }
+                            body {
+                                font-family: 'Courier New', monospace;
+                                max-width: 300px;
+                                margin: 0 auto;
+                                padding: 20px;
+                                background: white;
+                                color: #000;
+                            }
+                            .receipt-header {
+                                text-align: center;
+                                margin-bottom: 20px;
+                            }
+                            .receipt-logo {
+                                font-size: 24px;
+                                font-weight: bold;
+                                letter-spacing: 2px;
+                                margin-bottom: 5px;
+                            }
+                            .receipt-subtitle {
+                                font-size: 12px;
+                                color: #333;
+                                margin-bottom: 15px;
+                            }
+                            .receipt-divider {
+                                border-top: 1px dashed #333;
+                                margin: 15px 0;
+                            }
+                            .receipt-info {
+                                margin-bottom: 15px;
+                            }
+                            .receipt-line {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 5px;
+                                font-size: 12px;
+                            }
+                            .receipt-label {
+                                font-weight: bold;
+                            }
+                            .receipt-value {
+                                color: #333;
+                            }
+                            .receipt-table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 15px 0;
+                                font-size: 11px;
+                            }
+                            .receipt-table thead {
+                                border-bottom: 2px solid #000;
+                            }
+                            .receipt-table th {
+                                text-align: left;
+                                padding: 8px 4px;
+                                font-weight: bold;
+                                background: #f5f5f5;
+                            }
+                            .receipt-table td {
+                                padding: 6px 4px;
+                                border-bottom: 1px dotted #ccc;
+                            }
+                            .receipt-total {
+                                margin-top: 15px;
+                            }
+                            .receipt-total-line {
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 14px;
+                                font-weight: bold;
+                                padding: 10px 0;
+                                border-top: 2px solid #000;
+                            }
+                            .receipt-footer {
+                                margin-top: 20px;
+                                text-align: center;
+                            }
+                            .receipt-thankyou {
+                                font-size: 12px;
+                                font-style: italic;
+                                margin-bottom: 10px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${receiptContent}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
         }
 
         function closeModal() {

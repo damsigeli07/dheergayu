@@ -6,16 +6,89 @@ if ($db->connect_error) {
     die("Connection failed: " . $db->connect_error);
 }
 
-// Fetch all products from products table
-$query = "SELECT product_id, name, price, description, image FROM products ORDER BY product_id";
+// Check if product_type column exists, if not add it
+$checkColumn = $db->query("SHOW COLUMNS FROM products LIKE 'product_type'");
+if ($checkColumn->num_rows == 0) {
+    $db->query("ALTER TABLE products ADD COLUMN product_type VARCHAR(20) DEFAULT 'admin' AFTER image");
+}
+
+// Fix images for admin products
+// Update Asamodagam Spirit image - check if asamodagam.jpg exists in Admin folder, if not copy from Pharmacist
+$asamodagamAdminPath = __DIR__ . '/../../../public/assets/images/Admin/asamodagam.jpg';
+$asamodagamPharmacistPath = __DIR__ . '/../../../public/assets/images/Pharmacist/asamodagam.jpg';
+if (!file_exists($asamodagamAdminPath) && file_exists($asamodagamPharmacistPath)) {
+    copy($asamodagamPharmacistPath, $asamodagamAdminPath);
+}
+$db->query("UPDATE products SET image = 'images/asamodagam.jpg' WHERE name = 'Asamodagam Spirit' AND (image != 'images/asamodagam.jpg' OR image IS NULL OR image = '')");
+
+// Update Dashamoolarishta image if it exists and doesn't have the correct image
+$db->query("UPDATE products SET image = 'images/Dashamoolarishta.jpeg' WHERE name LIKE '%Dashamoolarishta%' AND (image != 'images/Dashamoolarishta.jpeg' OR image IS NULL OR image = '')");
+
+// Fix images for patient products in patient_products table
+// Update Samahan to use Samhan.jpg
+$db->query("UPDATE patient_products SET image = 'images/Samhan.jpg' WHERE name LIKE '%Samahan%' AND image != 'images/Samhan.jpg'");
+
+// Update Asamodagam in patient products - copy image from Pharmacist to Admin if needed
+if (!file_exists($asamodagamAdminPath) && file_exists($asamodagamPharmacistPath)) {
+    copy($asamodagamPharmacistPath, $asamodagamAdminPath);
+}
+$db->query("UPDATE patient_products SET image = 'images/asamodagam.jpg' WHERE name LIKE '%Asamodagam%' AND image != 'images/asamodagam.jpg'");
+
+// Delete all existing admin products and create new ones
+$db->query("DELETE FROM products WHERE COALESCE(product_type, 'admin') = 'admin'");
+
+// Create the 8 new admin products with appropriate images
+$newAdminProducts = [
+    ['name' => 'Ashwagandha Capsules', 'price' => 560.00, 'description' => 'Herbal capsules for stress management and energy support.', 'image' => 'images/Ahwaganda.png'],
+    ['name' => 'Kothalahimbutu Capsules', 'price' => 450.00, 'description' => 'Capsules for blood sugar control and metabolic health.', 'image' => 'images/Kothalahibutu.png'],
+    ['name' => 'Arawindasawaya', 'price' => 650.00, 'description' => 'Ayurvedic syrup for children\'s digestion and immunity.', 'image' => 'images/Arawindasawaya.jpg'],
+    ['name' => 'Chandanasawaya', 'price' => 680.00, 'description' => 'Liquid preparation for urinary tract and body heat regulation.', 'image' => 'images/chandanasawaya.jpg'],
+    ['name' => 'Kanakasawaya', 'price' => 720.00, 'description' => 'Herbal formulation for cough, asthma, and respiratory conditions.', 'image' => 'images/kanakasawaya.jpg'],
+    ['name' => 'Abayarishtaya', 'price' => 1200.00, 'description' => 'Fermented Ayurvedic tonic for digestion and constipation relief.', 'image' => 'images/abayarishtaya.jpg'],
+    ['name' => 'Amurtharishtaya', 'price' => 780.00, 'description' => 'Ayurvedic arishta for fever, immunity, and liver function.', 'image' => 'images/amurtharishtaya.jpg'],
+    ['name' => 'Arjunarishtaya', 'price' => 1150.00, 'description' => 'Classical preparation for heart health and circulation support.', 'image' => 'images/ARJUNARISHTAYA.jpg']
+];
+
+foreach ($newAdminProducts as $product) {
+    $stmt = $db->prepare("INSERT INTO products (name, price, description, image, product_type) VALUES (?, ?, ?, ?, 'admin')");
+    $stmt->bind_param('sdss', $product['name'], $product['price'], $product['description'], $product['image']);
+    $stmt->execute();
+    $stmt->close();
+}
+
+// Fetch admin products (product_type = 'admin' or NULL for backward compatibility)
+$query = "SELECT product_id, name, price, description, image, COALESCE(product_type, 'admin') as product_type 
+          FROM products 
+          WHERE COALESCE(product_type, 'admin') = 'admin' 
+          ORDER BY product_id";
 $result = $db->query($query);
 
-$products = [];
+$adminProducts = [];
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         // Construct full image path - database stores "images/filename" but we need full path
         $image_path = '/dheergayu/public/assets/images/Admin/' . str_replace('images/', '', $row['image']);
-        $products[] = [
+        $adminProducts[] = [
+            'id' => $row['product_id'],
+            'name' => $row['name'],
+            'price' => number_format($row['price'], 2, '.', ','),
+            'description' => $row['description'],
+            'image' => $image_path
+        ];
+    }
+}
+
+// Fetch patient products from patient_products table
+$queryPatient = "SELECT product_id, name, price, description, image 
+                 FROM patient_products 
+                 ORDER BY product_id";
+$resultPatient = $db->query($queryPatient);
+
+$patientProducts = [];
+if ($resultPatient && $resultPatient->num_rows > 0) {
+    while ($row = $resultPatient->fetch_assoc()) {
+        $image_path = '/dheergayu/public/assets/images/Admin/' . str_replace('images/', '', $row['image']);
+        $patientProducts[] = [
             'id' => $row['product_id'],
             'name' => $row['name'],
             'price' => number_format($row['price'], 2, '.', ','),
@@ -26,6 +99,9 @@ if ($result && $result->num_rows > 0) {
 }
 
 $db->close();
+
+// Use $adminProducts and $patientProducts in the view
+$products = $adminProducts; // For backward compatibility
 
 // Sample inventory batches (normally fetched from DB) - Multiple batches per product
 $inventoryBatches = [
@@ -130,52 +206,152 @@ foreach($inventoryData as $item) {
     </header>
 
     <main class="main-content">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="showTab('admin')">Admin Products</button>
+            <button class="tab-btn" onclick="showTab('patient')">Patient Products</button>
+        </div>
 
+        <!-- Admin Products Tab -->
+        <div id="adminTab" class="tab-content active">
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-box">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                        <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <input type="text" placeholder="Search" class="search-input" id="adminSearch">
+                </div>
+            </div>
 
-        <!-- Search Bar -->
-        <div class="search-container">
-            <div class="search-box">
-                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-                    <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                <input type="text" placeholder="Search" class="search-input">
+            <!-- Product Grid -->
+            <div class="product-grid" id="adminProductGrid">
+                <?php if (empty($products)): ?>
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                        <p>No products found. <a href="add-product.php" style="color: #E6A85A;">Add a new product</a></p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($products as $product): ?>
+                        <div class="product-card" data-name="<?= strtolower(htmlspecialchars($product['name'])) ?>">
+                            <div class="product-image">
+                                <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img">
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
+                                <p class="product-price">Price: Rs. <?= htmlspecialchars($product['price']) ?></p>
+                                <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>)">Edit</button>
+                                <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>)">Delete</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <!-- Add New Product Button -->
+            <div class="add-product-container">
+                <a href="add-product.php" class="btn-add-product">+ Add New Product</a>
             </div>
         </div>
 
-        <!-- Product Grid -->
-        <div class="product-grid">
-            <?php if (empty($products)): ?>
-                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
-                    <p>No products found. <a href="add-product.php" style="color: #E6A85A;">Add a new product</a></p>
+        <!-- Patient Products Tab -->
+        <div id="patientTab" class="tab-content">
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-box">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                        <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <input type="text" placeholder="Search" class="search-input" id="patientSearch">
                 </div>
-            <?php else: ?>
-                <?php foreach ($products as $product): ?>
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
-                            <p class="product-price">Price: Rs. <?= htmlspecialchars($product['price']) ?></p>
-                            <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
-                        </div>
-                        <div class="product-actions">
-                            <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>)">Edit</button>
-                            <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>)">Delete</button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+            </div>
 
-        <!-- Add New Product Button -->
-        <div class="add-product-container">
-            <a href="add-product.php" class="btn-add-product">+ Add New Product</a>
+            <!-- Patient Product Grid -->
+            <div class="product-grid" id="patientProductGrid">
+                <?php if (empty($patientProducts)): ?>
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                        <p>No patient products found. <a href="add-product.php" style="color: #E6A85A;">Add a new patient product</a></p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($patientProducts as $product): ?>
+                        <div class="product-card" data-name="<?= strtolower(htmlspecialchars($product['name'])) ?>">
+                            <div class="product-image">
+                                <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img">
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
+                                <p class="product-price">Price: Rs. <?= htmlspecialchars($product['price']) ?></p>
+                                <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>)">Edit</button>
+                                <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>)">Delete</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <!-- Add New Patient Product Button -->
+            <div class="add-product-container">
+                <a href="add-product.php" class="btn-add-product">+ Add New Patient Product</a>
+            </div>
         </div>
     </main>
 
     <script>
+        // Tab switching function
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Search functionality for Admin Products
+        document.getElementById('adminSearch')?.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('#adminProductGrid .product-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                if (name.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Search functionality for Patient Products
+        document.getElementById('patientSearch')?.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('#patientProductGrid .product-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                if (name.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+
         async function editProduct(id) {
             // Fetch product data from server
             try {

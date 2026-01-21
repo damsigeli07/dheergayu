@@ -49,6 +49,7 @@ try {
     $product_name = trim($_POST['product_name'] ?? '');
     $product_price = (float)($_POST['product_price'] ?? 0);
     $product_description = trim($_POST['product_description'] ?? '');
+    $product_type = trim($_POST['product_type'] ?? 'admin'); // Default to 'admin' if not specified
     $action = $_POST['action'] ?? '';
 
     // Check if this is a get operation (for editing)
@@ -153,12 +154,26 @@ try {
             $final_image_path = $existing_product['image'];
         }
 
+        // Check if product_type column exists
+        $checkColumn = $db->query("SHOW COLUMNS FROM products LIKE 'product_type'");
+        $hasProductType = ($checkColumn && $checkColumn->num_rows > 0);
+        
         if ($final_image_path) {
-            $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ?, image = ? WHERE product_id = ?");
-            $stmt->bind_param('sdssi', $product_name, $product_price, $product_description, $final_image_path, $product_id);
+            if ($hasProductType) {
+                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ?, image = ?, product_type = ? WHERE product_id = ?");
+                $stmt->bind_param('sdsssi', $product_name, $product_price, $product_description, $final_image_path, $product_type, $product_id);
+            } else {
+                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ?, image = ? WHERE product_id = ?");
+                $stmt->bind_param('sdssi', $product_name, $product_price, $product_description, $final_image_path, $product_id);
+            }
         } else {
-            $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ? WHERE product_id = ?");
-            $stmt->bind_param('sdsi', $product_name, $product_price, $product_description, $product_id);
+            if ($hasProductType) {
+                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ?, product_type = ? WHERE product_id = ?");
+                $stmt->bind_param('sdssi', $product_name, $product_price, $product_description, $product_type, $product_id);
+            } else {
+                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ? WHERE product_id = ?");
+                $stmt->bind_param('sdsi', $product_name, $product_price, $product_description, $product_id);
+            }
         }
         
         if ($stmt->execute()) {
@@ -202,8 +217,17 @@ try {
             $image_path = 'images/dheergayu.png';
         }
 
-        $stmt = $db->prepare("INSERT INTO products (product_id, name, price, description, image) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param('isdss', $nextId, $product_name, $product_price, $product_description, $image_path);
+        // Check if product_type column exists
+        $checkColumn = $db->query("SHOW COLUMNS FROM products LIKE 'product_type'");
+        $hasProductType = ($checkColumn && $checkColumn->num_rows > 0);
+        
+        if ($hasProductType) {
+            $stmt = $db->prepare("INSERT INTO products (product_id, name, price, description, image, product_type) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('isdsss', $nextId, $product_name, $product_price, $product_description, $image_path, $product_type);
+        } else {
+            $stmt = $db->prepare("INSERT INTO products (product_id, name, price, description, image) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param('isdss', $nextId, $product_name, $product_price, $product_description, $image_path);
+        }
 
         if ($stmt->execute()) {
             $stmt->close();
