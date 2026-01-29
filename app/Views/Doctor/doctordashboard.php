@@ -7,83 +7,261 @@
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Doctor/doctordashboard.css">
+    <style>
+        .badge {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        
+        .status-badge.changerequested {
+            background: #ff9800;
+            color: white;
+        }
+        
+        #treatment-plans-section {
+            display: none;
+        }
+        
+        .progress-bar-container {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+    </style>
 </head>
 <body class="has-sidebar">
-<?php
-require_once __DIR__ . '/../../Models/AppointmentModel.php';
-$db = new mysqli('localhost', 'root', '', 'dheergayu_db'); // Update credentials if needed
-$appointmentModel = new AppointmentModel($db);
-$appointments = $appointmentModel->getAllDoctorAppointments();
 
-// Compute counts
-$totalAppointments = 0;
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start session first
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if user is logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: ../patient/login.php');
+    exit;
+}
+
+// Check if user is a doctor
+$user_role = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? $_SESSION['role'] ?? '');
+if ($user_role !== 'doctor') {
+    echo '<!DOCTYPE html>
+<html>
+<head><title>Access Denied</title>
+<style>body{font-family:Arial;margin:50px;text-align:center;}
+.error{max-width:500px;margin:0 auto;padding:30px;border:1px solid #ddd;border-radius:10px;}
+.btn{display:inline-block;padding:10px 20px;background:#5cb85c;color:white;text-decoration:none;border-radius:5px;margin:5px;}</style>
+</head>
+<body>
+<div class="error">
+<h2 style="color:#d9534f;">Access Denied</h2>
+<p>This page is for doctors only. Your current role: ' . htmlspecialchars($user_role) . '</p>
+<a href="../patient/login.php" class="btn">Login</a>
+<a href="../patient/home.php" class="btn">Home</a>
+</div>
+</body>
+</html>';
+    exit;
+}
+
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+if ($db->connect_error) {
+    die("Connection failed: " . $db->connect_error);
+}
+
+// Get doctor info from users table
+$stmt = $db->prepare("SELECT id, first_name, last_name, email FROM users WHERE id = ? AND role = 'doctor'");
+$stmt->bind_param('i', $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$doctorInfo = $result->fetch_assoc();
+$stmt->close();
+
+if (!$doctorInfo) {
+    die("Error: Doctor information not found for user ID " . $_SESSION['user_id']);
+}
+
+$doctorName = 'Dr. ' . $doctorInfo['last_name'];
+$doctorUserId = $doctorInfo['id'];
+
+// Get appointments
+$stmt = $db->prepare("
+    SELECT 
+        id as appointment_id,
+        patient_id,
+        doctor_id,
+        doctor_name,
+        patient_no,
+        patient_name,
+        CONCAT(appointment_date, ' ', appointment_time) as appointment_datetime,
+        appointment_date,
+        appointment_time,
+        status,
+        notes as reason
+    FROM consultations 
+    WHERE (doctor_id = ? OR doctor_name LIKE ?) 
+    AND treatment_type = 'General Consultation'
+    ORDER BY appointment_date DESC, appointment_time DESC
+");
+
+$doctorNamePattern = '%' . $doctorInfo['last_name'] . '%';
+$stmt->bind_param('is', $doctorUserId, $doctorNamePattern);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$appointments = [];
+while ($row = $result->fetch_assoc()) {
+    $appointments[] = $row;
+}
+$stmt->close();
+
+// Get treatment plans
+$treatment_plans_query = "
+    SELECT 
+        tp.*,
+        p.first_name,
+        p.last_name,
+        p.email,
+        tl.treatment_name,
+        tl.price as treatment_price,
+        (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id) as total_booked_sessions,
+        (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions
+    FROM treatment_plans tp
+    LEFT JOIN patients p ON tp.patient_id = p.id
+    LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+    LEFT JOIN consultations c ON tp.appointment_id = c.id
+    WHERE c.doctor_id = ?
+    ORDER BY tp.created_at DESC
+";
+
+$stmt = $db->prepare($treatment_plans_query);
+$stmt->bind_param('i', $doctorUserId);
+$stmt->execute();
+$treatment_plans_result = $stmt->get_result();
+$treatment_plans = [];
+while ($row = $treatment_plans_result->fetch_assoc()) {
+    $treatment_plans[] = $row;
+}
+$stmt->close();
+
+// Compute appointment counts
+$totalAppointments = count($appointments);
 $upcomingAppointments = 0;
 $completedAppointments = 0;
 $cancelledAppointments = 0;
-if (!empty($appointments)) {
-	foreach ($appointments as $apt) {
-		$statusRaw = isset($apt['status']) ? $apt['status'] : '';
-		$statusNorm = ($statusRaw === 'Pending' || $statusRaw === 'Confirmed') ? 'Upcoming' : $statusRaw;
-		$totalAppointments++;
-		if ($statusNorm === 'Upcoming') { $upcomingAppointments++; }
-		if ($statusNorm === 'Completed') { $completedAppointments++; }
-		if ($statusNorm === 'Cancelled') { $cancelledAppointments++; }
-	}
+
+foreach ($appointments as $apt) {
+    $statusRaw = strtoupper(trim($apt['status'] ?? ''));
+    if ($statusRaw === 'PENDING' || $statusRaw === 'CONFIRMED') {
+        $upcomingAppointments++;
+    } elseif ($statusRaw === 'COMPLETED') {
+        $completedAppointments++;
+    } elseif ($statusRaw === 'CANCELLED') {
+        $cancelledAppointments++;
+    }
+}
+
+// Compute treatment plan counts
+$totalPlans = count($treatment_plans);
+$pending_plans = 0;
+$confirmed_plans = 0;
+$change_requested_plans = 0;
+$inprogress_plans = 0;
+
+foreach ($treatment_plans as $plan) {
+    switch ($plan['status']) {
+        case 'Pending':
+            $pending_plans++;
+            break;
+        case 'Confirmed':
+            $confirmed_plans++;
+            break;
+        case 'ChangeRequested':
+            $change_requested_plans++;
+            break;
+        case 'InProgress':
+            $inprogress_plans++;
+            break;
+    }
 }
 ?>
-    <!-- Sidebar -->
-    <header class="header">
-        <div class="header-top">
-            <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
-            <h1 class="header-title">Dheergayu</h1>
-        </div>
-        
-        <nav class="navigation">
-            <button class="nav-btn active">Appointments</button>
-            <a href="patienthistory.php" class="nav-btn">Patient History</a>
-            <a href="doctorreport.php" class="nav-btn">Reports</a>
-        </nav>
-        
-        <div class="user-section">
-            <div class="user-icon" id="user-icon">👤</div>
-            <span class="user-role">Doctor</span>
-            <!-- Dropdown -->
-            <div class="user-dropdown" id="user-dropdown">
-                <a href="doctorprofile.php" class="profile-btn">Profile</a>
-                <a href="../patient/login.php" class="logout-btn">Logout</a>
-            </div>
-        </div>
-    </header>
 
-    <main class="main-content">
+<header class="header">
+    <div class="header-top">
+        <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
+        <h1 class="header-title">Dheergayu</h1>
+    </div>
+    
+    <nav class="navigation">
+        <button class="nav-btn active" id="appointments-tab" onclick="showAppointments()">Appointments</button>
+        <button class="nav-btn" id="treatment-plans-tab" onclick="showTreatmentPlans()">
+            Treatment Plans
+            <?php if ($pending_plans + $change_requested_plans > 0): ?>
+                <span class="badge"><?= $pending_plans + $change_requested_plans ?></span>
+            <?php endif; ?>
+        </button>
+        <a href="patienthistory.php" class="nav-btn">Patient History</a>
+        <a href="doctorreport.php" class="nav-btn">Reports</a>
+    </nav>
+    
+    <div class="user-section">
+        <div class="user-icon" id="user-icon">👤</div>
+        <span class="user-role"><?php echo htmlspecialchars($doctorName); ?></span>
+        <div class="user-dropdown" id="user-dropdown">
+            <a href="doctorprofile.php" class="profile-btn">Profile</a>
+            <a href="../patient/login.php" class="logout-btn">Logout</a>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <!-- Appointments Section -->
+    <div id="appointments-section">
         <div class="search-container">
             <div class="search-box">
                 <span class="search-icon">🔍</span>
-                <input type="text" placeholder="Search" class="search-input" id="search-input">
+                <input type="text" placeholder="Search by patient name or number" class="search-input" id="search-input">
             </div>
         </div>
 
-        <!-- Statistics Boxes -->
         <div class="stats-container">
             <div class="stat-box">
-                <div class="stat-number"><?= htmlspecialchars((string)($upcomingAppointments + $completedAppointments + $cancelledAppointments)) ?></div>
+                <div class="stat-number"><?= $totalAppointments ?></div>
                 <div class="stat-label">Total Appointments</div>
             </div>
             <div class="stat-box">
-                <div class="stat-number"><?= htmlspecialchars((string)$upcomingAppointments) ?></div>
+                <div class="stat-number"><?= $upcomingAppointments ?></div>
                 <div class="stat-label">Upcoming Appointments</div>
             </div>
             <div class="stat-box">
-                <div class="stat-number"><?= htmlspecialchars((string)$completedAppointments) ?></div>
+                <div class="stat-number"><?= $completedAppointments ?></div>
                 <div class="stat-label">Completed Appointments</div>
             </div>
             <div class="stat-box">
-                <div class="stat-number"><?= htmlspecialchars((string)$cancelledAppointments) ?></div>
+                <div class="stat-number"><?= $cancelledAppointments ?></div>
                 <div class="stat-label">Cancelled Appointments</div>
             </div>
         </div>
 
-        <!-- Tab Navigation -->
         <div class="tab-container">
             <button class="tab-btn active" data-tab="all">All Appointments</button>
             <button class="tab-btn" data-tab="upcoming">Upcoming Appointments</button>
@@ -107,7 +285,7 @@ if (!empty($appointments)) {
                     <?php if (!empty($appointments)) : ?>
                         <?php foreach ($appointments as $apt) : ?>
                             <?php
-                                $statusUpper = strtoupper(isset($apt['status']) ? trim($apt['status']) : '');
+                                $statusUpper = strtoupper(trim($apt['status'] ?? ''));
                                 if ($statusUpper === 'PENDING' || $statusUpper === 'CONFIRMED') {
                                     $status = 'Upcoming';
                                 } elseif ($statusUpper === 'COMPLETED') {
@@ -120,40 +298,39 @@ if (!empty($appointments)) {
                             ?>
                             <tr class="appointment-row <?= strtolower($status) ?>" data-status="<?= strtolower($status) ?>">
                                 <td><?= htmlspecialchars($apt['appointment_id']) ?></td>
-                                <td><?= htmlspecialchars($apt['patient_no']) ?></td>
+                                <td><?= htmlspecialchars($apt['patient_no'] ?? 'N/A') ?></td>
                                 <td><?= htmlspecialchars($apt['patient_name']) ?></td>
                                 <td><?= htmlspecialchars($apt['appointment_datetime']) ?></td>
                                 <td>
-                                    <?php if ($status === 'Upcoming') : ?>
-                                        <span class="status-badge upcoming">Upcoming</span>
-                                    <?php elseif ($status === 'Completed') : ?>
-                                        <span class="status-badge completed">Completed</span>
-                                    <?php elseif ($status === 'Cancelled') : ?>
-                                        <span class="status-badge cancelled">Cancelled</span>
-                                    <?php endif; ?>
+                                    <span class="status-badge <?= strtolower($status) ?>"><?= $status ?></span>
                                 </td>
                                 <td class="actions">
                                     <?php if ($status === 'Upcoming') : ?>
-                                        <button class="btn-start" onclick="window.open('doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>', '_blank')">Start Consultation</button>
-                                        <button class="btn-cancel" onclick="showCancelReason(this, '<?= htmlspecialchars($apt['appointment_id']) ?>')">Cancel</button>
+                                        <button class="btn-start" onclick="window.location.href='doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>'">Start Consultation</button>
+                                        <button class="btn-cancel" onclick="showCancelReason(<?= $apt['appointment_id'] ?>)">Cancel</button>
                                     <?php elseif ($status === 'Completed') : ?>
-                                        <button class="btn-view" onclick="showConsultationModal(<?= htmlspecialchars($apt['appointment_id']) ?>)">View</button>
+                                        <button class="btn-view" onclick="showConsultationModal(<?= $apt['appointment_id'] ?>)">View</button>
                                     <?php elseif ($status === 'Cancelled') : ?>
-                                        <button class="btn-view" onclick="showCancelDetails('<?= htmlspecialchars($apt['reason']) ?>')">View</button>
+                                        <button class="btn-view" onclick="showCancelDetails('<?= htmlspecialchars(addslashes($apt['reason'] ?? 'No reason provided')) ?>')">View</button>
                                     <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
-                        <tr><td colspan="6">No appointments found.</td></tr>
+                        <tr><td colspan="6" style="text-align:center;padding:40px;">
+                            <p>No appointments found for <?= htmlspecialchars($doctorName) ?>.</p>
+                            <p style="font-size:12px;color:#666;margin-top:10px;">
+                                Logged in as User ID: <?= $doctorUserId ?><br>
+                                When patients book appointments, they will appear here.
+                            </p>
+                        </td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
             
-            <!-- Pagination -->
             <div class="pagination-container">
                 <div class="pagination-info">
-                    <span id="pagination-info">Showing 1-10 of <?= count($appointments) ?> appointments</span>
+                    <span id="pagination-info">Showing <?= min(1, $totalAppointments) ?>-<?= min(10, $totalAppointments) ?> of <?= $totalAppointments ?> appointments</span>
                 </div>
                 <div class="pagination-controls">
                     <button id="prev-page" class="pagination-btn" disabled>Previous</button>
@@ -162,691 +339,279 @@ if (!empty($appointments)) {
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Modal for Consultation Form Data -->
-    <div id="consultationModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
-        <div id="consultationModalContent" style="background:linear-gradient(135deg,#f8fafc 0%,#e3e6f3 100%);padding:0;border-radius:16px;box-shadow:0 4px 24px #333;max-width:520px;width:90%;margin:auto;position:relative;">
-            <div style="padding:24px 32px 16px 32px;border-radius:16px 16px 0 0;background:#E6A85A;color:#fff;display:flex;align-items:center;justify-content:space-between;">
-                <h2 style="margin:0;font-size:22px;font-weight:600;letter-spacing:1px;">Consultation Form Details</h2>
-                <div>
-                    <button onclick="toggleEditConsultationModal()" id="editConsultationBtn" style="background:#fff;color:#E6A85A;border:none;border-radius:8px;padding:6px 16px;font-size:15px;font-weight:500;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;margin-right:10px;">Edit</button>
-                    <button onclick="closeConsultationModal()" style="background:#fff;color:#E6A85A;border:none;border-radius:50%;width:32px;height:32px;font-size:20px;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;display:inline-flex;align-items:center;justify-content:center;">&times;</button>
-                </div>
+    <!-- Treatment Plans Section -->
+    <div id="treatment-plans-section">
+        <h2 style="margin:20px 0;color:#333;font-size:24px;">Treatment Plans Management</h2>
+        
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-number"><?= $totalPlans ?></div>
+                <div class="stat-label">Total Plans</div>
             </div>
-            <div id="consultationFormData" style="padding:24px 32px 32px 32px;max-height:70vh;overflow-y:auto;"></div>
+            <div class="stat-box" style="border-left:4px solid #ffc107;">
+                <div class="stat-number"><?= $pending_plans ?></div>
+                <div class="stat-label">Pending Confirmation</div>
+            </div>
+            <div class="stat-box" style="border-left:4px solid #ff9800;">
+                <div class="stat-number"><?= $change_requested_plans ?></div>
+                <div class="stat-label">Change Requested</div>
+            </div>
+            <div class="stat-box" style="border-left:4px solid #28a745;">
+                <div class="stat-number"><?= $confirmed_plans ?></div>
+                <div class="stat-label">Confirmed</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="appointments-table">
+                <thead>
+                    <tr>
+                        <th>Plan ID</th>
+                        <th>Patient Name</th>
+                        <th>Treatment</th>
+                        <th>Sessions</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th>Total Cost</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($treatment_plans)): ?>
+                        <?php foreach ($treatment_plans as $plan): ?>
+                            <?php
+                                $progress_percent = $plan['total_booked_sessions'] > 0 
+                                    ? ($plan['completed_sessions'] / $plan['total_booked_sessions'] * 100) 
+                                    : 0;
+                            ?>
+                            <tr>
+                                <td><?= $plan['plan_id'] ?></td>
+                                <td><?= htmlspecialchars($plan['first_name'] . ' ' . $plan['last_name']) ?></td>
+                                <td><?= htmlspecialchars($plan['treatment_name']) ?></td>
+                                <td>
+                                    <?= $plan['total_sessions'] ?> sessions<br>
+                                    <small style="color:#666;"><?= $plan['sessions_per_week'] ?>x per week</small>
+                                </td>
+                                <td>
+                                    <?= $plan['completed_sessions'] ?>/<?= $plan['total_booked_sessions'] ?> completed
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar" style="width:<?= $progress_percent ?>%;"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge <?= strtolower($plan['status']) ?>">
+                                        <?= $plan['status'] ?>
+                                    </span>
+                                    <?php if ($plan['change_requested']): ?>
+                                        <span style="display:block;font-size:11px;color:#ff9800;margin-top:3px;">
+                                            ⚠️ Changes requested
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
+                                <td>
+                                    <button class="btn-view" onclick="viewTreatmentPlan(<?= $plan['plan_id'] ?>)">View Details</button>
+                                    <?php if ($plan['change_requested']): ?>
+                                        <button class="btn-start" style="margin-top:5px;" onclick="viewChangeRequest(<?= $plan['plan_id'] ?>, '<?= htmlspecialchars(addslashes($plan['change_reason'] ?? '')) ?>')">
+                                            View Request
+                                        </button>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="8" style="text-align:center;padding:40px;">
+                                <p style="color:#666;font-size:16px;">No treatment plans created yet</p>
+                                <p style="color:#999;font-size:14px;margin-top:10px;">Treatment plans will appear here when you create them during consultations</p>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
-    <script>
-    var currentAppointmentId = null;
-    var currentConsultationData = null;
-    var isEditMode = false;
-    function showConsultationModal(appointmentId) {
-        currentAppointmentId = appointmentId;
-        var modal = document.getElementById('consultationModal');
-        var content = document.getElementById('consultationFormData');
-        content.innerHTML = '<div style="text-align:center;padding:40px 0;font-size:18px;color:#43a047;">Loading...</div>';
-        modal.style.display = 'flex';
-        isEditMode = false;
-        // AJAX request to fetch consultation form data
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/dheergayu/app/Controllers/ConsultationFormController.php?action=get_consultation_form&appointment_id=' + appointmentId, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                currentConsultationData = data;
-                renderConsultationModal(data);
-            }
-        };
-        xhr.send();
-    }
+</main>
 
-    function renderConsultationModal(data) {
-        var content = document.getElementById('consultationFormData');
-        var allowed = {
-            first_name: 'First Name',
-            lastname: 'Last Name',
-            last_name: 'Last Name',
-            age: 'Age',
-            gender: 'Gender',
-            diagnosis: 'Diagnosis',
-            personal_products: 'Prescribed Products',
-            prescribed_products: 'Prescribed Products',
-            prescribed_product: 'Prescribed Products',
-            recommended_treatment: 'Recommended Treatment',
-            recommended_treatments: 'Recommended Treatments',
-            recomended_treatments: 'Recommended Treatments',
-            notes: 'Notes'
-        };
-        function isAllowed(key){
-            var k = String(key).toLowerCase();
-            return allowed.hasOwnProperty(k);
-        }
-        function labelFor(key){
-            var k = String(key).toLowerCase();
-            return allowed[k] || key;
-        }
-        if (!isEditMode) {
+<!-- Consultation Modal -->
+<div id="consultationModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div id="consultationModalContent" style="background:linear-gradient(135deg,#f8fafc 0%,#e3e6f3 100%);padding:0;border-radius:16px;box-shadow:0 4px 24px #333;max-width:520px;width:90%;margin:auto;position:relative;">
+        <div style="padding:24px 32px 16px 32px;border-radius:16px 16px 0 0;background:#E6A85A;color:#fff;display:flex;align-items:center;justify-content:space-between;">
+            <h2 style="margin:0;font-size:22px;font-weight:600;">Consultation Details</h2>
+            <button onclick="closeConsultationModal()" style="background:#fff;color:#E6A85A;border:none;border-radius:50%;width:32px;height:32px;font-size:20px;cursor:pointer;">&times;</button>
+        </div>
+        <div id="consultationFormData" style="padding:24px 32px 32px 32px;max-height:70vh;overflow-y:auto;"></div>
+    </div>
+</div>
+
+<script>
+var currentAppointmentId = null;
+
+// Toggle between Appointments and Treatment Plans
+function showAppointments() {
+    document.getElementById('appointments-section').style.display = 'block';
+    document.getElementById('treatment-plans-section').style.display = 'none';
+    document.getElementById('appointments-tab').classList.add('active');
+    document.getElementById('treatment-plans-tab').classList.remove('active');
+}
+
+function showTreatmentPlans() {
+    document.getElementById('appointments-section').style.display = 'none';
+    document.getElementById('treatment-plans-section').style.display = 'block';
+    document.getElementById('appointments-tab').classList.remove('active');
+    document.getElementById('treatment-plans-tab').classList.add('active');
+}
+
+function showConsultationModal(appointmentId) {
+    currentAppointmentId = appointmentId;
+    var modal = document.getElementById('consultationModal');
+    var content = document.getElementById('consultationFormData');
+    content.innerHTML = '<div style="text-align:center;padding:40px;">Loading...</div>';
+    modal.style.display = 'flex';
+    
+    fetch('/dheergayu/app/Controllers/ConsultationFormController.php?action=get_consultation_form&appointment_id=' + appointmentId)
+        .then(r => r.json())
+        .then(data => {
             if (data && Object.keys(data).length > 0) {
                 var html = '<table style="width:100%;border-collapse:separate;border-spacing:0 8px;">';
+                var allowed = {first_name:'First Name',last_name:'Last Name',age:'Age',gender:'Gender',
+                              diagnosis:'Diagnosis',personal_products:'Prescribed Products',
+                              recommended_treatment:'Recommended Treatment',notes:'Notes'};
+                
                 for (var key in data) {
-                    if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && isAllowed(key)) {
-                        html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
-                        html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;border-radius:8px 0 0 8px;">' + labelFor(key) + '</td>';
-                        var value = (data[key] !== null ? data[key] : '');
-                        if (String(key).toLowerCase() === 'personal_products') {
+                    if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && allowed[key.toLowerCase()]) {
+                        var value = data[key] || '';
+                        if (key.toLowerCase() === 'personal_products') {
                             try {
-                                // Debug: Log the raw value
-                                console.log('Raw personal_products value:', value);
-                                
                                 var items = JSON.parse(value);
-                                console.log('Parsed items:', items);
-                                
-                                if (Array.isArray(items)) {
-                                    value = items.map(function(p){ 
-                                        return (p.product || '') + (p.qty ? ' x' + p.qty : ''); 
-                                    }).join(', ');
-                                } else {
-                                    value = 'No products prescribed';
-                                }
-                            } catch(e) { 
-                                console.error('Error parsing personal_products:', e);
-                                console.error('Raw value that failed to parse:', value);
-                                console.error('Value type:', typeof value);
-                                console.error('Value length:', value ? value.length : 'null/undefined');
-                                
-                                // Try to fix common issues
-                                if (value && typeof value === 'string') {
-                                    // Try to clean up the value
-                                    var cleanedValue = value.trim();
-                                    console.log('Cleaned value:', cleanedValue);
-                                    
-                                    // Check for common malformed patterns
-                                    if (cleanedValue === '[{' || cleanedValue === '[[' || cleanedValue === '[]' || cleanedValue === '{}') {
-                                        console.log('Detected malformed JSON, treating as empty');
-                                        value = 'No products prescribed';
-                                    } else if (cleanedValue.includes('(Av:') && !cleanedValue.includes('}')) {
-                                        console.log('Detected incomplete JSON with availability text, treating as empty');
-                                        value = 'No products prescribed';
-                                    } else {
-                                        // Try parsing the cleaned value
-                                        try {
-                                            var cleanedItems = JSON.parse(cleanedValue);
-                                            console.log('Successfully parsed cleaned value:', cleanedItems);
-                                            if (Array.isArray(cleanedItems)) {
-                                                value = cleanedItems.map(function(p){ 
-                                                    return (p.product || '') + (p.qty ? ' x' + p.qty : ''); 
-                                                }).join(', ');
-                                            }
-                                        } catch(e2) {
-                                            console.error('Still failed after cleaning:', e2);
-                                            value = 'Error loading prescribed products';
-                                        }
-                                    }
-                                } else {
-                                    value = 'Error loading prescribed products';
-                                }
-                            }
+                                value = Array.isArray(items) ? items.map(p => (p.product || '') + (p.qty ? ' x'+p.qty : '')).join(', ') : 'None';
+                            } catch(e) { value = value || 'None'; }
                         }
-                        html += '<td style="padding:10px 16px;color:#222;border-radius:0 8px 8px 0;">' + value + '</td>';
-                        html += '</tr>';
+                        html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
+                        html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;">' + allowed[key.toLowerCase()] + '</td>';
+                        html += '<td style="padding:10px 16px;">' + value + '</td></tr>';
                     }
                 }
-                html += '</table>';
-                content.innerHTML = html;
+                content.innerHTML = html + '</table>';
             } else {
-                content.innerHTML = '<div style="text-align:center;padding:40px 0;font-size:18px;color:#e74c3c;">No consultation form data found.</div>';
+                content.innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;">No data found</div>';
             }
+        })
+        .catch(() => {
+            content.innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;">Error loading data</div>';
+        });
+}
+
+function closeConsultationModal() {
+    document.getElementById('consultationModal').style.display = 'none';
+}
+
+function showCancelReason(appointmentId) {
+    var reason = prompt('Please enter reason for cancellation:');
+    if (!reason || !reason.trim()) return;
+    
+    fetch('/dheergayu/app/Controllers/AppointmentController.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'action=cancel&appointment_id=' + appointmentId + '&reason=' + encodeURIComponent(reason)
+    })
+    .then(r => r.text())
+    .then(result => {
+        if (result === 'success') {
+            alert('Appointment cancelled!');
+            location.reload();
         } else {
-            // Edit mode: show form fields with dynamic product loading
-            if (data && Object.keys(data).length > 0) {
-                var html = '<form id="editConsultationForm" style="width:100%;">';
-                for (var key in data) {
-                    if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && isAllowed(key)) {
-                        html += '<div style="margin-bottom:16px;">';
-                        html += '<label style="font-weight:500;color:#E6A85A;display:block;margin-bottom:6px;">' + labelFor(key) + '</label>';
-                        
-                        if (key === 'personal_products') {
-                            // Special handling for personal_products with dynamic product loading
-                            html += '<div id="products-container">';
-                            html += '<div style="margin-bottom:10px;">';
-                            html += '<input type="text" id="product_search" placeholder="Search products..." style="width:70%;padding:8px 12px;border:1px solid #E6A85A;border-radius:6px;font-size:15px;" list="product_list" />';
-                            html += '<input type="number" id="product_qty" placeholder="Qty" min="1" style="width:20%;padding:8px 12px;border:1px solid #E6A85A;border-radius:6px;font-size:15px;margin-left:5px;" />';
-                            html += '<button type="button" id="add_product" style="background:#E6A85A;color:#fff;padding:8px 12px;border:none;border-radius:6px;font-size:14px;margin-left:5px;">Add</button>';
-                            html += '</div>';
-                            html += '<datalist id="product_list"></datalist>';
-                            html += '<div id="selected_products"></div>';
-                            html += '<input type="hidden" name="personal_products" id="personal_products_input" value="' + (data[key] !== null ? data[key] : '[]') + '" />';
-                            html += '</div>';
-                        } else {
-                            html += '<input type="text" name="' + key + '" value="' + (data[key] !== null ? data[key] : '') + '" style="width:100%;padding:8px 12px;border:1px solid #E6A85A;border-radius:6px;font-size:15px;" />';
-                        }
-                        html += '</div>';
-                    }
-                }
-                html += '<button type="button" onclick="saveConsultationEdit()" style="background:#E6A85A;color:#fff;padding:10px 28px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;margin-top:10px;">Save</button>';
-                html += '<button type="button" onclick="toggleEditConsultationModal()" style="background:#fff;color:#E6A85A;padding:10px 28px;border:1px solid #E6A85A;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px #E6A85A33;margin-top:10px;margin-left:10px;">Cancel</button>';
-                html += '</form>';
-                content.innerHTML = html;
-                
-                // Initialize product functionality for edit mode
-                initializeProductEditMode(data.personal_products);
-            } else {
-                content.innerHTML = '<div style="text-align:center;padding:40px 0;font-size:18px;color:#e74c3c;">No consultation form data found.</div>';
-            }
+            alert('Error cancelling appointment');
         }
-    }
+    });
+}
 
-    function toggleEditConsultationModal() {
-        isEditMode = !isEditMode;
-        renderConsultationModal(currentConsultationData);
-    }
+function showCancelDetails(reason) {
+    alert('Cancellation Reason:\n' + reason);
+}
 
-    function saveConsultationEdit() {
-        // Ensure products are synced before saving
-        syncProductsField();
+function viewTreatmentPlan(planId) {
+    window.open(
+        '/dheergayu/app/Views/Doctor/view_treatment_plan.php?plan_id=' + planId,
+        'treatment_plan',
+        'width=900,height=700'
+    );
+}
+
+function viewChangeRequest(planId, reason) {
+    var message = 'Patient Change Request\n\n';
+    message += 'Plan ID: ' + planId + '\n\n';
+    message += 'Requested Changes:\n' + reason;
+    alert(message);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const rows = document.querySelectorAll('.appointment-row');
+    const search = document.getElementById('search-input');
+    
+    let currentPage = 1, rowsPerPage = 10, filteredRows = Array.from(rows);
+    
+    function updatePagination() {
+        const total = filteredRows.length;
+        const pages = Math.ceil(total / rowsPerPage) || 1;
+        const start = total > 0 ? ((currentPage - 1) * rowsPerPage + 1) : 0;
+        const end = Math.min(currentPage * rowsPerPage, total);
         
-        var form = document.getElementById('editConsultationForm');
-        var formData = new FormData(form);
-        formData.append('appointment_id', currentAppointmentId);
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/dheergayu/app/Controllers/ConsultationFormController.php?action=update_consultation_form', true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                try {
-                    var resp = JSON.parse(xhr.responseText);
-                    if (resp.status === 'success') {
-                        showCustomAlert('Consultation form updated successfully!');
-                        showConsultationModal(currentAppointmentId);
-                        isEditMode = false;
-                    } else {
-                        showCustomAlert('Error updating consultation form.');
-                    }
-                } catch (e) {
-                    showCustomAlert('Error updating consultation form.');
-                }
-            }
-        };
-        xhr.send(formData);
-    }
-    function closeConsultationModal() {
-        document.getElementById('consultationModal').style.display = 'none';
-    }
-
-    // Product editing functionality
-    var availableProducts = [];
-    var selectedProducts = [];
-
-    function initializeProductEditMode(existingProducts) {
-        // Load products from database
-        loadProductsFromDatabase();
+        document.getElementById('pagination-info').textContent = `Showing ${start}-${end} of ${total} appointments`;
         
-        // Parse existing products
-        try {
-            selectedProducts = JSON.parse(existingProducts || '[]');
-        } catch (e) {
-            selectedProducts = [];
+        const pageNums = document.getElementById('page-numbers');
+        pageNums.innerHTML = '';
+        for (let i = 1; i <= pages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = 'pagination-btn page-number' + (i === currentPage ? ' active' : '');
+            btn.onclick = () => showPage(i);
+            pageNums.appendChild(btn);
         }
         
-        // Display existing products
-        displaySelectedProducts();
-        
-        // Add event listeners
-        document.getElementById('add_product').addEventListener('click', addProduct);
+        document.getElementById('prev-page').disabled = currentPage === 1;
+        document.getElementById('next-page').disabled = currentPage === pages;
     }
-
-    function displaySelectedProducts() {
-        const container = document.getElementById('selected_products');
-        if (!container) return;
-        
-        container.innerHTML = '';
-        
-        selectedProducts.forEach((product, index) => {
-            const div = document.createElement('div');
-            div.style.cssText = 'background:#f8f9fa;border:1px solid #E6A85A;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
-            div.innerHTML = `
-                <span>${product.product} x${product.qty}</span>
-                <button type="button" onclick="removeProduct(${index})" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Remove</button>
-            `;
-            container.appendChild(div);
+    
+    function showPage(page) {
+        currentPage = page;
+        rows.forEach(r => r.style.display = 'none');
+        filteredRows.slice((page-1)*rowsPerPage, page*rowsPerPage).forEach(r => r.style.display = '');
+        updatePagination();
+    }
+    
+    function filter() {
+        const term = search.value.toLowerCase();
+        const tab = document.querySelector('.tab-btn.active').dataset.tab;
+        filteredRows = Array.from(rows).filter(r => {
+            const name = r.cells[2].textContent.toLowerCase();
+            const num = r.cells[1].textContent.toLowerCase();
+            const status = r.dataset.status;
+            return (tab === 'all' || status === tab) && (name.includes(term) || num.includes(term));
         });
+        currentPage = 1;
+        showPage(1);
     }
-
-    function removeProduct(index) {
-        selectedProducts.splice(index, 1);
-        displaySelectedProducts();
-        syncProductsField();
-    }
-
-    function syncProductsField() {
-        const input = document.getElementById('personal_products_input');
-        if (input) {
-            try {
-                // Ensure selectedProducts is a valid array
-                if (!Array.isArray(selectedProducts)) {
-                    selectedProducts = [];
-                }
-                
-                // Create a clean copy to avoid any reference issues
-                var cleanProducts = selectedProducts.map(function(p) {
-                    // Clean product name (remove availability text if present)
-                    var cleanProductName = p.product || '';
-                    if (cleanProductName.includes(' (Av:')) {
-                        cleanProductName = cleanProductName.split(' (Av:')[0];
-                    }
-                    
-                    return {
-                        product: cleanProductName,
-                        qty: parseInt(p.qty) || 0
-                    };
-                });
-                
-                input.value = JSON.stringify(cleanProducts);
-                console.log('Synced products to field:', cleanProducts);
-            } catch (e) {
-                console.error('Error syncing products:', e);
-                input.value = '[]';
-            }
-        }
-    }
-
-    function loadProductsFromDatabase() {
-        fetch('/dheergayu/public/api/get-products.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    availableProducts = data.products;
-                    populateProductList();
-                } else {
-                    console.error('Failed to load products:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading products:', error);
-            });
-    }
-
-    function populateProductList() {
-        const datalist = document.getElementById('product_list');
-        datalist.innerHTML = '';
-        
-        availableProducts.forEach(product => {
-            const option = document.createElement('option');
-            option.value = `${product.name} (Av: ${product.available_quantity} units)`;
-            option.setAttribute('data-product-id', product.id);
-            option.setAttribute('data-available-qty', product.available_quantity);
-            datalist.appendChild(option);
-        });
-    }
-
-    function addProduct() {
-        let product = document.getElementById('product_search').value.trim();
-        let qty = parseInt(document.getElementById('product_qty').value.trim());
-
-        if (product === "" || qty === "" || qty <= 0) {
-            alert("Please enter product and valid quantity.");
-            return;
-        }
-
-        // Extract product name (remove availability info)
-        const productName = product.split(' (Av:')[0];
-        
-        // Check if product already exists
-        const existingIndex = selectedProducts.findIndex(p => p.product === productName);
-        if (existingIndex !== -1) {
-            selectedProducts[existingIndex].qty += qty;
-        } else {
-            selectedProducts.push({
-                product: productName,
-                qty: qty
-            });
-        }
-
-        // Clear inputs
-        document.getElementById('product_search').value = '';
-        document.getElementById('product_qty').value = '';
-        
-        // Update display and hidden input
-        displaySelectedProducts();
-        syncProductsField();
-    }
-
-    function removeProduct(index) {
-        selectedProducts.splice(index, 1);
-        displaySelectedProducts();
-        syncProductsField();
-    }
-
-    function displaySelectedProducts() {
-        const container = document.getElementById('selected_products');
-        container.innerHTML = '';
-        
-        selectedProducts.forEach((product, index) => {
-            const div = document.createElement('div');
-            div.style.cssText = 'background:#f8f9fa;border:1px solid #E6A85A;border-radius:6px;padding:8px 12px;margin:4px 0;display:flex;justify-content:space-between;align-items:center;';
-            div.innerHTML = `
-                <span>${product.product} x${product.qty}</span>
-                <button type="button" onclick="removeProduct(${index})" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer;">Remove</button>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    function syncProductsField() {
-        document.getElementById('personal_products_input').value = JSON.stringify(selectedProducts);
-    }
-        function showConfirm(action) {
-            let msg = '';
-            if (action === 'start') {
-                msg = 'Are you sure you want to start this consultation?';
-            } else if (action === 'view') {
-                msg = 'Do you want to view this completed appointment?';
-            }
-            // Custom confirmation dialog
-            const confirmBox = document.createElement('div');
-            confirmBox.style.position = 'fixed';
-            confirmBox.style.top = '0';
-            confirmBox.style.left = '0';
-            confirmBox.style.width = '100vw';
-            confirmBox.style.height = '100vh';
-            confirmBox.style.background = 'rgba(0,0,0,0.4)';
-            confirmBox.style.display = 'flex';
-            confirmBox.style.alignItems = 'center';
-            confirmBox.style.justifyContent = 'center';
-            confirmBox.style.zIndex = '9999';
-            confirmBox.innerHTML = `<div style="background:#fff;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #333;text-align:center;max-width:350px;">
-                <p style='font-size:16px;margin-bottom:20px;'>${msg}</p>
-                <button style='background:#7a9b57;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;' onclick='this.closest("div").parentNode.removeChild(this.closest("div"));'>No</button>
-                <button style='background:#3498db;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;' onclick='confirmAction("${action}", this)'>Yes</button>
-            </div>`;
-            document.body.appendChild(confirmBox);
-        }
-
-        function confirmAction(action, btn) {
-            // Remove dialog
-            btn.closest('div').parentNode.removeChild(btn.closest('div'));
-            if (action === 'start') {
-                window.open('doctorconsultform.php', '_blank');
-            } else if (action === 'view') {
-                showCustomAlert('Viewing appointment!');
-            }
-        }
-        function showCancelReason(btn, appointmentNo) {
-            const confirmBox = document.createElement('div');
-            confirmBox.style.position = 'fixed';
-            confirmBox.style.top = '0';
-            confirmBox.style.left = '0';
-            confirmBox.style.width = '100vw';
-            confirmBox.style.height = '100vh';
-            confirmBox.style.background = 'rgba(0,0,0,0.2)';
-            confirmBox.style.display = 'flex';
-            confirmBox.style.alignItems = 'center';
-            confirmBox.style.justifyContent = 'center';
-            confirmBox.style.zIndex = '9999';
-            confirmBox.innerHTML = `<div style="background:#f7fafc;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #b2bec3;text-align:center;max-width:350px;">
-                <p style='font-size:16px;margin-bottom:10px;'>Please provide a reason for cancellation:</p>
-                <textarea id='cancel-reason' style='width:90%;height:60px;border-radius:6px;border:1px solid #b2bec3;margin-bottom:18px;'></textarea><br>
-                <button id='cancel-no-btn' style='background:#b2dfdb;color:#333;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;'>No</button>
-                <button id='cancel-next-btn' style='background:#e57373;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;'>Next</button>
-            </div>`;
-            document.body.appendChild(confirmBox);
-            
-            // Add event listeners
-            document.getElementById('cancel-no-btn').addEventListener('click', function() {
-                document.body.removeChild(confirmBox);
-            });
-            
-            document.getElementById('cancel-next-btn').addEventListener('click', function() {
-                showFinalCancelConfirm(appointmentNo, confirmBox);
-            });
-        }
-
-        function showFinalCancelConfirm(appointmentNo, previousDialog) {
-            const reason = document.getElementById('cancel-reason').value.trim();
-            if (!reason) {
-                showCustomAlert('Please enter a reason.');
-                return;
-            }
-            
-            // Remove previous dialog
-            document.body.removeChild(previousDialog);
-            
-            // Show custom confirmation dialog
-            const confirmBox = document.createElement('div');
-            confirmBox.style.position = 'fixed';
-            confirmBox.style.top = '0';
-            confirmBox.style.left = '0';
-            confirmBox.style.width = '100vw';
-            confirmBox.style.height = '100vh';
-            confirmBox.style.background = 'rgba(0,0,0,0.2)';
-            confirmBox.style.display = 'flex';
-            confirmBox.style.alignItems = 'center';
-            confirmBox.style.justifyContent = 'center';
-            confirmBox.style.zIndex = '9999';
-            confirmBox.innerHTML = `<div style="background:#f7fafc;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #b2bec3;text-align:center;max-width:350px;">
-                <p style='font-size:16px;margin-bottom:20px;'>Are you sure you want to cancel this appointment?</p>
-                <button id='final-cancel-no-btn' style='background:#b2dfdb;color:#333;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;'>No</button>
-                <button id='final-cancel-yes-btn' style='background:#e57373;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;'>Yes</button>
-            </div>`;
-            document.body.appendChild(confirmBox);
-            
-            // Add event listeners
-            document.getElementById('final-cancel-no-btn').addEventListener('click', function() {
-                document.body.removeChild(confirmBox);
-            });
-            
-            document.getElementById('final-cancel-yes-btn').addEventListener('click', function() {
-                submitCancelReason(appointmentNo, reason, confirmBox);
-            });
-        }
-
-        function submitCancelReason(appointmentNo, reason, dialogElement) {
-            // Remove dialog
-            document.body.removeChild(dialogElement);
-            
-            // AJAX request to update cancellation in DB
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/dheergayu/app/Controllers/AppointmentController.php', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    showCustomAlert('Appointment cancelled!');
-                    setTimeout(function(){ location.reload(); }, 1200);
-                }
-            };
-            xhr.send('action=cancel&appointment_id=' + encodeURIComponent(appointmentNo) + '&reason=' + encodeURIComponent(reason));
-        }
-
-        function showCustomAlert(msg) {
-            const alertBox = document.createElement('div');
-            alertBox.style.position = 'fixed';
-            alertBox.style.top = '0';
-            alertBox.style.left = '0';
-            alertBox.style.width = '100vw';
-            alertBox.style.height = '100vh';
-            alertBox.style.background = 'rgba(0,0,0,0.2)';
-            alertBox.style.display = 'flex';
-            alertBox.style.alignItems = 'center';
-            alertBox.style.justifyContent = 'center';
-            alertBox.style.zIndex = '9999';
-            alertBox.innerHTML = `<div style="background:#f7fafc;padding:20px 30px;border-radius:10px;box-shadow:0 2px 10px #b2bec3;text-align:center;max-width:300px;">
-                <p style='font-size:15px;margin-bottom:10px;'>${msg}</p>
-                <button id='custom-alert-ok' style='background:#b2dfdb;color:#333;padding:6px 14px;border:none;border-radius:6px;font-size:13px;cursor:pointer;'>OK</button>
-            </div>`;
-            document.body.appendChild(alertBox);
-            document.getElementById('custom-alert-ok').addEventListener('click', function() {
-                const container = this.closest('div').parentNode; 
-                // remove overlay without reloading
-                container.parentNode.removeChild(container);
-            });
-        }
-
-        function showCancelDetails(reason) {
-            showCustomAlert('Cancellation Reason:<br>' + reason);
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            const appointmentRows = document.querySelectorAll('.appointment-row');
-            const searchInput = document.getElementById('search-input');
-            
-            // Pagination variables
-            let currentPage = 1;
-            const rowsPerPage = 10;
-            let filteredRows = Array.from(appointmentRows);
-            let currentFilter = 'all';
-            
-            // Initialize pagination
-            function initializePagination() {
-                updatePagination();
-                showPage(1);
-            }
-            
-            // Update pagination controls
-            function updatePagination() {
-                const totalRows = filteredRows.length;
-                const totalPages = Math.ceil(totalRows / rowsPerPage);
-                const startRow = (currentPage - 1) * rowsPerPage + 1;
-                const endRow = Math.min(currentPage * rowsPerPage, totalRows);
-                
-                // Update pagination info
-                document.getElementById('pagination-info').textContent = 
-                    `Showing ${startRow}-${endRow} of ${totalRows} appointments`;
-                
-                // Update page numbers
-                const pageNumbers = document.getElementById('page-numbers');
-                pageNumbers.innerHTML = '';
-                
-                for (let i = 1; i <= totalPages; i++) {
-                    const pageBtn = document.createElement('button');
-                    pageBtn.textContent = i;
-                    pageBtn.className = 'pagination-btn page-number';
-                    if (i === currentPage) {
-                        pageBtn.classList.add('active');
-                    }
-                    pageBtn.addEventListener('click', () => showPage(i));
-                    pageNumbers.appendChild(pageBtn);
-                }
-                
-                // Update prev/next buttons
-                document.getElementById('prev-page').disabled = currentPage === 1;
-                document.getElementById('next-page').disabled = currentPage === totalPages;
-            }
-            
-            // Show specific page
-            function showPage(page) {
-                currentPage = page;
-                const startIndex = (page - 1) * rowsPerPage;
-                const endIndex = startIndex + rowsPerPage;
-                
-                // Hide all rows first
-                appointmentRows.forEach(row => row.style.display = 'none');
-                
-                // Show rows for current page
-                filteredRows.slice(startIndex, endIndex).forEach(row => {
-                    row.style.display = '';
-                });
-                
-                updatePagination();
-            }
-            
-            // Filter rows based on tab and search
-            function filterRows() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const activeTab = document.querySelector('.tab-btn.active').getAttribute('data-tab');
-                
-                filteredRows = Array.from(appointmentRows).filter(row => {
-                    const patientName = row.cells[2].textContent.toLowerCase();
-                    const patientNo = row.cells[1].textContent.toLowerCase();
-                    const status = row.getAttribute('data-status');
-                    
-                    const matchesTab = activeTab === 'all' || status === activeTab;
-                    const matchesSearch = patientName.includes(searchTerm) || patientNo.includes(searchTerm);
-                    
-                    return matchesTab && matchesSearch;
-                });
-                
-                currentPage = 1;
-                showPage(1);
-            }
-            
-            // Tab functionality
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Remove active class from all buttons
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
-                    this.classList.add('active');
-                    
-                    currentFilter = this.getAttribute('data-tab');
-                    filterRows();
-                });
-            });
-            
-            // Search functionality
-            searchInput.addEventListener('input', filterRows);
-            
-            // Pagination controls
-            document.getElementById('prev-page').addEventListener('click', () => {
-                if (currentPage > 1) {
-                    showPage(currentPage - 1);
-                }
-            });
-            
-            document.getElementById('next-page').addEventListener('click', () => {
-                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-                if (currentPage < totalPages) {
-                    showPage(currentPage + 1);
-                }
-            });
-            
-            // Initialize pagination on page load
-            initializePagination();
-            
-            // Delete functionality
-            // Custom confirmation dialog for actions
-            window.showConfirm = function(action) {
-                let msg = '';
-                if (action === 'start') {
-                    msg = 'Are you sure you want to start this consultation?';
-                } else if (action === 'cancel') {
-                    msg = 'Are you sure you want to cancel this appointment?';
-                } else if (action === 'view') {
-                    msg = 'Do you want to view this completed appointment?';
-                }
-                // Custom confirmation dialog
-                const confirmBox = document.createElement('div');
-                confirmBox.style.position = 'fixed';
-                confirmBox.style.top = '0';
-                confirmBox.style.left = '0';
-                confirmBox.style.width = '100vw';
-                confirmBox.style.height = '100vh';
-                confirmBox.style.background = 'rgba(0,0,0,0.4)';
-                confirmBox.style.display = 'flex';
-                confirmBox.style.alignItems = 'center';
-                confirmBox.style.justifyContent = 'center';
-                confirmBox.style.zIndex = '9999';
-                confirmBox.innerHTML = `<div style="background:#fff;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #333;text-align:center;max-width:350px;">
-                    <p style='font-size:16px;margin-bottom:20px;'>${msg}</p>
-                    <button style='background:#7a9b57;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;' onclick='this.closest("div").parentNode.removeChild(this.closest("div"));'>No</button>
-                    <button style='background:#3498db;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;' onclick='confirmAction("${action}", this)'>Yes</button>
-                </div>`;
-                document.body.appendChild(confirmBox);
-            }
-
-            window.confirmAction = function(action, btn) {
-                // Remove dialog
-                btn.closest('div').parentNode.removeChild(btn.closest('div'));
-                // Here you can add AJAX or redirect logic for each action
-                if (action === 'start') {
-                    alert('Consultation started!');
-                } else if (action === 'cancel') {
-                    alert('Appointment cancelled!');
-                } else if (action === 'view') {
-                    alert('Viewing appointment!');
-                }
-            }
-
-        });
-    </script>
+    
+    tabs.forEach(b => b.onclick = function() {
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        filter();
+    });
+    
+    search.oninput = filter;
+    document.getElementById('prev-page').onclick = () => { if (currentPage > 1) showPage(currentPage - 1); };
+    document.getElementById('next-page').onclick = () => { 
+        const pages = Math.ceil(filteredRows.length / rowsPerPage);
+        if (currentPage < pages) showPage(currentPage + 1);
+    };
+    
+    updatePagination();
+    if (filteredRows.length > 0) showPage(1);
+});
+</script>
 </body>
 </html>

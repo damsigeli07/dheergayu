@@ -1,16 +1,36 @@
 <?php
-// Example data – in real case, fetch from database
-$doctor = [
-    'name' => 'G.B.D.Bandara',
-    'age' => 35,
-    'email' => 'doctor1@gmail.com',
-    'contact' => '+94 74 166 4838',
-    'address' => '26, Samagi Road, Mahara, Sri Lanka',
-    'gender' => 'Male',
-    'specialization' => 'Cardiology',
-    'license_number' => 'DOC123456',
-    'experience' => '10 years',
-    'qualification' => 'MBBS, MD'
+session_start();
+require_once __DIR__ . '/../../config/config.php';
+
+// Check if user is logged in and is a doctor
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
+    header('Location: ../patient/login.php');
+    exit;
+}
+
+// Get doctor info from users table
+$stmt = $conn->prepare("SELECT id, first_name, last_name, email, phone FROM users WHERE id = ? AND role = 'doctor'");
+$stmt->bind_param('i', $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$doctor = $result->fetch_assoc();
+$stmt->close();
+
+if (!$doctor) {
+    header('Location: ../patient/login.php');
+    exit;
+}
+
+// Prepare doctor data for display
+$doctorData = [
+    'name' => 'Dr. ' . $doctor['first_name'] . ' ' . $doctor['last_name'],
+    'email' => $doctor['email'],
+    'contact' => $doctor['phone'] ?? 'N/A',
+    'gender' => 'N/A', // Can be added to users table if needed
+    'specialization' => 'Ayurvedic Medicine', // Default or from additional table
+    'license_number' => 'DOC' . str_pad($doctor['id'], 6, '0', STR_PAD_LEFT),
+    'experience' => 'N/A', // Can be added to users table if needed
+    'qualification' => 'MBBS, MD' // Can be added to users table if needed
 ];
 ?>
 
@@ -19,7 +39,7 @@ $doctor = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Profile</title>
+    <title>Doctor Profile - Dr. <?php echo htmlspecialchars($doctor['last_name']); ?></title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Doctor/doctorprofile.css">
@@ -40,65 +60,44 @@ $doctor = [
         
         <div class="user-section">
             <div class="user-icon" id="user-icon">👤</div>
-            <span class="user-role">Doctor</span>
+            <span class="user-role">Dr. <?php echo htmlspecialchars($doctor['last_name']); ?></span>
             <div class="user-dropdown" id="user-dropdown">
                 <a href="doctorprofile.php" class="profile-btn">Profile</a>
                 <a href="../patient/login.php" class="logout-btn">Logout</a>
             </div>
         </div>
     </header>
+    
     <main class="profile-container">
         <!-- Close button -->
         <a href="doctordashboard.php" class="btn-back">&times;</a>
 
-   
-
         <h1 class="profile-title">My Profile</h1>
 
-             <div class="profile-picture">
-    <img src="/dheergayu/public/assets/images/Doctor/doctor-profile.jpg" alt="Doctor Profile">
-</div>
+        <div class="profile-picture">
+            <img src="/dheergayu/public/assets/images/Doctor/doctor-profile.jpg" alt="Doctor Profile">
+        </div>
         
         <div class="profile-card">
             <div class="profile-item">
                 <span class="label">Name:</span>
-                <span class="value"><?php echo $doctor['name']; ?></span>
-            </div>
-            <div class="profile-item">
-                <span class="label">Age:</span>
-                <span class="value"><?php echo $doctor['age']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($doctorData['name']); ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Email:</span>
-                <span class="value"><?php echo $doctor['email']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($doctorData['email']); ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Contact No:</span>
-                <span class="value"><?php echo $doctor['contact']; ?></span>
-            </div>
-            <div class="profile-item">
-                <span class="label">Address:</span>
-                <span class="value"><?php echo $doctor['address']; ?></span>
-            </div>
-            <div class="profile-item">
-                <span class="label">Gender:</span>
-                <span class="value"><?php echo $doctor['gender']; ?></span>
-            </div>
-            <div class="profile-item">
-                <span class="label">Specialization:</span>
-                <span class="value"><?php echo $doctor['specialization']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($doctorData['contact']); ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">License Number:</span>
-                <span class="value"><?php echo $doctor['license_number']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($doctorData['license_number']); ?></span>
             </div>
             <div class="profile-item">
-                <span class="label">Experience:</span>
-                <span class="value"><?php echo $doctor['experience']; ?></span>
-            </div>
-            <div class="profile-item">
-                <span class="label">Qualification:</span>
-                <span class="value"><?php echo $doctor['qualification']; ?></span>
+                <span class="label">Specialization:</span>
+                <span class="value"><?php echo htmlspecialchars($doctorData['specialization']); ?></span>
             </div>
         </div>
 

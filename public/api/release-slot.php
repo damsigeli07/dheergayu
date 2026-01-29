@@ -1,28 +1,25 @@
 <?php
-ini_set('display_errors', '0');
-error_reporting(E_ALL);
 header('Content-Type: application/json');
-session_start();
-
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'error' => 'Not logged in']);
-    exit;
-}
-
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../app/Models/AppointmentModel.php';
 
-$model = new AppointmentModel($conn);
-$user_id = $_SESSION['user_id'];
 $date = $_POST['date'] ?? '';
 $time = $_POST['time'] ?? '';
 
-if (!$date || !$time) {
+if (empty($date) || empty($time)) {
     echo json_encode(['success' => false]);
     exit;
 }
 
-$success = $model->releaseSlot($date, $time, $user_id);
+// Release locked slot in 'consultations' table (if status is 'locked')
+$query = "DELETE FROM consultations 
+          WHERE appointment_date = ? 
+          AND appointment_time = ? 
+          AND status = 'locked'";
+$stmt = $conn->prepare($query);
+$stmt->bind_param('ss', $date, $time);
+$stmt->execute();
+$stmt->close();
 
-echo json_encode(['success' => $success]);
+echo json_encode(['success' => true]);
+$conn->close();
 ?>

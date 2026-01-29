@@ -1,28 +1,32 @@
 <?php
-ini_set('display_errors', '0');
-error_reporting(E_ALL);
 header('Content-Type: application/json');
-session_start();
-
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'error' => 'Not logged in']);
-    exit;
-}
-
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../app/Models/AppointmentModel.php';
 
-$model = new AppointmentModel($conn);
-$user_id = $_SESSION['user_id'];
 $date = $_POST['date'] ?? '';
 $time = $_POST['time'] ?? '';
 
-if (!$date || !$time) {
-    echo json_encode(['success' => false, 'error' => 'Missing date or time']);
+if (empty($date) || empty($time)) {
+    echo json_encode(['success' => false, 'error' => 'Missing parameters']);
     exit;
 }
 
-$success = $model->lockSlot($date, $time, $user_id);
+// Check if slot is already locked or booked in 'consultations' table
+$checkQuery = "SELECT id FROM consultations 
+               WHERE appointment_date = ? 
+               AND appointment_time = ?
+               AND status != 'Cancelled'";
+$stmt = $conn->prepare($checkQuery);
+$stmt->bind_param('ss', $date, $time);
+$stmt->execute();
+$result = $stmt->get_result();
 
-echo json_encode(['success' => $success]);
+if ($result->num_rows > 0) {
+    echo json_encode(['success' => false, 'error' => 'Slot already taken']);
+    $stmt->close();
+    exit;
+}
+
+$stmt->close();
+echo json_encode(['success' => true]);
+$conn->close();
 ?>

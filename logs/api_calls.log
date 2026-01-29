@@ -1,0 +1,344 @@
+
+========== 2026-01-16 10:48:03 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-16 11:11:26 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 18
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234456789
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 11:00:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-16 12:28:11 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567892
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-16 13:08:16 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => A Sliva
+    [age] => 23
+    [gender] => Male
+    [email] => doctor1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-20
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 2
+    [doctor_name] => Dr. Perera
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-01-16 13:09:10 ==========
+Endpoint: book-consultation.php
+Session User ID: 6
+POST Data: Array
+(
+    [patient_name] => Deshani Anjula
+    [age] => 21
+    [gender] => Female
+    [email] => patient4@gmail.com
+    [phone] => 1234567891
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-20
+    [appointment_time] => 11:00:00
+    [payment_method] => onsite
+    [doctor_id] => 2
+    [doctor_name] => Dr. Perera
+)
+
+========== 2026-01-16 18:11:57 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-21
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-17 06:58:17 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => A Sliva
+    [age] => 18
+    [gender] => Female
+    [email] => doctor1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-01-17 06:58:34 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 18
+    [gender] => Female
+    [email] => doctor1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-01-17 06:58:46 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 18
+    [gender] => Female
+    [email] => doctor1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-01-17 06:59:21 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => A Sliva
+    [age] => 18
+    [gender] => Female
+    [email] => doctor1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-01-17 07:06:00 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 123456789
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-17 07:07:12 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567897
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 1
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-17 11:52:04 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 23
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-19
+    [appointment_time] => 12:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-19 08:31:55 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 23
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-21
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-20 06:44:43 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 22
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-21
+    [appointment_time] => 10:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-20 09:10:54 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 23
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-23
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-20 09:13:56 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 23
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-21
+    [appointment_time] => 10:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-01-20 12:07:34 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 23
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234456789
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-01-23
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)

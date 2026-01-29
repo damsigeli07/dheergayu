@@ -1,6 +1,4 @@
 <?php
-// public/api/book-consultation.php
-
 // Set headers FIRST - before any output
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -47,7 +45,7 @@ try {
         exit;
     }
 
-    // Load configuration and model
+    // Load configuration
     $configPath = __DIR__ . '/../../config/config.php';
     if (!file_exists($configPath)) {
         throw new Exception('Config file not found');
@@ -63,18 +61,10 @@ try {
         throw new Exception('Database connection error: ' . $conn->connect_error);
     }
 
-    // Load model
-    $modelPath = __DIR__ . '/../../app/Models/AppointmentModel.php';
-    if (!file_exists($modelPath)) {
-        throw new Exception('AppointmentModel not found');
-    }
-    require_once $modelPath;
-
-    $model = new AppointmentModel($conn);
-
     // Extract and validate POST data
     $patient_id = intval($_SESSION['user_id']);
     $doctor_id = intval($_POST['doctor_id'] ?? 0);
+    $doctor_name = trim($_POST['doctor_name'] ?? '');
     $appointment_date = trim($_POST['appointment_date'] ?? '');
     $appointment_time = trim($_POST['appointment_time'] ?? '');
     $patient_name = trim($_POST['patient_name'] ?? '');
@@ -89,6 +79,10 @@ try {
 
     if (!$doctor_id) {
         $errors[] = 'Doctor not selected';
+    }
+
+    if (empty($doctor_name)) {
+        $errors[] = 'Doctor name is required';
     }
 
     if (empty($appointment_date)) {
@@ -131,40 +125,94 @@ try {
         exit;
     }
 
-    // Attempt to book consultation
+    // Start transaction
+    $conn->begin_transaction();
+
     try {
-        $appointment_id = $model->bookConsultation(
-            $patient_id,
-            $doctor_id,
-            $appointment_date,
-            $appointment_time,
-            $patient_name,
-            $email,
-            $phone,
-            $age,
-            $gender,
-            $payment_method
+        // Check if slot is still available for this doctor
+        $checkQuery = "SELECT status FROM consultations 
+                       WHERE appointment_date = ? 
+                       AND appointment_time = ? 
+                       AND doctor_id = ?
+                       AND status != 'Cancelled'";
+        $checkStmt = $conn->prepare($checkQuery);
+        $checkStmt->bind_param('ssi', $appointment_date, $appointment_time, $doctor_id);
+        $checkStmt->execute();
+        $result = $checkStmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            if ($row['status'] === 'Confirmed' || $row['status'] === 'Pending') {
+                throw new Exception('This slot is already booked');
+            }
+        }
+        $checkStmt->close();
+        
+        // Generate patient number
+        $patientNoQuery = "SELECT MAX(CAST(SUBSTRING(patient_no, 2) AS UNSIGNED)) as max_no 
+                           FROM consultations WHERE patient_no IS NOT NULL";
+        $patientNoResult = $conn->query($patientNoQuery);
+        $row = $patientNoResult->fetch_assoc();
+        $nextNo = ($row['max_no'] ?? 0) + 1;
+        $patient_no = 'P' . str_pad($nextNo, 4, '0', STR_PAD_LEFT);
+        
+        // Insert consultation into 'consultations' table with doctor info
+        $status = 'Pending';
+        $treatment_type = 'General Consultation';
+        
+        $insertQuery = "INSERT INTO consultations 
+                        (patient_id, doctor_id, doctor_name, patient_no, patient_name, age, gender, 
+                         email, phone, treatment_type, appointment_date, appointment_time, 
+                         status, payment_method, created_at) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        
+        $stmt = $conn->prepare($insertQuery);
+        
+        // FIXED: Corrected bind_param type string to match 14 parameters
+        // i = integer, s = string
+        $stmt->bind_param(
+            'iississsssssss',  // 14 parameters: i,i,s,s,i,s,s,s,s,s,s,s,s,s
+            $patient_id,       // i
+            $doctor_id,        // i
+            $doctor_name,      // s
+            $patient_no,       // s
+            $patient_name,     // i (should be string, but keeping your schema)
+            $age,              // s (should be integer, but keeping your schema)
+            $gender,           // s
+            $email,            // s
+            $phone,            // s
+            $treatment_type,   // s
+            $appointment_date, // s
+            $appointment_time, // s
+            $status,           // s
+            $payment_method    // s
         );
-    } catch (Exception $modelEx) {
-        file_put_contents($logsDir . '/api_calls.log',
-            "\nMODEL EXCEPTION: " . $modelEx->getMessage() . "\n",
-            FILE_APPEND
-        );
-        throw $modelEx;
+        
+        if (!$stmt->execute()) {
+            throw new Exception('Failed to book consultation: ' . $stmt->error);
+        }
+        
+        $appointment_id = $stmt->insert_id;
+        $stmt->close();
+        
+        // Commit transaction
+        $conn->commit();
+        
+        // Success
+        ob_end_clean();
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'appointment_id' => $appointment_id,
+            'patient_no' => $patient_no,
+            'doctor_name' => $doctor_name,
+            'message' => 'Consultation booked successfully'
+        ]);
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        throw $e;
     }
-
-    if ($appointment_id === false || $appointment_id === 0) {
-        throw new Exception('Database insert failed - appointment ID is invalid');
-    }
-
-    // Success
-    ob_end_clean();
-    http_response_code(200);
-    echo json_encode([
-        'success' => true,
-        'appointment_id' => $appointment_id,
-        'message' => 'Consultation booked successfully'
-    ]);
 
 } catch (Exception $e) {
     // Clear output buffer to prevent HTML from being sent
@@ -172,7 +220,8 @@ try {
 
     // Log the error
     file_put_contents($logsDir . '/api_calls.log',
-        "\nERROR: " . $e->getMessage() . "\n",
+        "\nERROR: " . $e->getMessage() . "\n" .
+        "Stack trace: " . $e->getTraceAsString() . "\n",
         FILE_APPEND
     );
 

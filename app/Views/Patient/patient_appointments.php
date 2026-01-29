@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -11,7 +12,19 @@ require_once __DIR__ . '/../../../app/Models/AppointmentModel.php';
 
 $model = new AppointmentModel($conn);
 $patient_id = $_SESSION['user_id'];
-$appointments = $model->getAllAppointments($patient_id);
+$appointments = $model->getPatientAppointments($patient_id);
+
+// Get treatment plans for patient
+$plans_query = "SELECT * FROM treatment_plans WHERE patient_id = ? ORDER BY created_at DESC";
+$stmt = $conn->prepare($plans_query);
+$stmt->bind_param('i', $patient_id);
+$stmt->execute();
+$plans_result = $stmt->get_result();
+$treatment_plans = [];
+while ($row = $plans_result->fetch_assoc()) {
+    $treatment_plans[] = $row;
+}
+$stmt->close();
 
 // Helper functions
 function getTreatmentPrice($conn, $treatment_type) {
@@ -218,15 +231,20 @@ function getCancelledAppointments($appointments) {
         </div>
 
         <div class="appointments-container">
-            <div class="appointments-tabs">
-                <button class="tab-btn active" onclick="showTab('all')">
-                    All Appointments <span class="tab-badge"><?php echo countAll($appointments); ?></span>
-                </button>
-                <button class="tab-btn" onclick="showTab('upcoming')">
-                    Upcoming <span class="tab-badge"><?php echo countUpcoming($appointments); ?></span>
-                </button>
-                <button class="tab-btn" onclick="showTab('cancelled')">Cancelled</button>
-            </div>
+<div class="appointments-tabs">
+    <button class="tab-btn active" onclick="showTab('all')">
+        All Appointments <span class="tab-badge"><?php echo countAll($appointments); ?></span>
+    </button>
+    <button class="tab-btn" onclick="showTab('upcoming')">
+        Upcoming <span class="tab-badge"><?php echo countUpcoming($appointments); ?></span>
+    </button>
+    <button class="tab-btn" onclick="showTab('treatment-plans')">
+        Treatment Plans <span class="tab-badge"><?php echo count($treatment_plans); ?></span>
+    </button>
+    <button class="tab-btn" onclick="showTab('cancelled')">
+        Cancelled
+    </button>
+</div>
 
             <div class="tab-content">
                 <!-- All Appointments -->
@@ -275,6 +293,113 @@ function getCancelledAppointments($appointments) {
                     <?php endif; ?>
                 </div>
 
+                <!-- Treatment Plans Tab -->
+                <div id="treatment-plans-tab" class="tab-panel" style="display: none;">
+                    <?php if (empty($treatment_plans)): ?>
+                        <div class="empty-state">
+                            <h3>No Treatment Plans</h3>
+                            <p>Your doctor will create treatment plans based on consultations</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="appointments-list">
+                            <?php foreach ($treatment_plans as $plan): 
+                                // Get sessions for this plan
+                                $sessions_query = "SELECT * FROM treatment_sessions WHERE plan_id = ? ORDER BY session_number";
+                                $stmt = $conn->prepare($sessions_query);
+                                $stmt->bind_param('i', $plan['plan_id']);
+                                $stmt->execute();
+                                $sessions_result = $stmt->get_result();
+                                $sessions = [];
+                                while ($row = $sessions_result->fetch_assoc()) {
+                                    $sessions[] = $row;
+                                }
+                                $stmt->close();
+                            ?>
+                                <div class="appointment-card treatment-plan" style="border-left: 5px solid #28a745;">
+                                    <div class="appointment-header">
+                                        <div class="appointment-type" style="background: #28a745;">Treatment Plan</div>
+                                        <div class="appointment-status status-<?= strtolower($plan['status']) ?>">
+                                            <?= $plan['status'] ?>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="appointment-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Treatment</span>
+                                            <span class="detail-value"><?= htmlspecialchars($plan['treatment_name']) ?></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Diagnosis</span>
+                                            <span class="detail-value"><?= htmlspecialchars($plan['diagnosis']) ?></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Total Sessions</span>
+                                            <span class="detail-value"><?= $plan['total_sessions'] ?> sessions (<?= $plan['sessions_per_week'] ?>x per week)</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Start Date</span>
+                                            <span class="detail-value"><?= date('M d, Y', strtotime($plan['start_date'])) ?></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Total Cost</span>
+                                            <span class="detail-value">Rs <?= number_format($plan['total_cost'], 2) ?></span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Payment Status</span>
+                                            <span class="detail-value" style="color: <?= $plan['payment_status'] === 'Completed' ? '#28a745' : '#ff9800' ?>">
+                                                <?= $plan['payment_status'] ?>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sessions List -->
+                                    <div style="margin-top:20px;background:#f8f9fa;padding:15px;border-radius:8px;">
+                                        <strong style="color:#333;font-size:15px;">Treatment Sessions:</strong>
+                                        <div style="margin-top:12px;">
+                                            <?php foreach ($sessions as $session): ?>
+                                                <div style="background:#fff;padding:12px;margin:8px 0;border-radius:6px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid <?= $session['status'] === 'Completed' ? '#28a745' : ($session['status'] === 'Pending' ? '#ffc107' : '#17a2b8') ?>;">
+                                                    <div>
+                                                        <strong style="color:#333;">Session <?= $session['session_number'] ?></strong>
+                                                        <div style="font-size:13px;color:#666;margin-top:4px;">
+                                                            📅 <?= date('l, M d, Y', strtotime($session['session_date'])) ?> 
+                                                            at ⏰ <?= date('g:i A', strtotime($session['session_time'])) ?>
+                                                        </div>
+                                                    </div>
+                                                    <span class="status-badge status-<?= strtolower($session['status']) ?>" style="font-size:11px;">
+                                                        <?= $session['status'] ?>
+                                                    </span>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+
+                                    <?php if ($plan['status'] === 'Pending'): ?>
+                                        <div class="appointment-actions" style="margin-top:20px;background:#fff3cd;padding:12px;border-radius:8px;">
+                                            <p style="margin:0 0 12px 0;font-size:14px;color:#856404;">
+                                                ⚠️ Please confirm your treatment schedule to proceed
+                                            </p>
+                                            <div style="display:flex;gap:10px;">
+                                                <button class="action-btn btn-primary" onclick="confirmTreatmentPlan(<?= $plan['plan_id'] ?>)" style="flex:1;">
+                                                    ✓ Confirm All & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
+                                                </button>
+                                                <button class="action-btn btn-warning" onclick="requestPlanChange(<?= $plan['plan_id'] ?>)">
+                                                    📝 Request Changes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    <?php elseif ($plan['status'] === 'Confirmed' && $plan['payment_status'] === 'Pending'): ?>
+                                        <div class="appointment-actions" style="margin-top:20px;">
+                                            <button class="action-btn btn-primary" onclick="payTreatmentPlan(<?= $plan['plan_id'] ?>)">
+                                                💳 Pay Now (Rs <?= number_format($plan['total_cost'], 2) ?>)
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <!-- Cancelled Appointments -->
                 <div id="cancelled-tab" class="tab-panel" style="display: none;">
                     <?php 
@@ -316,12 +441,6 @@ function getCancelledAppointments($appointments) {
                     <label for="editTime">Time</label>
                     <select id="editTime" required>
                         <option value="">Select Time</option>
-                        <option value="08:00">08:00 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="14:00">02:00 PM</option>
-                        <option value="15:00">03:00 PM</option>
-                        <option value="16:00">04:00 PM</option>
                     </select>
                 </div>
                 <div class="modal-buttons">
@@ -382,102 +501,291 @@ function getCancelledAppointments($appointments) {
     </footer>
 
     <script>
-        let currentCancelId = null;
-        let currentCancelType = null;
+// Fixed JavaScript for patient_appointments.php tab switching
+// Replace the entire <script> section with this code
 
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById(tabName + '-tab').style.display = 'block';
-            event.target.classList.add('active');
+let currentCancelId = null;
+let currentCancelType = null;
+
+// FIX 1: Properly handle tab switching without event parameter
+function showTab(tabName) {
+    console.log('Switching to tab:', tabName);
+    
+    // Hide all tab panels
+    const allPanels = document.querySelectorAll('.tab-panel');
+    allPanels.forEach(function(panel) {
+        panel.style.display = 'none';
+    });
+    
+    // Remove active class from all tab buttons
+    const allButtons = document.querySelectorAll('.tab-btn');
+    allButtons.forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    
+    // Show the selected panel
+    const targetPanel = document.getElementById(tabName + '-tab');
+    if (targetPanel) {
+        targetPanel.style.display = 'block';
+    } else {
+        console.error('Panel not found:', tabName + '-tab');
+    }
+    
+    // Add active class to the clicked button
+    // Find button by checking onclick attribute
+    allButtons.forEach(function(btn) {
+        const onclickAttr = btn.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes("'" + tabName + "'")) {
+            btn.classList.add('active');
         }
+    });
+}
 
-        function editAppointment(id, type, date, time) {
-            const editModal = document.getElementById('editModal');
-            const editId = document.getElementById('editId');
-            const editType = document.getElementById('editType');
-            const editDate = document.getElementById('editDate');
-            const editTime = document.getElementById('editTime');
-            
-            if (!editModal || !editId || !editType || !editDate || !editTime) {
-                alert('Error: Edit form not properly loaded');
-                return;
+// FIX 2: Treatment plan confirmation functions
+function confirmTreatmentPlan(planId) {
+    if (confirm('Confirm all treatment sessions and proceed to payment?')) {
+        fetch('/dheergayu/public/api/confirm-treatment-plan.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'plan_id=' + planId + '&action=confirm'
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                window.location.href = 'payment.php?plan_id=' + planId + '&type=treatment_plan';
+            } else {
+                alert('Error: ' + (data.message || 'Failed to confirm plan'));
             }
-            
-            editId.value = id;
-            editType.value = type;
-            editDate.value = date;
-            editTime.value = time;
-            editDate.min = new Date().toISOString().split('T')[0];
-            
-            loadEditSlots(date);
-            editModal.style.display = 'block';
-        }
-
-        function loadEditSlots(date) {
-            if (!date) return;
-            
-            fetch(`/dheergayu/public/api/available-slots.php?date=${date}`)
-                .then(res => res.json())
-                .then(data => {
-                    const timeSelect = document.getElementById('editTime');
-                    const currentTime = timeSelect.value;
-                    
-                    timeSelect.innerHTML = '<option value="">Select Time</option>';
-                    
-                    if (data.slots && data.slots.length > 0) {
-                        data.slots.forEach(slot => {
-                            const option = document.createElement('option');
-                            option.value = slot.time;
-                            option.textContent = formatTime(slot.time);
-                            
-                            if ((slot.status === 'booked' || slot.status === 'locked') && slot.time !== currentTime) {
-                                option.disabled = true;
-                                option.textContent += ' (Not Available)';
-                            }
-                            
-                            timeSelect.appendChild(option);
-                        });
-                        
-                        if (currentTime) {
-                            timeSelect.value = currentTime;
-                        }
-                    }
-                });
-        }
-
-        document.getElementById('editDate').addEventListener('change', function() {
-            loadEditSlots(this.value);
+        })
+        .catch(function(err) {
+            console.error('Error:', err);
+            alert('Network error. Please try again.');
         });
+    }
+}
 
-        function formatTime(time) {
-            const [hours, minutes] = time.split(':');
-            const h = parseInt(hours);
-            const period = h >= 12 ? 'PM' : 'AM';
-            const displayHours = h % 12 || 12;
-            return `${displayHours}:${minutes} ${period}`;
-        }
+function requestPlanChange(planId) {
+    const reason = prompt('Please describe the changes you need (e.g., different dates, times):');
+    if (reason && reason.trim()) {
+        fetch('/dheergayu/public/api/confirm-treatment-plan.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'plan_id=' + planId + '&action=request_change&reason=' + encodeURIComponent(reason)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert('Change request sent to doctor successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.message || 'Failed to send request'));
+            }
+        })
+        .catch(function(err) {
+            console.error('Error:', err);
+            alert('Network error. Please try again.');
+        });
+    }
+}
 
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
+function payTreatmentPlan(planId) {
+    window.location.href = 'payment.php?plan_id=' + planId + '&type=treatment_plan';
+}
 
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+// Appointment editing functions
+function editAppointment(id, type, date, time) {
+    const editModal = document.getElementById('editModal');
+    const editId = document.getElementById('editId');
+    const editType = document.getElementById('editType');
+    const editDate = document.getElementById('editDate');
+    const editTime = document.getElementById('editTime');
+    
+    if (!editModal || !editId || !editType || !editDate || !editTime) {
+        alert('Error: Edit form not properly loaded');
+        return;
+    }
+    
+    editId.value = id;
+    editType.value = type;
+    editDate.value = date;
+    editTime.value = time;
+    editDate.min = new Date().toISOString().split('T')[0];
+    
+    if (type === 'treatment') {
+        loadTreatmentEditSlots(date, id);
+    } else {
+        loadEditSlots(date);
+    }
+    
+    editModal.style.display = 'block';
+}
+
+function loadTreatmentEditSlots(date, bookingId) {
+    if (!date) return;
+    
+    fetch('/dheergayu/public/api/treatment-booking-handler.php?action=get_booking&booking_id=' + bookingId)
+        .then(function(res) { return res.json(); })
+        .then(function(bookingData) {
+            if (bookingData.success && bookingData.booking) {
+                const treatmentId = bookingData.booking.treatment_id;
+                const formData = new FormData();
+                formData.append('treatment_id', treatmentId);
+                formData.append('date', date);
+                
+                return fetch('/dheergayu/public/api/treatment_selection.php?action=loadSlots', {
+                    method: 'POST',
+                    body: formData
+                });
+            } else {
+                throw new Error('Failed to get booking info');
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            const timeSelect = document.getElementById('editTime');
+            const currentTime = timeSelect.value;
+            
+            timeSelect.innerHTML = '<option value="">Select Time</option>';
+            
+            if (data.success && data.slots && data.slots.length > 0) {
+                data.slots.forEach(function(slot) {
+                    const option = document.createElement('option');
+                    option.value = slot.slot_time;
+                    option.textContent = formatTime(slot.slot_time);
+                    option.setAttribute('data-slot-id', slot.slot_id);
+                    
+                    if (slot.booked && slot.slot_time !== currentTime) {
+                        option.disabled = true;
+                        option.textContent += ' (Not Available)';
+                    }
+                    
+                    timeSelect.appendChild(option);
+                });
+                
+                if (currentTime) {
+                    timeSelect.value = currentTime;
+                }
+            }
+        })
+        .catch(function(error) {
+            console.error('Error loading treatment slots:', error);
+            alert('Error loading available slots');
+        });
+}
+
+function loadEditSlots(date) {
+    if (!date) return;
+    
+    fetch('/dheergayu/public/api/available-slots.php?date=' + date)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            const timeSelect = document.getElementById('editTime');
+            const currentTime = timeSelect.value;
+            
+            timeSelect.innerHTML = '<option value="">Select Time</option>';
+            
+            if (data.slots && data.slots.length > 0) {
+                data.slots.forEach(function(slot) {
+                    const option = document.createElement('option');
+                    option.value = slot.time;
+                    option.textContent = formatTime(slot.time);
+                    
+                    if ((slot.status === 'booked' || slot.status === 'locked') && slot.time !== currentTime) {
+                        option.disabled = true;
+                        option.textContent += ' (Not Available)';
+                    }
+                    
+                    timeSelect.appendChild(option);
+                });
+                
+                if (currentTime) {
+                    timeSelect.value = currentTime;
+                }
+            }
+        });
+}
+
+// Add event listener for date change on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const editDateInput = document.getElementById('editDate');
+    if (editDateInput) {
+        editDateInput.addEventListener('change', function() {
+            const type = document.getElementById('editType').value;
+            const id = document.getElementById('editId').value;
+            
+            if (type === 'treatment') {
+                loadTreatmentEditSlots(this.value, id);
+            } else {
+                loadEditSlots(this.value);
+            }
+        });
+    }
+});
+
+function formatTime(time) {
+    const parts = time.split(':');
+    const hours = parseInt(parts[0]);
+    const minutes = parts[1];
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return displayHours + ':' + minutes + ' ' + period;
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Form submission handler
+const editForm = document.getElementById('editForm');
+if (editForm) {
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const id = document.getElementById('editId').value;
+        const type = document.getElementById('editType').value;
+        const date = document.getElementById('editDate').value;
+        const timeSelect = document.getElementById('editTime');
+        const time = timeSelect.value;
+        
+        if (type === 'treatment') {
+            const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+            const slotId = selectedOption.getAttribute('data-slot-id');
             
             const formData = new FormData();
-            formData.append('id', document.getElementById('editId').value);
-            formData.append('type', document.getElementById('editType').value);
-            formData.append('date', document.getElementById('editDate').value);
-            formData.append('time', document.getElementById('editTime').value);
+            formData.append('action', 'reschedule');
+            formData.append('booking_id', id);
+            formData.append('new_slot_id', slotId);
+            formData.append('new_date', date);
+            
+            fetch('/dheergayu/public/api/treatment-booking-handler.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    alert('Treatment rescheduled successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.error || data.message || 'Failed to reschedule'));
+                }
+            })
+            .catch(function(error) {
+                alert('Network error: ' + error.message);
+            });
+        } else {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('type', type);
+            formData.append('date', date);
+            formData.append('time', time);
 
             fetch('/dheergayu/public/api/update-appointment.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(res => res.json())
-            .then(data => {
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
                 if (data.success) {
                     alert('Appointment updated successfully');
                     location.reload();
@@ -485,55 +793,81 @@ function getCancelledAppointments($appointments) {
                     alert('Error: ' + (data.error || 'Failed to update'));
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 alert('Network error: ' + error.message);
             });
-            closeEditModal();
+        }
+        
+        closeEditModal();
+    });
+}
+
+function cancelAppointment(id, type) {
+    currentCancelId = id;
+    currentCancelType = type;
+    document.getElementById('cancelModal').style.display = 'block';
+}
+
+function confirmCancel() {
+    if (currentCancelType === 'treatment') {
+        const formData = new FormData();
+        formData.append('action', 'cancel');
+        formData.append('booking_id', currentCancelId);
+        formData.append('reason', 'Cancelled by patient');
+
+        fetch('/dheergayu/public/api/treatment-booking-handler.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert('Treatment booking cancelled successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || data.message || 'Failed to cancel'));
+            }
         });
+    } else {
+        const formData = new FormData();
+        formData.append('id', currentCancelId);
+        formData.append('type', currentCancelType);
 
-        function cancelAppointment(id, type) {
-            currentCancelId = id;
-            currentCancelType = type;
-            document.getElementById('cancelModal').style.display = 'block';
-        }
-
-        function confirmCancel() {
-            const formData = new FormData();
-            formData.append('id', currentCancelId);
-            formData.append('type', currentCancelType);
-
-            fetch('/dheergayu/public/api/cancel-appointment.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Appointment cancelled successfully');
-                    location.reload();
-                } else {
-                    alert('Error: ' + (data.error || 'Failed to cancel'));
-                }
-            });
-            closeCancelModal();
-        }
-
-        function closeCancelModal() {
-            document.getElementById('cancelModal').style.display = 'none';
-            currentCancelId = null;
-            currentCancelType = null;
-        }
-
-        function payNow(id, type) {
-            window.location.href = `payment.php?appointment_id=${id}&type=${type}`;
-        }
-
-        window.addEventListener('click', function(e) {
-            const editModal = document.getElementById('editModal');
-            const cancelModal = document.getElementById('cancelModal');
-            if (e.target === editModal) closeEditModal();
-            if (e.target === cancelModal) closeCancelModal();
+        fetch('/dheergayu/public/api/cancel-appointment.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert('Appointment cancelled successfully');
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to cancel'));
+            }
         });
-    </script>
+    }
+    closeCancelModal();
+}
+
+function closeCancelModal() {
+    document.getElementById('cancelModal').style.display = 'none';
+    currentCancelId = null;
+    currentCancelType = null;
+}
+
+function payNow(id, type) {
+    window.location.href = 'payment.php?appointment_id=' + id + '&type=' + type;
+}
+
+// Modal close on outside click
+window.addEventListener('click', function(e) {
+    const editModal = document.getElementById('editModal');
+    const cancelModal = document.getElementById('cancelModal');
+    if (e.target === editModal) closeEditModal();
+    if (e.target === cancelModal) closeCancelModal();
+});
+
+</script>
 </body>
 </html>
