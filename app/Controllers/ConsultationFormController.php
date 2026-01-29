@@ -1,117 +1,312 @@
-
 <?php
-require_once __DIR__ . '/../../core/bootloader.php';
-// AJAX endpoint to fetch consultation form data for modal view
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_consultation_form' && isset($_GET['appointment_id'])) {
-    require_once __DIR__ . '/../Models/ConsultationFormModel.php';
-    $db = \Core\Database::connect();
-    $model = new ConsultationFormModel($db);
-    $appointment_id = intval($_GET['appointment_id']);
-    $form = $model->getConsultationFormByAppointmentId($appointment_id);
-    header('Content-Type: application/json');
-    if ($form) {
-        echo json_encode($form);
-    } else {
-        echo json_encode(new stdClass()); // Return empty object if not found
-    }
-    exit;
-}
+// app/Controllers/ConsultationFormController.php
+header('Content-Type: application/json');
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
-require_once __DIR__ . '/../Models/ConsultationFormModel.php';
-require_once __DIR__ . '/../Models/AppointmentModel.php';
-// Only start session if not already started by the central bootloader
+// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$db = \Core\Database::connect();
-$model = new ConsultationFormModel($db);
-$appointmentModel = new AppointmentModel($db);
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_GET['action'] ?? '';
+// Database connection - use direct mysqli instead of bootloader
+function getDbConnection() {
+    $host = 'localhost';
+    $username = 'root';
+    $password = '';
+    $database = 'dheergayu_db'; // Make sure this matches your actual database name
     
-    // Debug logging
-    error_log("ConsultationFormController POST request received. Action: " . $action);
-    error_log("POST data: " . print_r($_POST, true));
+    $conn = new mysqli($host, $username, $password, $database);
     
-    $data = [
-        'first_name' => $_POST['first_name'] ?? '',
-        'last_name' => $_POST['last_name'] ?? '',
-        'age' => $_POST['age'] ?? '',
-        'diagnosis' => $_POST['diagnosis'] ?? '',
-        'gender' => $_POST['gender'] ?? '',
-        'personal_products' => $_POST['personal_products'] ?? '[]',
-        'recommended_treatment' => $_POST['recommended_treatment'] ?? '',
-        'question_1' => $_POST['question_1'] ?? '',
-        'question_2' => $_POST['question_2'] ?? '',
-        'question_3' => $_POST['question_3'] ?? '',
-        'question_4' => $_POST['question_4'] ?? '',
-        'notes' => $_POST['notes'] ?? '',
-        'patient_no' => $_POST['patient_no'] ?? '',
-        'last_visit_date' => $_POST['last_visit_date'] ?? '',
-        'total_visits' => $_POST['total_visits'] ?? 0,
-        'contact_info' => $_POST['contact_info'] ?? '',
-        'check_patient_vitals' => isset($_POST['check_patient_vitals']) ? 1 : 0,
-        'review_previous_medications' => isset($_POST['review_previous_medications']) ? 1 : 0,
-        'update_patient_history' => isset($_POST['update_patient_history']) ? 1 : 0,
-        'follow_up_appointment' => isset($_POST['follow_up_appointment']) ? 1 : 0,
-        'send_to_pharmacy' => isset($_POST['send_to_pharmacy']) ? 1 : 0,
-        'appointment_id' => $_POST['appointment_id'] ?? '',
-        'treatment_booking_id' => $_POST['treatment_booking_id'] ?? ($_SESSION['treatment_selection']['booking_id'] ?? null),
-    ];
-
-    // Ensure recommended treatment string is populated from hidden fields if not provided
-    if (empty($data['recommended_treatment']) && !empty($_POST['treatment_name'])) {
-        $parts = [];
-        if (!empty($_POST['treatment_name'])) {
-            $parts[] = 'Treatment: ' . $_POST['treatment_name'];
-        }
-        if (!empty($_POST['treatment_date'])) {
-            $parts[] = 'Date: ' . $_POST['treatment_date'];
-        }
-        if (!empty($_POST['treatment_time'])) {
-            $parts[] = 'Time: ' . $_POST['treatment_time'];
-        }
-        if (!empty($_POST['treatment_description'])) {
-            $parts[] = 'Notes: ' . $_POST['treatment_description'];
-        }
-        if (!empty($_POST['treatment_booking_id'])) {
-            $parts[] = 'Booking #' . $_POST['treatment_booking_id'];
-        }
-        $data['recommended_treatment'] = implode(' | ', $parts);
+    if ($conn->connect_error) {
+        error_log("Database connection failed: " . $conn->connect_error);
+        throw new Exception("Database connection failed");
     }
     
-    header('Content-Type: application/json');
-    
-    try {
-        if ($action === 'update_consultation_form') {
-            $success = $model->updateConsultationForm($data);
-            if ($success) {
-                $appointmentModel->setCompletedStatus($data['appointment_id']);
-                echo json_encode(['status' => 'success']);
-            } else {
-                error_log("Failed to update consultation form for appointment_id: " . $data['appointment_id']);
-                echo json_encode(['status' => 'error', 'message' => 'Failed to update consultation form']);
-            }
-        } else {
-            $success = $model->saveConsultationForm($data);
-            if ($success) {
-                $appointmentModel->setCompletedStatus($data['appointment_id']);
-                echo json_encode(['status' => 'success']);
-            } else {
-                error_log("Failed to save consultation form for appointment_id: " . $data['appointment_id']);
-                echo json_encode(['status' => 'error', 'message' => 'Failed to save consultation form']);
-            }
-        }
-    } catch (Exception $e) {
-        error_log("ConsultationFormController error: " . $e->getMessage());
-        echo json_encode(['status' => 'error', 'message' => 'Database error occurred: ' . $e->getMessage()]);
-    }
-    exit;
+    return $conn;
 }
 
-// For GET: fetch appointment details for pre-fill
-$appointment_id = $_GET['appointment_id'] ?? '';
-$appointment = $appointment_id ? $model->getAppointmentDetails($appointment_id) : null;
-?>
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    try {
+        $db = getDbConnection();
+        $db->begin_transaction();
+        
+        // Get and validate form data
+        $appointment_id = intval($_POST['appointment_id'] ?? 0);
+        $patient_id = intval($_POST['patient_id'] ?? 0);
+        
+        if ($appointment_id === 0) {
+            throw new Exception("Invalid appointment ID");
+        }
+        
+        $first_name = trim($_POST['first_name'] ?? '');
+        $last_name = trim($_POST['last_name'] ?? '');
+        $age = intval($_POST['age'] ?? 0);
+        $gender = trim($_POST['gender'] ?? '');
+        $diagnosis = trim($_POST['diagnosis'] ?? '');
+        $personal_products = $_POST['personal_products'] ?? '[]';
+        $notes = trim($_POST['notes'] ?? '');
+        $treatment_plan_choice = $_POST['treatment_plan_choice'] ?? 'no_need';
+        $treatment_schedule_data = $_POST['treatment_schedule_data'] ?? '';
+        $single_treatment_data = $_POST['single_treatment_data'] ?? '';
+        
+        // Validate required fields
+        if (empty($first_name) || empty($last_name) || $age === 0 || empty($gender)) {
+            throw new Exception("Please fill all required patient information fields");
+        }
+        
+        // Check if consultation form exists
+        $check_stmt = $db->prepare("SELECT id FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+        if (!$check_stmt) {
+            throw new Exception("Database prepare error: " . $db->error);
+        }
+        
+        $check_stmt->bind_param('i', $appointment_id);
+        $check_stmt->execute();
+        $existing = $check_stmt->get_result()->fetch_assoc();
+        $check_stmt->close();
+        
+        if ($existing) {
+            // UPDATE existing form
+            $stmt = $db->prepare("
+                UPDATE consultationforms SET
+                    first_name = ?,
+                    last_name = ?,
+                    age = ?,
+                    gender = ?,
+                    diagnosis = ?,
+                    personal_products = ?,
+                    notes = ?,
+                    updated_at = NOW()
+                WHERE appointment_id = ?
+            ");
+            
+            if (!$stmt) {
+                throw new Exception("Update prepare error: " . $db->error);
+            }
+            
+            $stmt->bind_param(
+                'ssissssi',
+                $first_name, $last_name, $age, $gender,
+                $diagnosis, $personal_products, $notes, $appointment_id
+            );
+            
+        } else {
+            // INSERT new form
+            $stmt = $db->prepare("
+                INSERT INTO consultationforms (
+                    appointment_id, first_name, last_name, age, gender, 
+                    diagnosis, personal_products, notes, patient_no, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', NOW())
+            ");
+            
+            if (!$stmt) {
+                throw new Exception("Insert prepare error: " . $db->error);
+            }
+            
+            $stmt->bind_param(
+                'isssisss',
+                $appointment_id, $first_name, $last_name, $age, $gender,
+                $diagnosis, $personal_products, $notes
+            );
+        }
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to save consultation form: " . $stmt->error);
+        }
+        $stmt->close();
+        
+        // Handle treatment plans
+        if ($treatment_plan_choice === 'multiple_sessions' && !empty($treatment_schedule_data)) {
+            
+            $scheduleData = json_decode($treatment_schedule_data, true);
+            
+            if (!$scheduleData) {
+                throw new Exception("Invalid treatment schedule data");
+            }
+            
+            // Get treatment_id
+            $treatment_name = $scheduleData['treatmentType'];
+            $stmt = $db->prepare("SELECT treatment_id FROM treatment_list WHERE treatment_name = ? LIMIT 1");
+            
+            if (!$stmt) {
+                throw new Exception("Treatment lookup error: " . $db->error);
+            }
+            
+            $stmt->bind_param('s', $treatment_name);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $treatment_row = $result->fetch_assoc();
+            $stmt->close();
+            
+            if (!$treatment_row) {
+                throw new Exception("Treatment '" . $treatment_name . "' not found in database");
+            }
+            
+            $treatment_id = $treatment_row['treatment_id'];
+            $total_sessions = intval($scheduleData['sessions']);
+            $sessions_per_week = intval($scheduleData['sessionsPerWeek']);
+            $start_date = $scheduleData['startDate'];
+            $total_cost = $total_sessions * 4500;
+            $plan_diagnosis = $scheduleData['diagnosis'];
+            
+            // Insert treatment plan
+            $stmt = $db->prepare("
+                INSERT INTO treatment_plans (
+                    appointment_id, patient_id, treatment_id, diagnosis,
+                    total_sessions, sessions_per_week, start_date, total_cost,
+                    status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+            ");
+            
+            if (!$stmt) {
+                throw new Exception("Treatment plan insert error: " . $db->error);
+            }
+            
+            $stmt->bind_param(
+                'iiisiisd',
+                $appointment_id,
+                $patient_id,
+                $treatment_id,
+                $plan_diagnosis,
+                $total_sessions,
+                $sessions_per_week,
+                $start_date,
+                $total_cost
+            );
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to create treatment plan: " . $stmt->error);
+            }
+            
+            $plan_id = $stmt->insert_id;
+            $stmt->close();
+            
+            // Insert sessions
+            if (isset($scheduleData['schedule']) && is_array($scheduleData['schedule'])) {
+                foreach ($scheduleData['schedule'] as $session) {
+                    $stmt = $db->prepare("
+                        INSERT INTO treatment_sessions (
+                            plan_id, session_number, session_date, session_time,
+                            status, created_at
+                        ) VALUES (?, ?, ?, ?, 'Pending', NOW())
+                    ");
+                    
+                    if (!$stmt) {
+                        throw new Exception("Session insert error: " . $db->error);
+                    }
+                    
+                    $session_num = intval($session['sessionNumber']);
+                    $session_date = $session['date'];
+                    $session_time = $session['time'];
+                    
+                    $stmt->bind_param('iiss', $plan_id, $session_num, $session_date, $session_time);
+                    
+                    if (!$stmt->execute()) {
+                        throw new Exception("Failed to create session: " . $stmt->error);
+                    }
+                    
+                    $stmt->close();
+                }
+            }
+            
+        } elseif ($treatment_plan_choice === 'single_session' && !empty($single_treatment_data)) {
+            
+            $treatmentData = json_decode($single_treatment_data, true);
+            
+            if ($treatmentData && isset($treatmentData['booking_id'])) {
+                $booking_id = intval($treatmentData['booking_id']);
+                
+                $stmt = $db->prepare("
+                    UPDATE consultationforms 
+                    SET treatment_booking_id = ? 
+                    WHERE appointment_id = ?
+                ");
+                
+                if (!$stmt) {
+                    throw new Exception("Booking link error: " . $db->error);
+                }
+                
+                $stmt->bind_param('ii', $booking_id, $appointment_id);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+        
+        // Mark appointment as completed
+        $stmt = $db->prepare("UPDATE consultations SET status = 'Completed' WHERE id = ?");
+        
+        if (!$stmt) {
+            throw new Exception("Appointment update error: " . $db->error);
+        }
+        
+        $stmt->bind_param('i', $appointment_id);
+        $stmt->execute();
+        $stmt->close();
+        
+        $db->commit();
+        $db->close();
+        
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Consultation saved successfully'
+        ]);
+        
+    } catch (Exception $e) {
+        if (isset($db)) {
+            $db->rollback();
+            $db->close();
+        }
+        
+        error_log("Consultation save error: " . $e->getMessage());
+        
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    }
+    
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+    
+    if ($_GET['action'] === 'get_consultation_form') {
+        
+        try {
+            $appointment_id = intval($_GET['appointment_id'] ?? 0);
+            
+            if ($appointment_id === 0) {
+                throw new Exception('Invalid appointment_id');
+            }
+            
+            $db = getDbConnection();
+            $stmt = $db->prepare("SELECT * FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+            
+            if (!$stmt) {
+                throw new Exception("Query error: " . $db->error);
+            }
+            
+            $stmt->bind_param('i', $appointment_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $form = $result->fetch_assoc();
+            $stmt->close();
+            $db->close();
+            
+            if ($form) {
+                echo json_encode($form);
+            } else {
+                echo json_encode([]);
+            }
+            
+        } catch (Exception $e) {
+            error_log("Get consultation error: " . $e->getMessage());
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+    }
+    
+} else {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid request method'
+    ]);
+}

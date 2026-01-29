@@ -126,7 +126,12 @@ class PatientModel {
     }
 
     // Get appointment statistics
-    public function getAppointmentStats($user_id) {
+public function getAppointmentStats($user_id) {
+    // Check if treatments table exists
+    $tableCheck = $this->conn->query("SHOW TABLES LIKE 'treatments'");
+    $treatmentsExists = $tableCheck && $tableCheck->num_rows > 0;
+    
+    if ($treatmentsExists) {
         $stmt = $this->conn->prepare("
             SELECT 
                 COUNT(CASE WHEN status NOT IN ('Cancelled', 'Completed') THEN 1 END) as upcoming_count,
@@ -139,16 +144,32 @@ class PatientModel {
                 SELECT appointment_date, status FROM treatments WHERE patient_id = ?
             ) as all_appointments
         ");
-        
         $stmt->bind_param("iii", $user_id, $user_id, $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        return $result;
+    } else {
+        $stmt = $this->conn->prepare("
+            SELECT 
+                COUNT(CASE WHEN status NOT IN ('Cancelled', 'Completed') THEN 1 END) as upcoming_count,
+                MAX(CASE WHEN status = 'Completed' THEN appointment_date END) as last_visit,
+                MIN(CASE WHEN status NOT IN ('Cancelled', 'Completed') THEN appointment_date END) as next_appointment,
+                (SELECT created_at FROM patient_info WHERE patient_id = ?) as member_since
+            FROM consultations WHERE patient_id = ?
+        ");
+        $stmt->bind_param("ii", $user_id, $user_id);
     }
+    
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    return $result;
+}
 
     // Get recent medical history
-    public function getRecentMedicalHistory($user_id) {
+public function getRecentMedicalHistory($user_id) {
+    // Check if treatments table exists
+    $tableCheck = $this->conn->query("SHOW TABLES LIKE 'treatments'");
+    $treatmentsExists = $tableCheck && $tableCheck->num_rows > 0;
+    
+    if ($treatmentsExists) {
         $stmt = $this->conn->prepare("
             SELECT * FROM (
                 SELECT 
@@ -172,13 +193,27 @@ class PatientModel {
             ORDER BY appointment_date DESC
             LIMIT 5
         ");
-        
         $stmt->bind_param("ii", $user_id, $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-        return $result;
+    } else {
+        $stmt = $this->conn->prepare("
+            SELECT 
+                'Consultation' as type,
+                appointment_date,
+                doctor_name,
+                'General Consultation' as details
+            FROM consultations 
+            WHERE patient_id = ? AND status = 'Completed'
+            ORDER BY appointment_date DESC
+            LIMIT 5
+        ");
+        $stmt->bind_param("i", $user_id);
     }
+    
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    return $result;
+}
 
     // Check if profile exists
     public function profileExists($user_id) {

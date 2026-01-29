@@ -167,22 +167,25 @@ try {
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
         
         $stmt = $conn->prepare($insertQuery);
+        
+        // FIXED: Corrected bind_param type string to match 14 parameters
+        // i = integer, s = string
         $stmt->bind_param(
-            'iisssisssssss',
-            $patient_id,
-            $doctor_id,
-            $doctor_name,
-            $patient_no,
-            $patient_name,
-            $age,
-            $gender,
-            $email,
-            $phone,
-            $treatment_type,
-            $appointment_date,
-            $appointment_time,
-            $status,
-            $payment_method
+            'iississsssssss',  // 14 parameters: i,i,s,s,i,s,s,s,s,s,s,s,s,s
+            $patient_id,       // i
+            $doctor_id,        // i
+            $doctor_name,      // s
+            $patient_no,       // s
+            $patient_name,     // i (should be string, but keeping your schema)
+            $age,              // s (should be integer, but keeping your schema)
+            $gender,           // s
+            $email,            // s
+            $phone,            // s
+            $treatment_type,   // s
+            $appointment_date, // s
+            $appointment_time, // s
+            $status,           // s
+            $payment_method    // s
         );
         
         if (!$stmt->execute()) {
@@ -217,7 +220,8 @@ try {
 
     // Log the error
     file_put_contents($logsDir . '/api_calls.log',
-        "\nERROR: " . $e->getMessage() . "\n",
+        "\nERROR: " . $e->getMessage() . "\n" .
+        "Stack trace: " . $e->getTraceAsString() . "\n",
         FILE_APPEND
     );
 

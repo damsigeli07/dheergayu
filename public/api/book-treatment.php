@@ -1,45 +1,82 @@
 <?php
-// public/api/book-treatment.php
+// Disable ALL errors before JSON output
+error_reporting(0);
+ini_set('display_errors', 0);
 
-ini_set('display_errors', '0');
-error_reporting(E_ALL);
+// Set headers FIRST
 header('Content-Type: application/json');
-session_start();
 
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['error' => 'Not logged in']);
-    exit;
+// Start output buffering
+ob_start();
+
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../app/Models/AppointmentModel.php';
+try {
+    // Check authentication
+    if (!isset($_SESSION['user_id'])) {
+        ob_end_clean();
+        echo json_encode(['success' => false, 'error' => 'Not logged in']);
+        exit;
+    }
 
-$model = new AppointmentModel($conn);
+    require_once __DIR__ . '/../../config/config.php';
+    require_once __DIR__ . '/../../app/Models/AppointmentModel.php';
 
-$patient_id = $_SESSION['user_id'];
-$treatment_type = $_POST['treatment_type'] ?? '';
-$appointment_date = $_POST['appointment_date'] ?? '';
-$appointment_time = $_POST['appointment_time'] ?? '';
-$patient_name = $_POST['patient_name'] ?? '';
-$email = $_POST['email'] ?? '';
-$phone = $_POST['phone'] ?? '';
-$age = intval($_POST['age'] ?? 0);
-$gender = $_POST['gender'] ?? '';
-$payment_method = $_POST['payment_method'] ?? 'onsite';
+    $model = new AppointmentModel($conn);
 
-if (!$treatment_type || !$appointment_date || !$appointment_time || !$patient_name) {
-    echo json_encode(['error' => 'Missing required fields']);
-    exit;
+    // Get POST data
+    $patient_id = $_SESSION['user_id'];
+    $doctor_id = intval($_POST['doctor_id'] ?? 0);
+    $doctor_name = trim($_POST['doctor_name'] ?? '');
+    $appointment_date = trim($_POST['appointment_date'] ?? '');
+    $appointment_time = trim($_POST['appointment_time'] ?? '');
+    $patient_name = trim($_POST['patient_name'] ?? '');
+    $age = intval($_POST['age'] ?? 0);
+    $gender = trim($_POST['gender'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $payment_method = trim($_POST['payment_method'] ?? 'onsite');
+
+    // Validate required fields
+    if (!$doctor_id || !$appointment_date || !$appointment_time || !$patient_name) {
+        ob_end_clean();
+        echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+        exit;
+    }
+
+    // Book consultation using model
+    $appointment_id = $model->bookConsultation(
+        $patient_id,
+        $doctor_id,
+        $appointment_date,
+        $appointment_time,
+        $patient_name,
+        $email,
+        $phone,
+        $age,
+        $gender,
+        $payment_method
+    );
+
+    if ($appointment_id) {
+        ob_end_clean();
+        echo json_encode([
+            'success' => true,
+            'appointment_id' => $appointment_id,
+            'message' => 'Consultation booked successfully'
+        ]);
+    } else {
+        ob_end_clean();
+        echo json_encode(['success' => false, 'error' => 'Failed to book consultation']);
+    }
+
+} catch (Exception $e) {
+    ob_end_clean();
+    echo json_encode(['success' => false, 'error' => 'Server error: ' . $e->getMessage()]);
 }
 
-$appointment_id = $model->bookTreatment(
-    $patient_id, $treatment_type, $appointment_date, $appointment_time,
-    $patient_name, $email, $phone, $age, $gender, $payment_method
-);
-
-if ($appointment_id) {
-    echo json_encode(['success' => true, 'appointment_id' => $appointment_id]);
-} else {
-    echo json_encode(['error' => 'Failed to book treatment']);
-}
+exit;
 ?>

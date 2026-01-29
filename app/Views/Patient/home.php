@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 $userType = $isLoggedIn ? $_SESSION['user_type'] : '';
@@ -270,7 +271,7 @@ if ($isLoggedIn && !empty($userName)) {
                     <li><a href="treatment.php" class="footer-link">Treatments</a></li>
                     <li><a href="learn_more.php" class="footer-link">About Us</a></li>
                     <li><a href="channeling.php" class="footer-link">Booking</a></li>
-                    <li><a href="#" class="footer-link">Contacts</a></li>
+                    <li><a href="contact_us.php" class="footer-link">Contacts</a></li>
                 </ul>
             </div>
             <div class="footer-column">

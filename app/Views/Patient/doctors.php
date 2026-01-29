@@ -41,10 +41,10 @@
             <div class="doctor-card">
                 <div class="availability-indicator">Available</div>
                 <div class="doctor-image">
-                    <img src="/dheergayu/public/assets/images/Patient/doctor-2.png" alt="Dr. L.M. Perera" class="doctor-photo">
+                    <img src="/dheergayu/public/assets/images/Patient/doctor-2.png" alt="Dr. L.M. Silva" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
-                    <h2 class="doctor-name">Dr. L.M. Perera</h2>
+                    <h2 class="doctor-name">Dr. L.M. Silva</h2>
                     <div class="doctor-specialty">Senior Ayurvedic Physician</div>
                     <div class="doctor-experience">
                         <div class="experience-icon">15</div>
@@ -69,10 +69,10 @@
             <div class="doctor-card">
                 <div class="availability-indicator limited">Limited Slots</div>
                 <div class="doctor-image">
-                    <img src="/dheergayu/public/assets/images/Patient/doctor-3.png" alt="Dr. K. Jayawardena" class="doctor-photo">
+                    <img src="/dheergayu/public/assets/images/Patient/doctor-3.png" alt="Dr. K. Fernando" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
-                    <h2 class="doctor-name">Dr. K. Jayawardena</h2>
+                    <h2 class="doctor-name">Dr. K. Fernando</h2>
                     <div class="doctor-specialty">Women's Health Specialist</div>
                     <div class="doctor-experience">
                         <div class="experience-icon">12</div>
@@ -97,10 +97,10 @@
             <div class="doctor-card">
                 <div class="availability-indicator">Available</div>
                 <div class="doctor-image">
-                    <img src="/dheergayu/public/assets/images/Patient/doctor-1.png" alt="Dr. A.T. Gunarathne" class="doctor-photo">
+                    <img src="/dheergayu/public/assets/images/Patient/doctor-1.png" alt="Dr. A.T. Perera" class="doctor-photo">
                 </div>
                 <div class="doctor-info">
-                    <h2 class="doctor-name">Dr. A.T. Gunarathne</h2>
+                    <h2 class="doctor-name">Dr. A.T. Perera</h2>
                     <div class="doctor-specialty">Chronic Disease Specialist</div>
                     <div class="doctor-experience">
                         <div class="experience-icon">8</div>
