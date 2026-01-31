@@ -1,8 +1,7 @@
 /* ===========================
-   GOOGLE FONT IMPORT - INTER & HOMEMADE
+   GOOGLE FONT IMPORT - INTER
    =========================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap');
 
 /* ===========================
    SIDEBAR STYLES (VERTICAL)
@@ -12,7 +11,7 @@
 .header {
   background: #2d2d2d;
   color: #fff;
-  width: 200px;
+  width: 225px;
   min-height: 100vh;
   max-height: 100vh;
   position: fixed;
@@ -91,14 +90,15 @@
 
 /* Title */
 .header-title {
-  font-family: 'Homemade Apple', cursive;
-  font-size: 1.2rem;
-  font-weight: 400;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.3rem;
+  font-weight: 700;
   letter-spacing: 0.3px;
   margin: -1.8rem 0 0 0;
   color: #FFB84D;
   text-align: center;
   position: relative;
+  text-transform: uppercase;
 }
 
 /* Navigation links */
@@ -259,7 +259,7 @@
 
 /* Main content wrapper - add margin for sidebar */
 body.has-sidebar {
-  margin-left: 200px;
+  margin-left: 225px;
 }
 
 /* ===========================
