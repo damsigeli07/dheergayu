@@ -1,5 +1,5 @@
 <?php
-// Product create and update handler
+// Product create and update handler for both products and patient_products tables
 header('Content-Type: application/json');
 session_start();
 
@@ -14,6 +14,17 @@ try {
     if ($db->connect_error) {
         throw new Exception("Database connection failed: " . $db->connect_error);
     }
+
+    // Get form data
+    $product_id = (int)($_POST['product_id'] ?? 0);
+    $product_name = trim($_POST['product_name'] ?? '');
+    $product_price = (float)($_POST['product_price'] ?? 0);
+    $product_description = trim($_POST['product_description'] ?? '');
+    $product_type = trim($_POST['product_type'] ?? 'admin'); // 'admin' or 'patient'
+    $action = $_POST['action'] ?? '';
+
+    // Determine which table to use
+    $table_name = ($product_type === 'patient') ? 'patient_products' : 'products';
 
     // Handle image upload
     $image_path = null;
@@ -32,7 +43,7 @@ try {
         }
         
         // Generate unique filename
-        $filename = preg_replace('/[^a-zA-Z0-9]/', '_', $_POST['product_name'] ?? 'product') . '_' . time() . '_' . uniqid() . '.' . $file_extension;
+        $filename = preg_replace('/[^a-zA-Z0-9]/', '_', $product_name ?: 'product') . '_' . time() . '_' . uniqid() . '.' . $file_extension;
         $target_path = $upload_dir . $filename;
         
         if (move_uploaded_file($_FILES['product_image']['tmp_name'], $target_path)) {
@@ -44,18 +55,10 @@ try {
         }
     }
 
-    // Get form data
-    $product_id = (int)($_POST['product_id'] ?? 0);
-    $product_name = trim($_POST['product_name'] ?? '');
-    $product_price = (float)($_POST['product_price'] ?? 0);
-    $product_description = trim($_POST['product_description'] ?? '');
-    $product_type = trim($_POST['product_type'] ?? 'admin'); // Default to 'admin' if not specified
-    $action = $_POST['action'] ?? '';
-
     // Check if this is a get operation (for editing)
     if ($action === 'get' && $product_id > 0) {
         try {
-            $stmt = $db->prepare("SELECT product_id, name, price, description, image FROM products WHERE product_id = ?");
+            $stmt = $db->prepare("SELECT product_id, name, price, description, image FROM $table_name WHERE product_id = ?");
             $stmt->bind_param('i', $product_id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -80,7 +83,7 @@ try {
     if ($action === 'delete' && $product_id > 0) {
         try {
             // Get product to delete image
-            $stmt_get = $db->prepare("SELECT image FROM products WHERE product_id = ?");
+            $stmt_get = $db->prepare("SELECT image FROM $table_name WHERE product_id = ?");
             $stmt_get->bind_param('i', $product_id);
             $stmt_get->execute();
             $result_get = $stmt_get->get_result();
@@ -94,14 +97,14 @@ try {
             
             // Delete image file if exists
             if (!empty($product['image'])) {
-                $image_path = __DIR__ . '/../../public/assets/images/Admin/' . str_replace('images/', '', $product['image']);
-                if (file_exists($image_path)) {
-                    @unlink($image_path);
+                $image_file_path = __DIR__ . '/../../public/assets/images/Admin/' . str_replace('images/', '', $product['image']);
+                if (file_exists($image_file_path)) {
+                    @unlink($image_file_path);
                 }
             }
             
-            // Delete from products table
-            $stmt = $db->prepare("DELETE FROM products WHERE product_id = ?");
+            // Delete from appropriate table
+            $stmt = $db->prepare("DELETE FROM $table_name WHERE product_id = ?");
             $stmt->bind_param('i', $product_id);
             
             if ($stmt->execute()) {
@@ -132,48 +135,38 @@ try {
 
     // Check if this is an update (has product_id) or create (no product_id)
     if ($product_id > 0) {
-        // UPDATE existing product
+        // UPDATE existing product - PRESERVE THE EXISTING ID
         // Get existing product to check for old image
-        $stmt_check = $db->prepare("SELECT image FROM products WHERE product_id = ?");
+        $stmt_check = $db->prepare("SELECT image FROM $table_name WHERE product_id = ?");
         $stmt_check->bind_param('i', $product_id);
         $stmt_check->execute();
         $result_check = $stmt_check->get_result();
         $existing_product = $result_check->fetch_assoc();
         $stmt_check->close();
         
-        // If new image uploaded, delete old image and use new one; otherwise keep existing
+        if (!$existing_product) {
+            $db->close();
+            echo json_encode(['success' => false, 'message' => 'Product with ID ' . $product_id . ' not found in ' . $table_name]);
+            exit;
+        }
+        
+        // If new image uploaded, use new one; otherwise keep existing
+        // DO NOT delete old image - keep it in case user wants to revert
         $final_image_path = $image_path;
-        if ($image_path && $existing_product && !empty($existing_product['image'])) {
-            // Delete old image file
-            $old_image_path = __DIR__ . '/../../public/assets/images/Admin/' . str_replace('images/', '', $existing_product['image']);
-            if (file_exists($old_image_path)) {
-                @unlink($old_image_path);
-            }
-        } elseif (!$image_path && $existing_product) {
+        if (!$image_path && $existing_product) {
             // Keep existing image if no new image uploaded
             $final_image_path = $existing_product['image'];
         }
+        // Note: We keep the old image file even if a new one is uploaded
+        // This prevents accidental deletion and allows recovery if needed
 
-        // Check if product_type column exists
-        $checkColumn = $db->query("SHOW COLUMNS FROM products LIKE 'product_type'");
-        $hasProductType = ($checkColumn && $checkColumn->num_rows > 0);
-        
+        // Update product (preserving product_id)
         if ($final_image_path) {
-            if ($hasProductType) {
-                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ?, image = ?, product_type = ? WHERE product_id = ?");
-                $stmt->bind_param('sdsssi', $product_name, $product_price, $product_description, $final_image_path, $product_type, $product_id);
-            } else {
-                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ?, image = ? WHERE product_id = ?");
-                $stmt->bind_param('sdssi', $product_name, $product_price, $product_description, $final_image_path, $product_id);
-            }
+            $stmt = $db->prepare("UPDATE $table_name SET name = ?, price = ?, description = ?, image = ? WHERE product_id = ?");
+            $stmt->bind_param('sdssi', $product_name, $product_price, $product_description, $final_image_path, $product_id);
         } else {
-            if ($hasProductType) {
-                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ?, product_type = ? WHERE product_id = ?");
-                $stmt->bind_param('sdssi', $product_name, $product_price, $product_description, $product_type, $product_id);
-            } else {
-                $stmt = $db->prepare("UPDATE products SET name = ?, price = ?, description = ? WHERE product_id = ?");
-                $stmt->bind_param('sdsi', $product_name, $product_price, $product_description, $product_id);
-            }
+            $stmt = $db->prepare("UPDATE $table_name SET name = ?, price = ?, description = ? WHERE product_id = ?");
+            $stmt->bind_param('sdsi', $product_name, $product_price, $product_description, $product_id);
         }
         
         if ($stmt->execute()) {
@@ -182,31 +175,35 @@ try {
             $db->close();
             
             if ($affected_rows > 0) {
-                echo json_encode(['success' => true, 'message' => 'Product updated successfully']);
+                echo json_encode(['success' => true, 'message' => 'Product updated successfully', 'product_id' => $product_id]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'No product found with the given ID']);
+                echo json_encode(['success' => true, 'message' => 'Product updated successfully (no changes detected)', 'product_id' => $product_id]);
             }
         } else {
-            throw new Exception("Failed to execute update query: " . $stmt->error);
+            $error_msg = $stmt->error;
+            $stmt->close();
+            $db->close();
+            throw new Exception("Failed to execute update query: " . $error_msg);
         }
     } else {
         // CREATE new product
-        // Check if product name already exists
-        $stmt_check = $db->prepare("SELECT product_id FROM products WHERE name = ?");
+        // Check if product name already exists in the appropriate table
+        $stmt_check = $db->prepare("SELECT product_id FROM $table_name WHERE name = ?");
         $stmt_check->bind_param('s', $product_name);
         $stmt_check->execute();
         $result_check = $stmt_check->get_result();
         if ($result_check->num_rows > 0) {
             $stmt_check->close();
             $db->close();
-            echo json_encode(['success' => false, 'message' => 'Product with this name already exists']);
+            echo json_encode(['success' => false, 'message' => 'Product with this name already exists in ' . $table_name]);
             exit;
         }
         $stmt_check->close();
 
-        // Get next product_id
+        // Get next product_id from the appropriate table
+        // For admin products: IDs 5-12, for patient products: IDs 1-4
         $nextId = 1;
-        $res = $db->query("SELECT COALESCE(MAX(product_id), 0) + 1 AS next_id FROM products");
+        $res = $db->query("SELECT COALESCE(MAX(product_id), 0) + 1 AS next_id FROM $table_name");
         if ($res) {
             $row = $res->fetch_assoc();
             $nextId = (int)$row['next_id'];
@@ -217,22 +214,14 @@ try {
             $image_path = 'images/dheergayu.png';
         }
 
-        // Check if product_type column exists
-        $checkColumn = $db->query("SHOW COLUMNS FROM products LIKE 'product_type'");
-        $hasProductType = ($checkColumn && $checkColumn->num_rows > 0);
-        
-        if ($hasProductType) {
-            $stmt = $db->prepare("INSERT INTO products (product_id, name, price, description, image, product_type) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('isdsss', $nextId, $product_name, $product_price, $product_description, $image_path, $product_type);
-        } else {
-            $stmt = $db->prepare("INSERT INTO products (product_id, name, price, description, image) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param('isdss', $nextId, $product_name, $product_price, $product_description, $image_path);
-        }
+        // Insert into appropriate table
+        $stmt = $db->prepare("INSERT INTO $table_name (product_id, name, price, description, image) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param('isdss', $nextId, $product_name, $product_price, $product_description, $image_path);
 
         if ($stmt->execute()) {
             $stmt->close();
             $db->close();
-            echo json_encode(['success' => true, 'message' => 'Product created successfully']);
+            echo json_encode(['success' => true, 'message' => 'Product created successfully', 'product_id' => $nextId]);
         } else {
             throw new Exception("Failed to execute insert query: " . $stmt->error);
         }
@@ -243,4 +232,3 @@ try {
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }
 ?>
-
