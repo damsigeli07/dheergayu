@@ -1,16 +1,20 @@
 <?php
 // Fetch product data from database if editing
 $productId = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
+$productType = isset($_GET['product_type']) ? trim($_GET['product_type']) : (isset($_GET['product_type']) ? $_GET['product_type'] : 'admin');
 $productName = '';
 $productPrice = '';
 $productDescription = '';
 $currentImage = '';
 
+// Determine which table to use
+$table_name = ($productType === 'patient') ? 'patient_products' : 'products';
+
 if ($productId > 0) {
     // Fetch product data from database
     $db = new mysqli('localhost', 'root', '', 'dheergayu_db');
     if (!$db->connect_error) {
-        $stmt = $db->prepare("SELECT product_id, name, price, description, image FROM products WHERE product_id = ?");
+        $stmt = $db->prepare("SELECT product_id, name, price, description, image FROM $table_name WHERE product_id = ?");
         $stmt->bind_param('i', $productId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -32,7 +36,7 @@ if ($productId > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $productId ? 'Edit Product' : 'Add New Product' ?> - Admin Dashboard</title>
+    <title><?= $productId ? 'Edit ' . ucfirst($productType) . ' Product' : 'Add New ' . ucfirst($productType) . ' Product' ?> - Admin Dashboard</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/inventory-styles.css">
@@ -213,11 +217,13 @@ if ($productId > 0) {
     
     <main class="main-content">
         <div class="add-product-form">
-            <h2 class="form-title"><?= $productId ? 'Edit Product' : 'Add New Product' ?></h2>
+            <h2 class="form-title"><?= $productId ? 'Edit ' . ucfirst($productType) . ' Product' : 'Add New ' . ucfirst($productType) . ' Product' ?></h2>
             
             <form id="addProductForm" method="POST" enctype="multipart/form-data">
-                <?php if ($productId): ?>
-                <input type="hidden" name="product_id" value="<?= $productId ?>">
+                <input type="hidden" name="product_id" id="hidden_product_id" value="<?= $productId ?>">
+                <input type="hidden" name="product_type" id="hidden_product_type" value="<?= htmlspecialchars($productType) ?>">
+                <?php if ($productId > 0): ?>
+                <input type="hidden" name="is_edit" value="1">
                 <?php endif; ?>
                 
                 <!-- Product Name -->
@@ -259,7 +265,7 @@ if ($productId > 0) {
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit"><?= $productId ? 'Save Changes' : 'Add Product' ?></button>
+                    <button type="submit" class="btn-submit"><?= $productId ? 'Save Changes' : 'Add ' . ucfirst($productType) . ' Product' ?></button>
                     <a href="admininventory.php" class="btn-cancel">Cancel</a>
                 </div>
             </form>
@@ -286,17 +292,45 @@ if ($productId > 0) {
             e.preventDefault();
             const form = e.target;
             const data = new FormData(form);
-            const isEdit = data.get('product_id');
+            
+            // Get product_id and product_type from hidden fields
+            const hiddenProductId = document.getElementById('hidden_product_id');
+            const hiddenProductType = document.getElementById('hidden_product_type');
+            const productId = hiddenProductId ? parseInt(hiddenProductId.value) : 0;
+            const productType = hiddenProductType ? hiddenProductType.value : 'admin';
+            const isEdit = productId > 0;
+            
+            // Ensure product_id and product_type are always in the form data
+            data.set('product_id', productId.toString());
+            data.set('product_type', productType);
+            
+            console.log('Submitting form - product_id:', productId, 'isEdit:', isEdit);
+            console.log('Form data product_id:', data.get('product_id'));
+            
+            // Double-check: if we're editing, product_id must be > 0
+            if (isEdit && productId <= 0) {
+                alert('❌ Error: Product ID is missing. Cannot update product.');
+                console.error('Product ID missing for edit operation');
+                return;
+            }
+            
             const url = '/dheergayu/app/Controllers/ProductController.php';
             try {
                 const res = await fetch(url, { method: 'POST', body: data });
                 const result = await res.json();
                 
+                console.log('Server response:', result);
+                
                 if (result.success) {
-                    alert(isEdit ? '✅ Product updated successfully' : '✅ Product added successfully');
+                    if (isEdit) {
+                        alert('✅ Product updated successfully (ID: ' + productId + ')');
+                    } else {
+                        alert('✅ Product added successfully');
+                    }
                     window.location.href = 'admininventory.php';
                 } else {
                     alert('Error: ' + (result.message || 'Failed to save product'));
+                    console.error('Server error:', result);
                 }
             } catch (err) {
                 console.error('Error:', err);
