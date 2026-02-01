@@ -62,7 +62,6 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
             <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
             <a href="staffappointment.php" class="nav-btn">Appointment</a>
             <a href="staffhomeReports.php" class="nav-btn active">Reports</a>
-            <a href="staffroomallocation.php" class="nav-btn">Room Allocation</a>
         </nav>
         
         <div class="user-section">
@@ -129,68 +128,12 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-
-            <!-- Reports Section -->
-            <div class="reports-panel">
-                <div class="info-section">
-                    <h3>Patient Reports</h3>
-                    <!-- Search -->
-                    <div class="search-section">
-                        <form method="GET" class="search-form">
-                            <input type="text" name="search" placeholder="Search reports..." value="<?php echo htmlspecialchars($searchQuery); ?>" class="search-input">
-                            <button type="submit" class="search-btn">🔍</button>
-                        </form>
-                    </div>
-
-                    <!-- Reports Table -->
-                    <table class="suggestion-table">
-                        <thead>
-                            <tr>
-                                <th>Patient ID</th>
-                                <th>Patient Name</th>
-                                <th>Report File</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($filteredReports)): ?>
-                                <tr>
-                                    <td colspan="3" class="no-results">No reports found matching your search.</td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($filteredReports as $report): ?>
-                                    <tr>
-                                        <td><?php echo htmlspecialchars($report['patient_ID']); ?></td>
-                                        <td><?php echo htmlspecialchars($report['patient_name']); ?></td>
-                                        <td>
-                                            <a href="reports/<?php echo htmlspecialchars($report['report_file']); ?>" class="pdf-link" target="_blank">
-                                                <?php echo htmlspecialchars($report['report_file']); ?>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-
-                    <!-- Summary -->
-                    <div class="summary-section">
-                        <p>Total Reports: <?php echo count($filteredReports); ?></p>
-                        <?php if (!empty($searchQuery)): ?>
-                            <p>Search Results for: "<?php echo htmlspecialchars($searchQuery); ?>"</p>
-                            <a href="staffhomeReports.php" class="clear-search">Clear Search</a>
-                        <?php endif; ?>
-                    </div>
 
                     <!-- Actions -->
                     <div class="actions-section">
-                        <h3>Report Actions</h3>
-                        <div class="action-buttons">
-                            <button class="action-btn primary" onclick="window.print()">Print Report List</button>
-                            <button class="action-btn secondary" onclick="exportReports()">Export to Excel</button>
-                            <button class="action-btn tertiary" onclick="downloadChart()">Download Chart</button>
-                        </div>
+                       <div class="action-buttons">
+                          <button class="action-btn tertiary" onclick="downloadChart()">Download Chart</button>
+                       </div>
                     </div>
                 </div>
             </div>
