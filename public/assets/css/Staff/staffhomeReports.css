@@ -25,7 +25,7 @@ body {
 /* ================== Dashboard Layout ================== */
 .dashboard-content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 2rem;
 }
 
@@ -380,7 +380,7 @@ body {
 }
 
 .action-btn.tertiary {
-    background: linear-gradient(135deg, #17a2b8, #138496);
+    background: linear-gradient(135deg, #e9a046, #f0c653);
     color: white;
 }
 
