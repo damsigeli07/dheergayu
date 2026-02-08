@@ -169,7 +169,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                     },
                     title: {
                         display: true,
-                        text: 'Patient Bookings by Treatment',
+                        text: 'Scheduled Treatment',
                         font: {
                             size: 16,
                             weight: 'bold'

@@ -103,6 +103,9 @@ body {
 .status-completed { background-color: #28a745; color: white; }
 .status-in-progress { background-color: #007bff; color: white; }
 .status-pending { background-color: #ffc107; color: #212529; }
+.status-confirmed { background-color: #28a745; color: white; }
+.status-changerequested { background-color: #ff9800; color: white; }
+.status-inprogress { background-color: #007bff; color: white; }
 
 /* Responsive */
 @media (max-width: 768px) {
