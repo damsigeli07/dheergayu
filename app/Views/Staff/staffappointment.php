@@ -1,28 +1,72 @@
 <?php
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
-// Check if staff is logged in
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'staff') {
+// Check if user is logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header('Location: ../patient/login.php');
-    exit();
+    exit;
 }
 
-// Fetch appointments from database
-require_once __DIR__ . '/../../Models/AppointmentModel.php';
+// Check if user is staff
+$user_role = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? $_SESSION['role'] ?? '');
+if ($user_role !== 'staff') {
+    header('Location: ../patient/login.php');
+    exit;
+}
 
+// Fetch appointments from database - ALL appointments from ALL doctors
 $db = new mysqli('localhost', 'root', '', 'dheergayu_db');
-$appointmentModel = new AppointmentModel($db);
 
-// Fetch appointments from appointments table (same as doctor dashboard)
-$appointments = $appointmentModel->getAllDoctorAppointments();
-
-// If no appointments found, use empty array
-if (!$appointments) {
-    $appointments = [];
+if ($db->connect_error) {
+    die("Connection failed: " . $db->connect_error);
 }
+
+// Get ALL appointments from all doctors (no filter)
+$stmt = $db->prepare("
+    SELECT 
+        id as appointment_id,
+        patient_id,
+        doctor_id,
+        doctor_name,
+        patient_no,
+        patient_name,
+        CONCAT(appointment_date, ' ', appointment_time) as appointment_datetime,
+        appointment_date,
+        appointment_time,
+        status,
+        notes as reason
+    FROM consultations 
+    WHERE treatment_type = 'General Consultation'
+    ORDER BY appointment_date DESC, appointment_time DESC
+");
+
+$stmt->execute();
+$result = $stmt->get_result();
+
+$appointments = [];
+while ($row = $result->fetch_assoc()) {
+    $appointments[] = $row;
+}
+$stmt->close();
+
+// Compute appointment counts
+$totalAppointments = count($appointments);
+$upcomingAppointments = 0;
+$completedAppointments = 0;
+$cancelledAppointments = 0;
+
+foreach ($appointments as $apt) {
+    $statusRaw = strtoupper(trim($apt['status'] ?? ''));
+    if ($statusRaw === 'PENDING' || $statusRaw === 'CONFIRMED') {
+        $upcomingAppointments++;
+    } elseif ($statusRaw === 'COMPLETED') {
+        $completedAppointments++;
+    } elseif ($statusRaw === 'CANCELLED') {
+        $cancelledAppointments++;
+    }
+}
+
+$db->close();
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +77,7 @@ if (!$appointments) {
     <title>Appointments - Ayurvedic System</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
-    <link rel="stylesheet" href="/dheergayu/public/assets/css/Staff/staffappointment.css?v=1.1">
+    <link rel="stylesheet" href="/dheergayu/public/assets/css/Doctor/doctordashboard.css">
     <style>
         .status-badge {
             padding: 6px 12px;
@@ -60,208 +104,144 @@ if (!$appointments) {
             border-color: #ffcdd2 !important;
         }
     </style>
-    <script>
-        function searchTable() {
-            const input = document.querySelector('.search-input');
-            const filter = input.value.toLowerCase();
-            const table = document.querySelector('.appointments-table');
-            const rows = table.getElementsByTagName('tr');
+<script>
+var currentAppointmentId = null;
 
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName('td');
-                let found = false;
-                for (let j = 0; j < cells.length; j++) {
-                    if (cells[j].textContent.toLowerCase().includes(filter)) {
-                        found = true;
-                        break;
-                    }
-                }
-                rows[i].style.display = found ? '' : 'none';
-            }
-        }
-
-        function showCancelReason(btn, appointmentNo) {
-            const confirmBox = document.createElement('div');
-            confirmBox.style.position = 'fixed';
-            confirmBox.style.top = '0';
-            confirmBox.style.left = '0';
-            confirmBox.style.width = '100vw';
-            confirmBox.style.height = '100vh';
-            confirmBox.style.background = 'rgba(0,0,0,0.2)';
-            confirmBox.style.display = 'flex';
-            confirmBox.style.alignItems = 'center';
-            confirmBox.style.justifyContent = 'center';
-            confirmBox.style.zIndex = '9999';
-            confirmBox.innerHTML = `<div style="background:#f7fafc;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #b2bec3;text-align:center;max-width:350px;">
-                <p style='font-size:16px;margin-bottom:10px;'>Please provide a reason for cancellation:</p>
-                <textarea id='cancel-reason' style='width:90%;height:60px;border-radius:6px;border:1px solid #b2bec3;margin-bottom:18px;'></textarea><br>
-                <button id='cancel-no-btn' style='background:#b2dfdb;color:#333;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;'>No</button>
-                <button id='cancel-next-btn' style='background:#e57373;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;'>Next</button>
-            </div>`;
-            document.body.appendChild(confirmBox);
-            
-            document.getElementById('cancel-no-btn').addEventListener('click', function() {
-                document.body.removeChild(confirmBox);
-            });
-            
-            document.getElementById('cancel-next-btn').addEventListener('click', function() {
-                showFinalCancelConfirm(appointmentNo, confirmBox);
-            });
-        }
-
-        function showFinalCancelConfirm(appointmentNo, previousDialog) {
-            const reason = document.getElementById('cancel-reason').value.trim();
-            if (!reason) {
-                alert('Please enter a reason.');
-                return;
-            }
-            
-            document.body.removeChild(previousDialog);
-            
-            const confirmBox = document.createElement('div');
-            confirmBox.style.position = 'fixed';
-            confirmBox.style.top = '0';
-            confirmBox.style.left = '0';
-            confirmBox.style.width = '100vw';
-            confirmBox.style.height = '100vh';
-            confirmBox.style.background = 'rgba(0,0,0,0.2)';
-            confirmBox.style.display = 'flex';
-            confirmBox.style.alignItems = 'center';
-            confirmBox.style.justifyContent = 'center';
-            confirmBox.style.zIndex = '9999';
-            confirmBox.innerHTML = `<div style="background:#f7fafc;padding:30px 40px;border-radius:10px;box-shadow:0 2px 10px #b2bec3;text-align:center;max-width:350px;">
-                <p style='font-size:16px;margin-bottom:20px;'>Are you sure you want to cancel this appointment?</p>
-                <button id='final-cancel-no-btn' style='background:#b2dfdb;color:#333;padding:8px 18px;border:none;border-radius:6px;font-size:14px;margin-right:10px;cursor:pointer;'>No</button>
-                <button id='final-cancel-yes-btn' style='background:#e57373;color:#fff;padding:8px 18px;border:none;border-radius:6px;font-size:14px;cursor:pointer;'>Yes</button>
-            </div>`;
-            document.body.appendChild(confirmBox);
-            
-            document.getElementById('final-cancel-no-btn').addEventListener('click', function() {
-                document.body.removeChild(confirmBox);
-            });
-            
-            document.getElementById('final-cancel-yes-btn').addEventListener('click', function() {
-                submitCancelReason(appointmentNo, reason, confirmBox);
-            });
-        }
-
-        function submitCancelReason(appointmentNo, reason, dialogElement) {
-            document.body.removeChild(dialogElement);
-            
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/dheergayu/app/Controllers/AppointmentController.php', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    alert('Appointment cancelled!');
-                    setTimeout(function(){ location.reload(); }, 1200);
-                }
-            };
-            xhr.send('action=cancel&appointment_id=' + encodeURIComponent(appointmentNo) + '&reason=' + encodeURIComponent(reason));
-        }
-
-        function showCancelDetails(reason) {
-            alert('Cancellation Reason:\n' + reason);
-        }
-
-        function showConsultationModal(appointmentId) {
-            const modal = document.getElementById('consultationModal');
-            const content = document.getElementById('consultationContent');
-            content.innerHTML = '<p style="text-align: center; color: #999;">Loading consultation form...</p>';
-            modal.style.display = 'flex';
-            
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', '/dheergayu/app/Controllers/ConsultationFormController.php?action=get_consultation_form&appointment_id=' + appointmentId, true);
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        
-                        if (data && Object.keys(data).length > 0) {
-                            let html = '<div style="background: #f9f9f9; padding: 15px; border-radius: 6px;">';
-                            
-                            html += '<h3 style="color: #E6A85A; margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Patient Information</h3>';
-                            html += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">';
-                            html += '<p><strong>Name:</strong> ' + (data.first_name ? data.first_name + ' ' + (data.last_name || '') : 'N/A') + '</p>';
-                            html += '<p><strong>Age:</strong> ' + (data.age || 'N/A') + '</p>';
-                            html += '<p><strong>Gender:</strong> ' + (data.gender || 'N/A') + '</p>';
-                            html += '<p><strong>Contact:</strong> ' + (data.contact_info || 'N/A') + '</p>';
-                            html += '</div>';
-                            
-                            html += '<h3 style="color: #E6A85A; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Clinical Information</h3>';
-                            html += '<div style="margin-bottom: 20px;">';
-                            html += '<p><strong>Diagnosis:</strong></p>';
-                            html += '<p style="background: white; padding: 10px; border-radius: 4px; border-left: 3px solid #E6A85A;">' + (data.diagnosis || 'N/A') + '</p>';
-                            html += '</div>';
-                            
-                            if (data.recommended_treatment) {
-                                html += '<div style="margin-bottom: 20px;">';
-                                html += '<p><strong>Recommended Treatment:</strong></p>';
-                                html += '<p style="background: white; padding: 10px; border-radius: 4px; border-left: 3px solid #4CAF50;">' + data.recommended_treatment + '</p>';
-                                html += '</div>';
-                            }
-                            
-                            if (data.notes) {
-                                html += '<div style="margin-bottom: 20px;">';
-                                html += '<p><strong>Special Notes/Instructions:</strong></p>';
-                                html += '<p style="background: #fffbea; padding: 10px; border-radius: 4px; border-left: 3px solid #FFC107;">' + data.notes + '</p>';
-                                html += '</div>';
-                            }
-                            
-                            if (data.personal_products && data.personal_products !== '[]') {
-                                try {
-                                    const products = JSON.parse(data.personal_products);
-                                    if (products.length > 0) {
-                                        html += '<div style="margin-bottom: 20px;">';
-                                        html += '<p><strong>Prescribed Products:</strong></p>';
-                                        html += '<ul style="background: white; padding: 10px 10px 10px 25px; border-radius: 4px; margin: 0;">';
-                                        products.forEach(function(product) {
-                                            html += '<li>' + product.name + ' (Qty: ' + product.quantity + ')</li>';
-                                        });
-                                        html += '</ul>';
-                                        html += '</div>';
-                                    }
-                                } catch (e) {
-                                    // Invalid JSON, skip
-                                }
-                            }
-                            
-                            html += '<div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">';
-                            html += '<p style="font-size: 13px; color: #666; margin: 0;"><strong>Previous Visits:</strong> ' + (data.total_visits || '0') + '</p>';
-                            html += '</div>';
-                            
-                            html += '</div>';
-                            content.innerHTML = html;
-                        } else {
-                            content.innerHTML = '<p style="color: #999; text-align: center;">No consultation form data found.</p>';
+function showConsultationModal(appointmentId) {
+    currentAppointmentId = appointmentId;
+    var modal = document.getElementById('consultationModal');
+    var content = document.getElementById('consultationFormData');
+    content.innerHTML = '<div style="text-align:center;padding:40px;">Loading...</div>';
+    modal.style.display = 'flex';
+    
+    fetch('/dheergayu/app/Controllers/ConsultationFormController.php?action=get_consultation_form&appointment_id=' + appointmentId)
+        .then(r => r.json())
+        .then(data => {
+            if (data && Object.keys(data).length > 0) {
+                var html = '<table style="width:100%;border-collapse:separate;border-spacing:0 8px;">';
+                var allowed = {first_name:'First Name',last_name:'Last Name',age:'Age',gender:'Gender',
+                              diagnosis:'Diagnosis',personal_products:'Prescribed Products',
+                              recommended_treatment:'Recommended Treatment',notes:'Notes'};
+                
+                for (var key in data) {
+                    if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && allowed[key.toLowerCase()]) {
+                        var value = data[key] || '';
+                        if (key.toLowerCase() === 'personal_products') {
+                            try {
+                                var items = JSON.parse(value);
+                                value = Array.isArray(items) ? items.map(p => (p.product || '') + (p.qty ? ' x'+p.qty : '')).join(', ') : 'None';
+                            } catch(e) { value = value || 'None'; }
                         }
-                    } catch (e) {
-                        content.innerHTML = '<p style="color: #d32f2f; text-align: center;">Error loading consultation form: ' + e.message + '</p>';
+                        html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
+                        html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;">' + allowed[key.toLowerCase()] + '</td>';
+                        html += '<td style="padding:10px 16px;">' + value + '</td></tr>';
                     }
-                } else {
-                    content.innerHTML = '<p style="color: #d32f2f; text-align: center;">Server error loading consultation form.</p>';
                 }
-            };
-            
-            xhr.onerror = function() {
-                content.innerHTML = '<p style="color: #d32f2f; text-align: center;">Network error loading consultation form.</p>';
-            };
-            
-            xhr.send();
-        }
-
-        function closeConsultationModal() {
-            document.getElementById('consultationModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('consultationModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeConsultationModal();
+                content.innerHTML = html + '</table>';
+            } else {
+                content.innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;">No data found</div>';
             }
+        })
+        .catch(() => {
+            content.innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;">Error loading data</div>';
         });
-    </script>
+}
+
+function closeConsultationModal() {
+    document.getElementById('consultationModal').style.display = 'none';
+}
+
+function showCancelReason(appointmentId) {
+    var reason = prompt('Please enter reason for cancellation:');
+    if (!reason || !reason.trim()) return;
+    
+    fetch('/dheergayu/app/Controllers/AppointmentController.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'action=cancel&appointment_id=' + appointmentId + '&reason=' + encodeURIComponent(reason)
+    })
+    .then(r => r.text())
+    .then(result => {
+        if (result === 'success') {
+            alert('Appointment cancelled!');
+            location.reload();
+        } else {
+            alert('Error cancelling appointment');
+        }
+    });
+}
+
+function showCancelDetails(reason) {
+    alert('Cancellation Reason:\n' + reason);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const rows = document.querySelectorAll('.appointment-row');
+    const search = document.getElementById('search-input');
+    
+    let currentPage = 1, rowsPerPage = 10, filteredRows = Array.from(rows);
+    
+    function updatePagination() {
+        const total = filteredRows.length;
+        const pages = Math.ceil(total / rowsPerPage) || 1;
+        const start = total > 0 ? ((currentPage - 1) * rowsPerPage + 1) : 0;
+        const end = Math.min(currentPage * rowsPerPage, total);
+        
+        document.getElementById('pagination-info').textContent = `Showing ${start}-${end} of ${total} appointments`;
+        
+        const pageNums = document.getElementById('page-numbers');
+        pageNums.innerHTML = '';
+        for (let i = 1; i <= pages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = 'pagination-btn page-number' + (i === currentPage ? ' active' : '');
+            btn.onclick = () => showPage(i);
+            pageNums.appendChild(btn);
+        }
+        
+        document.getElementById('prev-page').disabled = currentPage === 1;
+        document.getElementById('next-page').disabled = currentPage === pages;
+    }
+    
+    function showPage(page) {
+        currentPage = page;
+        rows.forEach(r => r.style.display = 'none');
+        filteredRows.slice((page-1)*rowsPerPage, page*rowsPerPage).forEach(r => r.style.display = '');
+        updatePagination();
+    }
+    
+    function filter() {
+        const term = search.value.toLowerCase();
+        const tab = document.querySelector('.tab-btn.active').dataset.tab;
+        filteredRows = Array.from(rows).filter(r => {
+            const name = r.cells[2].textContent.toLowerCase();
+            const num = r.cells[1].textContent.toLowerCase();
+            const doctor = r.cells[3].textContent.toLowerCase();
+            const status = r.dataset.status;
+            return (tab === 'all' || status === tab) && (name.includes(term) || num.includes(term) || doctor.includes(term));
+        });
+        currentPage = 1;
+        showPage(1);
+    }
+    
+    tabs.forEach(b => b.onclick = function() {
+        tabs.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        filter();
+    });
+    
+    search.oninput = filter;
+    document.getElementById('prev-page').onclick = () => { if (currentPage > 1) showPage(currentPage - 1); };
+    document.getElementById('next-page').onclick = () => { 
+        const pages = Math.ceil(filteredRows.length / rowsPerPage);
+        if (currentPage < pages) showPage(currentPage + 1);
+    };
+    
+    updatePagination();
+    if (filteredRows.length > 0) showPage(1);
+});
+</script>
 </head>
 <body class="has-sidebar">
     <!-- Header with ribbon style -->
@@ -291,17 +271,39 @@ if (!$appointments) {
     </header>
 
     <main class="main-content">
-        <div class="content">
-            <div class="top-section">
-                <div class="page-title">
-                    <h2>Appointments</h2>
+        <!-- Appointments Section -->
+        <div id="appointments-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search by patient name or number" class="search-input" id="search-input">
                 </div>
-                <div class="action-section">
-                    <div class="search-section">
-                        <input type="text" class="search-input" placeholder="Search" onkeyup="searchTable()">
-                        <button class="search-btn" onclick="searchTable()">🔍</button>
-                    </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-number"><?= $totalAppointments ?></div>
+                    <div class="stat-label">Total Appointments</div>
                 </div>
+                <div class="stat-box">
+                    <div class="stat-number"><?= $upcomingAppointments ?></div>
+                    <div class="stat-label">Upcoming Appointments</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number"><?= $completedAppointments ?></div>
+                    <div class="stat-label">Completed Appointments</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number"><?= $cancelledAppointments ?></div>
+                    <div class="stat-label">Cancelled Appointments</div>
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <button class="tab-btn active" data-tab="all">All Appointments</button>
+                <button class="tab-btn" data-tab="upcoming">Upcoming Appointments</button>
+                <button class="tab-btn" data-tab="completed">Completed Appointments</button>
+                <button class="tab-btn" data-tab="cancelled">Cancelled Appointments</button>
             </div>
 
             <div class="table-container">
@@ -311,16 +313,16 @@ if (!$appointments) {
                             <th>Appointment ID</th>
                             <th>Patient No.</th>
                             <th>Patient Name</th>
+                            <th>Doctor Name</th>
                             <th>Date & Time</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <?php if (!empty($appointments)): ?>
-                            <?php foreach ($appointments as $apt): ?>
+                    <tbody id="appointments-tbody">
+                        <?php if (!empty($appointments)) : ?>
+                            <?php foreach ($appointments as $apt) : ?>
                                 <?php
-                                    $statusUpper = strtoupper(isset($apt['status']) ? trim($apt['status']) : '');
+                                    $statusUpper = strtoupper(trim($apt['status'] ?? ''));
                                     if ($statusUpper === 'PENDING' || $statusUpper === 'CONFIRMED') {
                                         $status = 'Upcoming';
                                     } elseif ($statusUpper === 'COMPLETED') {
@@ -333,51 +335,48 @@ if (!$appointments) {
                                 ?>
                                 <tr class="appointment-row <?= strtolower($status) ?>" data-status="<?= strtolower($status) ?>">
                                     <td><?= htmlspecialchars($apt['appointment_id']) ?></td>
-                                    <td><?= htmlspecialchars($apt['patient_no']) ?></td>
+                                    <td><?= htmlspecialchars($apt['patient_no'] ?? 'N/A') ?></td>
                                     <td><?= htmlspecialchars($apt['patient_name']) ?></td>
+                                    <td><?= htmlspecialchars($apt['doctor_name'] ?? 'N/A') ?></td>
                                     <td><?= htmlspecialchars($apt['appointment_datetime']) ?></td>
                                     <td>
-                                        <?php if ($status === 'Upcoming') : ?>
-                                            <span class="status-badge upcoming">Upcoming</span>
-                                        <?php elseif ($status === 'Completed') : ?>
-                                            <span class="status-badge completed">Completed</span>
-                                        <?php elseif ($status === 'Cancelled') : ?>
-                                            <span class="status-badge cancelled">Cancelled</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="actions">
-                                        <?php if ($status === 'Upcoming') : ?>
-                                            <button class="btn-start" onclick="window.open('doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>', '_blank')">Start Consultation</button>
-                                            <button class="btn-cancel" onclick="showCancelReason(this, '<?= htmlspecialchars($apt['appointment_id']) ?>')">Cancel</button>
-                                        <?php elseif ($status === 'Completed') : ?>
-                                            <button class="btn-view" onclick="showConsultationModal(<?= htmlspecialchars($apt['appointment_id']) ?>)">View</button>
-                                        <?php elseif ($status === 'Cancelled') : ?>
-                                            <button class="btn-view" onclick="showCancelDetails('<?= htmlspecialchars($apt['reason'] ?? '') ?>')">View</button>
-                                        <?php endif; ?>
+                                        <span class="status-badge <?= strtolower($status) ?>"><?= $status ?></span>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr><td colspan="6">No appointments found.</td></tr>
+                        <?php else : ?>
+                            <tr><td colspan="6" style="text-align:center;padding:40px;">
+                                <p>No appointments found.</p>
+                                <p style="font-size:12px;color:#666;margin-top:10px;">
+                                    When patients book appointments with doctors, they will appear here.
+                                </p>
+                            </td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
+                
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span id="pagination-info">Showing <?= min(1, $totalAppointments) ?>-<?= min(10, $totalAppointments) ?> of <?= $totalAppointments ?> appointments</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="prev-page" class="pagination-btn" disabled>Previous</button>
+                        <span id="page-numbers"></span>
+                        <button id="next-page" class="pagination-btn">Next</button>
+                    </div>
+                </div>
             </div>
-
         </div>
     </main>
 
-    <!-- Consultation Form Modal -->
-    <div id="consultationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
-        <div style="background: white; border-radius: 8px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #E6A85A; padding-bottom: 15px;">
-                <h2 style="margin: 0; color: #333;">Consultation Form</h2>
-                <button onclick="closeConsultationModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">×</button>
+    <!-- Consultation Modal -->
+    <div id="consultationModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+        <div id="consultationModalContent" style="background:linear-gradient(135deg,#f8fafc 0%,#e3e6f3 100%);padding:0;border-radius:16px;box-shadow:0 4px 24px #333;max-width:520px;width:90%;margin:auto;position:relative;">
+            <div style="padding:24px 32px 16px 32px;border-radius:16px 16px 0 0;background:#E6A85A;color:#fff;display:flex;align-items:center;justify-content:space-between;">
+                <h2 style="margin:0;font-size:22px;font-weight:600;">Consultation Details</h2>
+                <button onclick="closeConsultationModal()" style="background:#fff;color:#E6A85A;border:none;border-radius:50%;width:32px;height:32px;font-size:20px;cursor:pointer;">&times;</button>
             </div>
-            
-            <div id="consultationContent" style="color: #333; font-size: 14px; line-height: 1.6;">
-                <p style="text-align: center; color: #999;">Loading...</p>
-            </div>
+            <div id="consultationFormData" style="padding:24px 32px 32px 32px;max-height:70vh;overflow-y:auto;"></div>
         </div>
     </div>
 </body>
