@@ -35,7 +35,6 @@ $staff = [
         </div>
         
         <nav class="navigation">
-            <a href="staffhome.php" class="nav-btn">Home</a>
             <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
             <a href="staffappointment.php" class="nav-btn">Appointment</a>
             <a href="staffhomeReports.php" class="nav-btn">Reports</a>

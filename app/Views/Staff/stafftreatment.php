@@ -178,7 +178,6 @@ $db->close();
         </div>
         
         <nav class="navigation">
-            <a href="staffhome.php" class="nav-btn">Home</a>
             <button class="nav-btn active">
                 Treatment Schedule
                 <?php if ($pending_plans + $change_requested_plans > 0): ?>
