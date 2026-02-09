@@ -1,28 +1,46 @@
 <?php
-// Sample data - In a real application, this would come from a database
-$reports = [
-    ['patient_ID' => 'P12352', 'patient_name' => 'Arjun Patel', 'report_file' => '1001.pdf'],
-    ['patient_ID' => 'P12341', 'patient_name' => 'Priya Sharma', 'report_file' => '1002.pdf'],
-    ['patient_ID' => 'P12363', 'patient_name' => 'Ravi Kumar', 'report_file' => '1008.pdf'],
-    ['patient_ID' => 'P12361', 'patient_name' => 'Maya Singh', 'report_file' => '1010.pdf'],
-    ['patient_ID' => 'P12356', 'patient_name' => 'Suresh Reddy', 'report_file' => '1012.pdf'],
-    ['patient_ID' => 'P12368', 'patient_name' => 'Deepa Nair', 'report_file' => '1030.pdf']
-];
+require_once __DIR__ . '/../../../config/config.php';
 
-// Treatment data for chart - In real application, this would come from database
-$treatmentData = [
-    ['treatment' => 'Udwarthana', 'patients' => 45, 'color' => '#FFB84D'],
-    ['treatment' => 'Nasya Karma', 'patients' => 38, 'color' => '#FF8C42'],
-    ['treatment' => 'Shirodhara Therapy', 'patients' => 32, 'color' => '#E6A85A'],
-    ['treatment' => 'Basti', 'patients' => 28, 'color' => '#D4A574'],
-    ['treatment' => 'Panchakarma Detox', 'patients' => 76, 'color' => '#FFB84D'],
-    ['treatment' => 'Vashpa Sweda', 'patients' => 24, 'color' => '#FF8C42'],
-    ['treatment' => 'Abhyanga Massage', 'patients' => 19, 'color' => '#E6A85A'],
-    ['treatment' => 'Elakizhi', 'patients' => 15, 'color' => '#D4A574']
-];
+// Fetch all treatments and patient counts
+$treatmentData = [];
+$totalPatients = 0;
+
+$sql = "
+    SELECT 
+        tl.treatment_name,
+        COUNT(DISTINCT CASE 
+            WHEN tp.status IN ('Confirmed', 'InProgress', 'Completed') 
+            THEN tp.patient_id 
+        END) AS patients
+    FROM treatment_list tl
+    LEFT JOIN treatment_plans tp 
+        ON tp.treatment_id = tl.treatment_id
+    WHERE tl.status = 'Active'
+    GROUP BY tl.treatment_id
+    ORDER BY patients DESC
+";
+
+
+$result = $conn->query($sql);
+
+$colors = ['#FFB84D', '#FF8C42', '#E6A85A', '#D4A574'];
+$colorIndex = 0;
+
+while ($row = $result->fetch_assoc()) {
+    $treatmentData[] = [
+        'treatment' => $row['treatment_name'],
+        'patients'  => (int)$row['patients'],
+        'color'     => $colors[$colorIndex % count($colors)]
+    ];
+    $totalPatients += $row['patients'];
+    $colorIndex++;
+}
+
+$totalTreatments = count($treatmentData);
+
 
 // Search functionality
-$searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
+/*$searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filteredReports = $reports;
 
 if (!empty($searchQuery)) {
@@ -32,9 +50,20 @@ if (!empty($searchQuery)) {
                stripos($report['report_file'], $searchQuery) !== false;
     });
 }
+*/       
 
 // Get total patients for all treatments
-$totalPatients = array_sum(array_column($treatmentData, 'patients'));
+
+$mostPopular = 'N/A';
+$maxPatients = 0;
+
+foreach ($treatmentData as $t) {
+    if ($t['patients'] > $maxPatients) {
+        $maxPatients = $t['patients'];
+        $mostPopular = $t['treatment'];
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -58,7 +87,6 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
         </div>
         
         <nav class="navigation">
-            <a href="staffhome.php" class="nav-btn">Home</a>
             <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
             <a href="staffappointment.php" class="nav-btn">Appointment</a>
             <a href="staffhomeReports.php" class="nav-btn active">Reports</a>
@@ -89,7 +117,7 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                     <div class="chart-summary">
                         <div class="summary-item">
                             <span class="summary-label">Total Treatments:</span>
-                            <span class="summary-value"><?php echo count($treatmentData); ?></span>
+                            <span class="summary-value"><?php echo $totalTreatments; ?></span>
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Total Patients:</span>
@@ -97,7 +125,8 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Most Popular:</span>
-                            <span class="summary-value"><?php echo $treatmentData[4]['treatment']; ?></span>
+                            <span class="summary-value"><?php echo htmlspecialchars($mostPopular); ?></span>
+
                         </div>
                     </div>
 
@@ -187,9 +216,14 @@ $totalPatients = array_sum(array_column($treatmentData, 'patients'));
                         ticks: {
                             color: '#2d2d2d',
                             font: {
-                                size: 12
+                               size: 12
+                            },
+                            precision: 0,
+                            callback: function(value) {
+                               return Number.isInteger(value) ? value : null;
                             }
                         },
+
                         title: {
                             display: true,
                             text: 'Number of Patients',

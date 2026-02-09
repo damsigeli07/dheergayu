@@ -253,7 +253,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         
         <nav class="navigation">
-            <a href="staffhome.php" class="nav-btn">Home</a>
             <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
             <button class="nav-btn active">Appointment</button>
             <a href="staffhomeReports.php" class="nav-btn">Reports</a>
