@@ -343,38 +343,3 @@ POST Data: Array
     [doctor_name] => Dr. Silva
 )
 
-========== 2026-02-01 03:14:11 ==========
-Endpoint: book-consultation.php
-Session User ID: 3
-POST Data: Array
-(
-    [patient_name] => Amashi Vithanage
-    [age] => 22
-    [gender] => Female
-    [email] => patient1@gmail.com
-    [phone] => 1234567898
-    [treatment_type] => General Consultation
-    [appointment_date] => 2026-02-10
-    [appointment_time] => 09:00:00
-    [payment_method] => onsite
-    [doctor_id] => 15
-    [doctor_name] => Dr. Perera
-)
-
-========== 2026-02-01 03:19:19 ==========
-Endpoint: book-consultation.php
-Session User ID: 3
-POST Data: Array
-(
-    [patient_name] => Amashi Vithanage
-    [age] => 23
-    [gender] => Female
-    [email] => patient1@gmail.com
-    [phone] => 1234567898
-    [treatment_type] => General Consultation
-    [appointment_date] => 2026-02-02
-    [appointment_time] => 09:00:00
-    [payment_method] => onsite
-    [doctor_id] => 13
-    [doctor_name] => Dr. Silva
-)

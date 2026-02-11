@@ -2,7 +2,8 @@
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
 
-if (!isset($_SESSION['user_id']) || strtolower($_SESSION['role'] ?? '') !== 'doctor') {
+$user_role = strtolower($_SESSION['role'] ?? $_SESSION['user_type'] ?? '');
+if (!isset($_SESSION['user_id']) || ($user_role !== 'doctor' && $user_role !== 'staff')) {
     die('Access denied');
 }
 
