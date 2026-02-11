@@ -43,7 +43,6 @@ if (isset($conn) && $conn instanceof mysqli) {
       </div>
       
       <nav class="navigation">
-          <a href="supplierdashboard.php" class="nav-btn">Home</a>
           <button class="nav-btn active">Request</button>
       </nav>
       
@@ -73,14 +72,13 @@ if (isset($conn) && $conn instanceof mysqli) {
                         <th>Quantity</th>
                         <th>Request Date</th>
                         <th>Status</th>
-                        <th>Requested By</th>
                         <th>Action</th>
                     </tr>
                 </thead>
 
                 <tbody id="supplierRequestsBody">
                     <tr>
-                        <td colspan="6" style="text-align:center; padding: 20px;">
+                        <td colspan="5" style="text-align:center; padding: 20px;">
                             Loading product requests...
                         </td>
                     </tr>
@@ -103,7 +101,7 @@ function escapeHtml(str) {
 function buildActionButtons(request) {
     const disabled = request.status !== 'pending' ? 'disabled' : '';
     return `
-        <button class="btn delivered" data-request-id="${request.id}" ${disabled}>Delivered</button>
+        <button class="btn delivered" data-request-id="${request.id}" ${disabled}>Mark as Delivered</button>
     `;
 }
 
@@ -111,7 +109,7 @@ function renderRequests(requests) {
     if (!Array.isArray(requests) || requests.length === 0) {
         requestsBody.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align:center; padding: 20px;">
+                <td colspan="5" style="text-align:center; padding: 20px;">
                     No product requests yet. Pharmacists can send requests from their dashboard.
                 </td>
             </tr>
@@ -121,8 +119,7 @@ function renderRequests(requests) {
 
     const rows = requests.map((request) => {
         const status = (request.status || 'pending').toLowerCase();
-        const fullName = `${request.first_name ?? ''} ${request.last_name ?? ''}`.trim();
-        const requester = fullName !== '' ? fullName : `Pharmacist #${request.pharmacist_id ?? 'N/A'}`;
+        
 
         return `
             <tr>
@@ -134,7 +131,6 @@ function renderRequests(requests) {
                         ${escapeHtml(status.charAt(0).toUpperCase() + status.slice(1))}
                     </span>
                 </td>
-                <td>${escapeHtml(requester)}</td>
                 <td>${buildActionButtons(request)}</td>
             </tr>
         `;
@@ -149,7 +145,7 @@ function renderInitial() {
     } else {
         requestsBody.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align:center; padding: 20px;">
+                <td colspan="5" style="text-align:center; padding: 20px;">
                     No product requests yet. Pharmacists can send requests from their dashboard.
                 </td>
             </tr>
@@ -167,7 +163,7 @@ async function loadSupplierRequests() {
         } else {
             requestsBody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align:center; padding: 20px; color: #c0392b;">
+                    <td colspan="5" style="text-align:center; padding: 20px; color: #c0392b;">
                         ${escapeHtml(data.message || 'Failed to load requests.')}
                     </td>
                 </tr>

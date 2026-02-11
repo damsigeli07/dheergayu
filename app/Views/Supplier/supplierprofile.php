@@ -9,12 +9,12 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSI
 
 // Example data – in real case, fetch from database
 $supplier = [
-    'name' => 'S. Fernando',
-    'age' => 35,
-    'email' => 'supplier1@gmail.com',
-    'contact' => '+94 77 987 6543',
+    'name' => 'Natural Extracts Ltd.',
     'address' => '456 Supplier Street, Kandy, Sri Lanka',
-    'gender' => 'Male'
+    'contactperson' => 'Mr. Amal Fernando',
+    'email' => 'supplier3@gmail.com',
+    'contact' => '0765558899',
+    'regdate' => '2025-11-20',
 ];
 ?>
 
@@ -37,7 +37,6 @@ $supplier = [
         </div>
         
         <nav class="navigation">
-            <a href="supplierdashboard.php" class="nav-btn">Home</a>
             <a href="supplierrequest.php" class="nav-btn">Request</a>
         </nav>
         
@@ -53,7 +52,7 @@ $supplier = [
     </header>
     <main class="profile-container">
         <!-- Close button -->
-        <a href="supplierdashboard.php" class="btn-back">&times;</a>
+        <a href="supplierrequest.php" class="btn-back">&times;</a>
 
         <h1 class="profile-title">My Profile</h1>
         
@@ -68,8 +67,12 @@ $supplier = [
                 <span class="value"><?php echo $supplier['name']; ?></span>
             </div>
             <div class="profile-item">
-                <span class="label">Age:</span>
-                <span class="value"><?php echo $supplier['age']; ?></span>
+                <span class="label">Address:</span>
+                <span class="value"><?php echo $supplier['address']; ?></span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Contact Person:</span>
+                <span class="value"><?php echo $supplier['contactperson']; ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Email:</span>
@@ -80,12 +83,8 @@ $supplier = [
                 <span class="value"><?php echo $supplier['contact']; ?></span>
             </div>
             <div class="profile-item">
-                <span class="label">Address:</span>
-                <span class="value"><?php echo $supplier['address']; ?></span>
-            </div>
-            <div class="profile-item">
-                <span class="label">Gender:</span>
-                <span class="value"><?php echo $supplier['gender']; ?></span>
+                <span class="label">Reg. Date:</span>
+                <span class="value"><?php echo $supplier['regdate']; ?></span>
             </div>
         </div>
 

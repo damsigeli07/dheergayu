@@ -1,12 +1,12 @@
 <?php
 // Example data – in real case, fetch from database
 $supplier = [
-    'name' => 'S. Fernando',
-    'age' => 35,
-    'email' => 'supplier1@gmail.com',
-    'contact' => '+94 77 987 6543',
+    'name' => 'Natural Extracts Ltd.',
     'address' => '456 Supplier Street, Kandy, Sri Lanka',
-    'gender' => 'Male'
+    'contactperson' => 'Mr. Amal Fernando',
+    'email' => 'supplier3@gmail.com',
+    'contact' => '0765558899',
+    'regdate' => '2025-11-20',
 ];
 ?>
 
@@ -35,7 +35,6 @@ $supplier = [
         </div>
         
         <nav class="navigation">
-            <a href="supplierhome.php" class="nav-btn">Home</a>
             <a href="supplierrequest.php" class="nav-btn">Request</a>
         </nav>
         
@@ -61,8 +60,13 @@ $supplier = [
             </div>
             
             <div class="form-group">
-                <label for="age">Age:</label>
-                <input type="number" id="age" name="age" value="<?php echo $supplier['age']; ?>" required>
+                <label for="address">Address:</label>
+                <textarea id="address" name="address" rows="3" required><?php echo $supplier['address']; ?></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="contactperson">Contact Person:</label>
+                <input type="text" id="contactperson" name="contactperson" value="<?php echo $supplier['contactperson']; ?>" required>
             </div>
             
             <div class="form-group">
@@ -76,17 +80,9 @@ $supplier = [
             </div>
             
             <div class="form-group">
-                <label for="address">Address:</label>
-                <textarea id="address" name="address" rows="3" required><?php echo $supplier['address']; ?></textarea>
+                <label for="regdate">Reg Date:</label>
+                <input type="date" id="regdate" name="regdate" value="<?php echo $supplier['regdate']; ?>" required>
             </div>
-            
-            <div class="form-group">
-                <label for="gender">Gender:</label>
-                <select id="gender" name="gender" required>
-                    <option value="Male" <?php echo ($supplier['gender']=='Male')?'selected':''; ?>>Male</option>
-                    <option value="Female" <?php echo ($supplier['gender']=='Female')?'selected':''; ?>>Female</option>
-                    <option value="Other" <?php echo ($supplier['gender']=='Other')?'selected':''; ?>>Other</option>
-                </select>
             </div>
             
             <div class="form-actions">

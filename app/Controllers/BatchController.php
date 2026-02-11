@@ -19,28 +19,77 @@ class BatchController extends Controller {
     public function batches(): void {
         $productId = (int)($_GET['product_id'] ?? 0);
         if (!$productId) { $this->json(['error' => 'product_id required'], 400); return; }
-        $rows = $this->model->getBatchesByProductId($productId);
+        $productSource = $_GET['product_source'] ?? null;
+        $rows = $this->model->getBatchesByProductId($productId, $productSource);
         $this->json(['data' => $rows]);
     }
 
     public function create(): void {
-        $payload = $_POST;
-        $productId = isset($payload['product_id']) ? (int)$payload['product_id'] : null;
-        if (!$productId && isset($payload['product_name'])) {
-            $productId = $this->model->findProductIdByName($payload['product_name']);
-        }
-        if (!$productId) { $this->json(['error' => 'product_id required'], 400); return; }
+        try {
+            // Ensure no output before JSON
+            ob_clean();
+            
+            $payload = $_POST;
+            
+            // Validate required fields
+            $productId = isset($payload['product_id']) ? (int)$payload['product_id'] : null;
+            if (!$productId && isset($payload['product_name'])) {
+                $productId = $this->model->findProductIdByName($payload['product_name']);
+            }
+            if (!$productId) { 
+                $this->json(['success' => false, 'error' => 'product_id required'], 400); 
+                return; 
+            }
 
-        $ok = $this->model->createBatch(
-            $productId,
-            trim($payload['batch_number'] ?? ''),
-            (int)($payload['quantity'] ?? 0),
-            trim($payload['mfd'] ?? ''),
-            trim($payload['exp'] ?? ''),
-            trim($payload['supplier'] ?? ''),
-            trim($payload['status'] ?? 'Good')
-        );
-        $this->json(['success' => $ok]);
+            $batchNumber = trim($payload['batch_number'] ?? '');
+            if (empty($batchNumber)) {
+                $this->json(['success' => false, 'error' => 'batch_number is required'], 400);
+                return;
+            }
+            
+            // Log the batch number for debugging
+            error_log("BatchController::create - batch_number received: " . var_export($batchNumber, true));
+            error_log("BatchController::create - batch_number type: " . gettype($batchNumber));
+            error_log("BatchController::create - batch_number length: " . strlen($batchNumber));
+
+            $quantity = (int)($payload['quantity'] ?? 0);
+            if ($quantity <= 0) {
+                $this->json(['success' => false, 'error' => 'quantity must be greater than 0'], 400);
+                return;
+            }
+
+            $mfd = trim($payload['mfd'] ?? '');
+            $exp = trim($payload['exp'] ?? '');
+            $supplier = trim($payload['supplier'] ?? '');
+            
+            if (empty($mfd) || empty($exp) || empty($supplier)) {
+                $this->json(['success' => false, 'error' => 'mfd, exp, and supplier are required'], 400);
+                return;
+            }
+
+            $productSource = trim($payload['product_source'] ?? 'admin');
+            $status = trim($payload['status'] ?? 'Good');
+            
+            $ok = $this->model->createBatch(
+                $productId,
+                $productSource,
+                $batchNumber,
+                $quantity,
+                $mfd,
+                $exp,
+                $supplier,
+                $status
+            );
+            
+            if ($ok) {
+                $this->json(['success' => true]);
+            } else {
+                $this->json(['success' => false, 'error' => 'Failed to create batch. Check server logs for details.'], 500);
+            }
+        } catch (\Exception $e) {
+            error_log("BatchController::create error: " . $e->getMessage());
+            $this->json(['success' => false, 'error' => 'Server error: ' . $e->getMessage()], 500);
+        }
     }
 
     public function update(): void {
