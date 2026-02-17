@@ -1,0 +1,21 @@
+2026-02-02 08:17:03
+POST Data:
+Array
+(
+    [appointment_id] => 28
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => headache
+    [personal_products] => [{"product":"Chandanasawaya","qty":1}]
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"3","name":"Head Treatment","date":"2026-02-02","time":"14:00:00","description":"","price":3000,"booking_id":7}
+    [recommended_treatment] => Treatment: Head Treatment | Date: 2026-02-02 | Time: 14:00:00
+    [notes] => 
+)
+
+

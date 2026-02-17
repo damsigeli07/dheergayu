@@ -31,6 +31,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $db = getDbConnection();
         $db->begin_transaction();
+
+    
+    // DEBUG: Log received data
+    file_put_contents(
+        'C:/xampp/htdocs/dheergayu/debug_consultation.txt',
+        date('Y-m-d H:i:s') . "\n" .
+        "POST Data:\n" .
+        print_r($_POST, true) . "\n\n",
+        FILE_APPEND
+    );
+
+        error_log("POST data received: " . print_r($_POST, true));
         
         // Get and validate form data
         $appointment_id = intval($_POST['appointment_id'] ?? 0);
@@ -68,49 +80,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check_stmt->close();
         
         if ($existing) {
-            // UPDATE existing form
-            $stmt = $db->prepare("
-                UPDATE consultationforms SET
-                    first_name = ?,
-                    last_name = ?,
-                    age = ?,
-                    gender = ?,
-                    diagnosis = ?,
-                    personal_products = ?,
-                    notes = ?,
-                    updated_at = NOW()
-                WHERE appointment_id = ?
-            ");
+           // Get recommended_treatment from POST
+$recommended_treatment = trim($_POST['recommended_treatment'] ?? '');
+
+// UPDATE existing form
+$stmt = $db->prepare("
+    UPDATE consultationforms SET
+        first_name = ?,
+        last_name = ?,
+        age = ?,
+        gender = ?,
+        diagnosis = ?,
+        personal_products = ?,
+        recommended_treatment = ?,
+        notes = ?,
+        updated_at = NOW()
+    WHERE appointment_id = ?
+");
+
+if (!$stmt) {
+    throw new Exception("Update prepare error: " . $db->error);
+}
+
+$stmt->bind_param(
+    'ssisssssi',
+    $first_name, $last_name, $age, $gender,
+    $diagnosis, $personal_products, $recommended_treatment, $notes, $appointment_id
+);
             
-            if (!$stmt) {
-                throw new Exception("Update prepare error: " . $db->error);
-            }
-            
-            $stmt->bind_param(
-                'ssissssi',
-                $first_name, $last_name, $age, $gender,
-                $diagnosis, $personal_products, $notes, $appointment_id
-            );
-            
-        } else {
-            // INSERT new form
-            $stmt = $db->prepare("
-                INSERT INTO consultationforms (
-                    appointment_id, first_name, last_name, age, gender, 
-                    diagnosis, personal_products, notes, patient_no, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', NOW())
-            ");
-            
-            if (!$stmt) {
-                throw new Exception("Insert prepare error: " . $db->error);
-            }
-            
-            $stmt->bind_param(
-                'isssisss',
-                $appointment_id, $first_name, $last_name, $age, $gender,
-                $diagnosis, $personal_products, $notes
-            );
-        }
+       } else {
+    // INSERT new form
+    $stmt = $db->prepare("
+        INSERT INTO consultationforms (
+            appointment_id, first_name, last_name, age, gender, 
+            diagnosis, personal_products, recommended_treatment, notes, patient_no, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '', NOW())
+    ");
+    
+    if (!$stmt) {
+        throw new Exception("Insert prepare error: " . $db->error);
+    }
+    
+    $stmt->bind_param(
+        'ississsss',
+        $appointment_id, $first_name, $last_name, $age, $gender,
+        $diagnosis, $personal_products, $recommended_treatment, $notes
+    );
+}
         
         if (!$stmt->execute()) {
             throw new Exception("Failed to save consultation form: " . $stmt->error);
@@ -290,10 +306,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = $stmt->get_result();
             $form = $result->fetch_assoc();
             $stmt->close();
-            $db->close();
-            
+
+            $response = ['form' => $form ?? null];
+            $merged = [];
+
             if ($form) {
-                echo json_encode($form);
+                // If the form already contains a recommended treatment, prefer it
+                if (!empty($form['recommended_treatment'])) {
+                    $merged['recommended_treatment'] = $form['recommended_treatment'];
+                }
+
+                // 1) If linked to a single-session booking, fetch booking details
+                if (empty($merged['recommended_treatment']) && !empty($form['treatment_booking_id'])) {
+                    $booking_id = intval($form['treatment_booking_id']);
+                    $bst = $db->prepare("SELECT tb.booking_id, tb.booking_date, ts.slot_time, tl.treatment_name, tl.price FROM treatment_bookings tb
+                                         LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id
+                                         LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id
+                                         WHERE tb.booking_id = ? LIMIT 1");
+                    if ($bst) {
+                        $bst->bind_param('i', $booking_id);
+                        $bst->execute();
+                        $brow = $bst->get_result()->fetch_assoc();
+                        $bst->close();
+                        if ($brow) {
+                            $merged['recommended_treatment'] = "Treatment: " . ($brow['treatment_name'] ?? '') . " | Date: " . ($brow['booking_date'] ?? '') . " | Time: " . ($brow['slot_time'] ?? '');
+                            $merged['treatment_booking'] = $brow;
+                        }
+                    }
+                }
+
+                // 2) If still empty, look for a treatment plan linked to this appointment
+                if (empty($merged['recommended_treatment'])) {
+                    $pst = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tp.diagnosis, tl.treatment_name, tl.price
+                                         FROM treatment_plans tp
+                                         LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+                                         WHERE tp.appointment_id = ? LIMIT 1");
+                    if ($pst) {
+                        $pst->bind_param('i', $appointment_id);
+                        $pst->execute();
+                        $prow = $pst->get_result()->fetch_assoc();
+                        $pst->close();
+                        if ($prow) {
+                            $merged['recommended_treatment'] = "Treatment Plan: " . ($prow['treatment_name'] ?? '') . " | " . intval($prow['total_sessions']) . " sessions | Start: " . ($prow['start_date'] ?? '');
+                            $merged['treatment_plan'] = $prow;
+                        }
+                    }
+                }
+
+                // 3) Fallback: find most recent treatment plan for the patient (if any)
+                if (empty($merged['recommended_treatment'])) {
+                    $cst = $db->prepare("SELECT patient_id FROM consultations WHERE id = ? LIMIT 1");
+                    if ($cst) {
+                        $cst->bind_param('i', $appointment_id);
+                        $cst->execute();
+                        $crow = $cst->get_result()->fetch_assoc();
+                        $cst->close();
+                        $patient_id = intval($crow['patient_id'] ?? 0);
+                        if ($patient_id > 0) {
+                            $pst2 = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tl.treatment_name, tl.price
+                                                 FROM treatment_plans tp
+                                                 LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+                                                 WHERE tp.patient_id = ? ORDER BY tp.created_at DESC LIMIT 1");
+                            if ($pst2) {
+                                $pst2->bind_param('i', $patient_id);
+                                $pst2->execute();
+                                $prow2 = $pst2->get_result()->fetch_assoc();
+                                $pst2->close();
+                                if ($prow2) {
+                                    $merged['recommended_treatment'] = "Treatment Plan: " . ($prow2['treatment_name'] ?? '') . " | " . intval($prow2['total_sessions']) . " sessions | Start: " . ($prow2['start_date'] ?? '');
+                                    $merged['treatment_plan'] = $prow2;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $response['merged'] = $merged;
+            $db->close();
+
+            if ($form) {
+                echo json_encode($response);
             } else {
                 echo json_encode([]);
             }
@@ -301,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             error_log("Get consultation error: " . $e->getMessage());
             echo json_encode(['error' => $e->getMessage()]);
-        }
+        } 
     }
     
 } else {

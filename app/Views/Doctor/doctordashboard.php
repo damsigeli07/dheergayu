@@ -106,21 +106,22 @@ $doctorUserId = $doctorInfo['id'];
 // Get appointments
 $stmt = $db->prepare("
     SELECT 
-        id as appointment_id,
-        patient_id,
-        doctor_id,
-        doctor_name,
-        patient_no,
-        patient_name,
-        CONCAT(appointment_date, ' ', appointment_time) as appointment_datetime,
-        appointment_date,
-        appointment_time,
-        status,
-        notes as reason
-    FROM consultations 
-    WHERE (doctor_id = ? OR doctor_name LIKE ?) 
-    AND treatment_type = 'General Consultation'
-    ORDER BY appointment_date DESC, appointment_time DESC
+        c.id as appointment_id,
+        c.patient_id,
+        c.doctor_id,
+        c.doctor_name,
+        c.patient_no,
+        COALESCE(CONCAT(p.first_name, ' ', p.last_name), c.patient_name, 'Unknown Patient') as patient_name,
+        CONCAT(c.appointment_date, ' ', c.appointment_time) as appointment_datetime,
+        c.appointment_date,
+        c.appointment_time,
+        c.status,
+        c.notes as reason
+    FROM consultations c
+    LEFT JOIN patients p ON c.patient_id = p.id
+    WHERE (c.doctor_id = ? OR c.doctor_name LIKE ?) 
+    AND c.treatment_type = 'General Consultation'
+    ORDER BY c.appointment_date DESC, c.appointment_time DESC
 ");
 
 $doctorNamePattern = '%' . $doctorInfo['last_name'] . '%';
@@ -476,23 +477,49 @@ function showConsultationModal(appointmentId) {
         .then(data => {
             if (data && Object.keys(data).length > 0) {
                 var html = '<table style="width:100%;border-collapse:separate;border-spacing:0 8px;">';
-                var allowed = {first_name:'First Name',last_name:'Last Name',age:'Age',gender:'Gender',
-                              diagnosis:'Diagnosis',personal_products:'Prescribed Products',
-                              recommended_treatment:'Recommended Treatment',notes:'Notes'};
-                
-                for (var key in data) {
-                    if (data.hasOwnProperty(key) && key !== 'id' && key !== 'appointment_id' && allowed[key.toLowerCase()]) {
-                        var value = data[key] || '';
-                        if (key.toLowerCase() === 'personal_products') {
-                            try {
-                                var items = JSON.parse(value);
-                                value = Array.isArray(items) ? items.map(p => (p.product || '') + (p.qty ? ' x'+p.qty : '')).join(', ') : 'None';
-                            } catch(e) { value = value || 'None'; }
-                        }
-                        html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
-                        html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;">' + allowed[key.toLowerCase()] + '</td>';
-                        html += '<td style="padding:10px 16px;">' + value + '</td></tr>';
+                // Preferred source: raw consultationforms row (returned as data.form) so we reflect table values
+                var formData = data.form || {};
+                var allowed = {
+                    first_name: 'First Name',
+                    last_name: 'Last Name',
+                    age: 'Age',
+                    gender: 'Gender',
+                    diagnosis: 'Diagnosis',
+                    personal_products: 'Prescribed Products',
+                    recommended_treatment: 'Recommended Treatment',
+                    notes: 'Notes'
+                };
+
+                // Render rows for all allowed keys in order (show empty values as blank)
+                for (var key in allowed) {
+                    var value = '';
+                    if (formData && typeof formData[key] !== 'undefined' && formData[key] !== null) {
+                        // Prefer the raw form table value
+                        value = formData[key];
+                    } else if (data && data.merged && typeof data.merged[key] !== 'undefined' && data.merged[key] !== null) {
+                        // Fallback to merged data (consultation + patient + booking)
+                        value = data.merged[key];
+                    } else if (data && typeof data[key] !== 'undefined' && data[key] !== null) {
+                        // Historic fallback if controller returned flat data
+                        value = data[key];
+                    } else {
+                        value = '';
                     }
+
+                    if (key === 'personal_products') {
+                        try {
+                            var items = typeof value === 'string' ? JSON.parse(value || '[]') : value;
+                            if (Array.isArray(items)) {
+                                value = items.map(p => (p.product || '') + (p.qty ? ' x'+p.qty : '')).join(', ');
+                            } else {
+                                value = '';
+                            }
+                        } catch (e) { value = '' }
+                    }
+
+                    html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
+                    html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;">' + allowed[key] + '</td>';
+                    html += '<td style="padding:10px 16px;">' + (value || '') + '</td></tr>';
                 }
                 content.innerHTML = html + '</table>';
             } else {
@@ -612,6 +639,17 @@ document.addEventListener('DOMContentLoaded', function() {
     updatePagination();
     if (filteredRows.length > 0) showPage(1);
 });
+
+// Check URL parameters on page load to show treatment plans if needed
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const view = urlParams.get('view');
+    
+    if (view === 'treatment-plans') {
+        showTreatmentPlans();
+    }
+});
+
 </script>
 </body>
 </html>

@@ -18,7 +18,8 @@
     
     <nav class="navigation">
       <a href="doctordashboard.php" class="nav-btn">Appointments</a>
-      <button class="nav-btn active">Patient History</button>
+      <a href="doctordashboard.php?view=treatment-plans" class="nav-btn">Treatment Plans</a>
+      <a href="patienthistory.php" class="nav-btn active">Patient History</a>
       <a href="doctorreport.php" class="nav-btn">Reports</a>
     </nav>
     
@@ -50,7 +51,7 @@
               type="text"
               id="patient_no"
               name="patient_no"
-              placeholder="e.g., P001"
+              placeholder="e.g., P0001"
             />
           </div>
 

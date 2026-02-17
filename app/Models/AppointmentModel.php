@@ -112,16 +112,37 @@ class AppointmentModel {
         $doctorStmt->execute();
         $doctorResult = $doctorStmt->get_result();
         $doctor = $doctorResult->fetch_assoc();
-        $doctor_name = $doctor ? 'Dr. ' . $doctor['first_name'] . ' ' . $doctor['last_name'] : 'Unknown Doctor';
+        $doctor_name = $doctor ? 'Dr. ' . $doctor['last_name'] : 'Unknown Doctor';
         $doctorStmt->close();
         
-        // Generate patient number
-        $patientNoQuery = "SELECT MAX(CAST(SUBSTRING(patient_no, 2) AS UNSIGNED)) as max_no 
-                           FROM consultations WHERE patient_no IS NOT NULL";
-        $patientNoResult = $this->conn->query($patientNoQuery);
-        $row = $patientNoResult->fetch_assoc();
-        $nextNo = ($row['max_no'] ?? 0) + 1;
-        $patient_no = 'P' . str_pad($nextNo, 4, '0', STR_PAD_LEFT);
+        // FIXED: Get patient number from patients table instead of generating new one
+        $patientQuery = "SELECT patient_number FROM patients WHERE id = ? LIMIT 1";
+        $patientStmt = $this->conn->prepare($patientQuery);
+        $patientStmt->bind_param('i', $patient_id);
+        $patientStmt->execute();
+        $patientResult = $patientStmt->get_result();
+        $patientData = $patientResult->fetch_assoc();
+        
+        if ($patientData && $patientData['patient_number']) {
+            // Use existing patient number
+            $patient_no = $patientData['patient_number'];
+        } else {
+            // Fallback: Generate new patient number only if patient doesn't have one
+            // This should rarely happen if your patient registration is working correctly
+            $patientNoQuery = "SELECT MAX(CAST(SUBSTRING(patient_number, 2) AS UNSIGNED)) as max_no 
+                               FROM patients WHERE patient_number IS NOT NULL";
+            $patientNoResult = $this->conn->query($patientNoQuery);
+            $row = $patientNoResult->fetch_assoc();
+            $nextNo = ($row['max_no'] ?? 0) + 1;
+            $patient_no = 'P' . str_pad($nextNo, 4, '0', STR_PAD_LEFT);
+            
+            // Update the patient record with the new number
+            $updatePatientNo = $this->conn->prepare("UPDATE patients SET patient_number = ? WHERE id = ?");
+            $updatePatientNo->bind_param('si', $patient_no, $patient_id);
+            $updatePatientNo->execute();
+            $updatePatientNo->close();
+        }
+        $patientStmt->close();
         
         // Insert consultation
         $status = 'Pending';

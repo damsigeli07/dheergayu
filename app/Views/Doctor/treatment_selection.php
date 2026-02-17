@@ -1,17 +1,36 @@
 <?php
+require_once __DIR__ . '/../../../core/bootloader.php';
 // Popup-based treatment selector — returns selection to opener via postMessage
-$treatments = [
-    ['id' => 1, 'name' => 'Full Steam Treatment'],
-    ['id' => 2, 'name' => 'Shiro Dhara'],
-    ['id' => 3, 'name' => 'Head Treatment'],
-    ['id' => 4, 'name' => 'Eye Treatment'],
-    ['id' => 5, 'name' => 'Nasya Treatment'],
-    ['id' => 6, 'name' => 'Fat Burn Treatment'],
-    ['id' => 7, 'name' => 'Foot Treatment'],
-    ['id' => 8, 'name' => 'Facial Treatment'],
-];
+$treatments = [];
+try {
+    // Use Core Database if available
+    if (class_exists('\\Core\\Database')) {
+        $db = \Core\Database::connect();
+        $stmt = $db->prepare("SELECT treatment_id AS id, treatment_name AS name, price FROM treatment_list WHERE status = 'Active' ORDER BY treatment_name ASC");
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc()) {
+            $treatments[] = $row;
+        }
+        $stmt->close();
+    } else {
+        // Fallback to config DB connection for environments where Core isn't available
+        require_once __DIR__ . '/../../../config/config.php';
+        if (isset($conn) && $conn) {
+            $stmt = $conn->prepare("SELECT treatment_id AS id, treatment_name AS name, price FROM treatment_list WHERE status = 'Active' ORDER BY treatment_name ASC");
+            $stmt->execute();
+            $res = $stmt->get_result();
+            while ($row = $res->fetch_assoc()) {
+                $treatments[] = $row;
+            }
+            $stmt->close();
+        }
+    }
+} catch (Exception $e) {
+    $treatments = [];
+}
 $appointment_id = $_GET['appointment_id'] ?? '';
-$patient_id = $_GET['patient_id'] ?? '';
+$patient_id = $_GET['patient_id'] ?? ''; 
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,9 +69,10 @@ $patient_id = $_GET['patient_id'] ?? '';
             <select id="treatment_id">
                 <option value="">-- Choose Treatment Type --</option>
                 <?php foreach ($treatments as $t): ?>
-                    <option value="<?= $t['id'] ?>" data-name="<?= htmlspecialchars($t['name']) ?>"><?= htmlspecialchars($t['name']) ?></option>
+                    <option value="<?= $t['id'] ?>" data-name="<?= htmlspecialchars($t['name']) ?>" data-price="<?= htmlspecialchars($t['price']) ?>"><?= htmlspecialchars($t['name']) ?> - Rs <?= number_format($t['price'], 2) ?></option>
                 <?php endforeach; ?>
             </select>
+            <div class="hint" style="margin-top:6px;">Price: <strong id="treatment_price_display">Rs 0.00</strong></div>
         </div>
 
         <div class="field">
@@ -86,6 +106,11 @@ $patient_id = $_GET['patient_id'] ?? '';
     const slotsContainer = document.getElementById('time_slots_container');
     const slotsHint = document.getElementById('slots_hint');
 
+    function updatePriceDisplay(){
+        const price = parseFloat(treatmentSelect.selectedOptions[0]?.dataset.price || 0);
+        document.getElementById('treatment_price_display').textContent = 'Rs ' + price.toFixed(2);
+    }
+
     // min date = tomorrow
     (function setMinDate(){
         const today = new Date();
@@ -96,8 +121,10 @@ $patient_id = $_GET['patient_id'] ?? '';
         }
     })();
 
-    treatmentSelect.addEventListener('change', loadAvailableSlots);
+    treatmentSelect.addEventListener('change', function(){ updatePriceDisplay(); loadAvailableSlots(); });
     dateInput.addEventListener('change', loadAvailableSlots);
+    // initialize display
+    updatePriceDisplay();
 
     function loadAvailableSlots(){
     const tId = treatmentSelect.value;
@@ -216,7 +243,7 @@ $patient_id = $_GET['patient_id'] ?? '';
             body: form
         }).then(r => r.json()).then(resp => {
             if (resp && resp.success) {
-                const message = { type: 'treatment_selected', payload: { id: tId, name: tName, date: date, time: time, description: description, booking_id: resp.booking_id || null } };
+                const message = { type: 'treatment_selected', payload: { id: tId, name: tName, date: date, time: time, description: description, price: parseFloat(tEl.selectedOptions[0]?.dataset.price || 0), booking_id: resp.booking_id || null } };
                 if (window.opener) window.opener.postMessage(JSON.stringify(message), '*');
                 window.close();
             } else {
