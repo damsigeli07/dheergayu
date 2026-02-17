@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../../config/config.php';
 
 // Check if user is logged in and is a doctor
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {

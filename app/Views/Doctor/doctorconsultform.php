@@ -27,7 +27,7 @@ if ($appointment_id) {
     $stmt = $db->prepare("
         SELECT c.*, p.id as patient_id, p.first_name, p.last_name 
         FROM consultations c
-        LEFT JOIN users p ON c.patient_id = p.id
+        LEFT JOIN patients p ON c.patient_id = p.id
         WHERE c.id = ?
     ");
     $stmt->bind_param('i', $appointment_id);
@@ -276,6 +276,9 @@ function updateTreatmentButtons() {
 treatmentPlanRadios.forEach(r => r.addEventListener('change', updateTreatmentButtons));
 updateTreatmentButtons();
 
+// IMPORTANT: Set initial recommended_treatment value
+document.getElementById('recommended_treatment').value = 'No treatment needed';
+
 // Open schedule generator
 scheduleGeneratorBtn.addEventListener('click', function() {
     const appointmentId = document.querySelector('input[name="appointment_id"]').value;
@@ -359,15 +362,15 @@ document.getElementById('consultationForm').addEventListener('submit', function(
     const diagnosis = document.querySelector('textarea[name="diagnosis"]').value.trim();
     
     if (!firstName || !lastName || !age || !gender || !diagnosis) {
-        alert('Please fill in all required fields');
+        alert('Please fill in all required fields (including gender)');
         return;
     }
     
-    // Validate products
-    if (selectedProducts.length === 0) {
-        alert('Please add at least one prescribed product');
-        return;
-    }
+    // Make products optional (remove or comment out this validation)
+    // if (selectedProducts.length === 0) {
+    //     alert('Please add at least one prescribed product');
+    //     return;
+    // }
     
     // Ensure treatment choice is set
     const treatmentChoice = document.querySelector('input[name="treatment_plan_choice"]:checked')?.value;
@@ -379,6 +382,65 @@ document.getElementById('consultationForm').addEventListener('submit', function(
     // Submit form
     const formData = new FormData(this);
     const submitButton = e.submitter;
+    
+    // IMPORTANT: Add action parameter to URL
+    const url = '/dheergayu/app/Controllers/ConsultationFormController.php?action=save_consultation_form';
+    
+    // DEBUG: Log form data
+    console.log('=== FORM SUBMISSION DEBUG ===');
+    console.log('Gender:', formData.get('gender'));
+    console.log('Recommended Treatment:', formData.get('recommended_treatment'));
+    console.log('Personal Products:', formData.get('personal_products'));
+    console.log('Treatment Choice:', treatmentChoice);
+    console.log('All form data:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+    
+    // Disable submit button
+    submitButton.disabled = true;
+    submitButton.textContent = 'Saving...';
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Server response:', data);
+        if (data.status === 'success') {
+            alert('Consultation saved successfully!');
+            window.location.href = 'doctordashboard.php';
+        } else {
+            alert('Error: ' + (data.message || 'Failed to save'));
+            submitButton.disabled = false;
+            submitButton.textContent = submitButton.name === 'save_type' && submitButton.value === 'pharmacy' ? 'Send to Pharmacy' : 'Save';
+        }
+    })
+    .catch(err => {
+        console.error('Save error:', err);
+        alert('Error saving consultation form: ' + err.message);
+        submitButton.disabled = false;
+        submitButton.textContent = submitButton.name === 'save_type' && submitButton.value === 'pharmacy' ? 'Send to Pharmacy' : 'Save';
+    });
+});
+```
+
+## Step 3: Check Browser Console
+
+After making the changes above:
+
+1. **Open the consultation form**
+2. **Open browser console** (F12 → Console tab)
+3. **Fill in the form** (make sure to select a gender!)
+4. **Click Save**
+5. **Check the console** - you should see:
+```
+   === FORM SUBMISSION DEBUG ===
+   Gender: Male (or Female/Other)
+   Recommended Treatment: No treatment needed (or whatever was set)
+   Personal Products: [{"product":"...","qty":1}]
+   ...
     
     // Disable submit button
     submitButton.disabled = true;
