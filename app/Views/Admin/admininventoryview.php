@@ -392,7 +392,6 @@ $db->close();
                                     <th>Quantity</th>
                                     <th>Manufacturing Date</th>
                                     <th>Expiry Date</th>
-                                    <th>Supplier</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -422,7 +421,6 @@ $db->close();
                             <td>${batch.quantity}</td>
                             <td>${batch.mfd}</td>
                             <td>${batch.exp}</td>
-                            <td>${batch.supplier}</td>
                             <td><span class="status-badge ${statusClass}">${status}</span></td>
                         </tr>
                     `;

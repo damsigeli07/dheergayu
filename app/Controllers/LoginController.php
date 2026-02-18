@@ -35,18 +35,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    // Password is correct - Set session variables
+    // Use separate session for pharmacist so pharmacist/supplier can stay logged in in different tabs
+    $role = $user['role'];
+    if (strtolower($role) === 'pharmacist') {
+        session_write_close();
+        session_name('PHARMACIST_SID');
+        session_set_cookie_params(['path' => '/', 'httponly' => true]);
+        session_start();
+    }
+
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_email'] = $user['email'];
-    $_SESSION['user_role'] = $user['role'];
+    $_SESSION['user_role'] = $role;
     $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
     $_SESSION['logged_in'] = true;
-    
-    // Clear any login errors
-    unset($_SESSION['login_error']);
-    
-    // Redirect based on role
-    switch ($user['role']) {
+    if (isset($_SESSION['login_error'])) {
+        unset($_SESSION['login_error']);
+    }
+
+    switch (strtolower($role)) {
         case 'doctor':
             header('Location: /dheergayu/app/Views/Doctor/doctordashboard.php');
             exit;
@@ -58,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'pharmacist':
             header('Location: /dheergayu/app/Views/Pharmacist/pharmacistdashboard.php');
             exit;
-            
         case 'admin':
             header('Location: /dheergayu/app/Views/Admin/admindashboard.php');
             exit;

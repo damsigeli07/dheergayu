@@ -1,23 +1,59 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('PHARMACIST_SID');
+    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+    session_start();
+}
 require_once __DIR__ . '/../../../core/bootloader.php';
 
 use App\Models\BatchModel;
 
 $model = new BatchModel();
 
-// Get inventory overview from database
+// Get inventory overview from database for admin products
 $overview = $model->getInventoryOverview();
 
-// Get expiring items (within 30 days)
+// Get inventory overview for patient products
+$patientOverview = $model->getPatientProductsOverview();
+
+// Get expiring items (within 30 days) for both admin and patient products
 $expiringItems = [];
 $today = new DateTime();
 $thirtyDaysFromNow = clone $today;
 $thirtyDaysFromNow->modify('+30 days');
 
+// Check admin products
 foreach ($overview as $row) {
     $productId = $row['product_id'];
     $productName = $row['product'];
-    $batches = $model->getBatchesByProductId($productId);
+    $batches = $model->getBatchesByProductId($productId, 'admin');
+    
+    foreach ($batches as $batch) {
+        if ($batch['exp']) {
+            $expDate = new DateTime($batch['exp']);
+            if ($expDate <= $thirtyDaysFromNow && $expDate >= $today) {
+                // Group by product and expiry month
+                $expMonth = $expDate->format('M Y');
+                $key = $productName . '_' . $expMonth;
+                
+                if (!isset($expiringItems[$key])) {
+                    $expiringItems[$key] = [
+                        'product' => $productName,
+                        'expiry' => $expMonth,
+                        'count' => 0
+                    ];
+                }
+                $expiringItems[$key]['count'] += (int)$batch['quantity'];
+            }
+        }
+    }
+}
+
+// Check patient products
+foreach ($patientOverview as $row) {
+    $productId = $row['product_id'];
+    $productName = $row['product'];
+    $batches = $model->getBatchesByProductId($productId, 'patient');
     
     foreach ($batches as $batch) {
         if ($batch['exp']) {
@@ -45,7 +81,7 @@ usort($expiringItems, function($a, $b) {
     return strtotime($a['expiry']) - strtotime($b['expiry']);
 });
 
-// Prepare chart data
+// Prepare chart data for admin products
 $chartLabels = [];
 $chartData = [];
 $chartColors = [];
@@ -62,6 +98,26 @@ foreach ($overview as $row) {
         $chartColors[] = '#FF8C42'; // Low - Orange
     } else {
         $chartColors[] = '#FFB84D'; // Normal - Yellow
+    }
+}
+
+// Prepare chart data for patient products
+$patientChartLabels = [];
+$patientChartData = [];
+$patientChartColors = [];
+
+foreach ($patientOverview as $row) {
+    $qty = (int)$row['total_quantity'];
+    $patientChartLabels[] = $row['product'];
+    $patientChartData[] = $qty;
+    
+    // Color coding based on stock level
+    if ($qty <= 5) {
+        $patientChartColors[] = '#FF6B6B'; // Critical - Red
+    } elseif ($qty <= 15) {
+        $patientChartColors[] = '#FF8C42'; // Low - Orange
+    } else {
+        $patientChartColors[] = '#FFB84D'; // Normal - Yellow
     }
 }
 ?>
@@ -131,23 +187,26 @@ foreach ($overview as $row) {
                 <?php endif; ?>
             </div>
 
-            <!-- Main Chart -->
+            <!-- Admin Products Chart -->
             <div class="report-card full-width">
-                <h3>Stock Levels by Product</h3>
+                <h3>Admin Products - Stock Levels</h3>
                 <div class="chart-container">
                     <canvas id="stockChart"></canvas>
                 </div>
             </div>
 
-            <!-- Generate Report Button -->
-            <div class="generate-report-section">
-                <button class="btn-generate-report" onclick="generateReport()">📊 Generate Detailed Report</button>
+            <!-- Patient Products Chart -->
+            <div class="report-card full-width" style="margin-top: 2rem;">
+                <h3>Patient Products - Stock Levels</h3>
+                <div class="chart-container">
+                    <canvas id="patientStockChart"></canvas>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        // Stock Levels Chart - Using actual data from database
+        // Admin Products Stock Levels Chart
         const stockCtx = document.getElementById('stockChart').getContext('2d');
         const chartLabels = <?= json_encode($chartLabels) ?>;
         const chartData = <?= json_encode($chartData) ?>;
@@ -177,7 +236,7 @@ foreach ($overview as $row) {
                     x: {
                         title: {
                             display: true,
-                            text: 'Products'
+                            text: 'Admin Products'
                         },
                         ticks: {
                             maxRotation: 45,
@@ -195,29 +254,53 @@ foreach ($overview as $row) {
             }
         });
 
-        // Generate Report Function
-        function generateReport() {
-            // Show loading state
-            const button = document.querySelector('.btn-generate-report');
-            const originalText = button.innerHTML;
-            button.innerHTML = '⏳ Generating Report...';
-            button.disabled = true;
-
-            // Simulate report generation (replace with actual backend call)
-            setTimeout(() => {
-                // Here you would typically make an AJAX call to your backend
-                // For now, we'll just show a success message
-                button.innerHTML = '✅ Report Generated!';
-                button.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
-                
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                    button.style.background = 'linear-gradient(135deg, #7a9b57, #6B8E23)';
-                }, 3000);
-            }, 2000);
-        }
+        // Patient Products Stock Levels Chart
+        const patientStockCtx = document.getElementById('patientStockChart').getContext('2d');
+        const patientChartLabels = <?= json_encode($patientChartLabels) ?>;
+        const patientChartData = <?= json_encode($patientChartData) ?>;
+        const patientChartColors = <?= json_encode($patientChartColors) ?>;
+        
+        new Chart(patientStockCtx, {
+            type: 'bar',
+            data: {
+                labels: patientChartLabels,
+                datasets: [{
+                    label: 'Current Stock',
+                    data: patientChartData,
+                    backgroundColor: patientChartColors,
+                    borderColor: '#333',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Patient Products'
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Quantity'
+                        }
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>

@@ -88,6 +88,57 @@ body {
     box-shadow: 0 0 0 3px rgba(255, 184, 77, 0.1);
 }
 
+/* Products table (supplier order lines) */
+.products-section {
+    margin-top: 0.5rem;
+}
+.products-table-wrap {
+    margin-top: 0.5rem;
+    max-width: 100%;
+}
+.products-order-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.products-order-table thead {
+    background: #FFB84D;
+    color: #2d2d2d;
+}
+.products-order-table th {
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.products-order-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+    color: #2d2d2d;
+}
+.products-order-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.products-order-table .product-name-cell {
+    font-weight: 500;
+}
+.products-order-table .quantity-input {
+    width: 100%;
+    max-width: 120px;
+    padding: 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.products-order-table .quantity-input:focus {
+    outline: none;
+    border-color: #FFB84D;
+}
+
 .form-actions {
     display: flex;
     gap: 0.75rem;
@@ -203,6 +254,43 @@ body {
 .status-rejected {
     background: #f8d7da;
     color: #721c24;
+}
+
+.status-delivered {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* Request history actions */
+.actions-cell {
+    white-space: nowrap;
+}
+.btn-edit-order,
+.btn-cancel-order {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 0.35rem;
+    transition: opacity 0.2s;
+}
+.btn-edit-order:hover,
+.btn-cancel-order:hover {
+    opacity: 0.9;
+}
+.btn-edit-order {
+    background: #FFB84D;
+    color: #2d2d2d;
+}
+.btn-cancel-order {
+    background: #dc3545;
+    color: #fff;
+}
+.no-actions {
+    color: #999;
+    font-size: 0.9rem;
 }
 
 /* Modal */

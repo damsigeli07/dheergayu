@@ -1,5 +1,9 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('SUPPLIER_SID');
+    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+    session_start();
+}
 
 // Check if user is logged in and is a supplier
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['user_type'] !== 'supplier') {
