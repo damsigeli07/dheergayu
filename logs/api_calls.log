@@ -343,6 +343,7 @@ POST Data: Array
     [doctor_name] => Dr. Silva
 )
 
+<<<<<<< HEAD
 ========== 2026-02-18 06:03:31 ==========
 Endpoint: book-consultation.php
 Session User ID: 13
@@ -462,3 +463,5 @@ POST Data: Array
     [doctor_id] => 13
     [doctor_name] => Dr. Silva
 )
+=======
+>>>>>>> 49867761678610d7b2641c7e75a8cdf036183842

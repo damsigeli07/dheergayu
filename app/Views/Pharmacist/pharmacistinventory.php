@@ -1,4 +1,9 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('PHARMACIST_SID');
+    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+    session_start();
+}
 require_once __DIR__ . '/../../../core/bootloader.php';
 
 use App\Models\BatchModel;
@@ -344,17 +349,6 @@ $db->close();
                         <input type="date" name="exp" id="edit_exp" class="form-input" required>
                     </div>
                     <div class="form-group">
-                        <label for="edit_supplier">Supplier *</label>
-                        <select name="supplier" id="edit_supplier" class="form-input" required>
-                            <option value="">Select Supplier</option>
-                            <?php foreach($suppliers as $supplier): ?>
-                            <option value="<?php echo htmlspecialchars($supplier['supplier_name']); ?>">
-                                <?php echo htmlspecialchars($supplier['supplier_name']); ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label for="edit_status">Status</label>
                         <input type="text" id="edit_status" class="form-input" readonly style="background-color: #f8f9fa; color: #6c757d;">
                         <small class="form-help">Status is automatically calculated based on expiry date</small>
@@ -411,19 +405,6 @@ $db->close();
                         <label for="exp">Expiry Date *</label>
                         <input type="date" name="exp" id="exp" class="form-input" required min="">
                         <small class="form-help">Date when this batch expires (cannot be in the past)</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="supplier">Supplier *</label>
-                        <select name="supplier" id="supplier" class="form-input" required>
-                            <option value="">Select Supplier</option>
-                            <?php foreach($suppliers as $supplier): ?>
-                            <option value="<?php echo htmlspecialchars($supplier['supplier_name']); ?>">
-                                <?php echo htmlspecialchars($supplier['supplier_name']); ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <small class="form-help">Select the supplier for this batch</small>
                     </div>
 
                     <div class="form-actions">
@@ -574,7 +555,6 @@ $db->close();
                                     <th>Quantity</th>
                                     <th>Manufacturing Date</th>
                                     <th>Expiry Date</th>
-                                    <th>Supplier</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -616,7 +596,6 @@ $db->close();
                             <td>${batch.quantity}</td>
                             <td>${batch.mfd}</td>
                             <td>${batch.exp}</td>
-                            <td>${batch.supplier}</td>
                             <td><span class="status-badge ${statusClass}">${status}</span></td>
                             <td>
                             <button class="btn-edit-batch" data-product-name="${escapedProductName}" data-product-id="${productIdNum}" data-batch-number="${escapedBatchNumber}">Edit</button>
@@ -688,34 +667,6 @@ $db->close();
             document.getElementById('edit_quantity').value = batch.quantity;
             document.getElementById('edit_mfd').value = batch.mfd;
             document.getElementById('edit_exp').value = batch.exp;
-            
-            // Set supplier - trim and find matching option
-            const supplierSelect = document.getElementById('edit_supplier');
-            const supplierValue = (batch.supplier || '').trim();
-            supplierSelect.value = ''; // Reset first
-            
-            // Try exact match first
-            for (let option of supplierSelect.options) {
-                if (option.value.trim() === supplierValue) {
-                    option.selected = true;
-                    break;
-                }
-            }
-            
-            // If no exact match found, try case-insensitive match
-            if (supplierSelect.value === '') {
-                for (let option of supplierSelect.options) {
-                    if (option.value.trim().toLowerCase() === supplierValue.toLowerCase()) {
-                        option.selected = true;
-                        break;
-                    }
-                }
-            }
-            
-            // If still no match, set the value directly (might add new supplier)
-            if (supplierSelect.value === '' && supplierValue) {
-                supplierSelect.value = supplierValue;
-            }
             
             // Auto-calculate status based on expiry date
             const autoStatus = calculateStatus(batch.exp);
@@ -910,10 +861,6 @@ $db->close();
                     alert('❌ Expiry date is required');
                     return;
                 }
-                if (!formEl.supplier.value) {
-                    alert('❌ Supplier is required');
-                    return;
-                }
                 
                 const expDate = formEl.exp.value;
                 const autoStatus = calculateStatus(expDate);
@@ -936,7 +883,6 @@ $db->close();
                 payload.append('quantity', formEl.quantity.value);
                 payload.append('mfd', formEl.mfd.value);
                 payload.append('exp', expDate);
-                payload.append('supplier', formEl.supplier.value);
                 payload.append('status', autoStatus);
                 
                 // Debug: Log FormData contents
@@ -1101,7 +1047,6 @@ $db->close();
             payload.append('quantity', document.getElementById('edit_quantity').value);
             payload.append('mfd', document.getElementById('edit_mfd').value);
             payload.append('exp', expDate);
-            payload.append('supplier', document.getElementById('edit_supplier').value);
             payload.append('status', autoStatus);
             const res = await fetch('/dheergayu/public/api/batches/update', { method: 'POST', body: payload });
             const data = await res.json();

@@ -29,11 +29,9 @@ $staff = [
         </div>
         
         <nav class="navigation">
-            <a href="staffhome.php" class="nav-btn">Home</a>
             <a href="stafftreatment.php" class="nav-btn">Treatment Schedule</a>
             <a href="staffappointment.php" class="nav-btn">Appointment</a>
             <a href="staffhomeReports.php" class="nav-btn">Reports</a>
-            <a href="staffroomallocation.php" class="nav-btn">Room Allocation</a>
         </nav>
         
         <div class="user-section">
@@ -47,7 +45,7 @@ $staff = [
     </header>
     <main class="profile-container">
         <!-- Close button -->
-        <a href="staffhome.php" class="btn-back">&times;</a>
+        <a href="stafftreatment.php" class="btn-back">&times;</a>
 
         <h1 class="profile-title">My Profile</h1>
         

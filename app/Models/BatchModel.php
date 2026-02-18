@@ -55,7 +55,7 @@ class BatchModel {
         return $products;
     }
 
-    /** Get inventory overview */
+    /** Get inventory overview for admin products */
     public function getInventoryOverview(): array {
         $idCol = $this->productIdColumn;
         $nameCol = $this->productNameColumn;
@@ -64,9 +64,30 @@ class BatchModel {
                        MIN(b.exp) AS earliest_exp,
                        COUNT(b.product_id) AS batches_count
                 FROM products p
-                LEFT JOIN batches b ON b.product_id = p.`$idCol`
+                LEFT JOIN batches b ON b.product_id = p.`$idCol` AND (b.product_source = 'admin' OR b.product_source IS NULL)
                 GROUP BY p.`$idCol`, p.`$nameCol`
                 ORDER BY p.`$nameCol`";
+        $res = $this->db->query($sql);
+        $rows = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $rows[] = $row;
+            }
+            $res->close();
+        }
+        return $rows;
+    }
+
+    /** Get inventory overview for patient products */
+    public function getPatientProductsOverview(): array {
+        $sql = "SELECT p.product_id, p.name AS product, 
+                       COALESCE(SUM(b.quantity), 0) AS total_quantity,
+                       MIN(b.exp) AS earliest_exp,
+                       COUNT(b.product_id) AS batches_count
+                FROM patient_products p
+                LEFT JOIN batches b ON b.product_id = p.product_id AND b.product_source = 'patient'
+                GROUP BY p.product_id, p.name
+                ORDER BY p.name";
         $res = $this->db->query($sql);
         $rows = [];
         if ($res) {
@@ -82,13 +103,13 @@ class BatchModel {
     public function getBatchesByProductId(int $productId, ?string $productSource = null): array {
         if ($productSource) {
             $stmt = $this->db->prepare("
-                SELECT product_id, batch_number, quantity, mfd, exp, supplier, status 
+                SELECT product_id, batch_number, quantity, mfd, exp, status 
                 FROM batches WHERE product_id = ? AND product_source = ? ORDER BY mfd DESC
             ");
             $stmt->bind_param('is', $productId, $productSource);
         } else {
             $stmt = $this->db->prepare("
-                SELECT product_id, batch_number, quantity, mfd, exp, supplier, status 
+                SELECT product_id, batch_number, quantity, mfd, exp, status 
                 FROM batches WHERE product_id = ? ORDER BY mfd DESC
             ");
             $stmt->bind_param('i', $productId);
@@ -110,7 +131,7 @@ class BatchModel {
     }
 
     /** Create new batch */
-    public function createBatch(int $productId, ?string $productSource, string $batchNumber, int $quantity, string $mfd, string $exp, string $supplier, string $status): bool {
+    public function createBatch(int $productId, ?string $productSource, string $batchNumber, int $quantity, string $mfd, string $exp, string $status): bool {
         // Log parameters for debugging
         error_log("BatchModel::createBatch - productId: $productId, productSource: " . var_export($productSource, true) . ", batchNumber: " . var_export($batchNumber, true) . ", quantity: $quantity");
         error_log("BatchModel::createBatch - batchNumber type: " . gettype($batchNumber) . ", length: " . strlen($batchNumber));
@@ -119,8 +140,8 @@ class BatchModel {
         $productSource = $productSource ?? 'admin';
         
         $stmt = $this->db->prepare("
-            INSERT INTO batches (product_id, product_source, batch_number, quantity, mfd, exp, supplier, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO batches (product_id, product_source, batch_number, quantity, mfd, exp, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
         
         if (!$stmt) {
@@ -128,23 +149,13 @@ class BatchModel {
             return false;
         }
         
-        // Parameter order in SQL: product_id, product_source, batch_number, quantity, mfd, exp, supplier, status
-        // Types: product_id (i), product_source (s), batch_number (s), quantity (i), mfd (s), exp (s), supplier (s), status (s)
-        // bind_param requires: type string with 8 chars matching 8 parameters
-        // Build type string explicitly: i=integer, s=string
-        $typeString = 'i';  // product_id
-        $typeString .= 's'; // product_source
-        $typeString .= 's'; // batch_number
-        $typeString .= 'i'; // quantity
-        $typeString .= 's'; // mfd
-        $typeString .= 's'; // exp
-        $typeString .= 's'; // supplier
-        $typeString .= 's'; // status
+        // Parameter order in SQL: product_id, product_source, batch_number, quantity, mfd, exp, status
+        $typeString = 'ississs';  // product_id, product_source, batch_number, quantity, mfd, exp, status
         
         error_log("BatchModel::createBatch - Type string: '$typeString' (length: " . strlen($typeString) . ")");
-        error_log("BatchModel::createBatch - Parameters count: 8");
+        error_log("BatchModel::createBatch - Parameters count: 7");
         
-        $result = $stmt->bind_param($typeString, $productId, $productSource, $batchNumber, $quantity, $mfd, $exp, $supplier, $status);
+        $result = $stmt->bind_param($typeString, $productId, $productSource, $batchNumber, $quantity, $mfd, $exp, $status);
         if (!$result) {
             error_log("BatchModel::createBatch - bind_param failed: " . $stmt->error);
             $stmt->close();
@@ -163,12 +174,12 @@ class BatchModel {
     }
 
     /** Update batch */
-    public function updateBatch(int $productId, string $batchNumber, int $quantity, string $mfd, string $exp, string $supplier, string $status): bool {
+    public function updateBatch(int $productId, string $batchNumber, int $quantity, string $mfd, string $exp, string $status): bool {
         $stmt = $this->db->prepare("
-            UPDATE batches SET quantity=?, mfd=?, exp=?, supplier=?, status=? 
+            UPDATE batches SET quantity=?, mfd=?, exp=?, status=? 
             WHERE product_id=? AND batch_number=?
         ");
-        $stmt->bind_param('issssis', $quantity, $mfd, $exp, $supplier, $status, $productId, $batchNumber);
+        $stmt->bind_param('isssis', $quantity, $mfd, $exp, $status, $productId, $batchNumber);
         $ok = $stmt->execute();
         $stmt->close();
         return $ok;
@@ -201,21 +212,20 @@ class BatchModel {
                         if (!$exists) {
                             $stmtInsert = $this->db->prepare("
                                 INSERT INTO expired_batches
-                                (batch_id, product_id, batch_number, quantity, mfd, exp, supplier, status, created_at, updated_at)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                (batch_id, product_id, batch_number, quantity, mfd, exp, status, created_at, updated_at)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             ");
                             if ($stmtInsert) {
                                 $createdAt = $batch['created_at'] ?? date('Y-m-d H:i:s');
                                 $updatedAt = $batch['updated_at'] ?? date('Y-m-d H:i:s');
                                 $stmtInsert->bind_param(
-                                    'iisissssss',
+                                    'iisisssss',
                                     $batch['batch_id'],
                                     $batch['product_id'],
                                     $batch['batch_number'],
                                     $batch['quantity'],
                                     $batch['mfd'],
                                     $batch['exp'],
-                                    $batch['supplier'],
                                     $batch['status'],
                                     $createdAt,
                                     $updatedAt
