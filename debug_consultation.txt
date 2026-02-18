@@ -19,3 +19,24 @@ Array
 )
 
 
+2026-02-18 06:56:01
+POST Data:
+Array
+(
+    [appointment_id] => 41
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 12
+    [gender] => Female
+    [diagnosis] => sadasd
+    [personal_products] => [{"product":"Arjunarishtaya","qty":23}]
+    [treatment_plan_choice] => no_need
+    [treatment_schedule_data] => 
+    [single_treatment_data] => 
+    [recommended_treatment] => No treatment needed
+    [notes] => 
+)
+
+

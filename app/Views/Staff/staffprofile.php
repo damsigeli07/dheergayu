@@ -1,13 +1,30 @@
 <?php
-// Example data – in real case, fetch from database
-$staff = [
-    'name' => 'M.H.Gunarathne',
-    'age' => 30,
-    'email' => 'staff1@gmail.com',
-    'contact' => '+94 76 566 9333',
-    'address' => '44, Gonahena Road, Kadawatha, Sri Lanka',
-    'gender' => 'Female'
-];
+session_start();
+require_once __DIR__ . '/../../../config/config.php';
+
+$staff = ['name' => '', 'age' => '', 'email' => '', 'contact' => '', 'address' => '', 'gender' => ''];
+
+if (!isset($_SESSION['user_id']) || (isset($_SESSION['user_role']) && strtolower($_SESSION['user_role']) !== 'staff')) {
+    header('Location: ../patient/login.php');
+    exit;
+}
+
+$user_id = (int) $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT u.first_name, u.last_name, u.email, u.phone, s.age, s.address, s.gender FROM users u LEFT JOIN staff_info s ON s.user_id = u.id WHERE u.id = ? AND LOWER(u.role) = 'staff' LIMIT 1");
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if ($row) {
+    $staff['name'] = trim($row['first_name'] . ' ' . $row['last_name']);
+    $staff['email'] = $row['email'] ?? '';
+    $staff['contact'] = $row['phone'] ?? '';
+    $staff['age'] = $row['age'] !== null && $row['age'] !== '' ? (int) $row['age'] : '';
+    $staff['address'] = $row['address'] ?? '';
+    $staff['gender'] = $row['gender'] ?? '';
+}
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -57,27 +74,27 @@ $staff = [
         <div class="profile-card">
             <div class="profile-item">
                 <span class="label">Name:</span>
-                <span class="value"><?php echo $staff['name']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($staff['name']); ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Age:</span>
-                <span class="value"><?php echo $staff['age']; ?></span>
+                <span class="value"><?php echo $staff['age'] !== '' ? (int)$staff['age'] : '—'; ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Email:</span>
-                <span class="value"><?php echo $staff['email']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($staff['email']); ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Contact No:</span>
-                <span class="value"><?php echo $staff['contact']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($staff['contact']); ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Address:</span>
-                <span class="value"><?php echo $staff['address']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($staff['address']); ?></span>
             </div>
             <div class="profile-item">
                 <span class="label">Gender:</span>
-                <span class="value"><?php echo $staff['gender']; ?></span>
+                <span class="value"><?php echo htmlspecialchars($staff['gender']); ?></span>
             </div>
         </div>
 

@@ -148,13 +148,28 @@ try {
         }
         $checkStmt->close();
         
-        // Generate patient number
-        $patientNoQuery = "SELECT MAX(CAST(SUBSTRING(patient_no, 2) AS UNSIGNED)) as max_no 
-                           FROM consultations WHERE patient_no IS NOT NULL";
-        $patientNoResult = $conn->query($patientNoQuery);
-        $row = $patientNoResult->fetch_assoc();
-        $nextNo = ($row['max_no'] ?? 0) + 1;
-        $patient_no = 'P' . str_pad($nextNo, 4, '0', STR_PAD_LEFT);
+        // Always use patient number from patients table (same patient = same P0003 every time)
+        $patientNoStmt = $conn->prepare("SELECT patient_number FROM patients WHERE id = ? LIMIT 1");
+        $patientNoStmt->bind_param('i', $patient_id);
+        $patientNoStmt->execute();
+        $patientNoRow = $patientNoStmt->get_result()->fetch_assoc();
+        $patientNoStmt->close();
+        
+        if ($patientNoRow && !empty(trim($patientNoRow['patient_number'] ?? ''))) {
+            $raw = trim($patientNoRow['patient_number']);
+            $n = preg_replace('/^P/i', '', $raw);
+            $patient_no = is_numeric($n) ? ('P' . str_pad((int)$n, 4, '0', STR_PAD_LEFT)) : $raw;
+        } else {
+            // Patient has no number yet: assign next from patients table and save
+            $maxStmt = $conn->query("SELECT COALESCE(MAX(CAST(SUBSTRING(patient_number, 2) AS UNSIGNED)), 0) + 1 AS n FROM patients WHERE patient_number REGEXP '^P[0-9]+$'");
+            $maxRow = $maxStmt ? $maxStmt->fetch_assoc() : null;
+            $nextNo = $maxRow ? (int)$maxRow['n'] : 1;
+            $patient_no = 'P' . str_pad($nextNo, 4, '0', STR_PAD_LEFT);
+            $upd = $conn->prepare("UPDATE patients SET patient_number = ? WHERE id = ?");
+            $upd->bind_param('si', $patient_no, $patient_id);
+            $upd->execute();
+            $upd->close();
+        }
         
         // Insert consultation into 'consultations' table with doctor info
         $status = 'Pending';
