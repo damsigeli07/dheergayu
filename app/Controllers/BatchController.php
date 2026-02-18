@@ -60,10 +60,9 @@ class BatchController extends Controller {
 
             $mfd = trim($payload['mfd'] ?? '');
             $exp = trim($payload['exp'] ?? '');
-            $supplier = trim($payload['supplier'] ?? '');
             
-            if (empty($mfd) || empty($exp) || empty($supplier)) {
-                $this->json(['success' => false, 'error' => 'mfd, exp, and supplier are required'], 400);
+            if (empty($mfd) || empty($exp)) {
+                $this->json(['success' => false, 'error' => 'mfd and exp are required'], 400);
                 return;
             }
 
@@ -77,7 +76,6 @@ class BatchController extends Controller {
                 $quantity,
                 $mfd,
                 $exp,
-                $supplier,
                 $status
             );
             
@@ -105,7 +103,6 @@ class BatchController extends Controller {
             isset($payload['quantity']) ? (int)$payload['quantity'] : (int)($existing['quantity'] ?? 0),
             ($payload['mfd'] ?? ($existing['mfd'] ?? '')),
             ($payload['exp'] ?? ($existing['exp'] ?? '')),
-            ($payload['supplier'] ?? ($existing['supplier'] ?? '')),
             ($payload['status'] ?? ($existing['status'] ?? 'Good'))
         );
         $this->json(['success' => $ok]);

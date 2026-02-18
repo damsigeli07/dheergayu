@@ -3,36 +3,43 @@
 require_once __DIR__ . '/../../Models/ConsultationFormModel.php';
 
 $db = new mysqli('localhost', 'root', '', 'dheergayu_db');
-$consultationModel = new ConsultationFormModel($db);
-
-// Get all consultation forms
-$consultations = $consultationModel->getAllConsultationForms();
+if ($db->connect_error) {
+    $consultations = [];
+} else {
+    $consultationModel = new ConsultationFormModel($db);
+    $consultations = $consultationModel->getAllConsultationForms();
+    if (!is_array($consultations)) $consultations = [];
+}
 
 // Get product prices and list of admin products
 $productPrices = [];
 $adminProducts = [];
-$productsQuery = $db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
-while ($product = $productsQuery->fetch_assoc()) {
-    $productPrices[$product['name']] = [
-        'id' => $product['product_id'],
-        'price' => (float)$product['price']
-    ];
-    $adminProducts[] = [
-        'id' => $product['product_id'],
-        'name' => $product['name'],
-        'price' => (float)$product['price']
-    ];
+$productsQuery = @$db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
+if ($productsQuery) {
+    while ($product = $productsQuery->fetch_assoc()) {
+        $productPrices[$product['name']] = [
+            'id' => $product['product_id'],
+            'price' => (float)$product['price']
+        ];
+        $adminProducts[] = [
+            'id' => $product['product_id'],
+            'name' => $product['name'],
+            'price' => (float)$product['price']
+        ];
+    }
+    $productsQuery->free();
 }
 
-// Fetch dispatch statuses
+// Fetch dispatch statuses (consultation_dispatches table)
 $dispatchStatuses = [];
-$dispatchQuery = $db->query("SELECT consultation_id, status FROM consultation_dispatches");
-if ($dispatchQuery) {
+$dispatchQuery = @$db->query("SELECT consultation_id, status FROM consultation_dispatches");
+if ($dispatchQuery && $dispatchQuery->num_rows >= 0) {
     while ($row = $dispatchQuery->fetch_assoc()) {
-        $dispatchStatuses[$row['consultation_id']] = $row['status'];
+        $dispatchStatuses[(int)$row['consultation_id']] = $row['status'];
     }
+    if (is_object($dispatchQuery)) $dispatchQuery->free();
 }
-$db->close();
+if (!$db->connect_error) $db->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,77 +81,51 @@ $db->close();
     <main class="main-content">
         <h2 class="section-title">Consultation Orders</h2>
 
-        <div class="orders-container">
-            <?php if (!empty($consultations)): ?>
-                <?php foreach ($consultations as $consultation): ?>
-                    <?php 
-                    // Parse personal_products JSON
-                    $personalProducts = json_decode($consultation['personal_products'] ?? '[]', true);
-                    if (!is_array($personalProducts)) {
-                        $personalProducts = [];
-                    }
-                    ?>
-                    <?php $isDispatched = isset($dispatchStatuses[$consultation['id']]) && $dispatchStatuses[$consultation['id']] === 'Dispatched'; ?>
-                    <div class="order-card <?= $isDispatched ? 'row-dispatched' : '' ?>">
-                        <div class="order-header">
-                            <div class="order-id-section">
-                                <span class="order-id-label">Consultation ID</span>
-                                <span class="order-id-value">#<?= htmlspecialchars($consultation['id']) ?></span>
-                                <span class="patient-name"><?= htmlspecialchars($consultation['first_name'] . ' ' . $consultation['last_name']) ?></span>
-                            </div>
-                            <span class="order-status-badge <?= $isDispatched ? 'dispatched' : 'pending' ?>">
-                                <?= $isDispatched ? 'Dispatched' : 'Pending' ?>
-                            </span>
-                        </div>
-                        
-                        <div class="order-body">
-                            <div class="medicines-section">
-                                <div class="medicines-label">Medicines Prescribed</div>
-                                <div class="medicines-list">
-                                    <?php 
-                                    // Hardcode medicines from products table (show first 3-4 products as sample)
-                                    $hardcodedMedicines = array_slice($adminProducts, 0, min(4, count($adminProducts)));
-                                    $hardcodedQuantities = [2, 1, 3, 2]; // Fixed quantities for each medicine
-                                    if (!empty($hardcodedMedicines)): ?>
-                                        <?php foreach ($hardcodedMedicines as $index => $product): ?>
-                                            <div class="medicine-card">
-                                                <span class="medicine-name"><?= htmlspecialchars($product['name']) ?></span>
-                                                <span class="medicine-qty">x<?= $hardcodedQuantities[$index] ?? 1 ?></span>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <div class="no-medicines">No medicines prescribed</div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            
-                            <div class="order-actions-section">
-                                <div class="total-section">
-                                    <div class="total-label">Total Amount</div>
-                                    <button class="total-button" onclick="calculateTotal('<?= $consultation['id'] ?>')">
-                                        View Total
-                                    </button>
-                                </div>
-                                
-                                <div class="dispatch-section">
-                                    <label class="dispatch-label">
-                                        <input type="checkbox"
-                                               class="dispense-status"
-                                               <?= $isDispatched ? 'checked' : '' ?>
-                                               onchange="toggleDispatch('<?= $consultation['id'] ?>', this.checked)">
-                                        <span>Mark as Dispatched</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+        <?php
+        $pendingConsultations = [];
+        $dispatchedConsultations = [];
+        foreach ($consultations as $c) {
+            $isD = isset($dispatchStatuses[$c['id']]) && $dispatchStatuses[$c['id']] === 'Dispatched';
+            if ($isD) $dispatchedConsultations[] = $c;
+            else $pendingConsultations[] = $c;
+        }
+        ?>
+
+        <div class="orders-tabs">
+            <button type="button" class="orders-tab active" data-tab="pending">Pending Orders (<?= count($pendingConsultations) ?>)</button>
+            <button type="button" class="orders-tab" data-tab="dispatched">Dispatched Orders (<?= count($dispatchedConsultations) ?>)</button>
+        </div>
+
+        <div id="pending-orders-section" class="orders-section">
+            <h3 class="orders-subtitle" style="font-size: 1.1rem; color: #555; margin-bottom: 1rem;">Pending — to be dispensed</h3>
+            <div id="pending-orders-container" class="orders-container">
+                <?php if (!empty($pendingConsultations)): ?>
+                    <?php foreach ($pendingConsultations as $consultation): ?>
+                        <?php include __DIR__ . '/_order_card.php'; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-text">No pending orders.</div>
                     </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="empty-state">
-                    <div class="empty-state-icon">📋</div>
-                    <div class="empty-state-text">No consultation orders found.</div>
-                </div>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div id="dispatched-orders-section" class="orders-section" style="display: none;">
+            <h3 class="orders-subtitle" style="font-size: 1.1rem; color: #555; margin-bottom: 1rem;">Dispatched — stock already deducted</h3>
+            <div id="dispatched-orders-container" class="orders-container">
+                <?php if (!empty($dispatchedConsultations)): ?>
+                    <?php foreach ($dispatchedConsultations as $consultation): ?>
+                        <?php include __DIR__ . '/_order_card.php'; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div class="empty-state-text">No dispatched orders yet.</div>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </main>
 
@@ -209,26 +190,34 @@ $db->close();
         const consultations = <?= json_encode($consultations) ?>;
 
         function calculateTotal(consultationId) {
-            // Find the consultation by ID
+            // Find the consultation by ID (from consultationforms table)
             const consultation = consultations.find(c => c.id == consultationId);
             if (!consultation) {
                 alert('Consultation not found');
                 return;
             }
 
-            // Use hardcoded medicines from products table (first 3-4 products)
-            const hardcodedMedicines = adminProducts.slice(0, Math.min(4, adminProducts.length));
-            const hardcodedQuantities = [2, 1, 3, 2]; // Fixed quantities for each medicine
+            // Use prescribed products from consultationforms.personal_products
+            let prescribedItems = [];
+            try {
+                prescribedItems = typeof consultation.personal_products === 'string'
+                    ? JSON.parse(consultation.personal_products || '[]')
+                    : (consultation.personal_products || []);
+            } catch (e) {
+                prescribedItems = [];
+            }
+            if (!Array.isArray(prescribedItems)) prescribedItems = [];
 
             const tbody = document.querySelector("#receiptTable tbody");
             tbody.innerHTML = "";
             let total = 0;
 
-            hardcodedMedicines.forEach((product, index) => {
-                const productName = product.name || '';
-                const quantity = hardcodedQuantities[index] || 1;
+            prescribedItems.forEach((item) => {
+                const productName = (item.product || item.name || '').trim();
+                const quantity = parseInt(item.qty, 10) || 1;
+                if (!productName) return;
                 const priceInfo = productPrices[productName];
-                const unitPrice = priceInfo ? priceInfo.price : product.price || 0;
+                const unitPrice = priceInfo ? priceInfo.price : 0;
                 const amount = quantity * unitPrice;
                 total += amount;
                 
@@ -370,25 +359,89 @@ $db->close();
         }
 
         async function toggleDispatch(consultationId, isDispatched) {
+            var card = document.querySelector('.order-card[data-consultation-id="' + consultationId + '"]');
+            if (!card) return;
+            var checkbox = card.querySelector('.dispense-status');
+            checkbox.disabled = true;
             try {
-                const formData = new FormData();
+                var formData = new FormData();
                 formData.append('consultation_id', consultationId);
                 formData.append('dispatched', isDispatched ? '1' : '0');
 
-                const response = await fetch('/dheergayu/app/Controllers/pharmacist_dispatch.php', {
-                    method: 'POST',
-                    body: formData
-                });
+                var response = await fetch('/dheergayu/app/Controllers/pharmacist_dispatch.php', { method: 'POST', body: formData });
+                var result = await response.json();
 
-                const result = await response.json();
                 if (!result.success) {
                     alert(result.message || 'Failed to update dispatch status');
+                    checkbox.checked = !isDispatched;
+                } else {
+                    var pendingContainer = document.getElementById('pending-orders-container');
+                    var dispatchedContainer = document.getElementById('dispatched-orders-container');
+                    var pendingEmpty = pendingContainer.querySelector('.empty-state');
+                    var dispatchedEmpty = dispatchedContainer.querySelector('.empty-state');
+
+                    if (isDispatched) {
+                        alert('Order marked as dispatched. Stock has been reduced from inventory.');
+                        if (dispatchedEmpty) dispatchedEmpty.remove();
+                        card.classList.add('row-dispatched');
+                        card.querySelector('.order-status-badge').className = 'order-status-badge dispatched';
+                        card.querySelector('.order-status-badge').textContent = 'Dispatched';
+                        if (!card.querySelector('.dispatch-note')) {
+                            var note = document.createElement('div');
+                            note.className = 'dispatch-note';
+                            note.textContent = 'Stock deducted from inventory.';
+                            card.querySelector('.dispatch-section').appendChild(note);
+                        }
+                        checkbox.checked = true;
+                        card.parentNode.removeChild(card);
+                        dispatchedContainer.appendChild(card);
+                    } else {
+                        if (pendingEmpty) pendingEmpty.remove();
+                        card.classList.remove('row-dispatched');
+                        card.querySelector('.order-status-badge').className = 'order-status-badge pending';
+                        card.querySelector('.order-status-badge').textContent = 'Pending';
+                        var note = card.querySelector('.dispatch-note');
+                        if (note) note.remove();
+                        checkbox.checked = false;
+                        dispatchedContainer.removeChild(card);
+                        pendingContainer.appendChild(card);
+                    }
+
+                    if (pendingContainer.querySelectorAll('.order-card').length === 0) {
+                        var empty = document.createElement('div');
+                        empty.className = 'empty-state';
+                        empty.innerHTML = '<div class="empty-state-icon">📋</div><div class="empty-state-text">No pending orders.</div>';
+                        pendingContainer.appendChild(empty);
+                    }
+                    if (dispatchedContainer.querySelectorAll('.order-card').length === 0) {
+                        var empty2 = document.createElement('div');
+                        empty2.className = 'empty-state';
+                        empty2.innerHTML = '<div class="empty-state-icon">✅</div><div class="empty-state-text">No dispatched orders yet.</div>';
+                        dispatchedContainer.appendChild(empty2);
+                    }
+
+                    var pendingCount = pendingContainer.querySelectorAll('.order-card').length;
+                    var dispatchedCount = dispatchedContainer.querySelectorAll('.order-card').length;
+                    document.querySelector('.orders-tab[data-tab="pending"]').textContent = 'Pending Orders (' + pendingCount + ')';
+                    document.querySelector('.orders-tab[data-tab="dispatched"]').textContent = 'Dispatched Orders (' + dispatchedCount + ')';
                 }
             } catch (error) {
                 console.error('Dispatch update failed', error);
                 alert('Failed to update dispatch status');
+                checkbox.checked = !isDispatched;
             }
+            checkbox.disabled = false;
         }
+
+        document.querySelectorAll('.orders-tab').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tab = this.getAttribute('data-tab');
+                document.querySelectorAll('.orders-tab').forEach(function(b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                document.getElementById('pending-orders-section').style.display = tab === 'pending' ? 'block' : 'none';
+                document.getElementById('dispatched-orders-section').style.display = tab === 'dispatched' ? 'block' : 'none';
+            });
+        });
     </script>
 </body>
 </html>

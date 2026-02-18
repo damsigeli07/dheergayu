@@ -1,5 +1,3 @@
-
-
 /* General Body and Container Styles */
 body {
     font-family: 'Roboto', sans-serif;
@@ -8,6 +6,10 @@ body {
     color: #333;
     background-color: #fffbf5;
     scroll-behavior: smooth;
+}
+
+body.modal-open {
+    overflow: hidden;
 }
 
 .container {
@@ -27,11 +29,41 @@ ul {
     margin: 0;
 }
 
-.price{
+.price {
     font-size: 24px;
     color: #e6a646;
     font-weight: 600;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.price-original {
+    font-size: 15px;
+    color: #999;
+    text-decoration: line-through;
+    font-weight: 400;
+}
+
+.price-current {
+    font-size: 26px;
+    color: #e6a646;
+    font-weight: 700;
+}
+
+.package-saving {
+    font-size: 13px;
+    color: #557945;
+    font-weight: 600;
+    margin-bottom: 18px;
+    text-align: center;
+    background-color: #eef7ec;
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    width: calc(100% - 24px);
 }
 
 button.btn {
@@ -636,6 +668,15 @@ h2 {
     width: 100%;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.certificate-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
 }
 
 .certificate-level {
@@ -669,6 +710,13 @@ h2 {
     width: 100%;
     padding: 15px 0;
     border-radius: 5px;
+    margin-top: auto;
+}
+
+.certificate-btn:hover {
+    background-color: #fff;
+    color: #e6a646;
+    box-shadow: 0 2px 10px rgba(230,166,70,0.3);
 }
 
 .certificate-btn-alt {
@@ -678,13 +726,277 @@ h2 {
     border-radius: 5px;
 }
 
+/* ─── Package Modal Styles ────────────────────────────── */
+.package-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+    padding: 30px 20px;
+    box-sizing: border-box;
+}
+
+.package-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.package-modal {
+    background-color: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 580px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    transform: translateY(30px);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    scrollbar-width: thin;
+    scrollbar-color: #d4a574 #f5f5f5;
+}
+
+.package-modal-overlay.active .package-modal {
+    transform: translateY(0);
+}
+
+.package-modal::-webkit-scrollbar {
+    width: 6px;
+}
+.package-modal::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 0 12px 12px 0;
+}
+.package-modal::-webkit-scrollbar-thumb {
+    background-color: #d4a574;
+    border-radius: 3px;
+}
+
+/* Modal Close Button */
+.modal-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 30px;
+    color: #fff;
+    cursor: pointer;
+    z-index: 10;
+    line-height: 1;
+    transition: opacity 0.2s;
+    padding: 0;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.modal-close-btn:hover {
+    opacity: 0.75;
+    background: none;
+    color: #fff;
+}
+
+/* Modal Header */
+.modal-header {
+    padding: 36px 32px 28px;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+}
+
+.silver-header  { background: linear-gradient(135deg, #6a9b5a, #4e7a42); }
+.gold-header    { background: linear-gradient(135deg, #e6a646, #c98a2e); }
+.platinum-header{ background: linear-gradient(135deg, #6d7d8a, #4a5e6a); }
+
+.modal-header h2 {
+    color: #fff;
+    font-size: 30px;
+    margin: 0 0 10px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.modal-price-tag {
+    color: #fff;
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-original-price {
+    font-size: 16px;
+    font-weight: 400;
+    text-decoration: line-through;
+    opacity: 0.7;
+    margin-left: 10px;
+}
+
+/* Modal Body */
+.modal-body {
+    padding: 30px 32px 36px;
+}
+
+.modal-section {
+    margin-bottom: 26px;
+}
+
+.modal-section h3 {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #555;
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Treatment List in Modal */
+.modal-treatment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-treatment-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    background-color: #faf8f4;
+    border-radius: 8px;
+    border: 1px solid #f0ebe3;
+    transition: background-color 0.2s;
+}
+
+.modal-treatment-item:hover {
+    background-color: #f5f0e8;
+}
+
+.treatment-icon {
+    color: #d4a574;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.treatment-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+}
+
+.treatment-name {
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+}
+
+.treatment-individual-price {
+    font-size: 14px;
+    color: #999;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Facilities List in Modal */
+.modal-facilities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-facilities-list li {
+    font-size: 15px;
+    color: #555;
+    padding-left: 22px;
+    position: relative;
+}
+
+.modal-facilities-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #557945;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Discount Summary Box */
+.modal-discount-summary {
+    background-color: #f9f6f0;
+    border: 1px solid #efe8dc;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-top: 10px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.discount-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    color: #555;
+}
+
+.discount-text {
+    color: #557945;
+    font-weight: 600;
+}
+
+.discount-row.total-row {
+    border-top: 1px solid #e2d9cc;
+    padding-top: 10px;
+    margin-top: 2px;
+    font-weight: 700;
+    font-size: 17px;
+    color: #333;
+}
+
+.discount-row.total-row span:last-child {
+    color: #e6a646;
+}
+
+/* Modal Book Button */
+.modal-book-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 14px rgba(230, 166, 70, 0.35);
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+.modal-book-btn:hover {
+    background-color: #d4952e;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230, 166, 70, 0.45);
+}
+
 /* Products Section */
 .products-section {
     padding: 80px 0;
     background-color: #f7f3ed;
 }
 
-/* Massage Therapy Details Section */
+/* ─── Massage Therapy Details Section ─────────────────── */
 .massage-therapy-details {
     padding: 100px 0;
     background-color: #f9f9f9;
@@ -707,7 +1019,7 @@ h2 {
 .nav-item {
     display: flex;
     align-items: center;
-    padding: 20px 30px;
+    padding: 18px 24px;
     margin-bottom: 0;
     cursor: pointer;
     font-size: 15px;
@@ -717,15 +1029,40 @@ h2 {
     border-bottom: 1px solid #f0f0f0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    
+    gap: 12px;
 }
 
 .nav-item .icon {
-    font-size: 24px;
-    margin-right: 15px;
-    width: 30px;
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 28px;
     text-align: center;
     color: #d4a574;
+}
+
+/* Text group: label on top, price below */
+.nav-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+}
+
+.nav-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+    color: inherit;
+}
+
+.nav-price {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e6a646;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .nav-item:hover {
@@ -741,6 +1078,10 @@ h2 {
 
 .nav-item.active .icon {
     color: white;
+}
+
+.nav-item.active .nav-price {
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .therapy-content {
@@ -768,7 +1109,7 @@ h2 {
 .therapy-description {
     flex: 1;
     text-align: left;
-    padding: 60px 50px;
+    padding: 50px 44px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -776,15 +1117,29 @@ h2 {
 
 .therapy-description h2 {
     text-align: left;
-    font-size: 28px;
+    font-size: 26px;
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
+/* Therapy price badge inside description panel */
+.therapy-price-display {
+    display: inline-block;
+    background-color: #fef3dc;
+    color: #e6a646;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    width: fit-content;
+    border: 1px solid #f0dbb8;
+}
+
 .therapy-description > p {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     line-height: 1.8;
     color: #666;
     font-size: 15px;
@@ -793,7 +1148,7 @@ h2 {
 .therapy-description .list-columns {
     display: flex;
     gap: 40px;
-    margin-bottom: 0;
+    margin-bottom: 24px;
 }
 
 .therapy-description ul {
@@ -817,6 +1172,24 @@ h2 {
     left: 0;
     color: #d4a574;
     font-weight: bold;
+}
+
+/* Book Session button inside therapy panel */
+.therapy-book-btn {
+    margin-top: auto;
+    align-self: flex-start;
+    padding: 12px 28px;
+    border-radius: 5px;
+    font-size: 15px;
+    box-shadow: 0 3px 10px rgba(230,166,70,0.3);
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+.therapy-book-btn:hover {
+    background-color: #d4952e;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 16px rgba(230,166,70,0.4);
 }
 
 /* Footer Styles */
@@ -886,11 +1259,31 @@ h2 {
         width: 80%;
         max-width: none;
     }
+    .gift-certificates .certificate-cards {
+        flex-direction: column;
+        align-items: center;
+    }
+    .massage-therapy-details .container {
+        flex-direction: column;
+    }
+    .therapy-navigation {
+        flex: none;
+        width: 100%;
+    }
+    .therapy-content {
+        flex-direction: column;
+    }
+    .therapy-image {
+        flex: 0 0 300px;
+    }
 }
 
 @media (max-width: 768px) {
     .hero-content h2 {
         font-size: 32px;
+    }
+    .hero-content {
+        margin-left: 20px;
     }
     .we-offer-section h2 {
         font-size: 36px;
@@ -900,10 +1293,19 @@ h2 {
     }
     .nav-item {
         width: 100%;
-        justify-content: center;
+        justify-content: flex-start;
     }
     .list-columns {
         flex-direction: column;
         gap: 10px;
+    }
+    .package-modal {
+        max-height: 90vh;
+    }
+    .modal-header {
+        padding: 28px 24px 22px;
+    }
+    .modal-body {
+        padding: 24px 20px 30px;
     }
 }

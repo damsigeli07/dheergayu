@@ -76,9 +76,8 @@ $history = $model->getRecentMedicalHistory($user_id);
 
             <div class="profile-main">
                 <div class="profile-tabs">
-                    <button class="tab-btn active" onclick="showTab('personal')">Personal Info</button>
-                    <button class="tab-btn" onclick="showTab('medical')">Medical History</button>
-                    <button class="tab-btn" onclick="showTab('preferences')">Preferences</button>
+                    <button class="tab-btn active" onclick="showTab('personal', this)">Personal Info</button>
+                    <button class="tab-btn" onclick="showTab('medical', this)">Medical History</button>
                 </div>
 
                 <div class="tab-content">
@@ -242,87 +241,10 @@ $history = $model->getRecentMedicalHistory($user_id);
                             </div>
 
                             <div class="btn-group">
+                                <button type="button" class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
                                 <button type="button" class="btn btn-edit" onclick="enableMedicalEditing()">Edit Medical Info</button>
                                 <button type="button" class="btn btn-secondary" onclick="cancelMedicalEditing()" style="display: none;">Cancel</button>
                                 <button type="submit" class="btn btn-primary" style="display: none;">Save Changes</button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Preferences Tab -->
-                    <div id="preferences-tab" class="tab-panel" style="display: none;">
-                        <form id="preferencesForm">
-                            <input type="hidden" name="action" value="preferences">
-                            
-                            <div class="form-section">
-                                <div class="section-title">Communication Preferences</div>
-                                
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" name="email_notifications" 
-                                               <?php echo ($profile['email_notifications'] ?? 1) ? 'checked' : ''; ?>> 
-                                        Email notifications for appointments
-                                    </label>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" name="sms_notifications" 
-                                               <?php echo ($profile['sms_notifications'] ?? 1) ? 'checked' : ''; ?>> 
-                                        SMS reminders
-                                    </label>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" name="marketing_communications" 
-                                               <?php echo ($profile['marketing_communications'] ?? 0) ? 'checked' : ''; ?>> 
-                                        Marketing communications
-                                    </label>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="preferred_language">Preferred Language</label>
-                                    <select id="preferred_language" name="preferred_language">
-                                        <option value="en" <?php echo ($profile['preferred_language'] ?? 'en') == 'en' ? 'selected' : ''; ?>>English</option>
-                                        <option value="si" <?php echo ($profile['preferred_language'] ?? '') == 'si' ? 'selected' : ''; ?>>Sinhala</option>
-                                        <option value="ta" <?php echo ($profile['preferred_language'] ?? '') == 'ta' ? 'selected' : ''; ?>>Tamil</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="preferred_time">Preferred Appointment Time</label>
-                                    <select id="preferred_time" name="preferred_time">
-                                        <option value="morning" <?php echo ($profile['preferred_time'] ?? 'morning') == 'morning' ? 'selected' : ''; ?>>Morning (8:00 AM - 12:00 PM)</option>
-                                        <option value="afternoon" <?php echo ($profile['preferred_time'] ?? '') == 'afternoon' ? 'selected' : ''; ?>>Afternoon (12:00 PM - 5:00 PM)</option>
-                                        <option value="evening" <?php echo ($profile['preferred_time'] ?? '') == 'evening' ? 'selected' : ''; ?>>Evening (5:00 PM - 8:00 PM)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-section">
-                                <div class="section-title">Privacy Settings</div>
-                                
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" name="allow_data_improvement" 
-                                               <?php echo ($profile['allow_data_improvement'] ?? 1) ? 'checked' : ''; ?>> 
-                                        Allow data for treatment improvement
-                                    </label>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>
-                                        <input type="checkbox" name="share_research_data" 
-                                               <?php echo ($profile['share_research_data'] ?? 0) ? 'checked' : ''; ?>> 
-                                        Share anonymous health data for research
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="btn-group">
-                                <button type="submit" class="btn btn-primary">Save Preferences</button>
-                                <button type="button" class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
                             </div>
                         </form>
                     </div>
@@ -368,12 +290,12 @@ $history = $model->getRecentMedicalHistory($user_id);
     </footer>
 
     <script>
-        function showTab(tabName) {
+        function showTab(tabName, btn) {
             document.querySelectorAll('.tab-panel').forEach(panel => panel.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
             document.getElementById(tabName + '-tab').style.display = 'block';
-            event.target.classList.add('active');
+            btn.classList.add('active');
         }
 
         // DOB Validation Function
@@ -430,11 +352,11 @@ $history = $model->getRecentMedicalHistory($user_id);
                 }
             });
             
+            // Edit Profile hidden, Cancel + Save shown
             buttons[0].style.display = 'none';
             buttons[1].style.display = 'inline-block';
             buttons[2].style.display = 'inline-block';
             
-            // Add real-time DOB validation
             document.getElementById('date_of_birth').addEventListener('change', validateDOB);
         }
 
@@ -445,14 +367,14 @@ $history = $model->getRecentMedicalHistory($user_id);
         function enableMedicalEditing() {
             const inputs = document.querySelectorAll('#medicalInfoForm input:not([name="action"]), #medicalInfoForm select, #medicalInfoForm textarea');
             const buttons = document.querySelectorAll('#medicalInfoForm .btn');
-            
+
             inputs.forEach(input => input.disabled = false);
-            
-            buttons[0].style.display = 'none';
-            buttons[1].style.display = 'inline-block';
-            buttons[2].style.display = 'inline-block';
-            
-            // Add real-time weight validation
+
+            // btn order: Delete Account [0], Edit Medical Info [1], Cancel [2], Save [3]
+            buttons[1].style.display = 'none';      // hide Edit
+            buttons[2].style.display = 'inline-block'; // show Cancel
+            buttons[3].style.display = 'inline-block'; // show Save
+
             document.getElementById('weight').addEventListener('input', validateWeight);
         }
 
@@ -499,11 +421,10 @@ $history = $model->getRecentMedicalHistory($user_id);
             }, 3000);
         }
 
-        // Personal Info Form Submit with Validation
+        // Personal Info Form Submit
         document.getElementById('personalInfoForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate DOB before submission
             if (!validateDOB()) {
                 showErrorMessage('Please enter a valid date of birth (between 1925 and 2007)');
                 return;
@@ -529,11 +450,10 @@ $history = $model->getRecentMedicalHistory($user_id);
             });
         });
 
-        // Medical Info Form Submit with Validation
+        // Medical Info Form Submit
         document.getElementById('medicalInfoForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate weight before submission
             if (!validateWeight()) {
                 showErrorMessage('Please enter a valid weight (between 1-300 kg)');
                 return;
@@ -552,29 +472,6 @@ $history = $model->getRecentMedicalHistory($user_id);
                     setTimeout(() => location.reload(), 1500);
                 } else {
                     showErrorMessage(data.error || 'Failed to update medical information');
-                }
-            })
-            .catch(err => {
-                showErrorMessage('An error occurred. Please try again.');
-            });
-        });
-
-        // Preferences Form Submit
-        document.getElementById('preferencesForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            
-            fetch('/dheergayu/public/api/update-profile.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessMessage(data.message);
-                } else {
-                    showErrorMessage(data.error || 'Failed to save preferences');
                 }
             })
             .catch(err => {

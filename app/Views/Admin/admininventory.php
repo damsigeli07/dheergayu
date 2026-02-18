@@ -34,32 +34,9 @@ if (!file_exists($asamodagamAdminPath) && file_exists($asamodagamPharmacistPath)
 }
 $db->query("UPDATE patient_products SET image = 'images/asamodagam.jpg' WHERE name LIKE '%Asamodagam%' AND image != 'images/asamodagam.jpg'");
 
-// Delete all existing admin products and create new ones
-$db->query("DELETE FROM products WHERE COALESCE(product_type, 'admin') = 'admin'");
-
-// Create the 8 new admin products with appropriate images
-$newAdminProducts = [
-    ['name' => 'Ashwagandha Capsules', 'price' => 560.00, 'description' => 'Herbal capsules for stress management and energy support.', 'image' => 'images/Ahwaganda.png'],
-    ['name' => 'Kothalahimbutu Capsules', 'price' => 450.00, 'description' => 'Capsules for blood sugar control and metabolic health.', 'image' => 'images/Kothalahibutu.png'],
-    ['name' => 'Arawindasawaya', 'price' => 650.00, 'description' => 'Ayurvedic syrup for children\'s digestion and immunity.', 'image' => 'images/Arawindasawaya.jpg'],
-    ['name' => 'Chandanasawaya', 'price' => 680.00, 'description' => 'Liquid preparation for urinary tract and body heat regulation.', 'image' => 'images/chandanasawaya.jpg'],
-    ['name' => 'Kanakasawaya', 'price' => 720.00, 'description' => 'Herbal formulation for cough, asthma, and respiratory conditions.', 'image' => 'images/kanakasawaya.jpg'],
-    ['name' => 'Abayarishtaya', 'price' => 1200.00, 'description' => 'Fermented Ayurvedic tonic for digestion and constipation relief.', 'image' => 'images/abayarishtaya.jpg'],
-    ['name' => 'Amurtharishtaya', 'price' => 780.00, 'description' => 'Ayurvedic arishta for fever, immunity, and liver function.', 'image' => 'images/amurtharishtaya.jpg'],
-    ['name' => 'Arjunarishtaya', 'price' => 1150.00, 'description' => 'Classical preparation for heart health and circulation support.', 'image' => 'images/ARJUNARISHTAYA.jpg']
-];
-
-foreach ($newAdminProducts as $product) {
-    $stmt = $db->prepare("INSERT INTO products (name, price, description, image, product_type) VALUES (?, ?, ?, ?, 'admin')");
-    $stmt->bind_param('sdss', $product['name'], $product['price'], $product['description'], $product['image']);
-    $stmt->execute();
-    $stmt->close();
-}
-
-// Fetch admin products (product_type = 'admin' or NULL for backward compatibility)
-$query = "SELECT product_id, name, price, description, image, COALESCE(product_type, 'admin') as product_type 
+// Fetch admin products from products table (separate table, no product_type filter needed)
+$query = "SELECT product_id, name, price, description, image 
           FROM products 
-          WHERE COALESCE(product_type, 'admin') = 'admin' 
           ORDER BY product_id";
 $result = $db->query($query);
 
@@ -67,7 +44,15 @@ $adminProducts = [];
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         // Construct full image path - database stores "images/filename" but we need full path
-        $image_path = '/dheergayu/public/assets/images/Admin/' . str_replace('images/', '', $row['image']);
+        $image_db = $row['image'] ?? '';
+        if (empty($image_db)) {
+            $image_path = '/dheergayu/public/assets/images/dheergayu.png'; // Default image
+        } else {
+            // Remove "images/" prefix if present, then construct full path
+            $image_filename = str_replace('images/', '', $image_db);
+            $image_filename = ltrim($image_filename, '/'); // Remove leading slash if any
+            $image_path = '/dheergayu/public/assets/images/Admin/' . $image_filename;
+        }
         $adminProducts[] = [
             'id' => $row['product_id'],
             'name' => $row['name'],
@@ -87,7 +72,16 @@ $resultPatient = $db->query($queryPatient);
 $patientProducts = [];
 if ($resultPatient && $resultPatient->num_rows > 0) {
     while ($row = $resultPatient->fetch_assoc()) {
-        $image_path = '/dheergayu/public/assets/images/Admin/' . str_replace('images/', '', $row['image']);
+        // Construct full image path - database stores "images/filename" but we need full path
+        $image_db = $row['image'] ?? '';
+        if (empty($image_db)) {
+            $image_path = '/dheergayu/public/assets/images/dheergayu.png'; // Default image
+        } else {
+            // Remove "images/" prefix if present, then construct full path
+            $image_filename = str_replace('images/', '', $image_db);
+            $image_filename = ltrim($image_filename, '/'); // Remove leading slash if any
+            $image_path = '/dheergayu/public/assets/images/Admin/' . $image_filename;
+        }
         $patientProducts[] = [
             'id' => $row['product_id'],
             'name' => $row['name'],
@@ -105,19 +99,19 @@ $products = $adminProducts; // For backward compatibility
 
 // Sample inventory batches (normally fetched from DB) - Multiple batches per product
 $inventoryBatches = [
-    ["product"=>"Asamodagam", "quantity"=>12, "mfd"=>"2024-01-01", "exp"=>"2026-01-01", "batch_number"=>"ASM001", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Bala Thailaya", "quantity"=>8, "mfd"=>"2024-06-15", "exp"=>"2026-06-15", "batch_number"=>"BLT001", "supplier"=>"Ayurvedic Traders"],
-    ["product"=>"Dashamoolarishta", "quantity"=>18, "mfd"=>"2024-02-10", "exp"=>"2026-02-10", "batch_number"=>"DMR001", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Kothalahimbutu Capsules", "quantity"=>6, "mfd"=>"2024-01-20", "exp"=>"2026-01-20", "batch_number"=>"KHC001", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Neem Oil", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"NEO001", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Nirgundi Oil", "quantity"=>22, "mfd"=>"2024-03-05", "exp"=>"2026-03-05", "batch_number"=>"NRO001", "supplier"=>"Ayurvedic Traders"],
-    ["product"=>"Paspanguwa", "quantity"=>20, "mfd"=>"2024-03-10", "exp"=>"2026-03-10", "batch_number"=>"PSP001", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Pinda Thailaya", "quantity"=>14, "mfd"=>"2024-01-25", "exp"=>"2026-01-25", "batch_number"=>"PTL001", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Siddhalepa", "quantity"=>25, "mfd"=>"2024-01-15", "exp"=>"2026-01-15", "batch_number"=>"SDP001", "supplier"=>"Ayurvedic Traders"],
+    ["product"=>"Asamodagam", "quantity"=>12, "mfd"=>"2024-01-01", "exp"=>"2026-01-01", "batch_number"=>"ASM001"],
+    ["product"=>"Bala Thailaya", "quantity"=>8, "mfd"=>"2024-06-15", "exp"=>"2026-06-15", "batch_number"=>"BLT001"],
+    ["product"=>"Dashamoolarishta", "quantity"=>18, "mfd"=>"2024-02-10", "exp"=>"2026-02-10", "batch_number"=>"DMR001"],
+    ["product"=>"Kothalahimbutu Capsules", "quantity"=>6, "mfd"=>"2024-01-20", "exp"=>"2026-01-20", "batch_number"=>"KHC001"],
+    ["product"=>"Neem Oil", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"NEO001"],
+    ["product"=>"Nirgundi Oil", "quantity"=>22, "mfd"=>"2024-03-05", "exp"=>"2026-03-05", "batch_number"=>"NRO001"],
+    ["product"=>"Paspanguwa", "quantity"=>20, "mfd"=>"2024-03-10", "exp"=>"2026-03-10", "batch_number"=>"PSP001"],
+    ["product"=>"Pinda Thailaya", "quantity"=>14, "mfd"=>"2024-01-25", "exp"=>"2026-01-25", "batch_number"=>"PTL001"],
+    ["product"=>"Siddhalepa", "quantity"=>25, "mfd"=>"2024-01-15", "exp"=>"2026-01-15", "batch_number"=>"SDP001"],
     // Additional batches to show total quantities
-    ["product"=>"Siddhalepa", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"SDP002", "supplier"=>"Herbal Supplies Co."],
-    ["product"=>"Asamodagam", "quantity"=>8, "mfd"=>"2024-03-01", "exp"=>"2026-03-01", "batch_number"=>"ASM002", "supplier"=>"Natural Extracts Ltd."],
-    ["product"=>"Neem Oil", "quantity"=>10, "mfd"=>"2024-01-10", "exp"=>"2026-01-10", "batch_number"=>"NEO002", "supplier"=>"Ayurvedic Traders"]
+    ["product"=>"Siddhalepa", "quantity"=>15, "mfd"=>"2024-02-20", "exp"=>"2026-02-20", "batch_number"=>"SDP002"],
+    ["product"=>"Asamodagam", "quantity"=>8, "mfd"=>"2024-03-01", "exp"=>"2026-03-01", "batch_number"=>"ASM002"],
+    ["product"=>"Neem Oil", "quantity"=>10, "mfd"=>"2024-01-10", "exp"=>"2026-01-10", "batch_number"=>"NEO002"]
 ];
 
 // Calculate total quantities per product
@@ -243,8 +237,8 @@ foreach($inventoryData as $item) {
                                 <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
                             </div>
                             <div class="product-actions">
-                                <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>)">Edit</button>
-                                <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>)">Delete</button>
+                                <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>, 'admin')">Edit</button>
+                                <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>, 'admin')">Delete</button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -253,7 +247,7 @@ foreach($inventoryData as $item) {
 
             <!-- Add New Product Button -->
             <div class="add-product-container">
-                <a href="add-product.php" class="btn-add-product">+ Add New Product</a>
+                <a href="add-product.php?product_type=admin" class="btn-add-product">+ Add New Admin Product</a>
             </div>
         </div>
 
@@ -288,8 +282,8 @@ foreach($inventoryData as $item) {
                                 <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
                             </div>
                             <div class="product-actions">
-                                <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>)">Edit</button>
-                                <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>)">Delete</button>
+                                <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>, 'patient')">Edit</button>
+                                <button class="btn btn-delete" onclick="deleteProduct(<?= $product['id'] ?>, 'patient')">Delete</button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -298,7 +292,7 @@ foreach($inventoryData as $item) {
 
             <!-- Add New Patient Product Button -->
             <div class="add-product-container">
-                <a href="add-product.php" class="btn-add-product">+ Add New Patient Product</a>
+                <a href="add-product.php?product_type=patient" class="btn-add-product">+ Add New Patient Product</a>
             </div>
         </div>
     </main>
@@ -352,11 +346,12 @@ foreach($inventoryData as $item) {
         });
 
 
-        async function editProduct(id) {
+        async function editProduct(id, productType) {
             // Fetch product data from server
             try {
                 const formData = new FormData();
                 formData.append('product_id', id);
+                formData.append('product_type', productType);
                 formData.append('action', 'get');
                 
                 const res = await fetch('/dheergayu/app/Controllers/ProductController.php', {
@@ -373,7 +368,8 @@ foreach($inventoryData as $item) {
                         product_name: p.name || '',
                         product_price: p.price || '',
                         product_description: p.description || '',
-                        product_image: p.image || ''
+                        product_image: p.image || '',
+                        product_type: productType
                     });
                     window.location.href = 'add-product.php?' + params.toString();
                 } else {
@@ -385,12 +381,13 @@ foreach($inventoryData as $item) {
             }
         }
 
-        async function deleteProduct(id) {
+        async function deleteProduct(id, productType) {
             if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
             
             try {
                 const formData = new FormData();
                 formData.append('product_id', id);
+                formData.append('product_type', productType);
                 formData.append('action', 'delete');
                 
                 const res = await fetch('/dheergayu/app/Controllers/ProductController.php', {

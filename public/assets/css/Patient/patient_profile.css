@@ -191,6 +191,7 @@ ul {
     overflow: hidden;
 }
 
+/* Tab bar — two tabs now, each 50% */
 .profile-tabs {
     display: flex;
     background: #f8f9fa;
@@ -198,12 +199,13 @@ ul {
 }
 
 .tab-btn {
-    flex: 1;
+    flex: 1;                          /* each tab fills half the bar */
     padding: 15px 20px;
     background: none;
     border: none;
     color: #666;
     font-weight: 500;
+    font-size: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
     border-bottom: 3px solid transparent;
@@ -213,6 +215,11 @@ ul {
     color: #8B7355;
     background: white;
     border-bottom-color: #8B7355;
+}
+
+.tab-btn:hover:not(.active) {
+    background: #eef0f2;
+    color: #8B7355;
 }
 
 .tab-content {
@@ -328,6 +335,7 @@ textarea:disabled {
 .btn-danger {
     background: #dc3545;
     color: white;
+    margin-right: auto;     /* pushes Delete Account to the left edge */
 }
 
 .btn-danger:hover {
@@ -465,7 +473,12 @@ textarea:disabled {
     }
 
     .profile-tabs {
-        flex-direction: column;
+        flex-direction: row;     /* keep tabs side-by-side even on mobile */
+    }
+
+    .tab-btn {
+        font-size: 14px;
+        padding: 13px 10px;
     }
 
     .tab-content {
@@ -473,7 +486,13 @@ textarea:disabled {
     }
 
     .btn-group {
-        flex-direction: column;
+        flex-wrap: wrap;
+    }
+
+    .btn-danger {
+        margin-right: 0;
+        width: 100%;
+        order: 3;               /* Delete Account drops to the bottom on mobile */
     }
 
     .page-title {
