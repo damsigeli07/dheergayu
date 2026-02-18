@@ -342,3 +342,123 @@ POST Data: Array
     [doctor_id] => 13
     [doctor_name] => Dr. Silva
 )
+
+========== 2026-02-18 06:03:31 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 22
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 072345678
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-19
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-02-18 06:04:02 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 22
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 072345678
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-19
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-02-18 06:04:20 ==========
+Endpoint: book-consultation.php
+Session User ID: 13
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 22
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 072345678
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-19
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)
+
+ERROR: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(191): mysqli_stmt->execute()
+#1 {main}
+
+========== 2026-02-18 06:05:19 ==========
+Endpoint: book-consultation.php
+Session User ID: 5
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 22
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 072345677
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-19
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)
+
+========== 2026-02-18 06:06:12 ==========
+Endpoint: book-consultation.php
+Session User ID: 5
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 22
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 072335677
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-18
+    [appointment_time] => 11:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 06:52:21 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 23
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 071234567
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-20
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
