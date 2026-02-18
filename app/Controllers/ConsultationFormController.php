@@ -206,6 +206,36 @@ $stmt->bind_param(
             $total_cost = $total_sessions * 4500;
             $plan_diagnosis = $scheduleData['diagnosis'];
             
+            // Ensure treatment_plans.plan_id and treatment_sessions PK auto-increment (avoids Duplicate entry '0' for key 'PRIMARY')
+            $maxPlan = $db->query("SELECT COALESCE(MAX(plan_id), 0) AS m FROM treatment_plans");
+            if ($maxPlan && ($row = $maxPlan->fetch_assoc())) {
+                $m = (int)$row['m'];
+                while (true) {
+                    $db->query("UPDATE treatment_plans SET plan_id = " . ($m + 1) . " WHERE plan_id = 0 LIMIT 1");
+                    if (!$db->affected_rows) break;
+                    $m++;
+                }
+            }
+            @$db->query("ALTER TABLE treatment_plans MODIFY COLUMN plan_id INT NOT NULL AUTO_INCREMENT");
+            $pkCol = 'session_id';
+            $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'session_id'");
+            if (!$cols || $cols->num_rows === 0) {
+                $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'id'");
+                $pkCol = ($cols && $cols->num_rows > 0) ? 'id' : null;
+            }
+            if ($pkCol) {
+                $maxSess = $db->query("SELECT COALESCE(MAX(" . $pkCol . "), 0) AS m FROM treatment_sessions");
+                if ($maxSess && ($row = $maxSess->fetch_assoc())) {
+                    $m = (int)$row['m'];
+                    while (true) {
+                        $db->query("UPDATE treatment_sessions SET " . $pkCol . " = " . ($m + 1) . " WHERE " . $pkCol . " = 0 LIMIT 1");
+                        if (!$db->affected_rows) break;
+                        $m++;
+                    }
+                }
+                @$db->query("ALTER TABLE treatment_sessions MODIFY COLUMN " . $pkCol . " INT NOT NULL AUTO_INCREMENT");
+            }
+            
             // Insert treatment plan
             $stmt = $db->prepare("
                 INSERT INTO treatment_plans (
@@ -235,8 +265,19 @@ $stmt->bind_param(
                 throw new Exception("Failed to create treatment plan: " . $stmt->error);
             }
             
-            $plan_id = $stmt->insert_id;
+            $plan_id = (int) $stmt->insert_id;
             $stmt->close();
+            if ($plan_id <= 0) {
+                $g = $db->prepare("SELECT plan_id FROM treatment_plans WHERE appointment_id = ? ORDER BY created_at DESC LIMIT 1");
+                $g->bind_param('i', $appointment_id);
+                $g->execute();
+                $gr = $g->get_result()->fetch_assoc();
+                $g->close();
+                $plan_id = $gr ? (int)$gr['plan_id'] : 0;
+            }
+            if ($plan_id <= 0) {
+                throw new Exception("Could not get treatment plan id after insert");
+            }
             
             // Insert sessions
             if (isset($scheduleData['schedule']) && is_array($scheduleData['schedule'])) {
@@ -273,19 +314,103 @@ $stmt->bind_param(
             if ($treatmentData && isset($treatmentData['booking_id'])) {
                 $booking_id = intval($treatmentData['booking_id']);
                 
+                // Link booking to consultation form
                 $stmt = $db->prepare("
                     UPDATE consultationforms 
                     SET treatment_booking_id = ? 
                     WHERE appointment_id = ?
                 ");
-                
                 if (!$stmt) {
                     throw new Exception("Booking link error: " . $db->error);
                 }
-                
                 $stmt->bind_param('ii', $booking_id, $appointment_id);
                 $stmt->execute();
                 $stmt->close();
+                
+                // Create a treatment_plan + one session so it appears in the patient's Treatment Plans
+                $b = $db->prepare("SELECT tb.patient_id, tb.treatment_id, tb.booking_date, ts.slot_time, tl.treatment_name, tl.price 
+                    FROM treatment_bookings tb 
+                    LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id 
+                    LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id 
+                    WHERE tb.booking_id = ? LIMIT 1");
+                $b->bind_param('i', $booking_id);
+                $b->execute();
+                $booking = $b->get_result()->fetch_assoc();
+                $b->close();
+                
+                if ($booking) {
+                    // Always use consultation's patient so the plan shows under the patient's account
+                    $plan_patient_id = (int)$patient_id;
+                    $plan_treatment_id = (int)$booking['treatment_id'];
+                    $plan_start_date = $booking['booking_date'] ?? date('Y-m-d');
+                    $plan_session_time = $booking['slot_time'] ?? '09:00';
+                    $plan_diagnosis_single = trim($booking['treatment_name'] ?? 'Single session');
+                    $plan_total_cost = (float)($booking['price'] ?? 4500);
+                    
+                    $maxPlan = $db->query("SELECT COALESCE(MAX(plan_id), 0) AS m FROM treatment_plans");
+                    if ($maxPlan && ($row = $maxPlan->fetch_assoc())) {
+                        $m = (int)$row['m'];
+                        while (true) {
+                            $db->query("UPDATE treatment_plans SET plan_id = " . ($m + 1) . " WHERE plan_id = 0 LIMIT 1");
+                            if (!$db->affected_rows) break;
+                            $m++;
+                        }
+                    }
+                    @$db->query("ALTER TABLE treatment_plans MODIFY COLUMN plan_id INT NOT NULL AUTO_INCREMENT");
+                    
+                    $ins = $db->prepare("
+                        INSERT INTO treatment_plans (
+                            appointment_id, patient_id, treatment_id, diagnosis,
+                            total_sessions, sessions_per_week, start_date, total_cost,
+                            status, created_at
+                        ) VALUES (?, ?, ?, ?, 1, 1, ?, ?, 'Pending', NOW())
+                    ");
+                    if ($ins) {
+                        $ins->bind_param('iiissd', $appointment_id, $plan_patient_id, $plan_treatment_id, $plan_diagnosis_single, $plan_start_date, $plan_total_cost);
+                        $ins->execute();
+                        $plan_id_single = (int)$ins->insert_id;
+                        $ins->close();
+                        if ($plan_id_single <= 0) {
+                            $g = $db->prepare("SELECT plan_id FROM treatment_plans WHERE appointment_id = ? ORDER BY created_at DESC LIMIT 1");
+                            $g->bind_param('i', $appointment_id);
+                            $g->execute();
+                            $gr = $g->get_result()->fetch_assoc();
+                            $g->close();
+                            $plan_id_single = $gr ? (int)$gr['plan_id'] : 0;
+                        }
+                        if ($plan_id_single > 0) {
+                            $pkCol = 'session_id';
+                            $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'session_id'");
+                            if (!$cols || $cols->num_rows === 0) {
+                                $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'id'");
+                                $pkCol = ($cols && $cols->num_rows > 0) ? 'id' : null;
+                            }
+                            if ($pkCol) {
+                                $maxSess = $db->query("SELECT COALESCE(MAX(" . $pkCol . "), 0) AS m FROM treatment_sessions");
+                                if ($maxSess && ($row = $maxSess->fetch_assoc())) {
+                                    $m = (int)$row['m'];
+                                    while (true) {
+                                        $db->query("UPDATE treatment_sessions SET " . $pkCol . " = " . ($m + 1) . " WHERE " . $pkCol . " = 0 LIMIT 1");
+                                        if (!$db->affected_rows) break;
+                                        $m++;
+                                    }
+                                }
+                                @$db->query("ALTER TABLE treatment_sessions MODIFY COLUMN " . $pkCol . " INT NOT NULL AUTO_INCREMENT");
+                            }
+                            $sess = $db->prepare("
+                                INSERT INTO treatment_sessions (
+                                    plan_id, session_number, session_date, session_time,
+                                    status, created_at
+                                ) VALUES (?, 1, ?, ?, 'Pending', NOW())
+                            ");
+                            if ($sess) {
+                                $sess->bind_param('iss', $plan_id_single, $plan_start_date, $plan_session_time);
+                                $sess->execute();
+                                $sess->close();
+                            }
+                        }
+                    }
+                }
             }
         }
         
