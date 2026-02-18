@@ -118,16 +118,41 @@ $model = new AppointmentModel($conn);
 $userName = $_SESSION['user_name'] ?? '';
 $userEmail = $_SESSION['user_email'] ?? '';
 
-// Fetch patient details from patients table to ensure we have correct info
-$patientStmt = $conn->prepare("SELECT first_name, last_name, email FROM patients WHERE id = ?");
+// Fetch patient details from patients table
+$patientStmt = $conn->prepare("SELECT first_name, last_name, email, dob FROM patients WHERE id = ?");
 $patientStmt->bind_param('i', $_SESSION['user_id']);
 $patientStmt->execute();
 $patientResult = $patientStmt->get_result();
+$profileAge = '';
+$profileGender = '';
+$profilePhone = '';
 if ($patientData = $patientResult->fetch_assoc()) {
     $userName = $patientData['first_name'] . ' ' . $patientData['last_name'];
     $userEmail = $patientData['email'];
 }
 $patientStmt->close();
+
+// Prefer patient_info (profile) for age, gender, phone — user edits these in profile
+$infoStmt = $conn->prepare("SELECT date_of_birth, gender, phone FROM patient_info WHERE patient_id = ? LIMIT 1");
+if ($infoStmt) {
+    $infoStmt->bind_param('i', $_SESSION['user_id']);
+    $infoStmt->execute();
+    $infoRow = $infoStmt->get_result()->fetch_assoc();
+    $infoStmt->close();
+    if ($infoRow) {
+        if (!empty(trim($infoRow['date_of_birth'] ?? ''))) {
+            $dob = new DateTime(trim($infoRow['date_of_birth']));
+            $profileAge = (string) $dob->diff(new DateTime('today'))->y;
+        }
+        if (!empty(trim($infoRow['gender'] ?? ''))) $profileGender = trim($infoRow['gender']);
+        if (!empty(trim($infoRow['phone'] ?? ''))) $profilePhone = trim($infoRow['phone']);
+    }
+}
+// Fallback to patients.dob for age only if profile has no date_of_birth
+if ($profileAge === '' && is_array($patientData ?? null) && !empty($patientData['dob'])) {
+    $dob = new DateTime($patientData['dob']);
+    $profileAge = (string) $dob->diff(new DateTime('today'))->y;
+}
 
 // Fetch doctor schedules
 $scheduleQuery = "SELECT * FROM doctor_schedule WHERE is_active = 1 ORDER BY 
@@ -235,16 +260,16 @@ while ($row = $scheduleResult->fetch_assoc()) {
 
                         <div class="form-group">
                             <label for="age">Age *</label>
-                            <input type="number" id="age" name="age" min="1" max="120" required>
+                            <input type="number" id="age" name="age" min="1" max="120" value="<?php echo htmlspecialchars($profileAge); ?>" placeholder="<?php echo $profileAge === '' ? 'Enter age' : ''; ?>" required>
                         </div>
 
                         <div class="form-group">
                             <label for="gender">Gender *</label>
                             <select id="gender" name="gender" required>
                                 <option value="">-- Select Gender --</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                                <option value="Male"<?php echo $profileGender === 'Male' ? ' selected' : ''; ?>>Male</option>
+                                <option value="Female"<?php echo $profileGender === 'Female' ? ' selected' : ''; ?>>Female</option>
+                                <option value="Other"<?php echo $profileGender === 'Other' ? ' selected' : ''; ?>>Other</option>
                             </select>
                         </div>
 
@@ -255,7 +280,7 @@ while ($row = $scheduleResult->fetch_assoc()) {
 
                         <div class="form-group">
                             <label for="phone">Phone Number *</label>
-                            <input type="text" id="phone" name="phone" placeholder="0712345678" required>
+                            <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($profilePhone); ?>" placeholder="<?php echo $profilePhone === '' ? '0712345678' : ''; ?>" required>
                         </div>
 
                         <button type="submit" class="book-btn" id="bookBtn" disabled>Book Consultation</button>

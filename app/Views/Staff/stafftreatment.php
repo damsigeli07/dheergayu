@@ -31,6 +31,12 @@ $staffModel = new StaffModel($db);
 $staffAssignment = $staffModel->getStaffRoomAssignment($staffName);
 $assignedTreatmentType = $staffAssignment['treatment_type'] ?? null;
 
+// Ensure treatment_plans has assigned_staff_id (set when staff confirms an assignment)
+$chk = @$db->query("SHOW COLUMNS FROM treatment_plans LIKE 'assigned_staff_id'");
+if ($chk && $chk->num_rows === 0) {
+    @$db->query("ALTER TABLE treatment_plans ADD COLUMN assigned_staff_id INT NULL");
+}
+
 // Fetch treatment plans for this specific staff member
 // Filter by treatment type that matches staff's assignment
 $treatment_plans_query = "
@@ -49,16 +55,29 @@ $treatment_plans_query = "
     WHERE 1=1
 ";
 
-// If staff has assigned treatment type, filter by it
+// Show plans: by assigned treatment type OR plans explicitly assigned to this staff (they confirmed)
 if ($assignedTreatmentType) {
-    $treatment_plans_query .= " AND tl.treatment_name = ?";
+    $treatment_plans_query .= " AND (tl.treatment_name = ? OR tp.assigned_staff_id = ?)";
 }
 
 $treatment_plans_query .= " ORDER BY tp.created_at DESC";
 
 $stmt = $db->prepare($treatment_plans_query);
 if ($assignedTreatmentType) {
-    $stmt->bind_param('s', $assignedTreatmentType);
+    $stmt->bind_param('si', $assignedTreatmentType, $staffUserId);
+} else {
+    $treatment_plans_query_alt = "
+        SELECT tp.*, p.first_name, p.last_name, p.email, tl.treatment_name, tl.price as treatment_price,
+            (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id) as total_booked_sessions,
+            (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions
+        FROM treatment_plans tp
+        LEFT JOIN patients p ON tp.patient_id = p.id
+        LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+        WHERE tp.assigned_staff_id = ?
+        ORDER BY tp.created_at DESC
+    ";
+    $stmt = $db->prepare($treatment_plans_query_alt);
+    $stmt->bind_param('i', $staffUserId);
 }
 $stmt->execute();
 $treatment_plans_result = $stmt->get_result();
@@ -90,6 +109,62 @@ foreach ($treatment_plans as $plan) {
             $inprogress_plans++;
             break;
     }
+}
+
+// Pending assignments offered to this staff (patient confirmed; staff must confirm to take it)
+$staff_offers = [];
+@$db->query("CREATE TABLE IF NOT EXISTS treatment_plan_staff_offer (
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    plan_id INT NOT NULL,
+    treatment_id INT NOT NULL,
+    primary_staff1_id INT NOT NULL,
+    primary_staff2_id INT NOT NULL,
+    backup_staff_id INT NOT NULL,
+    assigned_staff_id INT NULL,
+    primary1_declined TINYINT(1) NOT NULL DEFAULT 0,
+    primary2_declined TINYINT(1) NOT NULL DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    confirmed_at TIMESTAMP NULL,
+    UNIQUE KEY one_offer_per_plan (plan_id),
+    INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id, backup_staff_id),
+    INDEX idx_offer_status (status)
+)");
+$offers_stmt = $db->prepare("
+    SELECT o.id AS offer_id, o.plan_id, o.treatment_id, o.primary_staff1_id, o.primary_staff2_id, o.backup_staff_id,
+           o.assigned_staff_id, o.primary1_declined, o.primary2_declined, o.status AS offer_status,
+           tp.patient_id, tp.total_sessions, tp.diagnosis, tp.total_cost,
+           tl.treatment_name, p.first_name, p.last_name,
+           u.first_name AS assigned_first_name, u.last_name AS assigned_last_name,
+           (SELECT ts.session_date FROM treatment_sessions ts WHERE ts.plan_id = tp.plan_id ORDER BY ts.session_number ASC LIMIT 1) AS first_session_date,
+           (SELECT ts.session_time FROM treatment_sessions ts WHERE ts.plan_id = tp.plan_id ORDER BY ts.session_number ASC LIMIT 1) AS first_session_time
+    FROM treatment_plan_staff_offer o
+    JOIN treatment_plans tp ON o.plan_id = tp.plan_id
+    LEFT JOIN treatment_list tl ON o.treatment_id = tl.treatment_id
+    LEFT JOIN patients p ON tp.patient_id = p.id
+    LEFT JOIN users u ON o.assigned_staff_id = u.id
+    WHERE (o.primary_staff1_id = ? OR o.primary_staff2_id = ? OR o.backup_staff_id = ?)
+    ORDER BY o.status ASC, o.created_at DESC
+");
+if ($offers_stmt) {
+    $offers_stmt->bind_param('iii', $staffUserId, $staffUserId, $staffUserId);
+    $offers_stmt->execute();
+    $offers_res = $offers_stmt->get_result();
+    while ($row = $offers_res->fetch_assoc()) {
+        $row['my_role'] = '';
+        if ((int)$row['primary_staff1_id'] === (int)$staffUserId) $row['my_role'] = 'primary1';
+        elseif ((int)$row['primary_staff2_id'] === (int)$staffUserId) $row['my_role'] = 'primary2';
+        else $row['my_role'] = 'backup';
+        $row['backup_can_confirm'] = ($row['primary1_declined'] && $row['primary2_declined']);
+        $row['assigned_staff_name'] = '';
+        if (!empty($row['assigned_staff_id'])) {
+            $row['assigned_staff_name'] = trim(($row['assigned_first_name'] ?? '') . ' ' . ($row['assigned_last_name'] ?? ''));
+            if ($row['assigned_staff_name'] === '') $row['assigned_staff_name'] = 'Staff #' . $row['assigned_staff_id'];
+        }
+        $row['is_assigned_to_me'] = ((int)($row['assigned_staff_id'] ?? 0) === (int)$staffUserId);
+        $staff_offers[] = $row;
+    }
+    $offers_stmt->close();
 }
 
 $db->close();
@@ -200,6 +275,60 @@ $db->close();
     </header>
 
     <main class="main-content">
+        <!-- Assignments offered to you (patient confirmed; you confirm to take it) -->
+        <?php if (!empty($staff_offers)): ?>
+        <div class="assignments-offered" style="margin-bottom:30px;background:#e8f5e9;border:1px solid #81c784;border-radius:10px;padding:20px;">
+            <h3 style="margin:0 0 15px 0;color:#2e7d32;">Treatment assignments</h3>
+            <p style="color:#555;font-size:14px;margin-bottom:15px;">Plans offered to you. Confirm to take one, or see who has taken it.</p>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <?php foreach ($staff_offers as $off): ?>
+                <div class="offer-card" style="background:#fff;padding:16px;border-radius:8px;border-left:4px solid <?= !empty($off['assigned_staff_id']) ? '#2196f3' : '#E6A85A' ?>;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                    <div>
+                        <strong>Plan #<?= (int)$off['plan_id'] ?></strong> — <?= htmlspecialchars($off['treatment_name'] ?? 'Treatment') ?>
+                        <span style="color:#666;font-size:13px;"> • <?= htmlspecialchars($off['first_name'] . ' ' . $off['last_name']) ?> • <?= (int)$off['total_sessions'] ?> session(s)</span>
+                        <?php
+                        $firstDate = trim($off['first_session_date'] ?? '');
+                        $firstTime = trim($off['first_session_time'] ?? '');
+                        if ($firstDate !== '' || $firstTime !== ''):
+                            $dateStr = $firstDate ? date('M j, Y', strtotime($firstDate)) : '—';
+                            $timeStr = $firstTime ? date('g:i A', strtotime($firstTime)) : '—';
+                        ?>
+                        <span style="display:block;font-size:13px;color:#333;margin-top:4px;">
+                            📅 <?= $dateStr ?> &nbsp; ⏰ <?= $timeStr ?>
+                        </span>
+                        <?php endif; ?>
+                        <?php if (!empty($off['assigned_staff_id'])): ?>
+                            <span style="display:block;font-size:13px;margin-top:6px;font-weight:600;color:#1976d2;">
+                                <?php if ($off['is_assigned_to_me']): ?>
+                                    ✓ You are doing this treatment
+                                <?php else: ?>
+                                    Assigned to: <?= htmlspecialchars($off['assigned_staff_name']) ?>
+                                <?php endif; ?>
+                            </span>
+                        <?php elseif ($off['my_role'] === 'backup'): ?>
+                            <span style="display:block;font-size:12px;color:#ff9800;margin-top:4px;">
+                                <?= $off['backup_can_confirm'] ? 'You can confirm now (primaries declined).' : 'Waiting for primary staff to respond.' ?>
+                            </span>
+                        <?php else: ?>
+                            <span style="display:block;font-size:12px;color:#666;margin-top:4px;">You are primary staff — confirm or decline</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if (empty($off['assigned_staff_id'])): ?>
+                    <div style="display:flex;gap:8px;">
+                        <?php if ($off['my_role'] !== 'backup' || $off['backup_can_confirm']): ?>
+                        <button type="button" class="action-btn complete-btn btn-confirm-assign" data-offer-id="<?= (int)$off['offer_id'] ?>">I'll do this</button>
+                        <?php endif; ?>
+                        <?php if ($off['my_role'] !== 'backup'): ?>
+                        <button type="button" class="action-btn btn-decline-assign" style="background:#6c757d;color:#fff;" data-offer-id="<?= (int)$off['offer_id'] ?>">Can't do</button>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Treatment Schedule Section (showing Treatment Plans) -->
         <div id="treatment-schedule-section">
             
@@ -319,6 +448,51 @@ $db->close();
             alert(message);
         }
 
+        document.querySelectorAll('.btn-confirm-assign').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var offerId = this.getAttribute('data-offer-id');
+                if (!offerId) return;
+                this.disabled = true;
+                var formData = new FormData();
+                formData.append('action', 'confirm');
+                formData.append('offer_id', offerId);
+                fetch('/dheergayu/public/api/staff-treatment-assignment.php', { method: 'POST', body: formData })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert(data.message || 'Failed');
+                            btn.disabled = false;
+                        }
+                    })
+                    .catch(function() { alert('Network error'); btn.disabled = false; });
+            });
+        });
+        document.querySelectorAll('.btn-decline-assign').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var offerId = this.getAttribute('data-offer-id');
+                if (!offerId) return;
+                if (!confirm('Decline this assignment? Backup staff will be able to take it.')) return;
+                this.disabled = true;
+                var formData = new FormData();
+                formData.append('action', 'decline');
+                formData.append('offer_id', offerId);
+                fetch('/dheergayu/public/api/staff-treatment-assignment.php', { method: 'POST', body: formData })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert(data.message || 'Failed');
+                            btn.disabled = false;
+                        }
+                    })
+                    .catch(function() { alert('Network error'); btn.disabled = false; });
+            });
+        });
     </script>
 
     <style>

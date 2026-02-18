@@ -14,8 +14,14 @@ $model = new AppointmentModel($conn);
 $patient_id = $_SESSION['user_id'];
 $appointments = $model->getPatientAppointments($patient_id);
 
-// Get treatment plans for patient
-$plans_query = "SELECT * FROM treatment_plans WHERE patient_id = ? ORDER BY created_at DESC";
+// Get treatment plans for patient (join treatment_list so treatment type and diagnosis show correctly)
+$plans_query = "
+    SELECT tp.*, tl.treatment_name
+    FROM treatment_plans tp
+    LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+    WHERE tp.patient_id = ?
+    ORDER BY tp.created_at DESC
+";
 $stmt = $conn->prepare($plans_query);
 $stmt->bind_param('i', $patient_id);
 $stmt->execute();
@@ -326,11 +332,11 @@ function getCancelledAppointments($appointments) {
                                     <div class="appointment-details">
                                         <div class="detail-item">
                                             <span class="detail-label">Treatment</span>
-                                            <span class="detail-value"><?= htmlspecialchars($plan['treatment_name']) ?></span>
+                                            <span class="detail-value"><?= htmlspecialchars(trim($plan['treatment_name'] ?? '') ?: '—') ?></span>
                                         </div>
                                         <div class="detail-item">
                                             <span class="detail-label">Diagnosis</span>
-                                            <span class="detail-value"><?= htmlspecialchars($plan['diagnosis']) ?></span>
+                                            <span class="detail-value"><?= htmlspecialchars($plan['diagnosis'] ?? '') ?></span>
                                         </div>
                                         <div class="detail-item">
                                             <span class="detail-label">Total Sessions</span>

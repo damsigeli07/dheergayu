@@ -20,13 +20,26 @@ class PatientModel {
 
 
     
-    // Create initial patient profile
+    // Create initial patient profile (copies dob and nic from patients so signup data appears in profile)
     public function createProfile($user_id, $email, $first_name = '', $last_name = '') {
+        $date_of_birth = null;
+        $nic = null;
+        $p = $this->conn->prepare("SELECT dob, nic FROM patients WHERE id = ? LIMIT 1");
+        if ($p) {
+            $p->bind_param('i', $user_id);
+            $p->execute();
+            $row = $p->get_result()->fetch_assoc();
+            $p->close();
+            if ($row) {
+                $date_of_birth = !empty($row['dob']) ? $row['dob'] : null;
+                $nic = isset($row['nic']) && trim((string)$row['nic']) !== '' ? trim($row['nic']) : null;
+            }
+        }
         $stmt = $this->conn->prepare("
-            INSERT INTO patient_info (patient_id, email, first_name, last_name) 
-            VALUES (?, ?, ?, ?)
+            INSERT INTO patient_info (patient_id, email, first_name, last_name, date_of_birth, nic) 
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("isss", $user_id, $email, $first_name, $last_name);
+        $stmt->bind_param("isssss", $user_id, $email, $first_name, $last_name, $date_of_birth, $nic);
         $result = $stmt->execute();
         $stmt->close();
         return $result;
@@ -34,13 +47,14 @@ class PatientModel {
 
     // Update personal information
     public function updatePersonalInfo($user_id, $data) {
+        // Store empty NIC as NULL to avoid UNIQUE constraint on blank (multiple users can have NULL)
         $stmt = $this->conn->prepare("
             UPDATE patient_info SET 
                 first_name = ?,
                 last_name = ?,
                 date_of_birth = ?,
                 gender = ?,
-                nic = ?,
+                nic = NULLIF(?, ''),
                 email = ?,
                 phone = ?,
                 emergency_contact = ?,
@@ -48,13 +62,14 @@ class PatientModel {
             WHERE patient_id = ?
         ");
         
+        $nic = isset($data['nic']) ? trim((string)$data['nic']) : '';
         $stmt->bind_param(
             "sssssssssi",
             $data['first_name'],
             $data['last_name'],
             $data['date_of_birth'],
             $data['gender'],
-            $data['nic'],
+            $nic,
             $data['email'],
             $data['phone'],
             $data['emergency_contact'],
