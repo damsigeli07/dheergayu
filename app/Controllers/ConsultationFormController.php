@@ -344,7 +344,7 @@ $stmt->bind_param(
                     $plan_treatment_id = (int)$booking['treatment_id'];
                     $plan_start_date = $booking['booking_date'] ?? date('Y-m-d');
                     $plan_session_time = $booking['slot_time'] ?? '09:00';
-                    $plan_diagnosis_single = trim($booking['treatment_name'] ?? 'Single session');
+                    $plan_diagnosis_single = trim($diagnosis ?? '') !== '' ? $diagnosis : 'Single session';
                     $plan_total_cost = (float)($booking['price'] ?? 4500);
                     
                     $maxPlan = $db->query("SELECT COALESCE(MAX(plan_id), 0) AS m FROM treatment_plans");

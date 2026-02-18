@@ -34,7 +34,7 @@ try {
                 'last_name' => $_POST['last_name'] ?? '',
                 'date_of_birth' => !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null,
                 'gender' => $_POST['gender'] ?? '',
-                'nic' => $_POST['nic'] ?? '',
+                'nic' => trim($_POST['nic'] ?? ''),
                 'email' => $_POST['email'] ?? '',
                 'phone' => $_POST['phone'] ?? '',
                 'emergency_contact' => $_POST['emergency_contact'] ?? '',
@@ -44,6 +44,32 @@ try {
             if (empty($data['first_name']) || empty($data['last_name']) || empty($data['email'])) {
                 echo json_encode(['success' => false, 'error' => 'Required fields are missing']);
                 exit;
+            }
+
+            // If NIC is provided, check it is not already used by another patient (patient_info or patients)
+            if ($data['nic'] !== '') {
+                $nicCheck = $conn->prepare("SELECT 1 FROM patient_info WHERE nic = ? AND patient_id != ? LIMIT 1");
+                if ($nicCheck) {
+                    $nicCheck->bind_param('si', $data['nic'], $user_id);
+                    $nicCheck->execute();
+                    if ($nicCheck->get_result()->fetch_assoc()) {
+                        $nicCheck->close();
+                        echo json_encode(['success' => false, 'error' => 'This NIC number is already registered to another user. Please use a different NIC or leave it blank.']);
+                        exit;
+                    }
+                    $nicCheck->close();
+                }
+                $nicCheckPatients = $conn->prepare("SELECT 1 FROM patients WHERE nic = ? AND id != ? LIMIT 1");
+                if ($nicCheckPatients) {
+                    $nicCheckPatients->bind_param('si', $data['nic'], $user_id);
+                    $nicCheckPatients->execute();
+                    if ($nicCheckPatients->get_result()->fetch_assoc()) {
+                        $nicCheckPatients->close();
+                        echo json_encode(['success' => false, 'error' => 'This NIC number is already registered to another user. Please use a different NIC or leave it blank.']);
+                        exit;
+                    }
+                    $nicCheckPatients->close();
+                }
             }
 
             // Debug the data being sent
@@ -62,9 +88,14 @@ try {
             
             error_log('Update Profile - Result: ' . ($result ? 'true' : 'false'));
             
-            // If update failed, check the last database error
             if (!$result) {
                 error_log('Update Profile - Database error: ' . $conn->error);
+                $errMsg = $conn->error ?? '';
+                $errNo = $conn->errno ?? 0;
+                if ($errNo === 1062 || stripos($errMsg, 'duplicate') !== false && stripos($errMsg, 'nic') !== false) {
+                    echo json_encode(['success' => false, 'error' => 'This NIC number is already registered. Please use a different NIC or leave it blank.']);
+                    exit;
+                }
             }
             
             if ($result) {

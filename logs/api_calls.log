@@ -523,3 +523,39 @@ POST Data: Array
     [doctor_id] => 13
     [doctor_name] => Dr. Silva
 )
+
+========== 2026-02-18 10:29:47 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-20
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 10:46:34 ==========
+Endpoint: book-consultation.php
+Session User ID: 5
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 21
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-20
+    [appointment_time] => 10:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)

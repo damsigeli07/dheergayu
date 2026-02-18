@@ -292,3 +292,45 @@ Array
 )
 
 
+2026-02-18 10:30:14
+POST Data:
+Array
+(
+    [appointment_id] => 50
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => eeqew
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"6","name":"Fat Burn Treatment","date":"2026-02-18","time":"17:00:00","description":"eqewe","price":3000,"booking_id":14}
+    [recommended_treatment] => Treatment: Fat Burn Treatment | Date: 2026-02-18 | Time: 17:00:00
+    [notes] => 
+)
+
+
+2026-02-18 10:47:09
+POST Data:
+Array
+(
+    [appointment_id] => 51
+    [patient_id] => 5
+    [patient_no] => P0005
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => adasd
+    [personal_products] => []
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"sdsadsdasd","treatmentId":"6","treatmentType":"Fat Burn Treatment","sessions":5,"sessionsPerWeek":2,"startDate":"2026-02-25","schedule":[{"sessionNumber":1,"date":"2026-02-25","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-28","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-03-03","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-06","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-09","time":"09:00:00","status":"Pending"}],"appointmentId":"51","patientId":"5"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Fat Burn Treatment | 5 sessions | Start: 2026-02-25
+    [notes] => 
+)
+
+
