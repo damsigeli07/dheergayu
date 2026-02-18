@@ -19,23 +19,44 @@ Array
 )
 
 
-2026-02-18 06:56:01
+2026-02-18 06:07:54
 POST Data:
 Array
 (
-    [appointment_id] => 41
+    [appointment_id] => 39
+    [patient_id] => 5
+    [patient_no] => P0008
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 22
+    [gender] => Female
+    [diagnosis] => fever
+    [personal_products] => [{"product":"Amurtharishtaya","qty":1}]
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"4","name":"Eye Treatment","date":"2026-02-18","time":"14:00:00","description":"","price":2000,"booking_id":8}
+    [recommended_treatment] => Treatment: Eye Treatment | Date: 2026-02-18 | Time: 14:00:00
+    [notes] => 
+)
+
+
+2026-02-18 07:02:25
+POST Data:
+Array
+(
+    [appointment_id] => 40
     [patient_id] => 3
-    [patient_no] => P0003
+    [patient_no] => P0009
     [first_name] => Amashi
     [last_name] => Vithanage
-    [age] => 12
+    [age] => 23
     [gender] => Female
-    [diagnosis] => sadasd
-    [personal_products] => [{"product":"Arjunarishtaya","qty":23}]
-    [treatment_plan_choice] => no_need
-    [treatment_schedule_data] => 
+    [diagnosis] => eye problem
+    [personal_products] => [{"product":"Kanakasawaya","qty":1}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"eye problem","treatmentId":"4","treatmentType":"Eye Treatment","sessions":2,"sessionsPerWeek":2,"startDate":"2026-02-19","schedule":[{"sessionNumber":1,"date":"2026-02-19","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-21","time":"09:00:00","status":"Pending"}],"appointmentId":"40","patientId":"3"}
     [single_treatment_data] => 
-    [recommended_treatment] => No treatment needed
+    [recommended_treatment] => Treatment Plan: Eye Treatment | 2 sessions | Start: 2026-02-19
     [notes] => 
 )
 

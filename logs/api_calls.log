@@ -343,75 +343,40 @@ POST Data: Array
     [doctor_name] => Dr. Silva
 )
 
-
-========== 2026-02-18 06:50:41 ==========
-Endpoint: book-consultation.php
-Session User ID: 3
-POST Data: Array
-(
-    [patient_name] => Amashi Vithanage
-    [age] => 21
-    [gender] => Female
-    [email] => patient1@gmail.com
-    [phone] => 0742440377
-    [treatment_type] => General Consultation
-    [appointment_date] => 2026-02-20
-    [appointment_time] => 09:00:00
-    [payment_method] => onsite
-    [doctor_id] => 13
-    [doctor_name] => Dr. Silva
-)
-
-========== 2026-02-18 06:55:04 ==========
-Endpoint: book-consultation.php
-Session User ID: 3
-POST Data: Array
-(
-    [patient_name] => Amashi Vithanage
-    [age] => 12
-    [gender] => Female
-    [email] => patient1@gmail.com
-    [phone] => 0742440377
-    [treatment_type] => General Consultation
-    [appointment_date] => 2026-03-06
-    [appointment_time] => 09:30:00
-    [payment_method] => onsite
-    [doctor_id] => 13
-    [doctor_name] => Dr. Silva
-)
-
-========== 2026-02-18 06:56:59 ==========
 Endpoint: book-consultation.php
 Session User ID: 5
 POST Data: Array
 (
     [patient_name] => Damsi Jayawarna
-    [age] => 12
+    [age] => 22
     [gender] => Female
     [email] => patient3@gmail.com
-    [phone] => 0742440377
+    [phone] => 072345677
     [treatment_type] => General Consultation
-    [appointment_date] => 2026-03-06
+    [appointment_date] => 2026-02-19
     [appointment_time] => 09:00:00
     [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)
+
     [doctor_id] => 13
     [doctor_name] => Dr. Silva
 )
 
-========== 2026-02-18 07:00:54 ==========
 Endpoint: book-consultation.php
 Session User ID: 3
 POST Data: Array
 (
     [patient_name] => Amashi Vithanage
-    [age] => 21
+    [age] => 23
     [gender] => Female
     [email] => patient1@gmail.com
-    [phone] => 0742440377
+    [phone] => 071234567
     [treatment_type] => General Consultation
-    [appointment_date] => 2026-02-24
+    [appointment_date] => 2026-02-20
     [appointment_time] => 09:30:00
     [payment_method] => onsite
-    [doctor_id] => 15
-    [doctor_name] => Dr. Perera
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
 )
