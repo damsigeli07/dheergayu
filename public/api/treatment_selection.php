@@ -34,16 +34,17 @@ try {
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'save') {
-        $doctorId = $_SESSION['doctor_id'] ?? null;
-        $userId = $doctorId ?? ($_SESSION['user_id'] ?? ($_POST['patient_id'] ?? null));
+        // When doctor books from consult form popup, POST contains patient_id (the patient being consulted).
+        // Use that so the booking is for the patient, not the logged-in doctor.
+        $patientIdForBooking = !empty($_POST['patient_id']) ? (int)$_POST['patient_id'] : (int)($_SESSION['user_id'] ?? 0);
 
         $treatmentId = (int)($_POST['treatment_id'] ?? 0);
         $slotId = (int)($_POST['slot_id'] ?? 0);
         $date = trim($_POST['date'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
-        if (!$userId || !$treatmentId || !$slotId || !$date) {
-            echo json_encode(['success' => false, 'message' => 'Missing parameters']);
+        if (!$patientIdForBooking || !$treatmentId || !$slotId || !$date) {
+            echo json_encode(['success' => false, 'message' => 'Missing parameters (include patient when booking from consultation)']);
             exit;
         }
         $selected = DateTime::createFromFormat('Y-m-d', $date);
@@ -53,7 +54,7 @@ try {
             exit;
         }
 
-        $bookingId = $model->saveSelection((int)$userId, $treatmentId, $slotId, $date, $description);
+        $bookingId = $model->saveSelection($patientIdForBooking, $treatmentId, $slotId, $date, $description);
         if ($bookingId) {
             echo json_encode(['success' => true, 'booking_id' => (int)$bookingId]);
         } else {

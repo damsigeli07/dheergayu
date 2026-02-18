@@ -40,3 +40,255 @@ Array
 )
 
 
+2026-02-18 09:23:58
+POST Data:
+Array
+(
+    [appointment_id] => 42
+    [patient_id] => 5
+    [patient_no] => P0005
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 12
+    [gender] => Female
+    [diagnosis] => eeqwewq
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"6","name":"Fat Burn Treatment","date":"2026-02-18","time":"14:00:00","description":"","price":3000,"booking_id":9}
+    [recommended_treatment] => Treatment: Fat Burn Treatment | Date: 2026-02-18 | Time: 14:00:00
+    [notes] => 
+)
+
+
+2026-02-18 09:26:56
+POST Data:
+Array
+(
+    [appointment_id] => 44
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => weqwe
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"1","name":"Full Steam Treatment","date":"2026-03-04","time":"10:00:00","description":"","price":6000,"booking_id":10}
+    [recommended_treatment] => Treatment: Full Steam Treatment | Date: 2026-03-04 | Time: 10:00:00
+    [notes] => 
+)
+
+
+2026-02-18 09:43:35
+POST Data:
+Array
+(
+    [appointment_id] => 45
+    [patient_id] => 5
+    [patient_no] => P0005
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => w
+    [personal_products] => []
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"fever","treatmentId":"2","treatmentType":"Shiro Dhara","sessions":5,"sessionsPerWeek":2,"startDate":"2026-02-20","schedule":[{"sessionNumber":1,"date":"2026-02-20","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-23","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-02-26","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-04","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-07","time":"09:00:00","status":"Pending"}],"appointmentId":"45","patientId":"5"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Shiro Dhara | 5 sessions | Start: 2026-02-20
+    [notes] => 
+)
+
+
+2026-02-18 09:43:40
+POST Data:
+Array
+(
+    [appointment_id] => 45
+    [patient_id] => 5
+    [patient_no] => P0005
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => w
+    [personal_products] => []
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"fever","treatmentId":"2","treatmentType":"Shiro Dhara","sessions":5,"sessionsPerWeek":2,"startDate":"2026-02-20","schedule":[{"sessionNumber":1,"date":"2026-02-20","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-23","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-02-26","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-04","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-07","time":"09:00:00","status":"Pending"}],"appointmentId":"45","patientId":"5"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Shiro Dhara | 5 sessions | Start: 2026-02-20
+    [notes] => 
+)
+
+
+2026-02-18 09:44:24
+POST Data:
+Array
+(
+    [appointment_id] => 45
+    [patient_id] => 5
+    [patient_no] => P0005
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => w
+    [personal_products] => []
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"fever","treatmentId":"2","treatmentType":"Shiro Dhara","sessions":5,"sessionsPerWeek":2,"startDate":"2026-02-20","schedule":[{"sessionNumber":1,"date":"2026-02-20","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-23","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-02-26","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-04","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-07","time":"09:00:00","status":"Pending"}],"appointmentId":"45","patientId":"5"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Shiro Dhara | 5 sessions | Start: 2026-02-20
+    [notes] => 
+)
+
+
+2026-02-18 09:44:45
+POST Data:
+Array
+(
+    [appointment_id] => 45
+    [patient_id] => 5
+    [patient_no] => P0005
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => w
+    [personal_products] => []
+    [treatment_plan_choice] => no_need
+    [treatment_schedule_data] => 
+    [single_treatment_data] => 
+    [recommended_treatment] => No treatment needed
+    [notes] => 
+)
+
+
+2026-02-18 09:46:53
+POST Data:
+Array
+(
+    [appointment_id] => 46
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => eweqwe
+    [personal_products] => [{"product":"Arjunarishtaya","qty":1}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"Fever","treatmentId":"3","treatmentType":"Head Treatment","sessions":5,"sessionsPerWeek":2,"startDate":"2026-03-05","schedule":[{"sessionNumber":1,"date":"2026-03-05","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-03-11","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-03-14","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-17","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-20","time":"09:00:00","status":"Pending"}],"appointmentId":"46","patientId":"3"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Head Treatment | 5 sessions | Start: 2026-03-05
+    [notes] => 
+)
+
+
+2026-02-18 09:47:23
+POST Data:
+Array
+(
+    [appointment_id] => 46
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => eweqwe
+    [personal_products] => [{"product":"Arjunarishtaya","qty":1}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"Fever","treatmentId":"3","treatmentType":"Head Treatment","sessions":5,"sessionsPerWeek":2,"startDate":"2026-03-05","schedule":[{"sessionNumber":1,"date":"2026-03-05","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-03-11","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-03-14","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-17","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-20","time":"09:00:00","status":"Pending"}],"appointmentId":"46","patientId":"3"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Head Treatment | 5 sessions | Start: 2026-03-05
+    [notes] => 
+)
+
+
+2026-02-18 09:52:42
+POST Data:
+Array
+(
+    [appointment_id] => 46
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => fsdfds
+    [personal_products] => [{"product":"Arjunarishtaya","qty":12}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"Back pain","treatmentId":"2","treatmentType":"Shiro Dhara","sessions":3,"sessionsPerWeek":2,"startDate":"2026-02-26","schedule":[{"sessionNumber":1,"date":"2026-02-26","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-03-04","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-03-07","time":"09:00:00","status":"Pending"}],"appointmentId":"46","patientId":"3"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Shiro Dhara | 3 sessions | Start: 2026-02-26
+    [notes] => 
+)
+
+
+2026-02-18 09:54:24
+POST Data:
+Array
+(
+    [appointment_id] => 47
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => sdadsad
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"6","name":"Fat Burn Treatment","date":"2026-02-18","time":"15:00:00","description":"","price":3000,"booking_id":11}
+    [recommended_treatment] => Treatment: Fat Burn Treatment | Date: 2026-02-18 | Time: 15:00:00
+    [notes] => 
+)
+
+
+2026-02-18 09:58:04
+POST Data:
+Array
+(
+    [appointment_id] => 48
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 12
+    [gender] => Female
+    [diagnosis] => dsada
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"6","name":"Fat Burn Treatment","date":"2026-02-18","time":"16:00:00","description":"dsda","price":3000,"booking_id":12}
+    [recommended_treatment] => Treatment: Fat Burn Treatment | Date: 2026-02-18 | Time: 16:00:00
+    [notes] => 
+)
+
+
+2026-02-18 10:01:20
+POST Data:
+Array
+(
+    [appointment_id] => 49
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 21
+    [gender] => Female
+    [diagnosis] => dsdasd
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"1","name":"Full Steam Treatment","date":"2026-02-18","time":"16:00:00","description":"","price":6000,"booking_id":13}
+    [recommended_treatment] => Treatment: Full Steam Treatment | Date: 2026-02-18 | Time: 16:00:00
+    [notes] => 
+)
+
+

@@ -415,3 +415,111 @@ POST Data: Array
     [doctor_id] => 15
     [doctor_name] => Dr. Perera
 )
+
+========== 2026-02-18 09:25:47 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-11
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:42:43 ==========
+Endpoint: book-consultation.php
+Session User ID: 5
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 21
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-18
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:45:58 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-13
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:53:44 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-25
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:56:26 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 12
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-27
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:59:13 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-27
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
