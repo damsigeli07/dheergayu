@@ -424,50 +424,7 @@ document.getElementById('consultationForm').addEventListener('submit', function(
         submitButton.textContent = submitButton.name === 'save_type' && submitButton.value === 'pharmacy' ? 'Send to Pharmacy' : 'Save';
     });
 });
-```
 
-## Step 3: Check Browser Console
-
-After making the changes above:
-
-1. **Open the consultation form**
-2. **Open browser console** (F12 → Console tab)
-3. **Fill in the form** (make sure to select a gender!)
-4. **Click Save**
-5. **Check the console** - you should see:
-```
-   === FORM SUBMISSION DEBUG ===
-   Gender: Male (or Female/Other)
-   Recommended Treatment: No treatment needed (or whatever was set)
-   Personal Products: [{"product":"...","qty":1}]
-   ...
-    
-    // Disable submit button
-    submitButton.disabled = true;
-    submitButton.textContent = 'Saving...';
-    
-    fetch('/dheergayu/app/Controllers/ConsultationFormController.php?action=save_consultation_form', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert('Consultation saved successfully!');
-            window.location.href = 'doctordashboard.php';
-        } else {
-            alert('Error: ' + (data.message || 'Failed to save'));
-            submitButton.disabled = false;
-            submitButton.textContent = submitButton.name === 'save_type' && submitButton.value === 'pharmacy' ? 'Send to Pharmacy' : 'Save';
-        }
-    })
-    .catch(err => {
-        console.error('Save error:', err);
-        alert('Error saving consultation form');
-        submitButton.disabled = false;
-        submitButton.textContent = submitButton.name === 'save_type' && submitButton.value === 'pharmacy' ? 'Send to Pharmacy' : 'Save';
-    });
-});
-    </script>
+</script>
 </body>
 </html>
