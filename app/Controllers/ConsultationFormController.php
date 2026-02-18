@@ -46,11 +46,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Get and validate form data
         $appointment_id = intval($_POST['appointment_id'] ?? 0);
-        $patient_id = intval($_POST['patient_id'] ?? 0);
         
         if ($appointment_id === 0) {
             throw new Exception("Invalid appointment ID");
         }
+        
+        // Get patient_id from consultations table (source of truth) so it is recorded in consultationforms
+        $cstmt = $db->prepare("SELECT patient_id FROM consultations WHERE id = ? LIMIT 1");
+        $cstmt->bind_param('i', $appointment_id);
+        $cstmt->execute();
+        $crow = $cstmt->get_result()->fetch_assoc();
+        $cstmt->close();
+        $patient_id = $crow ? intval($crow['patient_id'] ?? 0) : 0;
+        
+        // Patient number in P0003 format from patients table
+        $patient_no = '';
+        if ($patient_id > 0) {
+            $pq = $db->prepare("SELECT patient_number FROM patients WHERE id = ? LIMIT 1");
+            $pq->bind_param('i', $patient_id);
+            $pq->execute();
+            $pr = $pq->get_result()->fetch_assoc();
+            $pq->close();
+            if ($pr && !empty(trim($pr['patient_number'] ?? ''))) {
+                $n = preg_replace('/^P/i', '', trim($pr['patient_number']));
+                $patient_no = is_numeric($n) ? ('P' . str_pad((int)$n, 4, '0', STR_PAD_LEFT)) : trim($pr['patient_number']);
+            }
+        }
+        if ($patient_no === '' && !empty(trim($_POST['patient_no'] ?? ''))) {
+            $raw = trim($_POST['patient_no']);
+            $n = preg_replace('/^P/i', '', $raw);
+            $patient_no = is_numeric($n) ? ('P' . str_pad((int)$n, 4, '0', STR_PAD_LEFT)) : $raw;
+        }
+        if ($patient_no === '') {
+            $patient_no = 'P' . str_pad(1, 4, '0', STR_PAD_LEFT);
+        }
+        
+        // Ensure consultationforms has patient_id column so we can record it
+        $chk = $db->query("SHOW COLUMNS FROM consultationforms LIKE 'patient_id'");
+        if ($chk && $chk->num_rows === 0) {
+            $db->query("ALTER TABLE consultationforms ADD COLUMN patient_id INT NULL AFTER appointment_id");
+        }
+        if ($chk) @$chk->free();
         
         $first_name = trim($_POST['first_name'] ?? '');
         $last_name = trim($_POST['last_name'] ?? '');
@@ -83,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            // Get recommended_treatment from POST
 $recommended_treatment = trim($_POST['recommended_treatment'] ?? '');
 
-// UPDATE existing form
+// UPDATE existing form (include patient_id and patient_no so they are recorded)
 $stmt = $db->prepare("
     UPDATE consultationforms SET
         first_name = ?,
@@ -94,6 +130,8 @@ $stmt = $db->prepare("
         personal_products = ?,
         recommended_treatment = ?,
         notes = ?,
+        patient_id = ?,
+        patient_no = ?,
         updated_at = NOW()
     WHERE appointment_id = ?
 ");
@@ -103,18 +141,19 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    'ssisssssi',
+    'ssisssssisi',
     $first_name, $last_name, $age, $gender,
-    $diagnosis, $personal_products, $recommended_treatment, $notes, $appointment_id
+    $diagnosis, $personal_products, $recommended_treatment, $notes,
+    $patient_id, $patient_no, $appointment_id
 );
             
        } else {
-    // INSERT new form
+    // INSERT new form (include patient_id and patient_no so they are recorded)
     $stmt = $db->prepare("
         INSERT INTO consultationforms (
-            appointment_id, first_name, last_name, age, gender, 
-            diagnosis, personal_products, recommended_treatment, notes, patient_no, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '', NOW())
+            appointment_id, patient_id, patient_no, first_name, last_name, age, gender, 
+            diagnosis, personal_products, recommended_treatment, notes, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
     
     if (!$stmt) {
@@ -122,8 +161,8 @@ $stmt->bind_param(
     }
     
     $stmt->bind_param(
-        'ississsss',
-        $appointment_id, $first_name, $last_name, $age, $gender,
+        'iississssss',
+        $appointment_id, $patient_id, $patient_no, $first_name, $last_name, $age, $gender,
         $diagnosis, $personal_products, $recommended_treatment, $notes
     );
 }

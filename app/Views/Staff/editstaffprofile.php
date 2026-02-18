@@ -1,13 +1,31 @@
 <?php
-// Example data – in real case, fetch from database
-$staff = [
-    'name' => 'M.H.Gunarathne',
-    'age' => 30,
-    'email' => 'staff1@gmail.com',
-    'contact' => '+94 76 566 9333',
-    'address' => '44, Gonahena Road, Kadawatha, Sri Lanka',
-    'gender' => 'Female'
-];
+session_start();
+require_once __DIR__ . '/../../../config/config.php';
+
+$staff = ['name' => '', 'first_name' => '', 'last_name' => '', 'age' => '', 'email' => '', 'contact' => '', 'address' => '', 'gender' => ''];
+
+if (!isset($_SESSION['user_id']) || (isset($_SESSION['user_role']) && strtolower($_SESSION['user_role']) !== 'staff')) {
+    header('Location: ../patient/login.php');
+    exit;
+}
+
+$user_id = (int) $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT u.first_name, u.last_name, u.email, u.phone, s.age, s.address, s.gender FROM users u LEFT JOIN staff_info s ON s.user_id = u.id WHERE u.id = ? AND LOWER(u.role) = 'staff' LIMIT 1");
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if ($row) {
+    $staff['first_name'] = $row['first_name'] ?? '';
+    $staff['last_name'] = $row['last_name'] ?? '';
+    $staff['name'] = trim($staff['first_name'] . ' ' . $staff['last_name']);
+    $staff['email'] = $row['email'] ?? '';
+    $staff['contact'] = $row['phone'] ?? '';
+    $staff['age'] = $row['age'] !== null && $row['age'] !== '' ? (int) $row['age'] : '';
+    $staff['address'] = $row['address'] ?? '';
+    $staff['gender'] = $row['gender'] ?? '';
+}
 ?>
 
 <!DOCTYPE html>
@@ -19,12 +37,6 @@ $staff = [
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Staff/editstaffprofile.css">
-    <script>
-        function showAlert(event) {
-            event.preventDefault();
-            alert("Changes saved!");
-        }
-    </script>
 </head>
 <body class="has-sidebar">
     <!-- Sidebar -->
@@ -55,38 +67,39 @@ $staff = [
 
         <h1 class="edit-profile-title">Edit Profile</h1>
         
-        <form class="edit-profile-form" onsubmit="showAlert(event)">
+        <form class="edit-profile-form" id="editStaffForm" method="post" action="/dheergayu/app/Controllers/update_staff_profile.php">
             <div class="form-group">
                 <label for="name">Name:</label>
-                <input type="text" id="name" name="name" value="<?php echo $staff['name']; ?>" required>
+                <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($staff['name']); ?>" required>
             </div>
             
             <div class="form-group">
                 <label for="age">Age:</label>
-                <input type="number" id="age" name="age" value="<?php echo $staff['age']; ?>" required>
+                <input type="number" id="age" name="age" value="<?php echo $staff['age'] !== '' ? (int)$staff['age'] : ''; ?>" min="1" max="150" placeholder="Optional">
             </div>
             
             <div class="form-group">
                 <label for="email">Email:</label>
-                <input type="email" id="email" name="email" value="<?php echo $staff['email']; ?>" required>
+                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($staff['email']); ?>" required>
             </div>
             
             <div class="form-group">
                 <label for="contact">Contact No:</label>
-                <input type="text" id="contact" name="contact" value="<?php echo $staff['contact']; ?>" required>
+                <input type="text" id="contact" name="contact" value="<?php echo htmlspecialchars($staff['contact']); ?>" required>
             </div>
             
             <div class="form-group">
                 <label for="address">Address:</label>
-                <textarea id="address" name="address" rows="3" required><?php echo $staff['address']; ?></textarea>
+                <textarea id="address" name="address" rows="3"><?php echo htmlspecialchars($staff['address']); ?></textarea>
             </div>
             
             <div class="form-group">
                 <label for="gender">Gender:</label>
-                <select id="gender" name="gender" required>
-                    <option value="Male" <?php echo ($staff['gender']=='Male')?'selected':''; ?>>Male</option>
-                    <option value="Female" <?php echo ($staff['gender']=='Female')?'selected':''; ?>>Female</option>
-                    <option value="Other" <?php echo ($staff['gender']=='Other')?'selected':''; ?>>Other</option>
+                <select id="gender" name="gender">
+                    <option value="">-- Select --</option>
+                    <option value="Male" <?php echo ($staff['gender']==='Male')?'selected':''; ?>>Male</option>
+                    <option value="Female" <?php echo ($staff['gender']==='Female')?'selected':''; ?>>Female</option>
+                    <option value="Other" <?php echo ($staff['gender']==='Other')?'selected':''; ?>>Other</option>
                 </select>
             </div>
             
