@@ -1,5 +1,9 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('SUPPLIER_SID');
+    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+    session_start();
+}
 
 require_once __DIR__ . '/../../../core/bootloader.php';
 require_once __DIR__ . '/../../../app/Models/ProductRequestModel.php';

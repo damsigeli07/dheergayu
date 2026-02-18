@@ -2,7 +2,11 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
+// Use cookie path / so session is sent to all app paths (e.g. /dheergayu/public/api/)
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+    session_start();
+}
 
 // Include database connection - Fix the path
 require_once(dirname(__DIR__, 3) . "/config/config.php");
@@ -48,16 +52,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($row = $result->fetch_assoc()) {
             if (password_verify($password, $row['password'])) {
+                $role = strtolower($row['role']);
+                if ($role === 'pharmacist') {
+                    session_write_close();
+                    session_name('PHARMACIST_SID');
+                    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+                    session_start();
+                }
                 $_SESSION['logged_in'] = true;
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['user_email'] = $email;
-                $_SESSION['user_type'] = strtolower($row['role']);
-                $_SESSION['user_role'] = strtolower($row['role']);
+                $_SESSION['user_type'] = $role;
+                $_SESSION['user_role'] = $role;
                 $_SESSION['user_name'] = $row['first_name'] . ' ' . $row['last_name'];
                 $_SESSION['role'] = $row['role'];
                 $_SESSION['name'] = $_SESSION['user_name'];
 
-                switch (strtolower($row['role'])) {
+                switch ($role) {
                     case 'admin':
                         header("Location: ../admin/admindashboard.php");
                         break;
@@ -91,6 +102,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             } elseif (isset($row['status']) && strtolower($row['status']) !== 'active') {
                 $error_message = "Your supplier account is inactive. Please contact the administrator.";
             } elseif (password_verify($password, $row['password'])) {
+                session_write_close();
+                session_name('SUPPLIER_SID');
+                session_set_cookie_params(['path' => '/', 'httponly' => true]);
+                session_start();
+
                 $_SESSION['logged_in'] = true;
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['user_email'] = $email;
