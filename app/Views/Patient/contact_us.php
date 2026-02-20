@@ -672,51 +672,50 @@
         </div>
     </footer>
 
-    <script>
-        // Form submission handler
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(this);
-            
-            // Validate phone number (Sri Lankan format)
-            const phone = formData.get('phone');
-            const phoneRegex = /^0[0-9]{9}$/;
-            if (!phoneRegex.test(phone)) {
-                alert('Please enter a valid Sri Lankan phone number (e.g., 0712345678)');
-                return;
+<script>
+    // Form submission handler
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const phone = formData.get('phone');
+        const phoneRegex = /^0[0-9]{9}$/;
+        
+        if (!phoneRegex.test(phone)) {
+            alert('Please enter a valid Sri Lankan phone number (e.g., 0712345678)');
+            return;
+        }
+        
+        // Submit to backend
+        fetch('/dheergayu/public/api/submit-contact.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const successMessage = document.getElementById('successMessage');
+                successMessage.textContent = data.message;
+                successMessage.classList.add('show');
+                this.reset();
+                setTimeout(() => successMessage.classList.remove('show'), 5000);
+                successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                alert('Error: ' + (data.error || 'Failed to send message'));
             }
-            
-            // Here you would normally send the data to your backend
-            // For now, we'll just show a success message
-            
-            // Show success message
-            const successMessage = document.getElementById('successMessage');
-            successMessage.classList.add('show');
-            
-            // Reset form
-            this.reset();
-            
-            // Hide success message after 5 seconds
-            setTimeout(() => {
-                successMessage.classList.remove('show');
-            }, 5000);
-            
-            // Scroll to success message
-            successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again later.');
         });
+    });
 
-        // Phone number validation on input
-        document.getElementById('phone').addEventListener('input', function(e) {
-            // Remove any non-digit characters
-            this.value = this.value.replace(/\D/g, '');
-            
-            // Limit to 10 digits
-            if (this.value.length > 10) {
-                this.value = this.value.slice(0, 10);
-            }
-        });
-    </script>
+    document.getElementById('phone').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
+        if (this.value.length > 10) {
+            this.value = this.value.slice(0, 10);
+        }
+    });
+</script>
 </body>
 </html>
