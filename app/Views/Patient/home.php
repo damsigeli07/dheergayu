@@ -43,6 +43,12 @@ if ($isLoggedIn && !empty($userName)) {
                 </ul>
             </nav>
             <div class="header-right">
+                <!-- Cart Icon (Always visible) -->
+                <div class="header-cart-icon" onclick="goToCart()" style="margin-right: 20px; position: relative; cursor: pointer;">
+                    <span style="font-size: 24px; color: white;">🛒</span>
+                    <span class="cart-badge-header" id="cartBadgeHeader" style="display: none; position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; font-size: 11px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px;">0</span>
+                </div>
+                
                 <?php if ($isLoggedIn): ?>
                     <!-- User Profile Icon (Show when logged in) -->
                     <div class="user-profile-container" id="userProfile">
@@ -556,7 +562,7 @@ if ($isLoggedIn && !empty($userName)) {
                 <ul>
                     <li><a href="home.php" class="footer-link">Home</a></li>
                     <li><a href="treatment.php" class="footer-link">Treatments</a></li>
-                    <li><a href="doctors.php" class="footer-link">About Us</a></li>
+                    <li><a href="learn_more.php" class="footer-link">About Us</a></li>
                     <li><a href="channeling.php" class="footer-link">Booking</a></li>
                     <li><a href="contact_us.php" class="footer-link">Contacts</a></li>
                 </ul>
@@ -576,6 +582,30 @@ if ($isLoggedIn && !empty($userName)) {
     <script>
         // Get login state from PHP
         const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+
+        // ─── Cart Functionality ──────────────────────────────
+        let cart = JSON.parse(localStorage.getItem('dheergayu_cart') || '[]');
+        
+        function updateHeaderCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartBadge = document.getElementById('cartBadgeHeader');
+            if (cartBadge) {
+                cartBadge.textContent = totalItems;
+                cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        function goToCart() {
+            if (cart.length === 0) {
+                alert('Your cart is empty! Browse our products to add items.');
+                window.location.href = '/dheergayu/app/Views/Patient/products.php';
+                return;
+            }
+            window.location.href = '/dheergayu/app/Views/Patient/cart.php';
+        }
+        
+        // Initialize cart count on page load
+        updateHeaderCartCount();
 
         // Handle Booking - Check login status
         function handleBooking(event) {

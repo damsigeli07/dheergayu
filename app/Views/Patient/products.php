@@ -72,6 +72,92 @@ if ($db->connect_error) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Our Products - Dheergayu Pharmacy</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/products.css?v=<?php echo time(); ?>">
+    <style>
+        /* Floating Cart Button */
+        .floating-cart {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #8B7355, #A0916B);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(139, 115, 85, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            font-size: 24px;
+        }
+
+        .floating-cart:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 30px rgba(139, 115, 85, 0.6);
+        }
+
+        .floating-cart .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Cart notification animation */
+        @keyframes cartBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .floating-cart.bounce {
+            animation: cartBounce 0.5s ease;
+        }
+
+        /* Success message */
+        .cart-notification {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            background: #5CB85C;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1001;
+            opacity: 0;
+            transform: translateX(400px);
+            transition: all 0.4s ease;
+        }
+
+        .cart-notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .cart-notification .close-notif {
+            margin-left: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        .cart-notification .close-notif:hover {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
     <header class="main-header">
@@ -124,7 +210,7 @@ if ($db->connect_error) {
                             <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
                             <div class="product-price">Rs. <?= htmlspecialchars($product['price']) ?></div>
                             <p class="product-use"><?= htmlspecialchars($product['description']) ?></p>
-                            <button class="add-to-cart-btn" onclick="addToCart(<?= $product['id'] ?>, '<?= htmlspecialchars(addslashes($product['name'])) ?>', <?= str_replace(',', '', $product['price']) ?>, 'patient')">
+                            <button class="add-to-cart-btn" onclick="addToCart(<?= $product['id'] ?>, '<?= htmlspecialchars(addslashes($product['name'])) ?>', <?= str_replace(',', '', $product['price']) ?>, 'patient', '<?= htmlspecialchars($product['image']) ?>')">
                                 Add to Cart
                             </button>
                         </div>
@@ -141,7 +227,9 @@ if ($db->connect_error) {
                             <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
                             <div class="product-price">Rs. <?= htmlspecialchars($product['price']) ?></div>
                             <p class="product-use"><?= htmlspecialchars($product['description']) ?></p>
-                            <div class="product-availability">Available in Store</div>
+                            <button class="add-to-cart-btn" onclick="addToCart(<?= $product['id'] ?>, '<?= htmlspecialchars(addslashes($product['name'])) ?>', <?= str_replace(',', '', $product['price']) ?>, 'admin', '<?= htmlspecialchars($product['image']) ?>')">
+                                Add to Cart
+                            </button>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -153,6 +241,18 @@ if ($db->connect_error) {
             <h3>Visit Our Pharmacy</h3>
             <p>All our products are available for purchase at our pharmacy location. Our experienced staff is ready to assist you with product selection and provide guidance on usage. We ensure all products are authentic and of the highest quality.</p>
         </div>
+    </div>
+
+    <!-- Floating Cart Button -->
+    <div class="floating-cart" onclick="goToCart()">
+        🛒
+        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+    </div>
+
+    <!-- Cart Notification -->
+    <div class="cart-notification" id="cartNotification">
+        <span id="notificationText">Added to cart!</span>
+        <span class="close-notif" onclick="closeNotification()">✕</span>
     </div>
 
     <footer class="main-footer">
@@ -192,29 +292,45 @@ if ($db->connect_error) {
     </footer>
 
     <script>
-        // Cart functionality
-        let cart = JSON.parse(localStorage.getItem('dheergayu_cart') || '[]');
+// Updated JavaScript for products.php - Database-backed cart with user authentication
+
+// Initialize - Load cart from database
+async function initializeCart() {
+    try {
+        const response = await fetch('/dheergayu/public/api/cart-api.php?action=get');
+        const data = await response.json();
         
-        function addToCart(productId, productName, price, productType) {
-            // Check if product already in cart
-            const existingItem = cart.find(item => item.id === productId && item.type === productType);
+        if (data.success) {
+            updateCartBadge(data.count);
+        }
+    } catch (error) {
+        console.error('Error loading cart:', error);
+    }
+}
+
+async function addToCart(productId, productName, price, productType, image) {
+    try {
+        const formData = new FormData();
+        formData.append('action', 'add');
+        formData.append('product_id', productId);
+        formData.append('product_name', productName);
+        formData.append('price', price);
+        formData.append('product_type', productType);
+        formData.append('image', image);
+        formData.append('quantity', 1);
+        
+        const response = await fetch('/dheergayu/public/api/cart-api.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update cart badge
+            updateCartBadge(data.cart_count);
             
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({
-                    id: productId,
-                    name: productName,
-                    price: price,
-                    type: productType,
-                    quantity: 1
-                });
-            }
-            
-            // Save to localStorage
-            localStorage.setItem('dheergayu_cart', JSON.stringify(cart));
-            
-            // Show feedback
+            // Show feedback on button
             const btn = event.target;
             const originalText = btn.textContent;
             btn.textContent = 'Added!';
@@ -227,27 +343,54 @@ if ($db->connect_error) {
                 btn.disabled = false;
             }, 1500);
             
-            // Update cart count if exists
-            updateCartCount();
-        }
-        
-        function updateCartCount() {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const cartBadge = document.querySelector('.cart-badge');
-            if (cartBadge) {
-                cartBadge.textContent = totalItems;
-                cartBadge.style.display = totalItems > 0 ? 'block' : 'none';
+            // Show notification
+            showNotification(productName);
+            
+            // Bounce animation for cart icon
+            const cartIcon = document.querySelector('.floating-cart');
+            if (cartIcon) {
+                cartIcon.classList.add('bounce');
+                setTimeout(() => cartIcon.classList.remove('bounce'), 500);
             }
+        } else {
+            alert('Error adding to cart: ' + (data.error || 'Unknown error'));
         }
-        
-        // Initialize cart count on page load
-        updateCartCount();
-        
-        // Smooth scroll to top
-        document.querySelector('.scroll-to-top')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to add item to cart. Please try again.');
+    }
+}
+
+function updateCartBadge(count) {
+    const cartBadge = document.getElementById('cartBadge');
+    if (cartBadge) {
+        cartBadge.textContent = count;
+        cartBadge.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+function showNotification(productName) {
+    const notification = document.getElementById('cartNotification');
+    const notifText = document.getElementById('notificationText');
+    notifText.textContent = `"${productName}" added to cart!`;
+    
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+function closeNotification() {
+    document.getElementById('cartNotification').classList.remove('show');
+}
+
+function goToCart() {
+    window.location.href = 'cart.php';
+}
+
+// Initialize cart on page load
+document.addEventListener('DOMContentLoaded', initializeCart);
     </script>
 </body>
 </html>
