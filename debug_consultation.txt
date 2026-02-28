@@ -355,3 +355,66 @@ Array
 )
 
 
+2026-02-23 09:17:53
+POST Data:
+Array
+(
+    [appointment_id] => 44
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 19
+    [gender] => Female
+    [diagnosis] => Pitta
+    [personal_products] => [{"product":"Abayarishtaya","qty":1}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"pitta ","treatmentId":"2","treatmentType":"Shiro Dhara","sessions":5,"sessionsPerWeek":2,"startDate":"2026-02-24","schedule":[{"sessionNumber":1,"date":"2026-02-24","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-27","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-03-02","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-05","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-11","time":"09:00:00","status":"Pending"}],"appointmentId":"44","patientId":"3"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Shiro Dhara | 5 sessions | Start: 2026-02-24
+    [notes] => 
+)
+
+
+2026-02-23 10:54:04
+POST Data:
+Array
+(
+    [appointment_id] => 45
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 19
+    [gender] => Female
+    [diagnosis] => Headache
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"3","name":"Head Treatment","date":"2026-02-23","time":"16:00:00","description":"","price":3000,"booking_id":9}
+    [recommended_treatment] => Treatment: Head Treatment | Date: 2026-02-23 | Time: 16:00:00
+    [notes] => 
+)
+
+
+2026-02-23 11:34:49
+POST Data:
+Array
+(
+    [appointment_id] => 48
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 19
+    [gender] => Female
+    [diagnosis] => Chikungunya
+    [personal_products] => [{"product":"Amurtharishtaya","qty":1}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"chikungunya","treatmentId":"2","treatmentType":"Shiro Dhara","sessions":5,"sessionsPerWeek":2,"startDate":"2026-02-25","schedule":[{"sessionNumber":1,"date":"2026-02-25","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-28","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-03-03","time":"09:00:00","status":"Pending"},{"sessionNumber":4,"date":"2026-03-06","time":"09:00:00","status":"Pending"},{"sessionNumber":5,"date":"2026-03-09","time":"09:00:00","status":"Pending"}],"appointmentId":"48","patientId":"3"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Shiro Dhara | 5 sessions | Start: 2026-02-25
+    [notes] => 
+)
+
+
