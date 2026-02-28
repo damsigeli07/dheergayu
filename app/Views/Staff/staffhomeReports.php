@@ -1,59 +1,68 @@
 <?php
 require_once __DIR__ . '/../../../config/config.php';
 
-// Fetch all treatments and patient counts
+// ------------------------------------------------------
+// 1. Define the current month range (for filtering)
+// ------------------------------------------------------
+$startOfMonth = date('Y-m-01');          // e.g. 2026-02-01
+$endOfMonth   = date('Y-m-t');          // e.g. 2026-02-29
+
+// ------------------------------------------------------
+// 2. Fetch all active treatments with monthly appointment counts
+//    - One bar per treatment in treatment_list
+//    - Count NUMBER OF PLANS (appointments) with a non-cancelled status
+//      that start in the current month
+// ------------------------------------------------------
 $treatmentData = [];
 $totalPatients = 0;
 
 $sql = "
     SELECT 
         tl.treatment_name,
-        COUNT(DISTINCT CASE 
-            WHEN tp.status IN ('Confirmed', 'InProgress', 'Completed') 
-            THEN tp.patient_id 
+        COUNT(CASE 
+            WHEN tp.status <> 'Cancelled'
+             AND tp.start_date BETWEEN ? AND ?
+            THEN tp.plan_id
         END) AS patients
     FROM treatment_list tl
     LEFT JOIN treatment_plans tp 
         ON tp.treatment_id = tl.treatment_id
     WHERE tl.status = 'Active'
-    GROUP BY tl.treatment_id
+    GROUP BY tl.treatment_id, tl.treatment_name
     ORDER BY patients DESC
 ";
 
+$stmt = $conn->prepare($sql);
+if (!$stmt) {
+    die("Query preparation failed: " . $conn->error);
+}
 
-$result = $conn->query($sql);
+$stmt->bind_param('ss', $startOfMonth, $endOfMonth);
+$stmt->execute();
+$result = $stmt->get_result();
 
 $colors = ['#FFB84D', '#FF8C42', '#E6A85A', '#D4A574'];
 $colorIndex = 0;
 
 while ($row = $result->fetch_assoc()) {
+    $patients = (int)($row['patients'] ?? 0);
+
     $treatmentData[] = [
         'treatment' => $row['treatment_name'],
-        'patients'  => (int)$row['patients'],
+        'patients'  => $patients,
         'color'     => $colors[$colorIndex % count($colors)]
     ];
-    $totalPatients += $row['patients'];
+    $totalPatients += $patients;
     $colorIndex++;
 }
 
+$stmt->close();
+
 $totalTreatments = count($treatmentData);
 
-
-// Search functionality
-/*$searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
-$filteredReports = $reports;
-
-if (!empty($searchQuery)) {
-    $filteredReports = array_filter($reports, function($report) use ($searchQuery) {
-        return stripos($report['patient_ID'], $searchQuery) !== false ||
-               stripos($report['patient_name'], $searchQuery) !== false ||
-               stripos($report['report_file'], $searchQuery) !== false;
-    });
-}
-*/       
-
-// Get total patients for all treatments
-
+// ------------------------------------------------------
+// 3. Compute the most popular treatment for this month
+// ------------------------------------------------------
 $mostPopular = 'N/A';
 $maxPatients = 0;
 

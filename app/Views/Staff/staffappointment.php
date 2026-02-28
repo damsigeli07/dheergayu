@@ -24,20 +24,21 @@ if ($db->connect_error) {
 // Get ALL appointments from all doctors (no filter)
 $stmt = $db->prepare("
     SELECT 
-        id as appointment_id,
-        patient_id,
-        doctor_id,
-        doctor_name,
-        patient_no,
-        patient_name,
-        CONCAT(appointment_date, ' ', appointment_time) as appointment_datetime,
-        appointment_date,
-        appointment_time,
-        status,
-        notes as reason
-    FROM consultations 
-    WHERE treatment_type = 'General Consultation'
-    ORDER BY appointment_date DESC, appointment_time DESC
+        c.id as appointment_id,
+        c.patient_id,
+        c.doctor_id,
+        c.doctor_name,
+        c.patient_no,
+        CONCAT(p.first_name, ' ', p.last_name) as patient_name,
+        CONCAT(c.appointment_date, ' ', c.appointment_time) as appointment_datetime,
+        c.appointment_date,
+        c.appointment_time,
+        c.status,
+        c.notes as reason
+    FROM consultations c
+    LEFT JOIN patients p ON c.patient_id = p.id
+    WHERE c.treatment_type = 'General Consultation'
+    ORDER BY c.appointment_date DESC, c.appointment_time DESC
 ");
 
 $stmt->execute();
