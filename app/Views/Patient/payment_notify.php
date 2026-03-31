@@ -24,6 +24,16 @@ $payment_id = $_POST['payment_id'] ?? '';
 $custom_1 = $_POST['custom_1'] ?? ''; // Can store user_id here
 $custom_2 = $_POST['custom_2'] ?? ''; // Can store cart_id here
 
+// Extract customer details from POST data
+$first_name = $_POST['first_name'] ?? '';
+$last_name = $_POST['last_name'] ?? '';
+$customer_name = trim($first_name . ' ' . $last_name);
+$customer_email = $_POST['email'] ?? '';
+$customer_phone = $_POST['phone'] ?? '';
+$delivery_address = $_POST['address'] ?? '';
+$delivery_city = $_POST['city'] ?? '';
+$order_items = $_POST['items'] ?? '';
+
 // Verify the payment
 $isValid = verifyPayherePayment(
     $merchant_id,
@@ -56,17 +66,24 @@ try {
         $stmt = $conn->prepare("
             INSERT INTO orders (
                 order_id, payment_id, user_id, amount, currency, 
-                payment_method, status, created_at
-            ) VALUES (?, ?, ?, ?, ?, 'payhere', 'paid', NOW())
+                payment_method, status, customer_name, customer_email, 
+                customer_phone, delivery_address, delivery_city, order_items, created_at
+            ) VALUES (?, ?, ?, ?, ?, 'payhere', 'paid', ?, ?, ?, ?, ?, ?, NOW())
         ");
         
         $userId = $_SESSION['user_id'] ?? null;
-        $stmt->bind_param("ssisd", $order_id, $payment_id, $userId, $payhere_amount, $payhere_currency);
+        $stmt->bind_param("sssdsssssss", 
+            $order_id, $payment_id, $userId, $payhere_amount, $payhere_currency,
+            $customer_name, $customer_email, $customer_phone, $delivery_address, 
+            $delivery_city, $order_items
+        );
         $stmt->execute();
         $stmt->close();
         
-        // Optionally: Clear the cart
-        // You can pass cart_id via custom_2 parameter
+        // Log successful payment
+        $logFile = __DIR__ . '/../../../logs/payment_success.log';
+        $logData = date('Y-m-d H:i:s') . " - SUCCESS: Order $order_id, Amount: $payhere_amount $payhere_currency, Customer: $customer_email\n";
+        file_put_contents($logFile, $logData, FILE_APPEND);
         
         echo "Payment processed successfully";
         

@@ -48,6 +48,15 @@ $orderId = generateOrderId();
             <div class="card">
                 <h2 class="card-title">Customer Information</h2>
                 
+                <!-- Sandbox Mode Notice -->
+                <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-bottom: 20px;">
+                    <h3 style="color: #856404; margin-bottom: 10px;">🧪 Sandbox Mode Active</h3>
+                    <p style="color: #555; font-size: 0.9rem; line-height: 1.5;">
+                        This is a test environment. No real payments will be processed. 
+                        On the PayHere page, you can complete payment using test options without entering real card details.
+                    </p>
+                </div>
+                
                 <form id="customerForm">
                     <div class="form-group">
                         <label for="customerName">Full Name *</label>
@@ -97,7 +106,7 @@ $orderId = generateOrderId();
     </div>
 
     <!-- Hidden PayHere Form -->
-    <form method="post" action="<?= PAYHERE_CHECKOUT_URL ?>" id="payhereForm" style="display: none;">
+    <form method="post" action="<?= PAYHERE_CHECKOUT_URL ?>" id="payhereForm" target="_blank" style="display: none;">
         <input type="hidden" name="merchant_id" value="<?= PAYHERE_MERCHANT_ID ?>">
         <input type="hidden" name="return_url" value="<?= PAYHERE_RETURN_URL ?>">
         <input type="hidden" name="cancel_url" value="<?= PAYHERE_CANCEL_URL ?>">
@@ -296,7 +305,8 @@ $orderId = generateOrderId();
                 if (data.success) {
                     document.getElementById('hash').value = data.hash;
                     
-                    // Submit to PayHere
+                    // Open PayHere payment page in a new tab so current cart page stays open
+                    alert('Payment window will open in a new browser tab. In sandbox mode, you can complete the test payment without entering real card details.');
                     document.getElementById('payhereForm').submit();
                 } else {
                     alert('Error preparing payment. Please try again.');

@@ -1,0 +1,97 @@
+# Dheergayu Project - Git Ignore File
+# Place this in the root of your project: /dheergayu/.gitignore
+
+# ===== SENSITIVE CONFIGURATION FILES =====
+# ⚠️ NEVER commit these to GitHub!
+config/payhere_config.php
+config/config.php
+config/database.php
+*.env
+.env
+.env.local
+
+# ===== LOGS =====
+logs/
+*.log
+payhere_notifications.log
+
+# ===== UPLOADS & USER DATA =====
+uploads/*
+!uploads/.gitkeep
+public/assets/images/uploads/*
+!public/assets/images/uploads/.gitkeep
+
+# ===== TEMPORARY FILES =====
+*.tmp
+*.temp
+*.cache
+tmp/
+temp/
+
+# ===== OPERATING SYSTEM FILES =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+
+# ===== IDE & EDITOR FILES =====
+# VS Code
+.vscode/
+*.code-workspace
+
+# PHPStorm / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# NetBeans
+nbproject/
+
+# ===== PHP =====
+vendor/
+composer.phar
+composer.lock
+
+# ===== NODE.JS (if you use npm) =====
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# ===== BACKUP FILES =====
+*.bak
+*.backup
+*.old
+*_backup.*
+
+# ===== DATABASE DUMPS =====
+*.sql.gz
+*.sql.zip
+backup_*.sql
+dump_*.sql
+# Keep structure files
+!Database/*.sql
+
+# ===== SECURITY =====
+.htaccess.backup
+.htpasswd
+ssl/
+certificates/
+*.pem
+*.key
+*.crt

@@ -1,14 +1,11 @@
 <?php
-// /dheergayu/config/payhere_config.php
-// PayHere Payment Gateway Configuration
+
 
 // SANDBOX MODE (for testing)
-define('PAYHERE_MODE', 'sandbox'); // Change to 'live' for production
+define('PAYHERE_MODE', 'sandbox'); 
 
-// PayHere Credentials - GET THESE FROM: https://sandbox.payhere.lk
-// Settings > Domains & Credentials
-define('PAYHERE_MERCHANT_ID', '1221234'); // ⚠️ REPLACE with your Merchant ID
-define('PAYHERE_MERCHANT_SECRET', 'YOUR_MERCHANT_SECRET_HERE'); // ⚠️ REPLACE with your Merchant Secret
+define('PAYHERE_MERCHANT_ID', '4OVyc4L167U4JH5Ex8MQcc3Xe'); 
+define('PAYHERE_MERCHANT_SECRET', '4q7xCJqP8AJ4OXGuMrxhmo49cvM9eBB4r48aV9Q2fbDc'); 
 
 // PayHere API URLs
 if (PAYHERE_MODE === 'sandbox') {
