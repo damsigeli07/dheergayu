@@ -48,6 +48,9 @@ function addToCart($conn) {
     if ($productId <= 0 || empty($productName) || $price <= 0) {
         throw new Exception('Invalid product data');
     }
+    if ($quantity <= 0) {
+        throw new Exception('Quantity must be at least 1');
+    }
     
     // Get or create cart
     $cartId = getOrCreateCart($conn, $userId, $sessionId);
@@ -97,7 +100,7 @@ function getCart($conn) {
     $cartId = getExistingCart($conn, $userId, $sessionId);
     
     if (!$cartId) {
-        echo json_encode(['success' => true, 'items' => [], 'count' => 0]);
+        echo json_encode(['success' => true, 'items' => [], 'count' => 0, 'cart_id' => null]);
         return;
     }
     
@@ -129,7 +132,8 @@ function getCart($conn) {
     echo json_encode([
         'success' => true,
         'items' => $items,
-        'count' => count($items)
+        'count' => count($items),
+        'cart_id' => (int)$cartId
     ]);
 }
 

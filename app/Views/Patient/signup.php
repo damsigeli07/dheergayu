@@ -103,6 +103,7 @@ $error   = $_GET['error'] ?? '';
     </div>
 </div>
 
+<script src="/dheergayu/public/assets/js/patient-form-utils.js"></script>
 <script>
 function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
@@ -200,6 +201,25 @@ function validateDOB() {
 
 function validateForm(event) {
     let isValid = true;
+    const formEl = document.getElementById('signupForm');
+    const formData = new FormData(formEl);
+    const basicError = PatientFormUtils.validateRules(formData, {
+        first_name: { required: true, message: 'First name is required.' },
+        last_name: { required: true, message: 'Last name is required.' },
+        nic: { required: true, message: 'NIC is required.' },
+        email: {
+            required: true,
+            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Please enter a valid email address.'
+        },
+        password: { required: true, message: 'Password is required.' },
+        confirm_password: { required: true, message: 'Confirm password is required.' }
+    });
+    if (basicError) {
+        alert(basicError);
+        event.preventDefault();
+        return false;
+    }
     
     // Validate DOB
     if (!validateDOB()) {

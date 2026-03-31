@@ -334,6 +334,7 @@ while ($row = $scheduleResult->fetch_assoc()) {
         </div>
     </footer>
 
+    <script src="/dheergayu/public/assets/js/patient-form-utils.js"></script>
     <script>
 // Use the FIXED JavaScript from earlier that I provided
 let selectedTimeSlot = '';
@@ -480,6 +481,35 @@ document.getElementById('consultationForm').addEventListener('submit', function(
     }
     
     const date = document.getElementById('consultationDate').value;
+
+    const clientData = new FormData(this);
+    clientData.set('phone', PatientFormUtils.toDigits(clientData.get('phone'), 10));
+    const validationError = PatientFormUtils.validateRules(clientData, {
+        patient_name: { required: true, message: 'Patient name is required.' },
+        age: {
+            required: true,
+            custom: function (value) {
+                const age = parseInt(value, 10);
+                if (Number.isNaN(age) || age < 1 || age > 120) return 'Age must be between 1 and 120.';
+                return '';
+            }
+        },
+        gender: { required: true, message: 'Please select gender.' },
+        email: {
+            required: true,
+            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Please enter a valid email.'
+        },
+        phone: {
+            required: true,
+            pattern: /^0[0-9]{9}$/,
+            message: 'Please enter a valid Sri Lankan phone number.'
+        }
+    });
+    if (validationError) {
+        alert(validationError);
+        return;
+    }
     
     if (isSlotInPast(date, selectedTimeSlot)) {
         alert('This time slot has already passed. Please select a future time.');
@@ -491,6 +521,7 @@ document.getElementById('consultationForm').addEventListener('submit', function(
     submitBtn.textContent = 'Booking...';
 
     const formData = new FormData(this);
+    formData.set('phone', PatientFormUtils.toDigits(formData.get('phone'), 10));
     formData.append('treatment_type', 'General Consultation');
     formData.append('appointment_date', date);
     formData.append('appointment_time', selectedTimeSlot);

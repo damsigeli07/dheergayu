@@ -1,27 +1,102 @@
 <?php
-session_start();
-require_once __DIR__ . '/../../../config/payhere_config.php';
+$patientProducts = [];
+$adminProducts = [];
+$productsError = '';
 
-// Check if user is logged in (optional - allow guest checkout)
-$userId = $_SESSION['user_id'] ?? null;
-$userName = $_SESSION['user_name'] ?? 'Guest User';
-$userEmail = $_SESSION['user_email'] ?? '';
-$userPhone = $_SESSION['user_phone'] ?? '';
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
 
-// Generate unique order ID
-$orderId = generateOrderId();
+function resolveProductImage(string $dbImagePath, string $productName): string
+{
+    $defaultImage = '/dheergayu/public/assets/images/dheergayu.png';
+    $baseUrl = '/dheergayu/public/assets/images/Admin/';
+    $baseDir = __DIR__ . '/../../../public/assets/images/Admin/';
+
+    $raw = trim($dbImagePath);
+    $fileName = ltrim(str_replace('images/', '', $raw), '/');
+
+    $nameMap = [
+        'samahan herbal drink' => 'Samhan.jpg',
+        'kothalahimbutu capsules' => 'Kothalahibutu.png',
+        'siddhalepa herbal balm' => 'siddhalepa.png',
+    ];
+    $nameKey = strtolower(trim($productName));
+
+    $candidates = [];
+    if ($fileName !== '') {
+        $candidates[] = $fileName;
+    }
+    if (isset($nameMap[$nameKey])) {
+        $candidates[] = $nameMap[$nameKey];
+    }
+
+    foreach ($candidates as $candidate) {
+        $fullPath = $baseDir . $candidate;
+        if (is_file($fullPath)) {
+            return $baseUrl . rawurlencode($candidate);
+        }
+    }
+
+    return $defaultImage;
+}
+
+if ($db->connect_error) {
+    $productsError = 'Failed to load products. Please try again later.';
+} else {
+    // Fetch patient products first
+    $patientQuery = "SELECT product_id, name, price, description, image FROM patient_products ORDER BY name ASC";
+    if ($result = $db->query($patientQuery)) {
+        while ($row = $result->fetch_assoc()) {
+            $productName = $row['name'] ?? 'Unnamed Product';
+            // Remove (Patient) and (Sachets) suffixes
+            $productName = str_replace(' (Patient)', '', $productName);
+            $productName = str_replace(' (Sachets)', '', $productName);
+            $imagePath = resolveProductImage((string)($row['image'] ?? ''), $productName);
+            
+            $patientProducts[] = [
+                'id' => (int)$row['product_id'],
+                'name' => $productName,
+                'price' => number_format((float)($row['price'] ?? 0), 2),
+                'description' => $row['description'] ?? 'No description available.',
+                'image' => $imagePath,
+                'type' => 'patient'
+            ];
+        }
+        $result->free();
+    }
+    
+    // Fetch admin products
+    $adminQuery = "SELECT product_id, name, price, description, image FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name ASC";
+    if ($result = $db->query($adminQuery)) {
+        while ($row = $result->fetch_assoc()) {
+            $imagePath = resolveProductImage((string)($row['image'] ?? ''), (string)($row['name'] ?? ''));
+
+            $adminProducts[] = [
+                'id' => (int)$row['product_id'],
+                'name' => $row['name'] ?? 'Unnamed Product',
+                'price' => number_format((float)($row['price'] ?? 0), 2),
+                'description' => $row['description'] ?? 'No description available.',
+                'image' => $imagePath,
+                'type' => 'admin'
+            ];
+        }
+        $result->free();
+    }
+    
+    if (empty($patientProducts) && empty($adminProducts)) {
+        $productsError = 'Failed to load products. Please try again later.';
+    }
+    $db->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dheergayu - Checkout & Payment</title>
+    <title>Our Products - Dheergayu Pharmacy</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/products.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/payment.css?v=<?php echo time(); ?>">
 </head>
 <body>
-
     <header class="main-header">
         <div class="container">
             <div class="logo">
@@ -33,100 +108,77 @@ $orderId = generateOrderId();
                     <li><a href="/dheergayu/app/Views/Patient/home.php">HOME</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
-                    <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/products.php" class="active">SHOP</a></li>
                 </ul>
             </nav>
             <div class="header-right">
-                <a href="cart.php" class="back-btn">← Back to Cart</a>
+                <a href="home.php" class="back-btn">← Back to Home</a>
             </div>
         </div>
     </header>
 
     <div class="container">
-        <div class="checkout-grid">
-            <!-- Customer Information Card -->
-            <div class="card">
-                <h2 class="card-title">Customer Information</h2>
-                
-                <!-- Sandbox Mode Notice -->
-                <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-bottom: 20px;">
-                    <h3 style="color: #856404; margin-bottom: 10px;">🧪 Sandbox Mode Active</h3>
-                    <p style="color: #555; font-size: 0.9rem; line-height: 1.5;">
-                        This is a test environment. No real payments will be processed. 
-                        On the PayHere page, you can complete payment using test options without entering real card details.
-                    </p>
-                </div>
-                
-                <form id="customerForm">
-                    <div class="form-group">
-                        <label for="customerName">Full Name *</label>
-                        <input type="text" id="customerName" name="customerName" value="<?= htmlspecialchars($userName) ?>" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customerEmail">Email *</label>
-                        <input type="email" id="customerEmail" name="customerEmail" value="<?= htmlspecialchars($userEmail) ?>" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customerPhone">Phone *</label>
-                        <input type="tel" id="customerPhone" name="customerPhone" value="<?= htmlspecialchars($userPhone) ?>" placeholder="0712345678" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="address">Delivery Address *</label>
-                        <textarea id="address" name="address" rows="3" placeholder="Enter your delivery address" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="city">City *</label>
-                        <input type="text" id="city" name="city" placeholder="e.g., Colombo" required>
-                    </div>
-
-                    <div class="payment-buttons">
-                        <button type="button" class="pay-btn" onclick="proceedToPayment()">Proceed to Payment</button>
-                        <button type="button" class="cancel-btn" onclick="cancelPayment()">Cancel</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Order Summary Card -->
-            <div class="card">
-                <h2 class="card-title">Order Summary</h2>
-                
-                <div id="orderItems">
-                    <p>Loading order details...</p>
-                </div>
-
-                <div style="margin-top: 25px;" id="orderSummary">
-                    <!-- Summary will be populated by JavaScript -->
-                </div>
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="main-title">Our Products</h1>
+            <div class="page-description">
+                <p>Discover our comprehensive range of authentic Ayurvedic medicines and herbal products. In our pharmacy, you can buy these high-quality products to support your health and wellness journey.</p>
             </div>
         </div>
-    </div>
 
-    <!-- Hidden PayHere Form -->
-    <form method="post" action="<?= PAYHERE_CHECKOUT_URL ?>" id="payhereForm" target="_blank" style="display: none;">
-        <input type="hidden" name="merchant_id" value="<?= PAYHERE_MERCHANT_ID ?>">
-        <input type="hidden" name="return_url" value="<?= PAYHERE_RETURN_URL ?>">
-        <input type="hidden" name="cancel_url" value="<?= PAYHERE_CANCEL_URL ?>">
-        <input type="hidden" name="notify_url" value="<?= PAYHERE_NOTIFY_URL ?>">
-        
-        <input type="hidden" name="order_id" id="order_id" value="<?= $orderId ?>">
-        <input type="hidden" name="items" id="items" value="">
-        <input type="hidden" name="currency" value="<?= PAYHERE_CURRENCY ?>">
-        <input type="hidden" name="amount" id="amount" value="">
-        
-        <input type="hidden" name="first_name" id="first_name" value="">
-        <input type="hidden" name="last_name" id="last_name" value="">
-        <input type="hidden" name="email" id="email" value="">
-        <input type="hidden" name="phone" id="phone" value="">
-        <input type="hidden" name="address" id="delivery_address" value="">
-        <input type="hidden" name="city" id="delivery_city" value="">
-        <input type="hidden" name="country" value="Sri Lanka">
-        
-        <input type="hidden" name="hash" id="hash" value="">
-    </form>
+        <div class="products-grid">
+            <?php if ($productsError): ?>
+                <div class="product-card" style="grid-column: 1 / -1; text-align:center;">
+                    <p><?= htmlspecialchars($productsError) ?></p>
+                </div>
+            <?php elseif (empty($patientProducts) && empty($adminProducts)): ?>
+                <div class="product-card" style="grid-column: 1 / -1; text-align:center;">
+                    <h3 class="product-name">No products available</h3>
+                    <p class="product-use">Please check back soon. Our pharmacy team is adding new wellness products.</p>
+                </div>
+            <?php else: ?>
+                <!-- Patient Products (First Row) -->
+                <?php foreach ($patientProducts as $product): ?>
+                    <div class="product-card" data-product-id="<?= $product['id'] ?>" data-product-type="patient">
+                        <div class="product-image">
+                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img" onerror="this.src='/dheergayu/public/assets/images/dheergayu.png'">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
+                            <div class="product-price">Rs. <?= htmlspecialchars($product['price']) ?></div>
+                            <p class="product-use"><?= htmlspecialchars($product['description']) ?></p>
+                            <button class="add-to-cart-btn" onclick="addToCart(this, <?= $product['id'] ?>, <?= htmlspecialchars(json_encode($product['name']), ENT_QUOTES, 'UTF-8') ?>, <?= str_replace(',', '', $product['price']) ?>, 'patient', <?= htmlspecialchars(json_encode($product['image']), ENT_QUOTES, 'UTF-8') ?>)">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+                
+                <!-- Admin Products -->
+                <?php foreach ($adminProducts as $product): ?>
+                    <div class="product-card" data-product-id="<?= $product['id'] ?>" data-product-type="admin">
+                        <div class="product-image">
+                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img" onerror="this.src='/dheergayu/public/assets/images/dheergayu.png'">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
+                            <div class="product-price">Rs. <?= htmlspecialchars($product['price']) ?></div>
+                            <p class="product-use"><?= htmlspecialchars($product['description']) ?></p>
+                            <button class="add-to-cart-btn" onclick="addToCart(this, <?= $product['id'] ?>, <?= htmlspecialchars(json_encode($product['name']), ENT_QUOTES, 'UTF-8') ?>, <?= str_replace(',', '', $product['price']) ?>, 'admin', <?= htmlspecialchars(json_encode($product['image']), ENT_QUOTES, 'UTF-8') ?>)">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="footer-note">
+            <h3>Visit Our Pharmacy</h3>
+            <p>All our products are available for purchase at our pharmacy location. Our experienced staff is ready to assist you with product selection and provide guidance on usage. We ensure all products are authentic and of the highest quality.</p>
+        </div>
+    </div>
 
     <footer class="main-footer">
         <div class="container">
@@ -165,202 +217,71 @@ $orderId = generateOrderId();
     </footer>
 
     <script>
-        let cartItems = [];
+        async function addToCart(button, productId, productName, price, productType, imagePath) {
+            const btn = button;
+            const originalText = btn.textContent;
+            btn.disabled = true;
 
-        // Debug: Log when script loads
-        console.log('Payment page script loaded');
-        console.log('Order ID:', '<?= $orderId ?>');
-
-        async function loadOrderSummary() {
-            console.log('Loading order summary...');
-            try {
-                const response = await fetch('/dheergayu/public/api/cart-api.php?action=get');
-                console.log('Cart API response status:', response.status);
-                
-                const data = await response.json();
-                console.log('Cart data:', data);
-                
-                if (!data.success || data.items.length === 0) {
-                    alert('Your cart is empty! Redirecting to products page...');
-                    window.location.href = 'products.php';
-                    return;
-                }
-                
-                cartItems = data.items;
-                renderOrderSummary(cartItems);
-            } catch (error) {
-                console.error('Error loading order:', error);
-                alert('Failed to load order. Please try again.');
-            }
-        }
-
-        function renderOrderSummary(items) {
-            console.log('Rendering order summary with items:', items);
-            const orderItemsDiv = document.getElementById('orderItems');
-            const orderSummaryDiv = document.getElementById('orderSummary');
-
-            // Calculate totals
-            const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const shipping = subtotal > 5000 ? 0 : 250;
-            const total = subtotal + shipping;
-
-            console.log('Order totals - Subtotal:', subtotal, 'Shipping:', shipping, 'Total:', total);
-
-            // Render order items
-            const itemsHTML = items.map(item => `
-                <div class="order-item">
-                    <div class="order-item-image">
-                        <img src="${item.image || '/dheergayu/public/assets/images/dheergayu.png'}" 
-                             alt="${item.name}" 
-                             onerror="this.src='/dheergayu/public/assets/images/dheergayu.png'">
-                    </div>
-                    <div class="order-item-details">
-                        <div class="order-item-name">${item.name}</div>
-                        <div class="order-item-qty">Quantity: ${item.quantity}</div>
-                    </div>
-                    <div class="order-item-price">
-                        Rs. ${(item.price * item.quantity).toFixed(2)}
-                    </div>
-                </div>
-            `).join('');
-
-            orderItemsDiv.innerHTML = itemsHTML;
-
-            // Render summary
-            orderSummaryDiv.innerHTML = `
-                <div class="summary-row">
-                    <span>Subtotal (${items.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
-                    <span>Rs. ${subtotal.toFixed(2)}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Shipping</span>
-                    <span>${shipping === 0 ? 'FREE' : 'Rs. ' + shipping.toFixed(2)}</span>
-                </div>
-                ${shipping === 0 ? '' : '<div class="summary-row" style="font-size: 0.85rem; color: #5CB85C;"><span style="font-size: 0.85rem;">Free shipping on orders over Rs. 5,000</span><span></span></div>'}
-                <div class="summary-row total">
-                    <span>Total Amount</span>
-                    <span class="amount">Rs. ${total.toFixed(2)}</span>
-                </div>
-            `;
-            
-            console.log('Order summary rendered successfully');
-        }
-
-        function cancelPayment() {
-            if (confirm('Are you sure you want to cancel?')) {
-                window.location.href = 'cart.php';
-            }
-        }
-
-        async function proceedToPayment() {
-            console.log('Proceed to payment clicked');
-            
-            // Validate form
-            const customerName = document.getElementById('customerName').value.trim();
-            const customerEmail = document.getElementById('customerEmail').value.trim();
-            const customerPhone = document.getElementById('customerPhone').value.trim();
-            const address = document.getElementById('address').value.trim();
-            const city = document.getElementById('city').value.trim();
-
-            console.log('Form data:', { customerName, customerEmail, customerPhone, address, city });
-
-            if (!customerName || !customerEmail || !customerPhone || !address || !city) {
-                alert('Please fill in all required fields!');
-                return;
-            }
-
-            // Validate email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(customerEmail)) {
-                alert('Please enter a valid email address!');
-                return;
-            }
-
-            // Validate phone (Sri Lankan format)
-            const phoneRegex = /^0[0-9]{9}$/;
-            if (!phoneRegex.test(customerPhone)) {
-                alert('Please enter a valid phone number (e.g., 0712345678)!');
-                return;
-            }
-
-            // Calculate total
-            const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const shipping = subtotal > 5000 ? 0 : 250;
-            const total = subtotal + shipping;
-
-            console.log('Payment details:', { subtotal, shipping, total });
-
-            // Prepare items description
-            const itemsDesc = cartItems.map(item => `${item.name} x${item.quantity}`).join(', ');
-
-            // Split name into first and last
-            const nameParts = customerName.split(' ');
-            const firstName = nameParts[0];
-            const lastName = nameParts.slice(1).join(' ') || firstName;
-
-            console.log('Customer name split:', { firstName, lastName });
-
-            // Fill PayHere form
-            document.getElementById('first_name').value = firstName;
-            document.getElementById('last_name').value = lastName;
-            document.getElementById('email').value = customerEmail;
-            document.getElementById('phone').value = customerPhone;
-            document.getElementById('delivery_address').value = address;
-            document.getElementById('delivery_city').value = city;
-            document.getElementById('items').value = itemsDesc;
-            document.getElementById('amount').value = total.toFixed(2);
-
-            console.log('PayHere form filled, generating hash...');
-
-            // Generate hash via server
             try {
                 const formData = new FormData();
-                formData.append('order_id', '<?= $orderId ?>');
-                formData.append('amount', total.toFixed(2));
+                formData.append('action', 'add');
+                formData.append('product_id', String(productId));
+                formData.append('product_type', productType);
+                formData.append('product_name', productName);
+                formData.append('price', String(price));
+                formData.append('quantity', '1');
+                formData.append('image', imagePath || '/dheergayu/public/assets/images/dheergayu.png');
 
-                console.log('Calling hash generation API...');
-
-                const response = await fetch('/dheergayu/public/api/generate-payhere-hash.php', {
+                const response = await fetch('/dheergayu/public/api/cart-api.php', {
                     method: 'POST',
                     body: formData
                 });
-
-                console.log('Hash API response status:', response.status);
-
                 const data = await response.json();
-                console.log('Hash API response:', data);
 
-                if (data.success) {
-                    document.getElementById('hash').value = data.hash;
-                    
-                    console.log('Hash generated successfully, submitting to PayHere...');
-                    console.log('PayHere URL:', '<?= PAYHERE_CHECKOUT_URL ?>');
-                    
-                    alert('Payment window will open in a new browser tab. In sandbox mode, you can complete the test payment without entering real card details.');
-                    // Submit to PayHere
-                    document.getElementById('payhereForm').submit();
-                    console.log('Form submitted to PayHere');
-                } else {
-                    console.error('Hash generation failed:', data);
-                    alert('Error preparing payment: ' + (data.error || 'Unknown error'));
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to add item');
                 }
+
+                btn.textContent = 'Added!';
+                btn.style.backgroundColor = '#4CAF50';
+                await updateCartCount();
             } catch (error) {
-                console.error('Error in payment process:', error);
-                alert('Failed to proceed to payment. Please check the console for details.');
+                console.error(error);
+                btn.textContent = 'Try Again';
+                btn.style.backgroundColor = '#dc3545';
+                alert('Unable to add this item to cart right now. Please try again.');
+            } finally {
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.backgroundColor = '';
+                    btn.disabled = false;
+                }, 1200);
             }
         }
+        
+        async function updateCartCount() {
+            const cartBadge = document.querySelector('.cart-badge');
+            if (!cartBadge) return;
 
-        // Phone validation
-        document.getElementById('customerPhone').addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '');
-            if (this.value.length > 10) {
-                this.value = this.value.slice(0, 10);
+            try {
+                const response = await fetch('/dheergayu/public/api/cart-api.php?action=get');
+                const data = await response.json();
+                const totalItems = (data.items || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
+                cartBadge.textContent = totalItems;
+                cartBadge.style.display = totalItems > 0 ? 'block' : 'none';
+            } catch (error) {
+                console.error('Failed to refresh cart badge', error);
             }
+        }
+        
+        // Initialize cart count on page load
+        updateCartCount();
+        
+        // Smooth scroll to top
+        document.querySelector('.scroll-to-top')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-
-        // Load order summary on page load
-        console.log('Page loaded, initializing order summary...');
-        loadOrderSummary();
     </script>
 </body>
 </html>

@@ -177,49 +177,85 @@
         </div>
     </footer>
 
+<script src="/dheergayu/public/assets/js/patient-form-utils.js"></script>
 <script>
-    // Form submission handler
-    document.getElementById('contactForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const phone = formData.get('phone');
-        const phoneRegex = /^0[0-9]{9}$/;
-        
-        if (!phoneRegex.test(phone)) {
-            alert('Please enter a valid Sri Lankan phone number (e.g., 0712345678)');
-            return;
+    const contactForm = document.getElementById('contactForm');
+    const successMessage = document.getElementById('successMessage');
+
+    const FIELD_RULES = {
+        name: {
+            required: true,
+            message: 'Full name is required.'
+        },
+        email: {
+            required: true,
+            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Please enter a valid email address.'
+        },
+        phone: {
+            required: true,
+            pattern: /^0[0-9]{9}$/,
+            message: 'Please enter a valid Sri Lankan phone number (e.g., 0712345678).'
+        },
+        subject: {
+            required: true,
+            message: 'Please select a subject.'
+        },
+        message: {
+            required: true,
+            message: 'Message is required.'
         }
-        
-        // Submit to backend
-        fetch('/dheergayu/public/api/submit-contact.php', {
+    };
+
+    function sanitizeFormInput(formData) {
+        const phone = PatientFormUtils.toDigits(formData.get('phone'), 10);
+        formData.set('phone', phone);
+        return formData;
+    }
+
+    function validateForm(formData) {
+        return PatientFormUtils.validateRules(formData, FIELD_RULES);
+    }
+
+    async function submitContactForm(formData) {
+        const response = await fetch('/dheergayu/public/api/submit-contact.php', {
             method: 'POST',
             body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const successMessage = document.getElementById('successMessage');
-                successMessage.textContent = data.message;
-                successMessage.classList.add('show');
-                this.reset();
-                setTimeout(() => successMessage.classList.remove('show'), 5000);
-                successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                alert('Error: ' + (data.error || 'Failed to send message'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again later.');
         });
+        return response.json();
+    }
+
+    contactForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        let formData = new FormData(contactForm);
+        formData = sanitizeFormInput(formData);
+
+        const validationError = validateForm(formData);
+        if (validationError) {
+            alert(validationError);
+            return;
+        }
+
+        try {
+            const data = await submitContactForm(formData);
+            if (!data.success) {
+                alert('Error: ' + (data.error || 'Failed to send message'));
+                return;
+            }
+
+            successMessage.textContent = data.message || 'Your message has been sent successfully!';
+            successMessage.classList.add('show');
+            contactForm.reset();
+            setTimeout(() => successMessage.classList.remove('show'), 5000);
+            successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (error) {
+            console.error(error);
+            alert('An error occurred. Please try again later.');
+        }
     });
 
-    document.getElementById('phone').addEventListener('input', function(e) {
-        this.value = this.value.replace(/\D/g, '');
-        if (this.value.length > 10) {
-            this.value = this.value.slice(0, 10);
-        }
+    document.getElementById('phone').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
     });
 </script>
 </body>

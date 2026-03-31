@@ -126,6 +126,8 @@ $orderId = generateOrderId();
         <input type="hidden" name="country" value="Sri Lanka">
         
         <input type="hidden" name="hash" id="hash" value="">
+        <input type="hidden" name="custom_1" id="custom_1" value="<?= (int)($userId ?? 0) ?>">
+        <input type="hidden" name="custom_2" id="custom_2" value="">
     </form>
 
     <footer class="main-footer">
@@ -164,8 +166,10 @@ $orderId = generateOrderId();
         </div>
     </footer>
 
+    <script src="/dheergayu/public/assets/js/patient-form-utils.js"></script>
     <script>
         let cartItems = [];
+        let cartId = null;
 
         async function loadOrderSummary() {
             try {
@@ -179,6 +183,7 @@ $orderId = generateOrderId();
                 }
                 
                 cartItems = data.items;
+                cartId = data.cart_id || null;
                 renderOrderSummary(cartItems);
             } catch (error) {
                 console.error('Error loading order:', error);
@@ -240,29 +245,41 @@ $orderId = generateOrderId();
         }
 
         async function proceedToPayment() {
-            // Validate form
             const customerName = document.getElementById('customerName').value.trim();
             const customerEmail = document.getElementById('customerEmail').value.trim();
-            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const customerPhone = PatientFormUtils.toDigits(document.getElementById('customerPhone').value, 10);
             const address = document.getElementById('address').value.trim();
             const city = document.getElementById('city').value.trim();
+            document.getElementById('customerPhone').value = customerPhone;
 
-            if (!customerName || !customerEmail || !customerPhone || !address || !city) {
-                alert('Please fill in all required fields!');
+            const formDataForValidation = new FormData();
+            formDataForValidation.set('customerName', customerName);
+            formDataForValidation.set('customerEmail', customerEmail);
+            formDataForValidation.set('customerPhone', customerPhone);
+            formDataForValidation.set('address', address);
+            formDataForValidation.set('city', city);
+
+            const validationError = PatientFormUtils.validateRules(formDataForValidation, {
+                customerName: { required: true, message: 'Full name is required.' },
+                customerEmail: {
+                    required: true,
+                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Please enter a valid email address.'
+                },
+                customerPhone: {
+                    required: true,
+                    pattern: /^0[0-9]{9}$/,
+                    message: 'Please enter a valid phone number (e.g., 0712345678).'
+                },
+                address: { required: true, message: 'Delivery address is required.' },
+                city: { required: true, message: 'City is required.' }
+            });
+            if (validationError) {
+                alert(validationError);
                 return;
             }
-
-            // Validate email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(customerEmail)) {
-                alert('Please enter a valid email address!');
-                return;
-            }
-
-            // Validate phone (Sri Lankan format)
-            const phoneRegex = /^0[0-9]{9}$/;
-            if (!phoneRegex.test(customerPhone)) {
-                alert('Please enter a valid phone number (e.g., 0712345678)!');
+            if (!cartId) {
+                alert('Cart session is not available. Please reload and try again.');
                 return;
             }
 
@@ -288,6 +305,7 @@ $orderId = generateOrderId();
             document.getElementById('delivery_city').value = city;
             document.getElementById('items').value = itemsDesc;
             document.getElementById('amount').value = total.toFixed(2);
+            document.getElementById('custom_2').value = String(cartId);
 
             // Generate hash via server
             try {

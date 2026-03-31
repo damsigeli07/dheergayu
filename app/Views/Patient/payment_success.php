@@ -159,18 +159,28 @@
             <a href="/dheergayu/app/Views/Patient/products.php" class="btn btn-secondary">Continue Shopping</a>
         </div>
     </div>
-
     <script>
-        // Clear cart from database after successful payment
-        fetch('/dheergayu/public/api/cart-api.php', {
-            method: 'POST',
-            body: new URLSearchParams({ action: 'clear' })
-        }).then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  console.log('Cart cleared successfully');
-              }
-          });
+        (async function finalizeSandboxPayment() {
+            const params = new URLSearchParams(window.location.search);
+            const orderId = params.get('order_id');
+            if (!orderId) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('order_id', orderId);
+
+                const response = await fetch('/dheergayu/public/api/finalize-payment-local.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    console.warn('Local finalize skipped:', data.error || 'unknown error');
+                }
+            } catch (error) {
+                console.warn('Local finalize failed:', error);
+            }
+        })();
     </script>
 </body>
 </html>

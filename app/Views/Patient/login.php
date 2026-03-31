@@ -192,6 +192,7 @@ $conn->close();
     </div>
 </div>
 
+<script src="/dheergayu/public/assets/js/patient-form-utils.js"></script>
 <script>
     function togglePassword() {
         const field = document.getElementById('password');
@@ -206,6 +207,24 @@ $conn->close();
     }
 
     document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const formData = new FormData(this);
+        const error = PatientFormUtils.validateRules(formData, {
+            email: {
+                required: true,
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Please enter a valid email address.'
+            },
+            password: {
+                required: true,
+                message: 'Password is required.'
+            }
+        });
+        if (error) {
+            e.preventDefault();
+            alert(error);
+            return;
+        }
+
         const submitBtn = document.getElementById('loginBtn');
         submitBtn.textContent = 'LOGGING IN...';
         submitBtn.disabled = true;

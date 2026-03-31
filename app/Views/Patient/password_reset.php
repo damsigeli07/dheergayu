@@ -63,6 +63,7 @@
         </div>
     </div>
 </div>
+    <script src="/dheergayu/public/assets/js/patient-form-utils.js"></script>
     <script>
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
@@ -80,22 +81,30 @@
         document.getElementById('resetForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const code = document.getElementById('verificationCode').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (!code || !newPassword || !confirmPassword) {
-                alert('Please fill in all fields');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                alert('Passwords do not match');
-                return;
-            }
-            
-            if (newPassword.length < 6) {
-                alert('Password must be at least 6 characters long');
+            const formData = new FormData();
+            formData.set('verificationCode', document.getElementById('verificationCode').value);
+            formData.set('newPassword', document.getElementById('newPassword').value);
+            formData.set('confirmPassword', document.getElementById('confirmPassword').value);
+
+            const error = PatientFormUtils.validateRules(formData, {
+                verificationCode: {
+                    required: true,
+                    message: 'Verification code is required.'
+                },
+                newPassword: {
+                    required: true,
+                    pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/,
+                    message: 'Password must be 8+ chars with uppercase, lowercase, number and special character.'
+                },
+                confirmPassword: {
+                    required: true,
+                    custom: function (value, fd) {
+                        return value !== String(fd.get('newPassword')) ? 'Passwords do not match.' : '';
+                    }
+                }
+            });
+            if (error) {
+                alert(error);
                 return;
             }
             
