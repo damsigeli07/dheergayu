@@ -61,3 +61,87 @@ Array
 )
 
 
+2026-02-18 09:45:55
+POST Data:
+Array
+(
+    [appointment_id] => 41
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 23
+    [gender] => Female
+    [diagnosis] => fever
+    [personal_products] => [{"product":"Abayarishtaya","qty":1}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"fever","treatmentId":"4","treatmentType":"Eye Treatment","sessions":2,"sessionsPerWeek":2,"startDate":"2026-02-19","schedule":[{"sessionNumber":1,"date":"2026-02-19","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-25","time":"09:00:00","status":"Pending"}],"appointmentId":"41","patientId":"3"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Eye Treatment | 2 sessions | Start: 2026-02-19
+    [notes] => 
+)
+
+
+2026-02-18 09:47:11
+POST Data:
+Array
+(
+    [appointment_id] => 32
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 23
+    [gender] => Female
+    [diagnosis] => headache
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"3","name":"Head Treatment","date":"2026-02-18","time":"15:00:00","description":"","price":3000,"booking_id":9}
+    [recommended_treatment] => Treatment: Head Treatment | Date: 2026-02-18 | Time: 15:00:00
+    [notes] => 
+)
+
+
+2026-02-18 09:52:19
+POST Data:
+Array
+(
+    [appointment_id] => 42
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 23
+    [gender] => Female
+    [diagnosis] => headache
+    [personal_products] => [{"product":"Ashwagandha Capsules","qty":1}]
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"headache","treatmentId":"3","treatmentType":"Head Treatment","sessions":3,"sessionsPerWeek":2,"startDate":"2026-02-21","schedule":[{"sessionNumber":1,"date":"2026-02-21","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-24","time":"09:00:00","status":"Pending"},{"sessionNumber":3,"date":"2026-02-27","time":"09:00:00","status":"Pending"}],"appointmentId":"42","patientId":"3"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Head Treatment | 3 sessions | Start: 2026-02-21
+    [notes] => 
+)
+
+
+2026-02-18 09:52:56
+POST Data:
+Array
+(
+    [appointment_id] => 43
+    [patient_id] => 5
+    [patient_no] => P0005
+    [first_name] => Damsi
+    [last_name] => Jayawarna
+    [age] => 23
+    [gender] => Female
+    [diagnosis] => ddaadad
+    [personal_products] => []
+    [treatment_plan_choice] => multiple_sessions
+    [treatment_schedule_data] => {"diagnosis":"ddadd","treatmentId":"2","treatmentType":"Shiro Dhara","sessions":2,"sessionsPerWeek":2,"startDate":"2026-02-21","schedule":[{"sessionNumber":1,"date":"2026-02-21","time":"09:00:00","status":"Pending"},{"sessionNumber":2,"date":"2026-02-24","time":"09:00:00","status":"Pending"}],"appointmentId":"43","patientId":"5"}
+    [single_treatment_data] => 
+    [recommended_treatment] => Treatment Plan: Shiro Dhara | 2 sessions | Start: 2026-02-21
+    [notes] => 
+)
+
+
