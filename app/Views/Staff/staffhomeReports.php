@@ -189,7 +189,7 @@ foreach ($treatmentData as $t) {
             data: {
                 labels: treatmentData.map(item => item.treatment),
                 datasets: [{
-                    label: 'Number of Patients',
+                    label: 'Number of Appointments',
                     data: treatmentData.map(item => item.patients),
                     backgroundColor: treatmentData.map(item => item.color),
                     borderColor: treatmentData.map(item => item.color),
@@ -235,7 +235,7 @@ foreach ($treatmentData as $t) {
 
                         title: {
                             display: true,
-                            text: 'Number of Patients',
+                            text: 'Number of Appointments',
                             color: '#2d2d2d',
                             font: {
                                 size: 14,

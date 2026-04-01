@@ -37,6 +37,20 @@ if ($chk && $chk->num_rows === 0) {
     @$db->query("ALTER TABLE treatment_plans ADD COLUMN assigned_staff_id INT NULL");
 }
 
+// Ensure staff_treatment_forms table exists
+@$db->query("CREATE TABLE IF NOT EXISTS staff_treatment_forms (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    plan_id INT NOT NULL,
+    staff_id INT NOT NULL,
+    therapist_name VARCHAR(255),
+    notes LONGTEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_plan_id (plan_id),
+    INDEX idx_staff_id (staff_id),
+    UNIQUE KEY unique_plan_staff (plan_id, staff_id)
+)");
+
 // Fetch treatment plans for this specific staff member
 // Filter by treatment type that matches staff's assignment
 $treatment_plans_query = "
@@ -48,7 +62,8 @@ $treatment_plans_query = "
         tl.treatment_name,
         tl.price as treatment_price,
         (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id) as total_booked_sessions,
-        (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions
+        (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions,
+        (SELECT COUNT(*) FROM staff_treatment_forms WHERE plan_id = tp.plan_id AND staff_id = " . intval($staffUserId) . ") as has_treatment_form
     FROM treatment_plans tp
     LEFT JOIN patients p ON tp.patient_id = p.id
     LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
@@ -69,7 +84,8 @@ if ($assignedTreatmentType) {
     $treatment_plans_query_alt = "
         SELECT tp.*, p.first_name, p.last_name, p.email, tl.treatment_name, tl.price as treatment_price,
             (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id) as total_booked_sessions,
-            (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions
+            (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions,
+            (SELECT COUNT(*) FROM staff_treatment_forms WHERE plan_id = tp.plan_id AND staff_id = " . intval($staffUserId) . ") as has_treatment_form
         FROM treatment_plans tp
         LEFT JOIN patients p ON tp.patient_id = p.id
         LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
@@ -403,7 +419,13 @@ $db->close();
                                     </td>
                                     <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
                                     <td>
-                                        <button class="action-btn complete-btn" onclick="viewTreatmentPlan(<?= $plan['plan_id'] ?>)">View Details</button>
+                                        <?php if ($plan['has_treatment_form'] > 0): ?>
+                                            <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
+                                        <?php else: ?>
+                                            <button class="btn-start" onclick="window.location.href='stafftreatmentform.php?plan_id=<?= htmlspecialchars($plan['plan_id']) ?>'">Start Treatment</button>
+                                            <button class="btn-cancel" onclick="cancelTreatmentPlan(<?= $plan['plan_id'] ?>)">Cancel</button>
+                                        <?php endif; ?>
+                                        <button class="action-btn" style="margin-top:5px;background:#6c757d;" onclick="viewTreatmentPlan(<?= $plan['plan_id'] ?>)">View More Details</button>
                                         <?php if ($plan['change_requested']): ?>
                                             <button class="action-btn" style="margin-top:5px;background:#ff9800;" onclick="viewChangeRequest(<?= $plan['plan_id'] ?>, '<?= htmlspecialchars(addslashes($plan['change_reason'] ?? '')) ?>')">
                                                 View Request
@@ -446,6 +468,30 @@ $db->close();
             message += 'Plan ID: ' + planId + '\n\n';
             message += 'Requested Changes:\n' + reason;
             alert(message);
+        }
+
+        function cancelTreatmentPlan(planId) {
+            var reason = prompt('Please enter reason for cancellation:');
+            if (!reason || !reason.trim()) return;
+            
+            fetch('/dheergayu/public/api/cancel-treatment-plan.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'plan_id=' + planId + '&reason=' + encodeURIComponent(reason)
+            })
+            .then(r => r.text())
+            .then(result => {
+                if (result === 'success') {
+                    alert('Treatment plan cancelled!');
+                    location.reload();
+                } else {
+                    alert('Error cancelling treatment plan');
+                }
+            });
+        }
+
+        function viewStaffTreatmentForm(planId) {
+            window.location.href = 'stafftreatmentform.php?plan_id=' + planId + '&view=1';
         }
 
         document.querySelectorAll('.btn-confirm-assign').forEach(function(btn) {
@@ -517,6 +563,52 @@ $db->close();
         
         .complete-btn:hover {
             background: #218838;
+        }
+        
+        .btn-start {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        
+        .btn-start:hover {
+            background: #218838;
+        }
+        
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .btn-cancel:hover {
+            background: #c82333;
+        }
+        
+        .btn-view {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .btn-view:hover {
+            background: #0056b3;
         }
         
         .completed-text {

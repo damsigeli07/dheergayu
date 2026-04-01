@@ -451,3 +451,437 @@ POST Data: Array
     [doctor_id] => 13
     [doctor_name] => Dr. Silva
 )
+
+========== 2026-02-18 09:25:47 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-11
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:42:43 ==========
+Endpoint: book-consultation.php
+Session User ID: 5
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 21
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-18
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:45:58 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-13
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:53:44 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-25
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:56:26 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 12
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-27
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 09:59:13 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-27
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 10:29:47 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-20
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 10:46:34 ==========
+Endpoint: book-consultation.php
+Session User ID: 5
+POST Data: Array
+(
+    [patient_name] => Damsi Jayawarna
+    [age] => 21
+    [gender] => Female
+    [email] => patient3@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-03-20
+    [appointment_time] => 10:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-18 08:39:15 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-20
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
+
+========== 2026-02-18 08:39:26 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567898
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-20
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
+
+========== 2026-02-18 08:39:51 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567890
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-20
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
+
+========== 2026-02-18 08:40:14 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 21
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567890
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-20
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
+
+========== 2026-02-18 08:57:28 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 23
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 1234567890
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-20
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-02-23 09:11:10 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0767009453
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-24
+    [appointment_time] => 11:30:00
+    [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)
+
+========== 2026-02-23 10:51:31 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0767009453
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-23
+    [appointment_time] => 15:30:00
+    [payment_method] => onsite
+    [doctor_id] => 14
+    [doctor_name] => Dr. Fernando
+)
+
+========== 2026-02-23 11:08:48 ==========
+Endpoint: book-consultation.php
+Session User ID: 15
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0767009453
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-25
+    [appointment_time] => 10:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Failed to book consultation: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 {main}
+
+========== 2026-02-23 11:09:00 ==========
+Endpoint: book-consultation.php
+Session User ID: 15
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0767009453
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-25
+    [appointment_time] => 10:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Failed to book consultation: Cannot add or update a child row: a foreign key constraint fails (`dheergayu_db`.`consultations`, CONSTRAINT `consultations_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`id`))
+Stack trace: #0 {main}
+
+========== 2026-02-23 11:10:11 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0767009453
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-02-25
+    [appointment_time] => 10:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+========== 2026-03-31 21:50:34 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0712345678
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-04-03
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
+
+========== 2026-03-31 21:50:45 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0712345678
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-04-03
+    [appointment_time] => 09:30:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
+
+========== 2026-03-31 21:51:07 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0712345678
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-04-07
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
+
+========== 2026-03-31 21:51:20 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 19
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0712345678
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-04-01
+    [appointment_time] => 09:00:00
+    [payment_method] => onsite
+    [doctor_id] => 13
+    [doctor_name] => Dr. Silva
+)
+
+ERROR: Unknown column 'patient_number' in 'field list'
+Stack trace: #0 C:\xampp\htdocs\dheergayu\public\api\book-consultation.php(152): mysqli->prepare('SELECT patient_...')
+#1 {main}
