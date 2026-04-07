@@ -863,7 +863,7 @@ function closeCancelModal() {
 }
 
 function payNow(id, type) {
-    window.location.href = 'payment.php?appointment_id=' + id + '&type=' + type;
+    window.location.href = 'appointment_payment.php?appointment_id=' + id + '&type=' + type;
 }
 
 // Modal close on outside click

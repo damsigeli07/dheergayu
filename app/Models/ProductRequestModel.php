@@ -85,10 +85,13 @@ class ProductRequestModel {
             return [];
         }
         $stmt = $this->conn->prepare("
-            SELECT pr.*, s.supplier_name, s.contact_person, s.phone, s.email
+            SELECT pr.id, pr.product_name, pr.quantity, pr.supplier_id,
+                   pr.request_date, pr.status, pr.pharmacist_id, pr.created_at,
+                   s.supplier_name, s.contact_person, s.phone, s.email
             FROM product_requests pr
             LEFT JOIN suppliers s ON pr.supplier_id = s.id
             WHERE pr.pharmacist_id = ?
+            GROUP BY pr.id
             ORDER BY pr.request_date DESC, pr.id DESC
         ");
         if (!$stmt) {
@@ -108,10 +111,13 @@ class ProductRequestModel {
     // Get all requests for a supplier
     public function getRequestsBySupplier($supplier_id) {
         $stmt = $this->conn->prepare("
-            SELECT pr.*, u.first_name, u.last_name
+            SELECT pr.id, pr.product_name, pr.quantity, pr.supplier_id,
+                   pr.request_date, pr.status, pr.pharmacist_id, pr.created_at,
+                   u.first_name, u.last_name
             FROM product_requests pr
             LEFT JOIN users u ON pr.pharmacist_id = u.id
             WHERE pr.supplier_id = ?
+            GROUP BY pr.id
             ORDER BY pr.request_date DESC
         ");
         $stmt->bind_param("i", $supplier_id);
