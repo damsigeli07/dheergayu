@@ -178,3 +178,59 @@ body {
         max-width: 200px;
     }
 }
+
+.session-table-wrapper {
+    overflow-x: auto;
+    margin-top: 8px;
+}
+
+.session-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.session-table thead {
+    background: linear-gradient(135deg, #d17f1b, #e88f39);
+    color: white;
+}
+
+.session-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.session-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.session-table tr:nth-child(even) {
+    background-color: #fdf6ee;
+}
+
+.session-number {
+    font-weight: 600;
+    color: #d17f1b;
+    white-space: nowrap;
+}
+
+.session-table textarea {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    height: 55px;
+    resize: vertical;
+    font-family: Arial, sans-serif;
+    background-color: #fafafa;
+}
+
+.session-table textarea[readonly] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+    color: #6c757d;
+}

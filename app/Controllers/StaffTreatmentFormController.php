@@ -53,12 +53,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Invalid plan ID or staff ID");
         }
         
-        $therapist_name = trim($_POST['therapist_name'] ?? '');
-        $notes = trim($_POST['notes'] ?? '');
-        
-        if (empty($notes)) {
-            throw new Exception("Notes are required");
-        }
+        $therapist_name          = trim($_POST['therapist_name'] ?? '');
+        $session_notes_input     = $_POST['session_notes'] ?? [];
+        $session_completed_input = $_POST['session_completed'] ?? [];
+
+        // Ensure per-session notes table exists
+        $db->query("CREATE TABLE IF NOT EXISTS staff_treatment_session_notes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            plan_id INT NOT NULL,
+            staff_id INT NOT NULL,
+            session_number INT NOT NULL,
+            session_note LONGTEXT,
+            is_completed TINYINT(1) DEFAULT 0,
+            completed_at DATETIME NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_plan_staff_session (plan_id, staff_id, session_number)
+        )");
         
         // Check if form already exists
         $check_stmt = $db->prepare("SELECT id FROM staff_treatment_forms WHERE plan_id = ? AND staff_id = ? LIMIT 1");
@@ -69,118 +80,115 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($existing) {
             // Update existing form - in view mode, only update notes
-            if ($view_mode) {
-                $update_stmt = $db->prepare("
-                    UPDATE staff_treatment_forms 
-                    SET notes = ?, updated_at = NOW()
-                    WHERE plan_id = ? AND staff_id = ?
-                ");
-                $update_stmt->bind_param('sii', $notes, $plan_id, $staff_id);
-            } else {
-                if (empty($therapist_name)) {
-                    throw new Exception("Therapist name is required");
-                }
-                $update_stmt = $db->prepare("
-                    UPDATE staff_treatment_forms 
-                    SET therapist_name = ?, notes = ?, updated_at = NOW()
-                    WHERE plan_id = ? AND staff_id = ?
-                ");
-                $update_stmt->bind_param('ssii', $therapist_name, $notes, $plan_id, $staff_id);
-            }
+            // Always allow updating therapist name and session notes regardless of view mode
+$update_stmt = $db->prepare("
+    UPDATE staff_treatment_forms 
+    SET therapist_name = ?, updated_at = NOW()
+    WHERE plan_id = ? AND staff_id = ?
+");
+$update_stmt->bind_param('sii', $therapist_name, $plan_id, $staff_id);
             
             if (!$update_stmt->execute()) {
                 throw new Exception("Failed to update treatment form: " . $update_stmt->error);
             }
-            
+
             $update_stmt->close();
+
+            // ── Save/update session notes on update too ─────────────────
+            foreach ($session_notes_input as $session_num => $note) {
+                $session_num  = intval($session_num);
+                $note         = trim($note);
+                $is_completed = isset($session_completed_input[$session_num]) ? 1 : 0;
+                $completed_at = $is_completed ? date('Y-m-d H:i:s') : null;
+
+                $sn_stmt = $db->prepare("
+                    INSERT INTO staff_treatment_session_notes 
+                        (plan_id, staff_id, session_number, session_note, is_completed, completed_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        session_note = VALUES(session_note),
+                        is_completed = VALUES(is_completed),
+                        completed_at = VALUES(completed_at),
+                        updated_at   = NOW()
+                ");
+                $sn_stmt->bind_param('iiisis', $plan_id, $staff_id, $session_num, $note, $is_completed, $completed_at);
+                $sn_stmt->execute();
+                $sn_stmt->close();
+
+                // Update existing planned session only (do not insert new session rows)
+                $session_status = $is_completed ? 'Completed' : 'Pending';
+                $ts_stmt = $db->prepare("
+                    UPDATE treatment_sessions
+                    SET status = ?
+                    WHERE plan_id = ? AND session_number = ?
+                    LIMIT 1
+                ");
+                if ($ts_stmt) {
+                    $ts_stmt->bind_param('sii', $session_status, $plan_id, $session_num);
+                    $ts_stmt->execute();
+                    $ts_stmt->close();
+                }
+            }
+            // ── End session notes ───────────────────────────────────────
+
             $db->commit();
-            
+
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Treatment form updated successfully'
             ]);
+
         } else {
             // Insert new form
             if (empty($therapist_name)) {
                 throw new Exception("Therapist name is required");
             }
             $insert_stmt = $db->prepare("
-                INSERT INTO staff_treatment_forms (plan_id, staff_id, therapist_name, notes, created_at, updated_at)
-                VALUES (?, ?, ?, ?, NOW(), NOW())
+               INSERT INTO staff_treatment_forms (plan_id, staff_id, therapist_name, notes, created_at, updated_at)
+               VALUES (?, ?, ?, '', NOW(), NOW())
             ");
-            $insert_stmt->bind_param('iiss', $plan_id, $staff_id, $therapist_name, $notes);
+            $insert_stmt->bind_param('iis', $plan_id, $staff_id, $therapist_name);
             
             if (!$insert_stmt->execute()) {
                 throw new Exception("Failed to save treatment form: " . $insert_stmt->error);
             }
             
             $insert_stmt->close();
-            
-            // Create a treatment session record to update progress
-            // Get the treatment plan to find total sessions and get next session number
-            $plan_stmt = $db->prepare("
-                SELECT total_sessions, start_date, sessions_per_week 
-                FROM treatment_plans 
-                WHERE plan_id = ?
-            ");
-            $plan_stmt->bind_param('i', $plan_id);
-            $plan_stmt->execute();
-            $plan_result = $plan_stmt->get_result();
-            $plan_data = $plan_result->fetch_assoc();
-            $plan_stmt->close();
-            
-            if ($plan_data) {
-                // Get the highest session number for this plan
-                $max_session_stmt = $db->prepare("
-                    SELECT COALESCE(MAX(session_number), 0) as max_session 
-                    FROM treatment_sessions 
-                    WHERE plan_id = ?
-                ");
-                $max_session_stmt->bind_param('i', $plan_id);
-                $max_session_stmt->execute();
-                $max_session_result = $max_session_stmt->get_result();
-                $max_session_data = $max_session_result->fetch_assoc();
-                $next_session_number = ($max_session_data['max_session'] ?? 0) + 1;
-                $max_session_stmt->close();
-                
-                // Use treatment plan start_date if available, otherwise use current date
-                $session_date = !empty($plan_data['start_date']) ? $plan_data['start_date'] : date('Y-m-d');
-                
-                // Get session time from existing sessions or use default
-                $time_stmt = $db->prepare("
-                    SELECT session_time 
-                    FROM treatment_sessions 
-                    WHERE plan_id = ? 
-                    ORDER BY session_number ASC 
-                    LIMIT 1
-                ");
-                $time_stmt->bind_param('i', $plan_id);
-                $time_stmt->execute();
-                $time_result = $time_stmt->get_result();
-                $time_data = $time_result->fetch_assoc();
-                $session_time = $time_data['session_time'] ?? '09:00:00';
-                $time_stmt->close();
-                
-                // Insert treatment session with Completed status
-                $session_stmt = $db->prepare("
-                    INSERT INTO treatment_sessions (
-                        plan_id, session_number, session_date, session_time,
-                        status, created_at
-                    ) VALUES (?, ?, ?, ?, 'Completed', NOW())
-                ");
-                
-                if ($session_stmt) {
-                    $session_stmt->bind_param('iiss', $plan_id, $next_session_number, $session_date, $session_time);
-                    
-                    if (!$session_stmt->execute()) {
-                        error_log("Failed to create treatment session: " . $session_stmt->error);
-                        // Don't throw error, just log it - form is saved successfully
-                    } else {
-                        error_log("Treatment session created: plan_id=$plan_id, session_number=$next_session_number, status=Completed");
-                    }
-                    $session_stmt->close();
-                }
-            }
+
+foreach ($session_notes_input as $session_num => $note) {
+    $session_num   = intval($session_num);
+    $note          = trim($note);
+    $is_completed  = isset($session_completed_input[$session_num]) ? 1 : 0;
+    $completed_at  = $is_completed ? date('Y-m-d H:i:s') : null;
+
+    $sn_stmt = $db->prepare("
+        INSERT INTO staff_treatment_session_notes 
+            (plan_id, staff_id, session_number, session_note, is_completed, completed_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            session_note = VALUES(session_note),
+            is_completed = VALUES(is_completed),
+            completed_at = VALUES(completed_at),
+            updated_at   = NOW()
+    ");
+    $sn_stmt->bind_param('iiisis', $plan_id, $staff_id, $session_num, $note, $is_completed, $completed_at);
+    $sn_stmt->execute();
+    $sn_stmt->close();
+    
+    // Update existing planned session only (do not insert new session rows)
+    $session_status = $is_completed ? 'Completed' : 'Pending';
+    $ts_stmt = $db->prepare("
+        UPDATE treatment_sessions
+        SET status = ?
+        WHERE plan_id = ? AND session_number = ?
+        LIMIT 1
+    ");
+    if ($ts_stmt) {
+        $ts_stmt->bind_param('sii', $session_status, $plan_id, $session_num);
+        $ts_stmt->execute();
+        $ts_stmt->close();
+    }
+}
             
             $db->commit();
             

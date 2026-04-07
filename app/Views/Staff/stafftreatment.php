@@ -389,8 +389,8 @@ $db->close();
                         <?php if (!empty($treatment_plans)): ?>
                             <?php foreach ($treatment_plans as $plan): ?>
                                 <?php
-                                    $progress_percent = $plan['total_booked_sessions'] > 0 
-                                        ? ($plan['completed_sessions'] / $plan['total_booked_sessions'] * 100) 
+                                    $progress_percent = $plan['total_sessions'] > 0 
+                                        ? ($plan['completed_sessions'] / $plan['total_sessions'] * 100) 
                                         : 0;
                                 ?>
                                 <tr>
@@ -402,7 +402,7 @@ $db->close();
                                         <small style="color:#666;"><?= $plan['sessions_per_week'] ?>x per week</small>
                                     </td>
                                     <td>
-                                        <?= $plan['completed_sessions'] ?>/<?= $plan['total_booked_sessions'] ?> completed
+                                        <?= $plan['completed_sessions'] ?>/<?= $plan['total_sessions'] ?> completed
                                         <div class="progress-bar-container">
                                             <div class="progress-bar" style="width:<?= $progress_percent ?>%;"></div>
                                         </div>

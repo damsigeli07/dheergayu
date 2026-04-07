@@ -579,35 +579,38 @@ if ($isLoggedIn && !empty($userName)) {
         </div>
     </footer>
 
-    <script>
-        // Get login state from PHP
+<script>
+        // ─── Login state from PHP ────────────────────────────────────────────
         const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
 
-        // ─── Cart Functionality ──────────────────────────────
-        let cart = JSON.parse(localStorage.getItem('dheergayu_cart') || '[]');
-        
-        function updateHeaderCartCount() {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const cartBadge = document.getElementById('cartBadgeHeader');
-            if (cartBadge) {
-                cartBadge.textContent = totalItems;
-                cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+        // ─── Cart badge: read from DB, not localStorage ──────────────────────
+        async function updateHeaderCartCount() {
+            try {
+                const res  = await fetch('/dheergayu/public/api/cart-api.php?action=get');
+                const data = await res.json();
+                const cartBadge = document.getElementById('cartBadgeHeader');
+                if (!cartBadge) return;
+                if (data.success) {
+                    const total = (data.items || []).reduce((s, i) => s + i.quantity, 0);
+                    cartBadge.textContent    = total;
+                    cartBadge.style.display  = total > 0 ? 'flex' : 'none';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            } catch (e) {
+                const cartBadge = document.getElementById('cartBadgeHeader');
+                if (cartBadge) cartBadge.style.display = 'none';
             }
         }
-        
+
         function goToCart() {
-            if (cart.length === 0) {
-                alert('Your cart is empty! Browse our products to add items.');
-                window.location.href = '/dheergayu/app/Views/Patient/products.php';
-                return;
-            }
             window.location.href = '/dheergayu/app/Views/Patient/cart.php';
         }
-        
-        // Initialize cart count on page load
+
+        // Load cart count on page load
         updateHeaderCartCount();
 
-        // Handle Booking - Check login status
+        // ─── Booking handler ─────────────────────────────────────────────────
         function handleBooking(event) {
             event.preventDefault();
             if (isLoggedIn) {
@@ -617,18 +620,15 @@ if ($isLoggedIn && !empty($userName)) {
             }
         }
 
-        // ─── Package Modal Logic ─────────────────────────────
+        // ─── Package Modals ──────────────────────────────────────────────────
         function openPackageModal(type) {
             document.getElementById('modal-' + type).classList.add('active');
             document.body.classList.add('modal-open');
         }
-
         function closePackageModal(type) {
             document.getElementById('modal-' + type).classList.remove('active');
             document.body.classList.remove('modal-open');
         }
-
-        // Close modal on overlay click
         document.querySelectorAll('.package-modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -637,51 +637,39 @@ if ($isLoggedIn && !empty($userName)) {
                 }
             });
         });
-
-        // Close modal on Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.package-modal-overlay.active').forEach(modal => {
-                    modal.classList.remove('active');
-                });
+                document.querySelectorAll('.package-modal-overlay.active').forEach(m => m.classList.remove('active'));
                 document.body.classList.remove('modal-open');
             }
         });
 
-        // ─── User Profile Dropdown Toggle ────────────────────
-        const userProfile = document.getElementById('userProfile');
-        const userIcon = document.getElementById('userIcon');
-        const dropdownMenu = document.getElementById('dropdownMenu');
-
+        // ─── User profile dropdown ────────────────────────────────────────────
+        const userProfile  = document.getElementById('userProfile');
+        const userIcon     = document.getElementById('userIcon');
         if (userIcon) {
             userIcon.addEventListener('click', function(e) {
                 e.stopPropagation();
                 userProfile.classList.toggle('active');
             });
         }
-
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (userProfile && !userProfile.contains(e.target)) {
                 userProfile.classList.remove('active');
             }
         });
 
-        // ─── Hero Slider ─────────────────────────────────────
-        const slides = document.querySelectorAll('.slide');
-        const sliderDots = document.querySelector('.slider-dots');
-        let currentSlide = 0;
+        // ─── Hero Slider ──────────────────────────────────────────────────────
+        const slides      = document.querySelectorAll('.slide');
+        const sliderDots  = document.querySelector('.slider-dots');
+        let   currentSlide = 0;
 
         function showSlide(index) {
-            slides.forEach((slide, i) => {
-                slide.classList.remove('active');
-                if (i === index) {
-                    slide.classList.add('active');
-                }
+            slides.forEach((s, i) => {
+                s.classList.toggle('active', i === index);
             });
             updateDots(index);
         }
-
         function createDots() {
             slides.forEach((_, i) => {
                 const dot = document.createElement('span');
@@ -691,97 +679,67 @@ if ($isLoggedIn && !empty($userName)) {
                 sliderDots.appendChild(dot);
             });
         }
-
         function updateDots(index) {
-            const dots = document.querySelectorAll('.dot');
-            dots.forEach((dot, i) => {
-                dot.classList.remove('active');
-                if (i === index) {
-                    dot.classList.add('active');
-                }
-            });
+            document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === index));
         }
-
         function nextSlide() {
             currentSlide = (currentSlide + 1) % slides.length;
             showSlide(currentSlide);
         }
-
         createDots();
         showSlide(currentSlide);
         setInterval(nextSlide, 5000);
 
-        // ─── Therapy Navigation ──────────────────────────────
+        // ─── Therapy Navigation ───────────────────────────────────────────────
         const therapyData = {
             geothermal: {
-                title: "GEOTHERMAL MASSAGE THERAPY",
-                price: "5 500 LKR",
-                description: "Massage is the manipulation of soft tissues in the body. The techniques are commonly applied with hands, fingers, or a device. Its purpose is for the treatment of body stress or pain:",
-                list1: ["Back pain", "Sciatica", "Sleep disorder"],
-                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/head-massage.jpg"
+                title:'GEOTHERMAL MASSAGE THERAPY', price:'5 500 LKR',
+                description:'Massage is the manipulation of soft tissues in the body for treatment of body stress or pain:',
+                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
+                image:'/dheergayu/public/assets/images/Patient/head-massage.jpg'
             },
             prenatal: {
-                title: "PREGNANCY OR PRENATAL MASSAGE",
-                price: "5 000 LKR",
-                description: "Pregnancy massage or prenatal massage is therapeutic massage that focuses on the special needs of the Mother-to-be. Pregnancy Massage Therapy can effectively treat and help with:",
-                list1: ["Back pain", "Sciatica", "Sleep disorder"],
-                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/stone2.jpg"
+                title:'PREGNANCY OR PRENATAL MASSAGE', price:'5 000 LKR',
+                description:'Pregnancy massage focuses on the special needs of the Mother-to-be:',
+                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
+                image:'/dheergayu/public/assets/images/Patient/stone2.jpg'
             },
             reflexology: {
-                title: "REFLEXOLOGY MASSAGE",
-                price: "4 500 LKR",
-                description: "This is a type of massage that involves applying different amounts of pressure to the feet, hands, and ears, because these body parts are connected to certain organs, and it helps with:",
-                list1: ["Back pain", "Sciatica", "Sleep disorder"],
-                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/massage2.jpg"
+                title:'REFLEXOLOGY MASSAGE', price:'4 500 LKR',
+                description:'This massage involves applying pressure to the feet, hands, and ears, which are connected to certain organs:',
+                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
+                image:'/dheergayu/public/assets/images/Patient/massage2.jpg'
             },
             trigger: {
-                title: "TRIGGER POINT MASSAGE",
-                price: "4 500 LKR",
-                description: "Let your sore and painful spots feel the pressure that slowly turns into pleasure after our therapeutic trigger point massage. It is a great way to get rid of pain effectively:",
-                list1: ["Back pain", "Sciatica", "Sleep disorder"],
-                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/massage3.jpg"
+                title:'TRIGGER POINT MASSAGE', price:'4 500 LKR',
+                description:'Let your sore and painful spots feel the pressure that slowly turns into pleasure:',
+                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
+                image:'/dheergayu/public/assets/images/Patient/massage3.jpg'
             },
             lymph: {
-                title: "MANUAL LYMPH MASSAGE",
-                price: "5 000 LKR",
-                description: "We help your body maintain its fluid balance with the most amazing lymph massage that is performed manually. You can lose up to 2 lbs after a session and get rid of:",
-                list1: ["Back pain", "Sciatica", "Sleep disorder"],
-                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/massage4.jpg"
+                title:'MANUAL LYMPH MASSAGE', price:'5 000 LKR',
+                description:'We help your body maintain its fluid balance with this lymph massage:',
+                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
+                image:'/dheergayu/public/assets/images/Patient/massage4.jpg'
             },
             myofacial: {
-                title: "MYOFACIAL MASSAGE",
-                price: "5 500 LKR",
-                description: "Myofascial therapy among other massages works the broader network of muscles that might be causing your pain and distress. Its purpose is for the treatment of body stress or pain:",
-                list1: ["Back pain", "Sciatica", "Sleep disorder"],
-                list2: ["Hip or leg pain", "Muscle pain", "Depression"],
-                image: "/dheergayu/public/assets/images/Patient/massage5.jpg"
+                title:'MYOFACIAL MASSAGE', price:'5 500 LKR',
+                description:'Myofascial therapy works the broader network of muscles that might be causing your pain:',
+                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
+                image:'/dheergayu/public/assets/images/Patient/massage5.jpg'
             }
         };
-
-        const therapyNavItems = document.querySelectorAll('.therapy-navigation .nav-item');
-        therapyNavItems.forEach(item => {
+        document.querySelectorAll('.therapy-navigation .nav-item').forEach(item => {
             item.addEventListener('click', () => {
-                therapyNavItems.forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.therapy-navigation .nav-item').forEach(n => n.classList.remove('active'));
                 item.classList.add('active');
-                
-                const therapyType = item.getAttribute('data-therapy');
-                const data = therapyData[therapyType];
-                
-                document.getElementById('therapy-title').textContent = data.title;
-                document.getElementById('therapy-price').textContent = data.price;
-                document.getElementById('therapy-desc').textContent = data.description;
-                document.getElementById('therapy-img').src = data.image;
-                
-                const list1 = document.getElementById('therapy-list-1');
-                const list2 = document.getElementById('therapy-list-2');
-                
-                list1.innerHTML = data.list1.map(item => `<li>${item}</li>`).join('');
-                list2.innerHTML = data.list2.map(item => `<li>${item}</li>`).join('');
+                const d = therapyData[item.getAttribute('data-therapy')];
+                document.getElementById('therapy-title').textContent = d.title;
+                document.getElementById('therapy-price').textContent = d.price;
+                document.getElementById('therapy-desc').textContent  = d.description;
+                document.getElementById('therapy-img').src           = d.image;
+                document.getElementById('therapy-list-1').innerHTML  = d.list1.map(x => `<li>${x}</li>`).join('');
+                document.getElementById('therapy-list-2').innerHTML  = d.list2.map(x => `<li>${x}</li>`).join('');
             });
         });
     </script>
