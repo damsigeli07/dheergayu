@@ -883,3 +883,21 @@ POST Data: Array
 )
 =======
 >>>>>>> 520658bdcd69ba3695c50dc5c31c928b82087d5b
+
+========== 2026-04-07 06:45:13 ==========
+Endpoint: book-consultation.php
+Session User ID: 3
+POST Data: Array
+(
+    [patient_name] => Amashi Vithanage
+    [age] => 22
+    [gender] => Female
+    [email] => patient1@gmail.com
+    [phone] => 0742440377
+    [treatment_type] => General Consultation
+    [appointment_date] => 2026-04-21
+    [appointment_time] => 11:00:00
+    [payment_method] => onsite
+    [doctor_id] => 15
+    [doctor_name] => Dr. Perera
+)

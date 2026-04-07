@@ -9,6 +9,14 @@ if ($db->connect_error) {
     $consultationModel = new ConsultationFormModel($db);
     $consultations = $consultationModel->getAllConsultationForms();
     if (!is_array($consultations)) $consultations = [];
+    // Filter out consultations with no prescribed medicines
+    $consultations = array_filter($consultations, function($c) {
+        $products = $c['personal_products'] ?? '';
+        if (empty($products)) return false;
+        $decoded = json_decode($products, true);
+        return is_array($decoded) && count($decoded) > 0;
+    });
+    $consultations = array_values($consultations);
 }
 
 // Get product prices and list of admin products
