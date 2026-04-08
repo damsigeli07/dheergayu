@@ -68,6 +68,7 @@ $db->close();
                     <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/treatment.php" class="active">TREATMENTS</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/contact_us.php">CONTACT US</a></li>
                 </ul>
             </nav>
             <div class="header-right">

@@ -46,8 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="adminusers.php" class="nav-btn">Users</a>
             <a href="admintreatment.php" class="nav-btn">Treatments</a>
             <a href="adminsuppliers.php" class="nav-btn active">Supplier-info</a>
+            <a href="admincontact.php" class="nav-btn">Contact Submissions</a>
         </nav>
-        
+
         <div class="user-section">
             <div class="user-icon" id="user-icon">👤</div>
             <span class="user-role">Admin</span>
