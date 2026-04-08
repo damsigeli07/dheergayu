@@ -19,8 +19,14 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../config/payhere_config.php';
 
 $action = trim($_POST['action'] ?? $_GET['action'] ?? 'process');
+
+if ($action === 'simulate' && !payhere_test_payment_allowed()) {
+    echo json_encode(['success' => false, 'error' => 'Test payment is disabled']);
+    exit;
+}
 
 switch ($action) {
     case 'process':

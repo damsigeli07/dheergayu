@@ -309,7 +309,7 @@ foreach ($treatment_plans as $plan) {
                                 </td>
                                 <td class="actions">
                                     <?php if ($status === 'Upcoming') : ?>
-                                        <?php if (($apt['payment_status'] ?? '') === 'Completed' || ($apt['payment_method'] ?? '') === 'onsite'): ?>
+                                        <?php if (($apt['payment_status'] ?? '') === 'Completed'): ?>
                                             <button class="btn-start" onclick="window.location.href='doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>'">Start Consultation</button>
                                         <?php else: ?>
                                             <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Consultation</button>

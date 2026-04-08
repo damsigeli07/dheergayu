@@ -72,9 +72,30 @@ if ($plan_id) {
         exit;
     }
 
-    // Block if patient hasn't paid for the treatment plan
-    if (($treatment_plan['payment_status'] ?? '') !== 'Completed') {
-        echo "<script>alert('Cannot start treatment — patient has not completed payment yet.'); window.location.href='stafftreatment.php';</script>";
+    $staff_id = $_SESSION['user_id'] ?? null;
+    if ($staff_id) {
+        $stmt = $db->prepare("SELECT * FROM staff_treatment_forms WHERE plan_id = ? AND staff_id = ? LIMIT 1");
+        $stmt->bind_param('ii', $plan_id, $staff_id);
+        $stmt->execute();
+        $existing_form = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+    }
+
+    $tpPay = ($treatment_plan['payment_status'] ?? '') === 'Completed';
+    $tpStatus = $treatment_plan['status'] ?? '';
+    $tpChange = !empty($treatment_plan['change_requested']);
+    $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
+    $allowViewSaved = $view_mode && !empty($existing_form);
+    if (!$allowViewSaved && (!$tpPay || $tpChange || !$tpConfirmed)) {
+        $msg = 'Cannot open treatment — patient must complete payment and confirm the treatment plan.';
+        if (!$tpPay) {
+            $msg = 'Cannot start treatment — patient has not completed payment yet.';
+        } elseif ($tpChange) {
+            $msg = 'Cannot start treatment — patient has requested changes to the plan.';
+        } elseif (!$tpConfirmed) {
+            $msg = 'Cannot start treatment — patient has not confirmed the plan yet.';
+        }
+        echo "<script>alert(" . json_encode($msg) . "); window.location.href='stafftreatment.php';</script>";
         exit;
     }
 
@@ -84,16 +105,6 @@ if ($plan_id) {
         $cfModel = new ConsultationFormModel($db);
         $consultation_form = $cfModel->getConsultationFormByAppointmentId($treatment_plan['appointment_id']);
     }
-    
-    // Fetch existing staff treatment form if exists
-    $staff_id = $_SESSION['user_id'] ?? null;
-if ($staff_id) {
-    $stmt = $db->prepare("SELECT * FROM staff_treatment_forms WHERE plan_id = ? AND staff_id = ? LIMIT 1");
-    $stmt->bind_param('ii', $plan_id, $staff_id);
-    $stmt->execute();
-    $existing_form = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-}
 
 // Ensure session notes table exists
 @$db->query("CREATE TABLE IF NOT EXISTS staff_treatment_session_notes (

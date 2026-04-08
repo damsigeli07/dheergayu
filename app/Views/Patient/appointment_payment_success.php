@@ -4,8 +4,32 @@ require_once __DIR__ . '/../../../config/config.php';
 
 $orderId       = htmlspecialchars($_GET['order_id'] ?? '');
 $appointmentId = (int)($_GET['appointment_id'] ?? 0);
+$planId        = (int)($_GET['plan_id'] ?? 0);
 $type          = htmlspecialchars($_GET['type'] ?? '');
 $simulated     = isset($_GET['simulated']);
+
+$description = '';
+$appointmentDate = '';
+$appointmentTime = '';
+
+$planRow = null;
+if ($type === 'treatment_plan' && $planId) {
+    $stmt = $conn->prepare("
+        SELECT tp.*, tl.treatment_name AS list_name
+        FROM treatment_plans tp
+        LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+        WHERE tp.plan_id = ? AND tp.patient_id = ?
+    ");
+    $stmt->bind_param('ii', $planId, $_SESSION['user_id']);
+    $stmt->execute();
+    $planRow = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    if ($planRow) {
+        $description = ($planRow['treatment_name'] ?? $planRow['list_name'] ?? 'Treatment') . ' — ' . (int)($planRow['total_sessions'] ?? 0) . ' session(s)';
+        $appointmentDate = $planRow['start_date'] ?? '';
+        $appointmentTime = '';
+    }
+}
 
 // Fetch order details
 $orderRow = null;
@@ -19,9 +43,6 @@ if ($orderId) {
 
 // Fetch appointment details
 $appointment = null;
-$description = '';
-$appointmentDate = '';
-$appointmentTime = '';
 
 if ($type === 'consultation' && $appointmentId) {
     $stmt = $conn->prepare("SELECT * FROM consultations WHERE id = ?");
@@ -122,6 +143,7 @@ if ($type === 'consultation' && $appointmentId) {
         }
         .type-badge.consultation { background: #17a2b8; }
         .type-badge.treatment { background: #28a745; }
+        .type-badge.treatment_plan { background: #6f42c1; }
     </style>
 </head>
 <body>
@@ -130,14 +152,18 @@ if ($type === 'consultation' && $appointmentId) {
     <h1>Payment Successful!</h1>
 
     <?php if ($type): ?>
-    <span class="type-badge <?= $type ?>"><?= ucfirst($type) ?> Payment</span>
+    <?php
+        $typeClass = preg_replace('/[^a-z0-9_-]/i', '', $type);
+        $typeLabel = $type === 'treatment_plan' ? 'Treatment plan' : ucfirst(str_replace('_', ' ', $type));
+    ?>
+    <span class="type-badge <?= htmlspecialchars($typeClass) ?>"><?= htmlspecialchars($typeLabel) ?> payment</span>
     <?php endif; ?>
 
     <div class="order-box">
         <strong>Order ID:</strong> <?= $orderId ?: 'N/A' ?>
     </div>
 
-    <?php if ($orderRow || $appointment): ?>
+    <?php if ($orderRow || $appointment || ($type === 'treatment_plan' && $planRow)): ?>
     <div style="background:#f9f9f9;border-radius:10px;padding:18px;margin:18px 0;text-align:left;">
         <?php if ($orderRow): ?>
         <div class="detail-row">
@@ -151,13 +177,17 @@ if ($type === 'consultation' && $appointmentId) {
         <?php endif; ?>
         <?php if ($description): ?>
         <div class="detail-row">
-            <span class="detail-label"><?= $type === 'consultation' ? 'Consultation' : 'Treatment' ?></span>
+            <span class="detail-label"><?php
+                if ($type === 'consultation') echo 'Consultation';
+                elseif ($type === 'treatment_plan') echo 'Treatment plan';
+                else echo 'Treatment';
+            ?></span>
             <span class="detail-value"><?= htmlspecialchars($description) ?></span>
         </div>
         <?php endif; ?>
         <?php if ($appointmentDate): ?>
         <div class="detail-row">
-            <span class="detail-label">Appointment Date</span>
+            <span class="detail-label"><?= $type === 'treatment_plan' ? 'Start date' : 'Appointment Date' ?></span>
             <span class="detail-value"><?= date('M d, Y', strtotime($appointmentDate)) ?></span>
         </div>
         <?php endif; ?>
@@ -177,12 +207,20 @@ if ($type === 'consultation' && $appointmentId) {
     <div class="info-grid">
         <div class="info-box">
             <h3>&#x1F4E7; Confirmation</h3>
+            <?php if ($type === 'treatment_plan'): ?>
+            <p>Your treatment plan payment has been recorded. You can confirm the schedule and next steps from your appointments page.</p>
+            <?php else: ?>
             <p>Your payment has been recorded. Your appointment is now confirmed.</p>
+            <?php endif; ?>
         </div>
         <div class="info-box">
             <h3>&#x1F4C5; Reminder</h3>
+            <?php if ($type === 'treatment_plan'): ?>
+            <p>Session dates and staff assignment may appear under your treatment plan after you confirm with the clinic.</p>
+            <?php else: ?>
             <p>Please arrive 10 minutes before your scheduled time.
                Bring any relevant medical records or previous prescriptions.</p>
+            <?php endif; ?>
         </div>
     </div>
 

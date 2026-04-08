@@ -22,6 +22,7 @@ if ($userId) {
 
 $orderId    = generateOrderId();
 $isSandbox  = (PAYHERE_MODE === 'sandbox');
+$showTestPayment = payhere_test_payment_allowed();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,12 +92,17 @@ $isSandbox  = (PAYHERE_MODE === 'sandbox');
             <div class="card">
                 <h2 class="card-title">Customer Information</h2>
 
-                <?php if ($isSandbox): ?>
+                <?php if ($showTestPayment): ?>
                 <div class="sandbox-notice">
+                    <?php if ($isSandbox): ?>
                     <strong>⚠️ Sandbox Mode Active.</strong>
                     Use the <em>"Test Payment"</em> button below to simulate a successful payment
                     without going through the PayHere gateway.
                     The real PayHere button also works if you have sandbox credentials configured.
+                    <?php else: ?>
+                    <strong>Test payment enabled.</strong>
+                    Use <em>"Test Payment"</em> to simulate checkout without PayHere. Set <code>PAYHERE_ALLOW_TEST_PAYMENT</code> to <code>false</code> in production.
+                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
 
@@ -128,11 +134,11 @@ $isSandbox  = (PAYHERE_MODE === 'sandbox');
                                placeholder="e.g., Colombo" required>
                     </div>
 
-                    <!-- ── Sandbox test button ─────────────────────────── -->
-                    <?php if ($isSandbox): ?>
+                    <!-- ── Test payment (sandbox or PAYHERE_ALLOW_TEST_PAYMENT) ── -->
+                    <?php if ($showTestPayment): ?>
                     <button type="button" class="test-pay-btn" id="testPayBtn"
                             onclick="simulatePayment()">
-                        ✅ Test Payment (Sandbox – No Gateway)
+                        ✅ Test Payment (no gateway)
                     </button>
                     <div class="divider">— or use PayHere gateway below —</div>
                     <?php endif; ?>
@@ -347,7 +353,7 @@ $isSandbox  = (PAYHERE_MODE === 'sandbox');
         } catch (err) {
             console.error('Payment error:', err);
             alert('Could not prepare payment: ' + err.message +
-                  '\n\nTip: In sandbox mode use the "Test Payment" button instead.');
+                  '\n\nTip: Use the "Test Payment" button if test payments are enabled.');
             btn.disabled = false;
             btn.textContent = 'Proceed to PayHere';
         }
@@ -386,7 +392,7 @@ $isSandbox  = (PAYHERE_MODE === 'sandbox');
         } catch (err) {
             console.error('Simulate error:', err);
             alert('Payment simulation failed: ' + err.message);
-            if (btn) { btn.disabled = false; btn.textContent = '✅ Test Payment (Sandbox)'; }
+            if (btn) { btn.disabled = false; btn.textContent = '✅ Test Payment (no gateway)'; }
         }
     }
 

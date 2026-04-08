@@ -52,6 +52,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($plan_id === 0 || $staff_id === 0) {
             throw new Exception("Invalid plan ID or staff ID");
         }
+
+        $gate = $db->prepare("SELECT payment_status, status, change_requested FROM treatment_plans WHERE plan_id = ? LIMIT 1");
+        $gate->bind_param('i', $plan_id);
+        $gate->execute();
+        $gRow = $gate->get_result()->fetch_assoc();
+        $gate->close();
+        if (!$gRow) {
+            throw new Exception("Treatment plan not found");
+        }
+        $gPay = ($gRow['payment_status'] ?? '') === 'Completed';
+        $gSt = $gRow['status'] ?? '';
+        $gChg = !empty($gRow['change_requested']);
+        $gOk = $gPay && !$gChg && in_array($gSt, ['Confirmed', 'InProgress'], true);
+        if (!$gOk) {
+            throw new Exception("Treatment cannot be saved until the patient has paid and confirmed the plan.");
+        }
         
         $therapist_name          = trim($_POST['therapist_name'] ?? '');
         $session_notes_input     = $_POST['session_notes'] ?? [];
