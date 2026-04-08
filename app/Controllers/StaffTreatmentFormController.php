@@ -53,13 +53,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Invalid plan ID or staff ID");
         }
 
-        $gate = $db->prepare("SELECT payment_status, status, change_requested FROM treatment_plans WHERE plan_id = ? LIMIT 1");
+        $gate = $db->prepare("SELECT payment_status, status, change_requested, assigned_staff_id FROM treatment_plans WHERE plan_id = ? LIMIT 1");
         $gate->bind_param('i', $plan_id);
         $gate->execute();
         $gRow = $gate->get_result()->fetch_assoc();
         $gate->close();
         if (!$gRow) {
             throw new Exception("Treatment plan not found");
+        }
+
+        $gAssignedId = (int)($gRow['assigned_staff_id'] ?? 0);
+        if ($gAssignedId === 0 || $gAssignedId !== $staff_id) {
+            throw new Exception("You are not assigned to this treatment plan.");
         }
         $gPay = ($gRow['payment_status'] ?? '') === 'Completed';
         $gSt = $gRow['status'] ?? '';
@@ -147,6 +152,28 @@ $update_stmt->bind_param('sii', $therapist_name, $plan_id, $staff_id);
             }
             // ── End session notes ───────────────────────────────────────
 
+            // If all sessions are completed, mark plan as Completed.
+            $cnt = $db->prepare("SELECT COUNT(*) AS done FROM treatment_sessions WHERE plan_id = ? AND status = 'Completed'");
+            $cnt->bind_param('i', $plan_id);
+            $cnt->execute();
+            $doneRow = $cnt->get_result()->fetch_assoc();
+            $cnt->close();
+            $done = (int)($doneRow['done'] ?? 0);
+            if ($done > 0) {
+                $tot = $db->prepare("SELECT total_sessions FROM treatment_plans WHERE plan_id = ? LIMIT 1");
+                $tot->bind_param('i', $plan_id);
+                $tot->execute();
+                $totRow = $tot->get_result()->fetch_assoc();
+                $tot->close();
+                $totalSessions = (int)($totRow['total_sessions'] ?? 0);
+                if ($totalSessions > 0 && $done >= $totalSessions) {
+                    $db->query("UPDATE treatment_plans SET status = 'Completed' WHERE plan_id = " . (int)$plan_id);
+                } elseif ($done > 0) {
+                    // Ensure at least InProgress once staff starts completing sessions
+                    $db->query("UPDATE treatment_plans SET status = 'InProgress' WHERE plan_id = " . (int)$plan_id . " AND status != 'Completed'");
+                }
+            }
+
             $db->commit();
 
             echo json_encode([
@@ -205,7 +232,28 @@ foreach ($session_notes_input as $session_num => $note) {
         $ts_stmt->close();
     }
 }
-            
+
+            // If all sessions are completed, mark plan as Completed.
+            $cnt = $db->prepare("SELECT COUNT(*) AS done FROM treatment_sessions WHERE plan_id = ? AND status = 'Completed'");
+            $cnt->bind_param('i', $plan_id);
+            $cnt->execute();
+            $doneRow = $cnt->get_result()->fetch_assoc();
+            $cnt->close();
+            $done = (int)($doneRow['done'] ?? 0);
+            if ($done > 0) {
+                $tot = $db->prepare("SELECT total_sessions FROM treatment_plans WHERE plan_id = ? LIMIT 1");
+                $tot->bind_param('i', $plan_id);
+                $tot->execute();
+                $totRow = $tot->get_result()->fetch_assoc();
+                $tot->close();
+                $totalSessions = (int)($totRow['total_sessions'] ?? 0);
+                if ($totalSessions > 0 && $done >= $totalSessions) {
+                    $db->query("UPDATE treatment_plans SET status = 'Completed' WHERE plan_id = " . (int)$plan_id);
+                } elseif ($done > 0) {
+                    $db->query("UPDATE treatment_plans SET status = 'InProgress' WHERE plan_id = " . (int)$plan_id . " AND status != 'Completed'");
+                }
+            }
+
             $db->commit();
             
             echo json_encode([

@@ -8,12 +8,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     require_once __DIR__ . '/../../config/config.php';
     
     $model = new AppointmentModel($conn);
-    $appointment_id = $_POST['appointment_id'] ?? '';
+    $appointment_id = (int)($_POST['appointment_id'] ?? 0);
     $reason = $_POST['reason'] ?? '';
     
     if ($appointment_id && $reason) {
+        $reason = 'Doctor Cancelled: ' . trim($reason);
         error_log("Attempting to cancel appointment ID: $appointment_id with reason: $reason");
-        $success = $model->cancelAppointmentWithReason($appointment_id, $reason);
+        $success = $model->cancelAppointment($appointment_id, $reason);
         error_log("Cancel result: " . ($success ? 'success' : 'failed'));
         echo $success ? 'success' : 'error';
     } else {
