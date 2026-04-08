@@ -25,17 +25,11 @@ if ($db->connect_error) {
 $staffUserId = $_SESSION['user_id'] ?? null;
 $staffName = $_SESSION['user_name'] ?? '';
 
-// Get staff's assigned treatment type from StaffModel
+// Get staff's assigned treatment type from StaffModel (uses DB, not hardcoded)
 require_once __DIR__ . '/../../Models/StaffModel.php';
 $staffModel = new StaffModel($db);
-$staffAssignment = $staffModel->getStaffRoomAssignment($staffName);
+$staffAssignment = $staffModel->getStaffRoomAssignmentById($staffUserId);
 $assignedTreatmentType = $staffAssignment['treatment_type'] ?? null;
-
-// Ensure treatment_plans has assigned_staff_id (set when staff confirms an assignment)
-$chk = @$db->query("SHOW COLUMNS FROM treatment_plans LIKE 'assigned_staff_id'");
-if ($chk && $chk->num_rows === 0) {
-    @$db->query("ALTER TABLE treatment_plans ADD COLUMN assigned_staff_id INT NULL");
-}
 
 // Ensure staff_treatment_forms table exists
 @$db->query("CREATE TABLE IF NOT EXISTS staff_treatment_forms (
@@ -421,6 +415,9 @@ $db->close();
                                     <td>
                                         <?php if ($plan['has_treatment_form'] > 0): ?>
                                             <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
+                                        <?php elseif (($plan['payment_status'] ?? '') !== 'Completed'): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#dc3545;margin-top:4px;">Payment pending</span>
                                         <?php else: ?>
                                             <button class="btn-start" onclick="window.location.href='stafftreatmentform.php?plan_id=<?= htmlspecialchars($plan['plan_id']) ?>'">Start Treatment</button>
                                             <button class="btn-cancel" onclick="cancelTreatmentPlan(<?= $plan['plan_id'] ?>)">Cancel</button>

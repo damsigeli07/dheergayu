@@ -71,7 +71,13 @@ if ($plan_id) {
         header('Location: stafftreatment.php');
         exit;
     }
-    
+
+    // Block if patient hasn't paid for the treatment plan
+    if (($treatment_plan['payment_status'] ?? '') !== 'Completed') {
+        echo "<script>alert('Cannot start treatment — patient has not completed payment yet.'); window.location.href='stafftreatment.php';</script>";
+        exit;
+    }
+
     // Fetch consultation form data if appointment_id exists
     if ($treatment_plan['appointment_id']) {
         require_once __DIR__ . '/../../Models/ConsultationFormModel.php';
