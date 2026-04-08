@@ -11,6 +11,8 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/../../config/config.php';
 
+$userRole = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? $_SESSION['role'] ?? '');
+
 $id = intval($_POST['id'] ?? 0);
 $type = $_POST['type'] ?? 'consultation';
 
@@ -21,11 +23,28 @@ if (!$id) {
 
 // Get appointment details before cancellation
 $table = ($type === 'consultation') ? 'consultations' : 'consultations';
-$stmt = $conn->prepare("SELECT appointment_date, appointment_time FROM $table WHERE id = ?");
+$stmt = $conn->prepare("SELECT appointment_date, appointment_time, patient_id, notes FROM $table WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $appointment = $stmt->get_result()->fetch_assoc();
 $stmt->close();
+
+if (!$appointment) {
+    echo json_encode(['error' => 'Appointment not found']);
+    exit;
+}
+
+// Patients can cancel only their own appointments.
+if ($userRole === 'patient' && (int)$appointment['patient_id'] !== (int)$_SESSION['user_id']) {
+    echo json_encode(['error' => 'Unauthorized']);
+    exit;
+}
+
+// Rule: once patient has rescheduled at least once, cancellation is not allowed.
+if ($userRole === 'patient' && stripos((string)($appointment['notes'] ?? ''), '[PATIENT_RESCHEDULED_ONCE]') !== false) {
+    echo json_encode(['error' => 'Cancellation not allowed after rescheduling. Please contact the clinic.']);
+    exit;
+}
 
 // Cancel the appointment
 $updateStmt = $conn->prepare("UPDATE $table SET status = 'Cancelled' WHERE id = ?");

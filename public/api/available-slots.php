@@ -50,27 +50,52 @@ try {
         $doctor_name = $schedule['doctor_name'];
         $start = new DateTime($schedule['start_time']);
         $end = new DateTime($schedule['end_time']);
+
+        // Day-level block by dedicated table (fallback to legacy notes for older records).
+        $dayBlockStmt = $conn->prepare("SELECT id FROM doctor_unavailable_days WHERE doctor_id = ? AND unavailable_date = ? LIMIT 1");
+        if ($dayBlockStmt) {
+            $dayBlockStmt->bind_param('is', $doctor_id, $date);
+            $dayBlockStmt->execute();
+            $isDayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
+            $dayBlockStmt->close();
+        } else {
+            $isDayBlocked = false;
+        }
+
+        if (!$isDayBlocked) {
+            $dayBlockPattern = 'Doctor Cancelled: Doctor unavailable on ' . $date . '%';
+            $dayBlockStmt = $conn->prepare("SELECT id FROM consultations WHERE doctor_id = ? AND appointment_date = ? AND status = 'Cancelled' AND notes LIKE ? LIMIT 1");
+            $dayBlockStmt->bind_param('iss', $doctor_id, $date, $dayBlockPattern);
+            $dayBlockStmt->execute();
+            $isDayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
+            $dayBlockStmt->close();
+        }
         
         // Generate 30-minute slots
         $currentSlot = clone $start;
         while ($currentSlot < $end) {
             $slotTime = $currentSlot->format('H:i:s');
             
-            // Check if slot is already booked for this doctor
-            $checkQuery = "SELECT status FROM consultations 
-                           WHERE appointment_date = ? 
-                           AND appointment_time = ? 
-                           AND doctor_id = ?
-                           AND status != 'Cancelled'";
-            $checkStmt = $conn->prepare($checkQuery);
-            $checkStmt->bind_param('ssi', $date, $slotTime, $doctor_id);
-            $checkStmt->execute();
-            $checkResult = $checkStmt->get_result();
-            
             $status = 'available';
-            if ($checkResult->num_rows > 0) {
-                $row = $checkResult->fetch_assoc();
-                $status = ($row['status'] === 'locked') ? 'locked' : 'booked';
+            if ($isDayBlocked) {
+                $status = 'locked';
+            } else {
+                // Check if slot is already booked for this doctor
+                $checkQuery = "SELECT status FROM consultations 
+                               WHERE appointment_date = ? 
+                               AND appointment_time = ? 
+                               AND doctor_id = ?
+                               AND status != 'Cancelled'";
+                $checkStmt = $conn->prepare($checkQuery);
+                $checkStmt->bind_param('ssi', $date, $slotTime, $doctor_id);
+                $checkStmt->execute();
+                $checkResult = $checkStmt->get_result();
+
+                if ($checkResult->num_rows > 0) {
+                    $row = $checkResult->fetch_assoc();
+                    $status = ($row['status'] === 'locked') ? 'locked' : 'booked';
+                }
+                $checkStmt->close();
             }
             
             $availableSlots[] = [
@@ -79,8 +104,6 @@ try {
                 'doctor_id' => $doctor_id,
                 'doctor_name' => $doctor_name
             ];
-            
-            $checkStmt->close();
             
             // Move to next 30-minute slot
             $currentSlot->modify('+30 minutes');

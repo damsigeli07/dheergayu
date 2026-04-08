@@ -29,6 +29,8 @@ try {
 }
 
 try {
+    $rescheduleToken = '[PATIENT_RESCHEDULED_ONCE]';
+
     $id = $_POST['id'] ?? null;
     $type = $_POST['type'] ?? null;
     $date = $_POST['date'] ?? null;
@@ -50,6 +52,12 @@ try {
 
     if (!$current) {
         echo json_encode(['success' => false, 'error' => 'Appointment not found']);
+        exit;
+    }
+
+    // Reschedule is allowed only once per appointment.
+    if (stripos((string)($current['notes'] ?? ''), $rescheduleToken) !== false) {
+        echo json_encode(['success' => false, 'error' => 'You can reschedule this appointment only once.']);
         exit;
     }
 
@@ -107,13 +115,22 @@ try {
     }
     $checkStmt->close();
 
+    // Mark that patient has rescheduled at least once (used to block further reschedule/cancellation).
+    $existingNotes = (string)($current['notes'] ?? '');
+    $hasRescheduledBefore = stripos($existingNotes, $rescheduleToken) !== false;
+    $notesForUpdate = $existingNotes;
+    if (!$hasRescheduledBefore) {
+        $notesForUpdate = trim($existingNotes . ' ' . $rescheduleToken);
+    }
+
     // Update the appointment. If this was doctor-cancelled and patient is rescheduling, move it back to Pending.
     if ($isDoctorCancelled) {
-        $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ?, status = 'Pending' WHERE id = ? AND patient_id = ?");
+        $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ?, status = 'Pending', notes = ? WHERE id = ? AND patient_id = ?");
+        $stmt->bind_param("sssii", $date, $time, $notesForUpdate, $id, $_SESSION['user_id']);
     } else {
-        $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ? WHERE id = ? AND patient_id = ?");
+        $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ?, notes = ? WHERE id = ? AND patient_id = ?");
+        $stmt->bind_param("sssii", $date, $time, $notesForUpdate, $id, $_SESSION['user_id']);
     }
-    $stmt->bind_param("ssii", $date, $time, $id, $_SESSION['user_id']);
 
     if ($stmt->execute()) {
         echo json_encode(['success' => true]);
