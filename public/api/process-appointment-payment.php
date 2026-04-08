@@ -84,7 +84,7 @@ try {
 
     } else {
         // Treatment booking - verify ownership
-        $chk = $conn->prepare("SELECT booking_id, status FROM treatment_bookings WHERE booking_id = ? AND patient_id = ?");
+        $chk = $conn->prepare("SELECT booking_id, status, treatment_id FROM treatment_bookings WHERE booking_id = ? AND patient_id = ?");
         $chk->bind_param('ii', $appointmentId, $userId);
         $chk->execute();
         $row = $chk->get_result()->fetch_assoc();
@@ -103,6 +103,17 @@ try {
         $stmt->bind_param('ii', $appointmentId, $userId);
         $stmt->execute();
         $stmt->close();
+
+        // Keep treatment plan payment state in sync where applicable.
+        $treatmentId = (int)($row['treatment_id'] ?? 0);
+        if ($treatmentId > 0) {
+            $planStmt = $conn->prepare("\n                UPDATE treatment_plans\n                SET payment_status = 'Completed',\n                    status = CASE WHEN status = 'Confirmed' THEN 'InProgress' ELSE status END\n                WHERE patient_id = ?\n                  AND treatment_id = ?\n                  AND payment_status != 'Completed'\n                ORDER BY created_at DESC\n                LIMIT 1\n            ");
+            if ($planStmt) {
+                $planStmt->bind_param('ii', $userId, $treatmentId);
+                $planStmt->execute();
+                $planStmt->close();
+            }
+        }
     }
 
     // Store in orders table for record keeping

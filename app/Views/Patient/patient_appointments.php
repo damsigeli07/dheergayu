@@ -32,6 +32,14 @@ while ($row = $plans_result->fetch_assoc()) {
 }
 $stmt->close();
 
+$planByTreatmentId = [];
+foreach ($treatment_plans as $planRow) {
+    $tid = (int)($planRow['treatment_id'] ?? 0);
+    if ($tid > 0 && !isset($planByTreatmentId[$tid])) {
+        $planByTreatmentId[$tid] = $planRow;
+    }
+}
+
 // Helper functions
 function getTreatmentPrice($conn, $treatment_type) {
     $treatment_map = [
@@ -79,6 +87,7 @@ function renderAppointmentCard($apt, $conn) {
     $status = $apt['status'];
     $noteText = trim((string)($apt['notes'] ?? ''));
     $isRescheduledOnce = stripos($noteText, '[PATIENT_RESCHEDULED_ONCE]') !== false;
+    $isTreatmentRescheduledOnce = stripos($noteText, '[TREATMENT_RESCHEDULED_ONCE]') !== false;
     $canRescheduleWithin24h = false;
     if (!empty($apt['created_at'])) {
         $createdAtTs = strtotime($apt['created_at']);
@@ -123,6 +132,31 @@ function renderAppointmentCard($apt, $conn) {
         echo '<span class="detail-label">Treatment</span>';
         echo '<span class="detail-value">' . ($apt['treatment_type'] ?? 'N/A') . '</span>';
         echo '</div>';
+
+        $diagnosisText = trim((string)($apt['plan_diagnosis'] ?? ''));
+        if ($diagnosisText === '') {
+            $diagnosisText = trim((string)($apt['notes'] ?? ''));
+        }
+        if ($diagnosisText !== '') {
+            echo '<div class="detail-item">';
+            echo '<span class="detail-label">Diagnosis</span>';
+            echo '<span class="detail-value">' . htmlspecialchars($diagnosisText) . '</span>';
+            echo '</div>';
+        }
+
+        $sessionInfo = '';
+        if (!empty($apt['plan_total_sessions'])) {
+            $sessionInfo = (int)$apt['plan_total_sessions'] . ' sessions';
+            if (!empty($apt['plan_sessions_per_week'])) {
+                $sessionInfo .= ' (' . (int)$apt['plan_sessions_per_week'] . 'x per week)';
+            }
+        }
+        if ($sessionInfo !== '') {
+            echo '<div class="detail-item">';
+            echo '<span class="detail-label">Session Info</span>';
+            echo '<span class="detail-value">' . htmlspecialchars($sessionInfo) . '</span>';
+            echo '</div>';
+        }
     }
     
     echo '<div class="detail-item">';
@@ -147,16 +181,25 @@ function renderAppointmentCard($apt, $conn) {
     
     if ($status !== 'Cancelled' && $status !== 'Completed') {
         echo '<div class="appointment-actions">';
-        if (($apt['payment_status'] ?? 'Pending') !== 'Completed') {
-            echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Pay Now</button>';
+        if ($isConsultation) {
+            if (($apt['payment_status'] ?? 'Pending') !== 'Completed') {
+                echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Pay Now</button>';
+            }
+            if (!$isRescheduledOnce && $canRescheduleWithin24h) {
+                echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\', ' . (int)($apt['doctor_id'] ?? 0) . ', \'' . ($apt['created_at'] ?? '') . '\', \'' . ($apt['updated_at'] ?? '') . '\', \'' . addslashes($status) . '\', \'' . addslashes((string)($apt['notes'] ?? '')) . '\')">Reschedule</button>';
+            }
+            if ($isRescheduledOnce) {
+                echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#155724;background:#d4edda;border:1px solid #c3e6cb;border-radius:6px;padding:8px 10px;">Rescheduled. Cancellation is disabled for this appointment.</div>';
+            }
         }
-        if (!$isRescheduledOnce && $canRescheduleWithin24h) {
-            echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\', ' . (int)($apt['doctor_id'] ?? 0) . ', \'' . ($apt['created_at'] ?? '') . '\', \'' . ($apt['updated_at'] ?? '') . '\', \'' . addslashes($status) . '\', \'' . addslashes((string)($apt['notes'] ?? '')) . '\')">Reschedule</button>';
-        }
-        if ($isRescheduledOnce) {
-            echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#155724;background:#d4edda;border:1px solid #c3e6cb;border-radius:6px;padding:8px 10px;">Rescheduled. Cancellation is disabled for this appointment.</div>';
-        } else {
-            echo '<button class="action-btn btn-danger" onclick="cancelAppointment(' . $apt['id'] . ', \'' . $type . '\')">Cancel</button>';
+
+        if (!$isConsultation && $status === 'Pending' && ($apt['payment_status'] ?? 'Pending') !== 'Completed') {
+            echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Confirm & Pay</button>';
+            if (!$isTreatmentRescheduledOnce) {
+                echo '<button class="action-btn btn-warning" onclick="rescheduleAndPayTreatment(' . $apt['id'] . ', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\')">Reschedule & Pay</button>';
+            } else {
+                echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#155724;background:#d4edda;border:1px solid #c3e6cb;border-radius:6px;padding:8px 10px;">Treatment already rescheduled once. Please proceed to payment.</div>';
+            }
         }
         echo '</div>';
     } elseif ($isDoctorCancelled) {
@@ -262,6 +305,12 @@ function getCancelledAppointments($appointments) {
     }
     return $cancelled;
 }
+
+$consultationOnly = getConsultationAppointments($appointments);
+$treatmentOnly = getTreatmentAppointments($appointments);
+$upcoming = getUpcomingAppointments($appointments);
+$cancelled = getCancelledAppointments($appointments);
+$treatmentPlansTabCount = count($treatment_plans);
 ?>
 
 <!DOCTYPE html>
@@ -302,14 +351,14 @@ function getCancelledAppointments($appointments) {
 
         <div class="appointments-container">
 <div class="appointments-tabs">
-    <button class="tab-btn active" onclick="showTab('all')">
-        All Appointments <span class="tab-badge"><?php echo countAll($appointments); ?></span>
+    <button class="tab-btn active" onclick="showTab('consultations')">
+        Consultations <span class="tab-badge"><?php echo count($consultationOnly); ?></span>
+    </button>
+    <button class="tab-btn" onclick="showTab('treatment-plans')">
+        Treatment Plans <span class="tab-badge"><?php echo $treatmentPlansTabCount; ?></span>
     </button>
     <button class="tab-btn" onclick="showTab('upcoming')">
         Upcoming <span class="tab-badge"><?php echo countUpcoming($appointments); ?></span>
-    </button>
-    <button class="tab-btn" onclick="showTab('treatment-plans')">
-        Treatment Plans <span class="tab-badge"><?php echo count($treatment_plans); ?></span>
     </button>
     <button class="tab-btn" onclick="showTab('cancelled')">
         Cancelled
@@ -317,65 +366,23 @@ function getCancelledAppointments($appointments) {
 </div>
 
             <div class="tab-content">
-                <!-- All Appointments -->
-                <div id="all-tab" class="tab-panel" style="display: block;">
+                <!-- Consultations -->
+                <div id="consultations-tab" class="tab-panel" style="display: block;">
                     <?php 
-                    $consultationOnly = getConsultationAppointments($appointments);
-                    $treatmentOnly = getTreatmentAppointments($appointments);
-                    if (empty($consultationOnly) && empty($treatmentOnly)): 
+                    if (empty($consultationOnly)): 
                     ?>
                         <div class="empty-state">
                             <h3>No Appointments</h3>
-                            <p>Book your first consultation or treatment today</p>
+                            <p>Book your first consultation today</p>
                             <div style="margin-top: 20px;">
                                 <a href="channeling.php" class="book-btn">Book Consultation</a>
-                                <a href="treatment.php" class="book-btn">Book Treatment</a>
                             </div>
                         </div>
                     <?php else: ?>
-                        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
-                            <button type="button" id="all-split-consultations-btn" class="tab-btn active" onclick="showAllSplit('consultations')">
-                                Consultations <span class="tab-badge"><?php echo count($consultationOnly); ?></span>
-                            </button>
-                            <button type="button" id="all-split-treatments-btn" class="tab-btn" onclick="showAllSplit('treatments')">
-                                Treatments <span class="tab-badge"><?php echo count($treatmentOnly); ?></span>
-                            </button>
-                        </div>
-
-                        <div id="all-split-consultations-panel">
-                            <?php if (empty($consultationOnly)): ?>
-                                <div class="empty-state" style="margin-bottom: 24px;">
-                                    <h3>No Consultation Appointments</h3>
-                                    <p>Book your first consultation today</p>
-                                    <div style="margin-top: 20px;">
-                                        <a href="channeling.php" class="book-btn">Book Consultation</a>
-                                    </div>
-                                </div>
-                            <?php else: ?>
-                                <div class="appointments-list" style="margin-bottom: 28px;">
-                                    <?php foreach ($consultationOnly as $apt): ?>
-                                        <?php renderAppointmentCard($apt, $conn); ?>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div id="all-split-treatments-panel" style="display:none;">
-                            <?php if (empty($treatmentOnly)): ?>
-                                <div class="empty-state">
-                                    <h3>No Treatment Appointments</h3>
-                                    <p>Book your first treatment today</p>
-                                    <div style="margin-top: 20px;">
-                                        <a href="treatment.php" class="book-btn">Book Treatment</a>
-                                    </div>
-                                </div>
-                            <?php else: ?>
-                                <div class="appointments-list">
-                                    <?php foreach ($treatmentOnly as $apt): ?>
-                                        <?php renderAppointmentCard($apt, $conn); ?>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
+                        <div class="appointments-list" style="margin-bottom: 28px;">
+                            <?php foreach ($consultationOnly as $apt): ?>
+                                <?php renderAppointmentCard($apt, $conn); ?>
+                            <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -383,7 +390,6 @@ function getCancelledAppointments($appointments) {
                 <!-- Upcoming Appointments -->
                 <div id="upcoming-tab" class="tab-panel" style="display: none;">
                     <?php 
-                    $upcoming = getUpcomingAppointments($appointments);
                     if (empty($upcoming)): 
                     ?>
                         <div class="empty-state">
@@ -411,6 +417,8 @@ function getCancelledAppointments($appointments) {
                             <p>Your doctor will create treatment plans based on consultations</p>
                         </div>
                     <?php else: ?>
+                        <h3 style="margin:0 0 12px 0;color:#2d3748;">Doctor Treatment Plans</h3>
+
                         <div class="appointments-list">
                             <?php foreach ($treatment_plans as $plan): 
                                 // Get sessions for this plan
@@ -483,25 +491,49 @@ function getCancelledAppointments($appointments) {
                                         </div>
                                     </div>
 
-                                    <?php if ($plan['status'] === 'Pending'): ?>
+                                    <?php
+                                        $firstSessionDate = '';
+                                        $firstSessionTime = '';
+                                        $sessionsPayload = [];
+                                        foreach ($sessions as $sessionRow) {
+                                            $sessionsPayload[] = [
+                                                'session_number' => (int)($sessionRow['session_number'] ?? 0),
+                                                'session_date' => (string)($sessionRow['session_date'] ?? ''),
+                                                'session_time' => (string)($sessionRow['session_time'] ?? ''),
+                                                'status' => (string)($sessionRow['status'] ?? ''),
+                                            ];
+                                            if ($firstSessionDate === '' && ($sessionRow['status'] ?? '') !== 'Cancelled') {
+                                                $firstSessionDate = $sessionRow['session_date'] ?? '';
+                                                $firstSessionTime = $sessionRow['session_time'] ?? '';
+                                            }
+                                        }
+                                        if ($firstSessionDate === '' && !empty($sessions)) {
+                                            $firstSessionDate = $sessions[0]['session_date'] ?? '';
+                                            $firstSessionTime = $sessions[0]['session_time'] ?? '';
+                                        }
+                                        $sessionsPayloadJson = json_encode($sessionsPayload);
+                                        $sessionsPayloadB64 = base64_encode($sessionsPayloadJson ?: '[]');
+                                    ?>
+
+                                    <?php if (($plan['payment_status'] ?? 'Pending') !== 'Completed'): ?>
                                         <div class="appointment-actions" style="margin-top:20px;background:#fff3cd;padding:12px;border-radius:8px;">
                                             <p style="margin:0 0 12px 0;font-size:14px;color:#856404;">
-                                                ⚠️ Please confirm your treatment schedule to proceed
+                                                ⚠️ Complete payment or reschedule your treatment plan first
                                             </p>
                                             <div style="display:flex;gap:10px;">
+                                                <?php if (($plan['status'] ?? '') === 'Pending' || ($plan['status'] ?? '') === 'ChangeRequested'): ?>
                                                 <button class="action-btn btn-primary" onclick="confirmTreatmentPlan(<?= $plan['plan_id'] ?>)" style="flex:1;">
-                                                    ✓ Confirm All & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
+                                                    ✓ Confirm & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
                                                 </button>
-                                                <button class="action-btn btn-warning" onclick="requestPlanChange(<?= $plan['plan_id'] ?>)">
-                                                    📝 Request Changes
+                                                <?php else: ?>
+                                                <button class="action-btn btn-primary" onclick="payTreatmentPlan(<?= $plan['plan_id'] ?>)" style="flex:1;">
+                                                    ✓ Confirm & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
+                                                </button>
+                                                <?php endif; ?>
+                                                <button class="action-btn btn-warning" data-sessions-b64="<?= htmlspecialchars($sessionsPayloadB64, ENT_QUOTES, 'UTF-8') ?>" onclick="rescheduleAndPayTreatmentPlan(<?= $plan['plan_id'] ?>, <?= (int)($plan['treatment_id'] ?? 0) ?>, this)">
+                                                    Reschedule & Pay
                                                 </button>
                                             </div>
-                                        </div>
-                                    <?php elseif ($plan['status'] === 'Confirmed' && $plan['payment_status'] === 'Pending'): ?>
-                                        <div class="appointment-actions" style="margin-top:20px;">
-                                            <button class="action-btn btn-primary" onclick="payTreatmentPlan(<?= $plan['plan_id'] ?>)">
-                                                💳 Pay Now (Rs <?= number_format($plan['total_cost'], 2) ?>)
-                                            </button>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -513,7 +545,6 @@ function getCancelledAppointments($appointments) {
                 <!-- Cancelled Appointments -->
                 <div id="cancelled-tab" class="tab-panel" style="display: none;">
                     <?php 
-                    $cancelled = getCancelledAppointments($appointments);
                     if (empty($cancelled)): 
                     ?>
                         <div class="empty-state">
@@ -557,6 +588,28 @@ function getCancelledAppointments($appointments) {
                 <div class="modal-buttons">
                     <button type="submit" class="action-btn btn-primary">Confirm Reschedule</button>
                     <button type="button" class="action-btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="planRescheduleModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePlanRescheduleModal()">&times;</span>
+            <h3>Reschedule & Pay</h3>
+            <p style="margin-top:0;color:#666;font-size:14px;">Set date and available slot for each session.</p>
+            <form id="planRescheduleForm">
+                <input type="hidden" id="planReschedulePlanId">
+                <input type="hidden" id="planRescheduleTreatmentId">
+                <div id="planSessionRows" style="display:flex;flex-direction:column;gap:12px;"></div>
+                <div id="planSessionHelper" style="margin-top:6px;font-size:12px;color:#666;"></div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label for="planRescheduleNote">Additional Note (optional)</label>
+                    <input type="text" id="planRescheduleNote" placeholder="Any extra instruction for doctor">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="action-btn btn-primary">Update Schedule</button>
+                    <button type="button" class="action-btn btn-secondary" onclick="closePlanRescheduleModal()">Cancel</button>
                 </div>
             </form>
         </div>
@@ -617,6 +670,7 @@ function getCancelledAppointments($appointments) {
 
 let currentCancelId = null;
 let currentCancelType = null;
+let treatmentRescheduleThenPay = false;
 
 // FIX 1: Properly handle tab switching without event parameter
 function showTab(tabName) {
@@ -722,8 +776,138 @@ function requestPlanChange(planId) {
     }
 }
 
+function rescheduleAndPayTreatmentPlan(planId, treatmentId, triggerButton) {
+    if (!planId || !treatmentId) {
+        alert('Unable to load treatment details for rescheduling.');
+        return;
+    }
+
+    const modal = document.getElementById('planRescheduleModal');
+    const planIdInput = document.getElementById('planReschedulePlanId');
+    const treatmentIdInput = document.getElementById('planRescheduleTreatmentId');
+    const rowsContainer = document.getElementById('planSessionRows');
+    const helper = document.getElementById('planSessionHelper');
+
+    let sessions = [];
+    try {
+        const rawB64 = triggerButton ? (triggerButton.getAttribute('data-sessions-b64') || '') : '';
+        if (rawB64) {
+            sessions = JSON.parse(atob(rawB64));
+        } else {
+            const legacyRaw = triggerButton ? (triggerButton.getAttribute('data-sessions') || '[]') : '[]';
+            sessions = JSON.parse(legacyRaw);
+        }
+    } catch (e) {
+        sessions = [];
+    }
+    if (!Array.isArray(sessions) || sessions.length === 0) {
+        sessions = [{ session_number: 1, session_date: '', session_time: '', status: 'Pending' }];
+    }
+
+    planIdInput.value = planId;
+    treatmentIdInput.value = treatmentId;
+
+    rowsContainer.innerHTML = '';
+    const today = new Date().toISOString().split('T')[0];
+
+    sessions.forEach(function(session, index) {
+        const row = document.createElement('div');
+        row.className = 'plan-session-row';
+        row.style.cssText = 'border:1px solid #eee;border-radius:8px;padding:10px;background:#fafafa;';
+
+        const safeSessionNo = session.session_number || (index + 1);
+        const defaultDate = session.session_date || today;
+
+        row.innerHTML =
+            '<div style="font-weight:600;margin-bottom:8px;">Session ' + safeSessionNo + '</div>' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+                '<div>' +
+                    '<label style="display:block;font-size:12px;color:#555;margin-bottom:4px;">Date</label>' +
+                    '<input type="date" class="plan-session-date" data-index="' + index + '" data-session-number="' + safeSessionNo + '" value="' + defaultDate + '" required style="width:100%;">' +
+                '</div>' +
+                '<div>' +
+                    '<label style="display:block;font-size:12px;color:#555;margin-bottom:4px;">Available Time Slot</label>' +
+                    '<select class="plan-session-time" data-index="' + index + '" required style="width:100%;"><option value="">Select Time</option></select>' +
+                '</div>' +
+            '</div>';
+
+        rowsContainer.appendChild(row);
+
+        const dateInputEl = row.querySelector('.plan-session-date');
+        const timeSelectEl = row.querySelector('.plan-session-time');
+        loadPlanRescheduleSlotsForRow(defaultDate, treatmentId, timeSelectEl, session.session_time || '');
+
+        dateInputEl.addEventListener('change', function() {
+            loadPlanRescheduleSlotsForRow(this.value, treatmentId, timeSelectEl, '');
+        });
+    });
+
+    helper.textContent = 'All sessions can be rescheduled. Select a date and available slot for each session.';
+    modal.style.display = 'block';
+}
+
+function closePlanRescheduleModal() {
+    const modal = document.getElementById('planRescheduleModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function loadPlanRescheduleSlotsForRow(date, treatmentId, slotSelect, preferredTime) {
+    slotSelect.innerHTML = '<option value="">Select Time</option>';
+
+    if (!date || !treatmentId) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('treatment_id', treatmentId);
+    formData.append('date', date);
+
+    fetch('/dheergayu/public/api/treatment_selection.php?action=loadSlots', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (!data.success || !Array.isArray(data.slots) || data.slots.length === 0) {
+            throw new Error(data.error || 'No available slots found');
+        }
+
+        data.slots.forEach(function(slot) {
+            const option = document.createElement('option');
+            option.value = slot.slot_time;
+            option.textContent = formatTime(slot.slot_time);
+
+            if (slot.booked) {
+                option.disabled = true;
+                option.textContent += ' (Not Available)';
+            }
+
+            if (!slot.booked && preferredTime && slot.slot_time === preferredTime) {
+                option.selected = true;
+            }
+
+            slotSelect.appendChild(option);
+        });
+    })
+    .catch(function(error) {
+        console.error('Error loading slots:', error);
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No available slots';
+        option.disabled = true;
+        slotSelect.appendChild(option);
+    });
+}
+
 function payTreatmentPlan(planId) {
     window.location.href = 'treatment_plan_payment.php?plan_id=' + planId;
+}
+
+function rescheduleAndPayTreatment(bookingId, date, time) {
+    treatmentRescheduleThenPay = true;
+    editAppointment(bookingId, 'treatment', date, time, '', '', '', 'Pending', '', false);
 }
 
 // Appointment editing functions
@@ -891,6 +1075,72 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    if (requestedTab) {
+        const normalizedTab = (requestedTab === 'all') ? 'consultations' : requestedTab;
+        if (['consultations', 'upcoming', 'treatment-plans', 'cancelled'].indexOf(normalizedTab) !== -1) {
+            showTab(normalizedTab);
+        }
+    }
+
+    const planRescheduleForm = document.getElementById('planRescheduleForm');
+    if (planRescheduleForm) {
+        planRescheduleForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const planId = document.getElementById('planReschedulePlanId').value;
+            const sessionRows = document.querySelectorAll('#planSessionRows .plan-session-row');
+            if (!sessionRows.length) {
+                alert('No sessions found for rescheduling.');
+                return;
+            }
+
+            const scheduleRows = [];
+            for (let i = 0; i < sessionRows.length; i++) {
+                const row = sessionRows[i];
+                const dateInput = row.querySelector('.plan-session-date');
+                const timeSelect = row.querySelector('.plan-session-time');
+                const selectedDate = dateInput ? dateInput.value : '';
+                const selectedTime = timeSelect ? timeSelect.value : '';
+                const sessionNumber = dateInput ? parseInt(dateInput.getAttribute('data-session-number') || (i + 1), 10) : (i + 1);
+                if (!selectedDate || !selectedTime) {
+                    alert('Please select date and time for all sessions.');
+                    return;
+                }
+                scheduleRows.push({
+                    session_number: sessionNumber,
+                    session_date: selectedDate,
+                    session_time: selectedTime
+                });
+            }
+
+            const extraNote = (document.getElementById('planRescheduleNote').value || '').trim();
+
+            fetch('/dheergayu/public/api/confirm-treatment-plan.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'plan_id=' + encodeURIComponent(planId)
+                    + '&action=update_schedule'
+                    + '&schedule=' + encodeURIComponent(JSON.stringify(scheduleRows))
+                    + '&note=' + encodeURIComponent(extraNote)
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    closePlanRescheduleModal();
+                    alert('Schedule updated successfully. You can now click Confirm & Pay.');
+                    window.location.href = 'patient_appointments.php?tab=treatment-plans';
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to update schedule'));
+                }
+            })
+            .catch(function(err) {
+                console.error('Error:', err);
+                alert('Network error. Please try again.');
+            });
+        });
+    }
 });
 
 function formatTime(time) {
@@ -902,8 +1152,11 @@ function formatTime(time) {
     return displayHours + ':' + minutes + ' ' + period;
 }
 
-function closeEditModal() {
+function closeEditModal(resetFlag = true) {
     document.getElementById('editModal').style.display = 'none';
+    if (resetFlag) {
+        treatmentRescheduleThenPay = false;
+    }
 }
 
 // Form submission handler
@@ -919,6 +1172,8 @@ if (editForm) {
         const time = timeSelect.value;
         
         if (type === 'treatment') {
+            closeEditModal(false);
+
             const selectedOption = timeSelect.options[timeSelect.selectedIndex];
             const slotId = selectedOption.getAttribute('data-slot-id');
             
@@ -935,16 +1190,25 @@ if (editForm) {
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.success) {
-                    alert('Treatment rescheduled successfully');
-                    location.reload();
+                    if (treatmentRescheduleThenPay) {
+                        window.location.href = 'appointment_payment.php?appointment_id=' + encodeURIComponent(id) + '&type=treatment';
+                    } else {
+                        alert('Treatment rescheduled successfully');
+                        location.reload();
+                    }
                 } else {
                     alert('Error: ' + (data.error || data.message || 'Failed to reschedule'));
                 }
             })
             .catch(function(error) {
                 alert('Network error: ' + error.message);
+            })
+            .finally(function() {
+                treatmentRescheduleThenPay = false;
             });
         } else {
+            closeEditModal();
+
             const formData = new FormData();
             formData.append('id', id);
             formData.append('type', type);
@@ -968,8 +1232,6 @@ if (editForm) {
                 alert('Network error: ' + error.message);
             });
         }
-        
-        closeEditModal();
     });
 }
 
@@ -1035,8 +1297,10 @@ function payNow(id, type) {
 window.addEventListener('click', function(e) {
     const editModal = document.getElementById('editModal');
     const cancelModal = document.getElementById('cancelModal');
+    const planRescheduleModal = document.getElementById('planRescheduleModal');
     if (e.target === editModal) closeEditModal();
     if (e.target === cancelModal) closeCancelModal();
+    if (e.target === planRescheduleModal) closePlanRescheduleModal();
 });
 
 </script>

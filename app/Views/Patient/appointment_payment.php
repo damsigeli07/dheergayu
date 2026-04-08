@@ -157,6 +157,16 @@ $showTestPayment = payhere_test_payment_allowed();
         }
         .type-badge.consultation { background: #17a2b8; }
         .type-badge.treatment { background: #28a745; }
+        .policy-notice {
+            margin-top: 14px;
+            background: #fff3cd;
+            border: 1px solid #ffe69c;
+            color: #7a5a00;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 0.92rem;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -218,6 +228,10 @@ $showTestPayment = payhere_test_payment_allowed();
                         <input type="tel" id="customerPhone" name="customerPhone"
                                value="<?= htmlspecialchars($userPhone) ?>"
                                placeholder="0712345678" required>
+                    </div>
+
+                    <div class="policy-notice">
+                        This appointment payment is non-refundable and appointments cannot be cancelled after payment.
                     </div>
 
                     <!-- Test payment (sandbox or PAYHERE_ALLOW_TEST_PAYMENT) -->

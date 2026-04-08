@@ -45,50 +45,21 @@ $assignedTreatmentType = $staffAssignment['treatment_type'] ?? null;
     UNIQUE KEY unique_plan_staff (plan_id, staff_id)
 )");
 
-// Fetch treatment plans for this specific staff member
-// Filter by treatment type that matches staff's assignment
+// Fetch treatment plans selected by this staff only ("I'll do this" confirmed plans).
 $treatment_plans_query = "
-    SELECT 
-        tp.*,
-        p.first_name,
-        p.last_name,
-        p.email,
-        tl.treatment_name,
-        tl.price as treatment_price,
+    SELECT tp.*, p.first_name, p.last_name, p.email, tl.treatment_name, tl.price as treatment_price,
         (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id) as total_booked_sessions,
         (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions,
         (SELECT COUNT(*) FROM staff_treatment_forms WHERE plan_id = tp.plan_id AND staff_id = " . intval($staffUserId) . ") as has_treatment_form
     FROM treatment_plans tp
     LEFT JOIN patients p ON tp.patient_id = p.id
     LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
-    WHERE 1=1
+    WHERE tp.assigned_staff_id = ?
+    ORDER BY tp.created_at DESC
 ";
 
-// Show plans: by assigned treatment type OR plans explicitly assigned to this staff (they confirmed)
-if ($assignedTreatmentType) {
-    $treatment_plans_query .= " AND (tl.treatment_name = ? OR tp.assigned_staff_id = ?)";
-}
-
-$treatment_plans_query .= " ORDER BY tp.created_at DESC";
-
 $stmt = $db->prepare($treatment_plans_query);
-if ($assignedTreatmentType) {
-    $stmt->bind_param('si', $assignedTreatmentType, $staffUserId);
-} else {
-    $treatment_plans_query_alt = "
-        SELECT tp.*, p.first_name, p.last_name, p.email, tl.treatment_name, tl.price as treatment_price,
-            (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id) as total_booked_sessions,
-            (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions,
-            (SELECT COUNT(*) FROM staff_treatment_forms WHERE plan_id = tp.plan_id AND staff_id = " . intval($staffUserId) . ") as has_treatment_form
-        FROM treatment_plans tp
-        LEFT JOIN patients p ON tp.patient_id = p.id
-        LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
-        WHERE tp.assigned_staff_id = ?
-        ORDER BY tp.created_at DESC
-    ";
-    $stmt = $db->prepare($treatment_plans_query_alt);
-    $stmt->bind_param('i', $staffUserId);
-}
+$stmt->bind_param('i', $staffUserId);
 $stmt->execute();
 $treatment_plans_result = $stmt->get_result();
 $treatment_plans = [];
@@ -154,6 +125,7 @@ $offers_stmt = $db->prepare("
     LEFT JOIN patients p ON tp.patient_id = p.id
     LEFT JOIN users u ON o.assigned_staff_id = u.id
     WHERE (o.primary_staff1_id = ? OR o.primary_staff2_id = ? OR o.backup_staff_id = ?)
+      AND tp.payment_status = 'Completed'
     ORDER BY o.status ASC, o.created_at DESC
 ");
 if ($offers_stmt) {
@@ -269,8 +241,8 @@ $db->close();
         <nav class="navigation">
             <button class="nav-btn active">
                 Treatment Schedule
-                <?php if ($pending_plans + $change_requested_plans > 0): ?>
-                    <span class="badge"><?= $pending_plans + $change_requested_plans ?></span>
+                <?php if ($pending_plans > 0): ?>
+                    <span class="badge"><?= $pending_plans ?></span>
                 <?php endif; ?>
             </button>
             <a href="staffappointment.php" class="nav-btn">Appointment</a>
@@ -291,11 +263,34 @@ $db->close();
     <main class="main-content">
         <!-- Assignments offered to you (patient confirmed; you confirm to take it) -->
         <?php if (!empty($staff_offers)): ?>
+        <?php
+            $takenByOthersOffers = [];
+            $visibleOffers = [];
+            foreach ($staff_offers as $offerItem) {
+                if (!empty($offerItem['assigned_staff_id']) && empty($offerItem['is_assigned_to_me'])) {
+                    $takenByOthersOffers[] = $offerItem;
+                    continue;
+                }
+                $visibleOffers[] = $offerItem;
+            }
+        ?>
         <div class="assignments-offered" style="margin-bottom:30px;background:#e8f5e9;border:1px solid #81c784;border-radius:10px;padding:20px;">
             <h3 style="margin:0 0 15px 0;color:#2e7d32;">Treatment assignments</h3>
-            <p style="color:#555;font-size:14px;margin-bottom:15px;">Plans offered to you. Confirm to take one, or see who has taken it.</p>
+            <p style="color:#555;font-size:14px;margin-bottom:15px;">Plans offered to you. Confirm to take one.</p>
+
+            <?php if (!empty($takenByOthersOffers)): ?>
+                <div style="margin-bottom:12px;padding:10px 12px;background:#fff3cd;border:1px solid #ffe08a;color:#856404;border-radius:8px;font-size:13px;">
+                    Some offers were already taken by another staff member.
+                </div>
+            <?php endif; ?>
+
+            <?php if (empty($visibleOffers)): ?>
+                <div style="padding:12px;background:#fff;border:1px solid #d6d6d6;border-radius:8px;color:#666;font-size:13px;">
+                    No pending offers for you right now.
+                </div>
+            <?php else: ?>
             <div style="display:flex;flex-direction:column;gap:12px;">
-                <?php foreach ($staff_offers as $off): ?>
+                <?php foreach ($visibleOffers as $off): ?>
                 <div class="offer-card" style="background:#fff;padding:16px;border-radius:8px;border-left:4px solid <?= !empty($off['assigned_staff_id']) ? '#2196f3' : '#E6A85A' ?>;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                     <div>
                         <strong>Plan #<?= (int)$off['plan_id'] ?></strong> — <?= htmlspecialchars($off['treatment_name'] ?? 'Treatment') ?>
@@ -344,6 +339,7 @@ $db->close();
                 </div>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
 
@@ -362,10 +358,6 @@ $db->close();
                 <div class="stat-box" style="border-left:4px solid #ffc107;">
                     <div class="stat-number"><?= $pending_plans ?></div>
                     <div class="stat-label">Pending Confirmation</div>
-                </div>
-                <div class="stat-box" style="border-left:4px solid #ff9800;">
-                    <div class="stat-number"><?= $change_requested_plans ?></div>
-                    <div class="stat-label">Change Requested</div>
                 </div>
                 <div class="stat-box" style="border-left:4px solid #28a745;">
                     <div class="stat-number"><?= $confirmed_plans ?></div>
@@ -396,11 +388,9 @@ $db->close();
                                         : 0;
                                     $tpPay = ($plan['payment_status'] ?? '') === 'Completed';
                                     $tpStatus = $plan['status'] ?? '';
-                                    $tpChange = !empty($plan['change_requested']);
                                     $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
                                     $tpAssignedId = (int)($plan['assigned_staff_id'] ?? 0);
                                     $assignedToMe = $tpAssignedId !== 0 && $tpAssignedId === (int)$staffUserId;
-                                    $canStartTreatment = $tpPay && $tpConfirmed && !$tpChange && $assignedToMe;
                                     $displayStatus = $tpStatus;
                                     if ((int)($plan['total_sessions'] ?? 0) > 0 && (int)($plan['completed_sessions'] ?? 0) >= (int)$plan['total_sessions']) {
                                         $displayStatus = 'Completed';
@@ -424,11 +414,6 @@ $db->close();
                                         <span class="status-badge <?= strtolower($displayStatus) ?>">
                                             <?= $displayStatus ?>
                                         </span>
-                                        <?php if ($plan['change_requested']): ?>
-                                            <span style="display:block;font-size:11px;color:#ff9800;margin-top:3px;">
-                                                ⚠️ Changes requested
-                                            </span>
-                                        <?php endif; ?>
                                     </td>
                                     <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
                                     <td>
@@ -442,9 +427,6 @@ $db->close();
                                         <?php elseif (!$tpPay): ?>
                                             <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Treatment</button>
                                             <span style="display:block;font-size:11px;color:#dc3545;margin-top:4px;">Payment pending</span>
-                                        <?php elseif ($tpChange): ?>
-                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient change request pending">Start Treatment</button>
-                                            <span style="display:block;font-size:11px;color:#ff9800;margin-top:4px;">Change requested</span>
                                         <?php elseif (!$tpConfirmed): ?>
                                             <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not confirmed the plan">Start Treatment</button>
                                             <span style="display:block;font-size:11px;color:#856404;margin-top:4px;">Awaiting patient confirmation</span>
@@ -456,11 +438,6 @@ $db->close();
                                             <button class="btn-cancel" onclick="cancelTreatmentPlan(<?= $plan['plan_id'] ?>)">Cancel</button>
                                         <?php endif; ?>
                                         <button class="action-btn" style="margin-top:5px;background:#6c757d;" onclick="viewTreatmentPlan(<?= $plan['plan_id'] ?>)">View More Details</button>
-                                        <?php if ($plan['change_requested']): ?>
-                                            <button class="action-btn" style="margin-top:5px;background:#ff9800;" onclick="viewChangeRequest(<?= $plan['plan_id'] ?>, '<?= htmlspecialchars(addslashes($plan['change_reason'] ?? '')) ?>')">
-                                                View Request
-                                            </button>
-                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

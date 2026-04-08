@@ -111,6 +111,7 @@ class AppointmentModel {
         $stmt = $this->conn->prepare("
             SELECT 
                 tb.booking_id as id,
+                tb.treatment_id as treatment_id,
                 NULL as doctor_id,
                 NULL as doctor_name,
                 NULL as patient_no,
@@ -119,10 +120,10 @@ class AppointmentModel {
                 ts.slot_time as appointment_time,
                 tb.status,
                 'onsite' as payment_method,
-                CASE WHEN tb.status = 'Completed' THEN 'Completed' ELSE 'Pending' END as payment_status,
-                NULL as created_at,
-                NULL as updated_at,
-                NULL as notes
+                CASE WHEN tb.status IN ('Confirmed', 'Completed') THEN 'Completed' ELSE 'Pending' END as payment_status,
+                tb.created_at as created_at,
+                tb.updated_at as updated_at,
+                tb.description as notes
             FROM treatment_bookings tb
             LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id
             LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id
