@@ -40,6 +40,14 @@ if ($appointment_id) {
         header('Location: doctordashboard.php');
         exit;
     }
+
+    // Block if patient hasn't paid (allow onsite payments — patient pays at clinic)
+    $payStatus = $appointment['payment_status'] ?? '';
+    $payMethod = $appointment['payment_method'] ?? '';
+    if ($payStatus !== 'Completed' && $payMethod !== 'onsite') {
+        echo "<script>alert('Cannot start consultation — patient has not completed payment yet.'); window.location.href='doctordashboard.php';</script>";
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>

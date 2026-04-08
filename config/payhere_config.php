@@ -4,8 +4,8 @@
 // SANDBOX MODE (for testing)
 define('PAYHERE_MODE', 'sandbox'); 
 
-define('PAYHERE_MERCHANT_ID', '4OVyc4L167U4JH5Ex8MQcc3Xe'); 
-define('PAYHERE_MERCHANT_SECRET', '4q7xCJqP8AJ4OXGuMrxhmo49cvM9eBB4r48aV9Q2fbDc'); 
+define('PAYHERE_MERCHANT_ID', '1235035'); 
+define('PAYHERE_MERCHANT_SECRET', 'NDI3NjI3Njk5OTM0NzcwMDkzMTAzOTc4NjQxNTA5MTI4MzE2NjM5MA=='); 
 
 // PayHere API URLs
 if (PAYHERE_MODE === 'sandbox') {

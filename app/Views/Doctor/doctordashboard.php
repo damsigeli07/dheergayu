@@ -116,6 +116,8 @@ $stmt = $db->prepare("
         c.appointment_date,
         c.appointment_time,
         c.status,
+        c.payment_status,
+        c.payment_method,
         c.notes as reason
     FROM consultations c
     LEFT JOIN patients p ON c.patient_id = p.id
@@ -307,7 +309,12 @@ foreach ($treatment_plans as $plan) {
                                 </td>
                                 <td class="actions">
                                     <?php if ($status === 'Upcoming') : ?>
-                                        <button class="btn-start" onclick="window.location.href='doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>'">Start Consultation</button>
+                                        <?php if (($apt['payment_status'] ?? '') === 'Completed' || ($apt['payment_method'] ?? '') === 'onsite'): ?>
+                                            <button class="btn-start" onclick="window.location.href='doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>'">Start Consultation</button>
+                                        <?php else: ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Consultation</button>
+                                            <span style="display:block;font-size:11px;color:#dc3545;margin-top:4px;">Payment pending</span>
+                                        <?php endif; ?>
                                         <button class="btn-cancel" onclick="showCancelReason(<?= $apt['appointment_id'] ?>)">Cancel</button>
                                     <?php elseif ($status === 'Completed') : ?>
                                         <button class="btn-view" onclick="showConsultationModal(<?= $apt['appointment_id'] ?>)">View</button>

@@ -94,11 +94,7 @@ $upd->bind_param('ii', $staff_id, $offer_id);
 $upd->execute();
 $upd->close();
 
-// Optionally store assigned_staff_id on treatment_plans for easy lookup
-$chk = $conn->query("SHOW COLUMNS FROM treatment_plans LIKE 'assigned_staff_id'");
-if ($chk && $chk->num_rows === 0) {
-    $conn->query("ALTER TABLE treatment_plans ADD COLUMN assigned_staff_id INT NULL AFTER status");
-}
+// Store assigned_staff_id on treatment_plans for easy lookup
 $conn->query("UPDATE treatment_plans SET assigned_staff_id = " . (int)$staff_id . " WHERE plan_id = " . (int)$offer['plan_id']);
 
 echo json_encode(['success' => true, 'message' => 'You have confirmed this treatment assignment']);
