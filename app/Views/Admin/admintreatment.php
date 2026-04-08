@@ -70,6 +70,7 @@ $db->close();
             <a href="adminusers.php" class="nav-btn">Users</a>
             <button class="nav-btn active">Treatments</button>
             <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
+            <a href="admincontact.php" class="nav-btn">Contact Submissions</a>
         </nav>
         
         <div class="user-section">

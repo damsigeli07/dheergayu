@@ -23,58 +23,51 @@ if ($piStmt) {
     $userPhone = $piRow['phone'] ?? '';
 }
 
-$appointmentId = (int)($_GET['appointment_id'] ?? 0);
-$type          = $_GET['type'] ?? '';
+$planId = (int)($_GET['plan_id'] ?? 0);
 
-if (!$appointmentId || !in_array($type, ['consultation', 'treatment'])) {
+if (!$planId) {
     header('Location: patient_appointments.php');
     exit;
 }
 
-// Fetch appointment details
-$appointment = null;
-$fee = 0;
-$description = '';
+// Fetch treatment plan details
+$stmt = $conn->prepare("
+    SELECT tp.*, tl.treatment_name as list_treatment_name
+    FROM treatment_plans tp
+    LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+    WHERE tp.plan_id = ? AND tp.patient_id = ?
+");
+$stmt->bind_param('ii', $planId, $userId);
+$stmt->execute();
+$plan = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-if ($type === 'consultation') {
-    $stmt = $conn->prepare("SELECT * FROM consultations WHERE id = ? AND patient_id = ?");
-    $stmt->bind_param('ii', $appointmentId, $userId);
-    $stmt->execute();
-    $appointment = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    if ($appointment) {
-        $fee = (float)($appointment['treatment_fee'] ?? 2000);
-        $description = 'Consultation with ' . ($appointment['doctor_name'] ?? 'Doctor');
-        $appointmentDate = $appointment['appointment_date'];
-        $appointmentTime = $appointment['appointment_time'];
-        if (!empty($appointment['phone'])) $userPhone = $appointment['phone'];
-    }
-} else {
-    $stmt = $conn->prepare("
-        SELECT tb.*, tl.treatment_name, tl.price, ts.slot_time
-        FROM treatment_bookings tb
-        LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id
-        LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id
-        WHERE tb.booking_id = ? AND tb.patient_id = ?
-    ");
-    $stmt->bind_param('ii', $appointmentId, $userId);
-    $stmt->execute();
-    $appointment = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
-
-    if ($appointment) {
-        $fee = (float)($appointment['price'] ?? 2000);
-        $description = ($appointment['treatment_name'] ?? 'Treatment') . ' Session';
-        $appointmentDate = $appointment['booking_date'];
-        $appointmentTime = $appointment['slot_time'] ?? '';
-    }
-}
-
-if (!$appointment) {
+if (!$plan) {
     header('Location: patient_appointments.php');
     exit;
 }
+
+if ($plan['payment_status'] === 'Completed') {
+    header('Location: patient_appointments.php');
+    exit;
+}
+
+$fee = (float)$plan['total_cost'];
+$treatmentName = $plan['treatment_name'] ?? $plan['list_treatment_name'] ?? 'Treatment';
+$description = $treatmentName . ' - ' . $plan['total_sessions'] . ' Session(s)';
+$startDate = $plan['start_date'];
+$diagnosis = $plan['diagnosis'] ?? '';
+
+// Fetch sessions for this plan
+$sessStmt = $conn->prepare("SELECT session_number, session_date, session_time, status FROM treatment_sessions WHERE plan_id = ? ORDER BY session_number");
+$sessStmt->bind_param('i', $planId);
+$sessStmt->execute();
+$sessResult = $sessStmt->get_result();
+$sessions = [];
+while ($s = $sessResult->fetch_assoc()) {
+    $sessions[] = $s;
+}
+$sessStmt->close();
 
 $orderId   = generateOrderId();
 $isSandbox = (PAYHERE_MODE === 'sandbox');
@@ -84,7 +77,7 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pay for Appointment - Dheergayu</title>
+    <title>Pay for Treatment Plan - Dheergayu</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/products.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Patient/payment.css?v=<?php echo time(); ?>">
     <style>
@@ -153,9 +146,44 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
             font-weight: 600;
             text-transform: uppercase;
             color: white;
+            background: #8B7355;
         }
-        .type-badge.consultation { background: #17a2b8; }
-        .type-badge.treatment { background: #28a745; }
+        .sessions-list {
+            margin-top: 16px;
+            border-top: 1px solid #e9ecef;
+            padding-top: 12px;
+        }
+        .sessions-list h4 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+        .session-item .session-num {
+            font-weight: 600;
+            color: #5a4a3a;
+        }
+        .session-item .session-date {
+            color: #666;
+        }
+        .session-status {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
     </style>
 </head>
 <body>
@@ -235,31 +263,49 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
                 </form>
             </div>
 
-            <!-- Appointment Summary -->
+            <!-- Treatment Plan Summary -->
             <div class="card">
-                <h2 class="card-title">Appointment Summary</h2>
+                <h2 class="card-title">Treatment Plan Summary</h2>
                 <div class="appointment-summary">
                     <div style="margin-bottom: 16px;">
-                        <span class="type-badge <?= $type ?>"><?= ucfirst($type) ?></span>
+                        <span class="type-badge">Treatment Plan</span>
                     </div>
                     <div class="summary-item">
-                        <span class="label"><?= $type === 'consultation' ? 'Doctor' : 'Treatment' ?></span>
-                        <span class="value"><?= htmlspecialchars($description) ?></span>
+                        <span class="label">Treatment</span>
+                        <span class="value"><?= htmlspecialchars($treatmentName) ?></span>
                     </div>
+                    <?php if ($diagnosis): ?>
                     <div class="summary-item">
-                        <span class="label">Date</span>
-                        <span class="value"><?= date('M d, Y', strtotime($appointmentDate)) ?></span>
-                    </div>
-                    <?php if ($appointmentTime): ?>
-                    <div class="summary-item">
-                        <span class="label">Time</span>
-                        <span class="value"><?= date('h:i A', strtotime($appointmentTime)) ?></span>
+                        <span class="label">Diagnosis</span>
+                        <span class="value"><?= htmlspecialchars($diagnosis) ?></span>
                     </div>
                     <?php endif; ?>
+                    <div class="summary-item">
+                        <span class="label">Total Sessions</span>
+                        <span class="value"><?= $plan['total_sessions'] ?> (<?= $plan['sessions_per_week'] ?>x per week)</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Start Date</span>
+                        <span class="value"><?= date('M d, Y', strtotime($startDate)) ?></span>
+                    </div>
                     <div class="summary-item">
                         <span class="label">Patient</span>
                         <span class="value"><?= htmlspecialchars($userName) ?></span>
                     </div>
+
+                    <?php if (!empty($sessions)): ?>
+                    <div class="sessions-list">
+                        <h4>Session Schedule</h4>
+                        <?php foreach ($sessions as $s): ?>
+                        <div class="session-item">
+                            <span class="session-num">Session <?= $s['session_number'] ?></span>
+                            <span class="session-date"><?= date('M d, Y', strtotime($s['session_date'])) ?> at <?= date('h:i A', strtotime($s['session_time'])) ?></span>
+                            <span class="session-status"><?= $s['status'] ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="summary-total">
                         <span class="label">Total Amount</span>
                         <span class="value">Rs. <?= number_format($fee, 2) ?></span>
@@ -316,10 +362,9 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
     </footer>
 
 <script>
-    const ORDER_ID       = '<?= $orderId ?>';
-    const APPOINTMENT_ID = <?= $appointmentId ?>;
-    const APT_TYPE       = '<?= $type ?>';
-    const APT_FEE        = <?= $fee ?>;
+    const ORDER_ID = '<?= $orderId ?>';
+    const PLAN_ID  = <?= $planId ?>;
+    const PLAN_FEE = <?= $fee ?>;
 
     function validateForm() {
         const name  = document.getElementById('customerName').value.trim();
@@ -351,30 +396,29 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
 
         try {
             const fd = new FormData();
-            fd.append('appointment_id', APPOINTMENT_ID);
-            fd.append('type',           APT_TYPE);
+            fd.append('plan_id',        PLAN_ID);
             fd.append('order_id',       ORDER_ID);
             fd.append('payment_id',     'SIM_' + Date.now());
-            fd.append('amount',         APT_FEE.toFixed(2));
+            fd.append('amount',         PLAN_FEE.toFixed(2));
             fd.append('customer_name',  fields.name);
             fd.append('customer_email', fields.email);
             fd.append('customer_phone', fields.phone);
 
-            const res  = await fetch('/dheergayu/public/api/process-appointment-payment.php', {
+            const res  = await fetch('/dheergayu/public/api/process-treatment-plan-payment.php', {
                 method: 'POST', body: fd
             });
             const data = await res.json();
 
             if (data.success) {
                 window.location.href = 'appointment_payment_success.php?order_id=' + ORDER_ID
-                    + '&appointment_id=' + APPOINTMENT_ID + '&type=' + APT_TYPE + '&simulated=1';
+                    + '&plan_id=' + PLAN_ID + '&type=treatment_plan&simulated=1';
             } else {
                 throw new Error(data.error || 'Payment processing failed');
             }
         } catch (err) {
             console.error('Simulate error:', err);
             alert('Payment simulation failed: ' + err.message);
-            if (btn) { btn.disabled = false; btn.textContent = '\u2705 Test Payment - Rs. ' + APT_FEE.toFixed(2) + ' (Sandbox)'; }
+            if (btn) { btn.disabled = false; btn.textContent = '\u2705 Test Payment - Rs. ' + PLAN_FEE.toFixed(2) + ' (Sandbox)'; }
         }
     }
 
@@ -394,29 +438,28 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
         try {
             // Save pending state
             const pd = new FormData();
-            pd.append('appointment_id', APPOINTMENT_ID);
-            pd.append('type',           APT_TYPE);
+            pd.append('plan_id',        PLAN_ID);
             pd.append('order_id',       ORDER_ID);
-            pd.append('amount',         APT_FEE.toFixed(2));
+            pd.append('amount',         PLAN_FEE.toFixed(2));
             pd.append('customer_name',  fields.name);
             pd.append('customer_email', fields.email);
             pd.append('customer_phone', fields.phone);
             pd.append('pending',        '1');
-            await fetch('/dheergayu/public/api/process-appointment-payment.php', {
+            await fetch('/dheergayu/public/api/process-treatment-plan-payment.php', {
                 method: 'POST', body: pd
             });
 
             // Generate PayHere hash
             const hfd = new FormData();
             hfd.append('order_id', ORDER_ID);
-            hfd.append('amount',   APT_FEE.toFixed(2));
+            hfd.append('amount',   PLAN_FEE.toFixed(2));
             const hres  = await fetch('/dheergayu/public/api/generate-payhere-hash.php', { method:'POST', body:hfd });
             const hdata = await hres.json();
 
             if (!hdata.success) throw new Error(hdata.error || 'Hash generation failed');
 
             document.getElementById('ph_order_id').value = ORDER_ID;
-            document.getElementById('ph_amount').value   = APT_FEE.toFixed(2);
+            document.getElementById('ph_amount').value   = PLAN_FEE.toFixed(2);
             document.getElementById('ph_first').value    = firstName;
             document.getElementById('ph_last').value     = lastName;
             document.getElementById('ph_email').value    = fields.email;
@@ -432,7 +475,7 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
             alert('Could not prepare payment: ' + err.message +
                   '\n\nTip: In sandbox mode use the "Test Payment" button instead.');
             btn.disabled = false;
-            btn.textContent = 'Proceed to PayHere - Rs. ' + APT_FEE.toFixed(2);
+            btn.textContent = 'Proceed to PayHere - Rs. ' + PLAN_FEE.toFixed(2);
         }
     }
 

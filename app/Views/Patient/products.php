@@ -96,6 +96,7 @@ if ($db->connect_error) {
                     <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/products.php" class="active">SHOP</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/contact_us.php">CONTACT US</a></li>
                 </ul>
             </nav>
 
