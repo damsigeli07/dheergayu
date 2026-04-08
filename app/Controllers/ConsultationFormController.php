@@ -50,14 +50,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($appointment_id === 0) {
             throw new Exception("Invalid appointment ID");
         }
+
+        // Require completed payment before saving consultation (same rule as doctor UI)
+        $payStmt = $db->prepare("SELECT patient_id, payment_status FROM consultations WHERE id = ? LIMIT 1");
+        $payStmt->bind_param('i', $appointment_id);
+        $payStmt->execute();
+        $payRow = $payStmt->get_result()->fetch_assoc();
+        $payStmt->close();
+        if (!$payRow) {
+            throw new Exception("Appointment not found");
+        }
+        if (($payRow['payment_status'] ?? '') !== 'Completed') {
+            throw new Exception("Payment must be completed before the consultation can be saved.");
+        }
         
-        // Get patient_id from consultations table (source of truth) so it is recorded in consultationforms
-        $cstmt = $db->prepare("SELECT patient_id FROM consultations WHERE id = ? LIMIT 1");
-        $cstmt->bind_param('i', $appointment_id);
-        $cstmt->execute();
-        $crow = $cstmt->get_result()->fetch_assoc();
-        $cstmt->close();
-        $patient_id = $crow ? intval($crow['patient_id'] ?? 0) : 0;
+        $patient_id = intval($payRow['patient_id'] ?? 0);
         
         // Patient number in P0003 format from patients table
         $patient_no = '';

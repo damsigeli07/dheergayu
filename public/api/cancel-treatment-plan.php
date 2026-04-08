@@ -35,6 +35,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo 'error';
         exit;
     }
+
+    $staff_id = (int)($_SESSION['user_id'] ?? 0);
+    if ($staff_id <= 0) {
+        echo 'error';
+        exit;
+    }
+
+    // Only the staff who has been assigned this plan can cancel it.
+    $chk = $db->prepare("SELECT assigned_staff_id FROM treatment_plans WHERE plan_id = ? LIMIT 1");
+    $chk->bind_param('i', $plan_id);
+    $chk->execute();
+    $row = $chk->get_result()->fetch_assoc();
+    $chk->close();
+
+    $assignedId = (int)($row['assigned_staff_id'] ?? 0);
+    if ($assignedId === 0 || $assignedId !== $staff_id) {
+        echo 'error';
+        exit;
+    }
     
     // Update treatment plan status to Cancelled
     $stmt = $db->prepare("UPDATE treatment_plans SET status = 'Cancelled' WHERE plan_id = ?");

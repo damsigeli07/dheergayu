@@ -86,6 +86,30 @@ try {
     $conn->begin_transaction();
 
     try {
+        // Day-level block guard (new table + legacy fallback).
+        $dayBlocked = false;
+        $dayBlockStmt = $conn->prepare("SELECT id FROM doctor_unavailable_days WHERE doctor_id = ? AND unavailable_date = ? LIMIT 1");
+        if ($dayBlockStmt) {
+            $dayBlockStmt->bind_param('is', $doctor_id, $appointment_date);
+            $dayBlockStmt->execute();
+            $dayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
+            $dayBlockStmt->close();
+        }
+
+        if (!$dayBlocked) {
+            $dayBlockPattern = 'Doctor Cancelled: Doctor unavailable on ' . $appointment_date . '%';
+            $dayBlockStmt = $conn->prepare("SELECT id FROM consultations WHERE doctor_id = ? AND appointment_date = ? AND status = 'Cancelled' AND notes LIKE ? LIMIT 1");
+            if (!$dayBlockStmt) throw new Exception('DB prepare error: ' . $conn->error);
+            $dayBlockStmt->bind_param('iss', $doctor_id, $appointment_date, $dayBlockPattern);
+            $dayBlockStmt->execute();
+            $dayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
+            $dayBlockStmt->close();
+        }
+
+        if ($dayBlocked) {
+            throw new Exception('Doctor is unavailable on this date');
+        }
+
         // Check slot availability for this doctor
         $checkQuery = "SELECT status FROM consultations
                        WHERE appointment_date = ?
@@ -101,8 +125,8 @@ try {
 
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
-            if (in_array($row['status'], ['Pending', 'Confirmed'])) {
-                throw new Exception('This slot is already booked');
+            if (in_array($row['status'], ['Pending', 'Confirmed', 'locked'])) {
+                throw new Exception('This slot is not available');
             }
         }
         $checkStmt->close();

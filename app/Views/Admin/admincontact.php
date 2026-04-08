@@ -6,6 +6,13 @@ session_start();
 
 require_once __DIR__ . '/../../../config/config.php';
 
+// Ensure admin_reply and replied_at columns exist
+$checkCol = $conn->query("SHOW COLUMNS FROM contact_submissions LIKE 'admin_reply'");
+if ($checkCol->num_rows === 0) {
+    $conn->query("ALTER TABLE contact_submissions ADD COLUMN admin_reply TEXT DEFAULT NULL AFTER message");
+    $conn->query("ALTER TABLE contact_submissions ADD COLUMN replied_at TIMESTAMP NULL DEFAULT NULL AFTER admin_reply");
+}
+
 // Fetch all contact submissions
 $query = "SELECT * FROM contact_submissions ORDER BY created_at DESC";
 $result = $conn->query($query);
@@ -234,6 +241,15 @@ while ($row = $statusResult->fetch_assoc()) {
             background: #d32f2f;
         }
 
+        .btn-reply {
+            background: #FF8C42;
+            color: white;
+        }
+
+        .btn-reply:hover {
+            background: #e67a30;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -242,7 +258,8 @@ while ($row = $statusResult->fetch_assoc()) {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
             z-index: 10000;
             align-items: center;
             justify-content: center;
@@ -250,63 +267,272 @@ while ($row = $statusResult->fetch_assoc()) {
 
         .modal.active {
             display: flex;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .modal-content {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
+            border-radius: 16px;
+            padding: 0;
+            max-width: 620px;
+            width: 92%;
+            max-height: 85vh;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #d0d0d0;
+            border-radius: 3px;
         }
 
         .modal-header {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
+            background: linear-gradient(135deg, #5a4a3a, #8B7355);
+            padding: 22px 28px;
+            border-radius: 16px 16px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
 
         .modal-title {
-            font-size: 1.5rem;
-            color: #333;
+            font-size: 1.3rem;
+            color: #fff;
             font-weight: 600;
+            letter-spacing: 0.3px;
         }
 
         .modal-close {
             float: right;
-            font-size: 28px;
+            font-size: 24px;
             cursor: pointer;
-            color: #999;
+            color: rgba(255,255,255,0.7);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            line-height: 1;
         }
 
         .modal-close:hover {
-            color: #333;
+            color: #fff;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .modal-body-inner {
+            padding: 24px 28px 28px;
         }
 
         .detail-row {
-            margin-bottom: 15px;
+            margin-bottom: 0;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0ede8;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
         }
 
         .detail-label {
             font-weight: 600;
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
+            color: #8B7355;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 2px;
         }
 
         .detail-value {
             color: #333;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .detail-value a {
+            color: #FF8C42;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .detail-value a:hover {
+            color: #e67a30;
+            text-decoration: underline;
+        }
+
+        .detail-row-inline {
+            display: flex;
+            gap: 20px;
+        }
+
+        .detail-row-inline .detail-row {
+            flex: 1;
+            border-bottom: none;
+            background: #faf8f5;
+            padding: 12px 16px;
+            border-radius: 10px;
+        }
+
+        .message-box {
+            background: #faf8f5;
+            border-radius: 10px;
+            padding: 14px 16px;
+            border-left: 3px solid #8B7355;
+            line-height: 1.6;
+            color: #444;
         }
 
         .status-selector {
-            padding: 8px 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border: 2px solid #e8e4de;
+            border-radius: 8px;
             font-size: 14px;
             width: 100%;
+            background: #faf8f5;
+            color: #333;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            appearance: auto;
+        }
+
+        .status-selector:focus {
+            outline: none;
+            border-color: #FF8C42;
+        }
+
+        .submitted-time {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        /* Reply Form */
+        .reply-section {
+            margin-top: 0;
+            padding: 22px 28px 28px;
+            background: linear-gradient(to bottom, #f9f7f4, #fff);
+            border-top: 2px solid #f0ede8;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .reply-section h3 {
+            font-size: 1rem;
+            color: #5a4a3a;
+            margin-bottom: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reply-section h3::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(135deg, #FF8C42, #FFB84D);
+            border-radius: 2px;
+        }
+
+        .reply-textarea {
+            width: 100%;
+            min-height: 110px;
+            padding: 14px;
+            border: 2px solid #e8e4de;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            resize: vertical;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: #fff;
+            line-height: 1.5;
+        }
+
+        .reply-textarea:focus {
+            outline: none;
+            border-color: #FF8C42;
+            box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.12);
+        }
+
+        .reply-btn {
+            margin-top: 14px;
+            padding: 11px 28px;
+            background: linear-gradient(135deg, #FF8C42, #FFB84D);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reply-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+        }
+
+        .reply-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .previous-reply {
+            background: #f8f9fa;
+            border-left: 4px solid #FF8C42;
+            padding: 12px 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 8px;
+        }
+
+        .previous-reply .reply-date {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 6px;
+        }
+
+        .reply-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .reply-error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 500;
         }
 
         @media (max-width: 992px) {
@@ -487,7 +713,8 @@ while ($row = $statusResult->fetch_assoc()) {
                 <span class="modal-close" onclick="closeModal()">&times;</span>
                 <h2 class="modal-title">Submission Details</h2>
             </div>
-            <div id="modalBody"></div>
+            <div class="modal-body-inner" id="modalBody"></div>
+            <div id="replySection"></div>
         </div>
     </div>
 
@@ -495,45 +722,79 @@ while ($row = $statusResult->fetch_assoc()) {
         function viewSubmission(data) {
             const modal = document.getElementById('viewModal');
             const modalBody = document.getElementById('modalBody');
-            
+            const replySection = document.getElementById('replySection');
+
+            // Build previous reply section if exists
+            let previousReplyHtml = '';
+            if (data.admin_reply) {
+                const replyDate = data.replied_at ? new Date(data.replied_at).toLocaleString() : '';
+                previousReplyHtml = `
+                    <div class="detail-row" style="border-bottom:none;">
+                        <div class="detail-label">Your Previous Reply</div>
+                        <div class="previous-reply">
+                            <div class="detail-value">${data.admin_reply}</div>
+                            ${replyDate ? `<div class="reply-date">Replied on: ${replyDate}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
             modalBody.innerHTML = `
                 <div class="detail-row">
                     <div class="detail-label">Name</div>
-                    <div class="detail-value">${data.name}</div>
+                    <div class="detail-value" style="font-size:1.05rem; font-weight:500;">${data.name}</div>
                 </div>
-                <div class="detail-row">
-                    <div class="detail-label">Email</div>
-                    <div class="detail-value"><a href="mailto:${data.email}">${data.email}</a></div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">Phone</div>
-                    <div class="detail-value"><a href="tel:${data.phone}">${data.phone}</a></div>
+                <div class="detail-row-inline">
+                    <div class="detail-row">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value"><a href="mailto:${data.email}">${data.email}</a></div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value"><a href="tel:${data.phone}">${data.phone}</a></div>
+                    </div>
                 </div>
                 <div class="detail-row">
                     <div class="detail-label">Subject</div>
-                    <div class="detail-value">${data.subject.charAt(0).toUpperCase() + data.subject.slice(1)}</div>
+                    <div class="detail-value">
+                        <span class="subject-badge" style="font-size:0.85rem; padding:5px 14px;">${data.subject.charAt(0).toUpperCase() + data.subject.slice(1)}</span>
+                    </div>
                 </div>
                 <div class="detail-row">
                     <div class="detail-label">Message</div>
-                    <div class="detail-value">${data.message}</div>
+                    <div class="message-box">${data.message}</div>
                 </div>
-                <div class="detail-row">
-                    <div class="detail-label">Status</div>
-                    <select class="status-selector" onchange="updateStatus(${data.id}, this.value)">
-                        <option value="new" ${data.status === 'new' ? 'selected' : ''}>New</option>
-                        <option value="read" ${data.status === 'read' ? 'selected' : ''}>Read</option>
-                        <option value="replied" ${data.status === 'replied' ? 'selected' : ''}>Replied</option>
-                        <option value="archived" ${data.status === 'archived' ? 'selected' : ''}>Archived</option>
-                    </select>
+                <div class="detail-row-inline">
+                    <div class="detail-row">
+                        <div class="detail-label">Status</div>
+                        <select class="status-selector" onchange="updateStatus(${data.id}, this.value)">
+                            <option value="new" ${data.status === 'new' ? 'selected' : ''}>New</option>
+                            <option value="read" ${data.status === 'read' ? 'selected' : ''}>Read</option>
+                            <option value="replied" ${data.status === 'replied' ? 'selected' : ''}>Replied</option>
+                            <option value="archived" ${data.status === 'archived' ? 'selected' : ''}>Archived</option>
+                        </select>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Submitted</div>
+                        <div class="detail-value submitted-time">${new Date(data.created_at).toLocaleString()}</div>
+                    </div>
                 </div>
-                <div class="detail-row">
-                    <div class="detail-label">Submitted</div>
-                    <div class="detail-value">${new Date(data.created_at).toLocaleString()}</div>
+                ${previousReplyHtml}
+            `;
+
+            replySection.innerHTML = `
+                <div class="reply-section">
+                    <h3>${data.admin_reply ? 'Send Another Reply' : 'Reply to Inquiry'}</h3>
+                    <textarea class="reply-textarea" id="replyMessage" placeholder="Type your reply to ${data.name}..."></textarea>
+                    <div id="replyFeedback"></div>
+                    <button class="reply-btn" id="replyBtn" onclick="sendReply(${data.id}, '${data.email.replace(/'/g, "\\'")}', '${data.name.replace(/'/g, "\\'")}', '${data.subject.replace(/'/g, "\\'")}')">
+                        Send Reply
+                    </button>
                 </div>
             `;
-            
+
             modal.classList.add('active');
-            
+
             // Mark as read if it's new
             if (data.status === 'new') {
                 updateStatus(data.id, 'read');
@@ -542,6 +803,43 @@ while ($row = $statusResult->fetch_assoc()) {
 
         function closeModal() {
             document.getElementById('viewModal').classList.remove('active');
+        }
+
+        function sendReply(id, email, name, subject) {
+            const replyMessage = document.getElementById('replyMessage').value.trim();
+            const replyBtn = document.getElementById('replyBtn');
+            const feedback = document.getElementById('replyFeedback');
+
+            if (!replyMessage) {
+                feedback.innerHTML = '<div class="reply-error">Please enter a reply message.</div>';
+                return;
+            }
+
+            replyBtn.disabled = true;
+            replyBtn.textContent = 'Sending...';
+            feedback.innerHTML = '';
+
+            fetch('/dheergayu/public/api/reply-contact.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}&reply_message=${encodeURIComponent(replyMessage)}&recipient_email=${encodeURIComponent(email)}&recipient_name=${encodeURIComponent(name)}&subject=${encodeURIComponent(subject)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    feedback.innerHTML = `<div class="reply-success">${data.message}</div>`;
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    feedback.innerHTML = `<div class="reply-error">${data.error || 'Failed to send reply'}</div>`;
+                    replyBtn.disabled = false;
+                    replyBtn.textContent = 'Send Reply';
+                }
+            })
+            .catch(() => {
+                feedback.innerHTML = '<div class="reply-error">Network error. Please try again.</div>';
+                replyBtn.disabled = false;
+                replyBtn.textContent = 'Send Reply';
+            });
         }
 
         function updateStatus(id, status) {

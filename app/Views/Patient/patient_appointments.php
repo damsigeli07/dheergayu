@@ -77,6 +77,28 @@ function renderAppointmentCard($apt, $conn) {
     $type = $apt['type'];
     $isConsultation = $type === 'consultation';
     $status = $apt['status'];
+    $noteText = trim((string)($apt['notes'] ?? ''));
+    $isRescheduledOnce = stripos($noteText, '[PATIENT_RESCHEDULED_ONCE]') !== false;
+    $canRescheduleWithin24h = false;
+    if (!empty($apt['created_at'])) {
+        $createdAtTs = strtotime($apt['created_at']);
+        if ($createdAtTs !== false) {
+            $canRescheduleWithin24h = (time() <= ($createdAtTs + 86400));
+        }
+    }
+    $isDoctorCancelled = $isConsultation
+        && $status === 'Cancelled'
+        && (
+            stripos($noteText, 'Doctor Cancelled:') === 0
+            || $noteText !== ''
+        );
+    $doctorCancelledWindowOpen = false;
+    if ($isDoctorCancelled && !empty($apt['updated_at'])) {
+        $cancelledAtTs = strtotime($apt['updated_at']);
+        if ($cancelledAtTs !== false) {
+            $doctorCancelledWindowOpen = (time() <= ($cancelledAtTs + 172800));
+        }
+    }
     
     if ($isConsultation) {
         $fee = 2000;
@@ -123,13 +145,30 @@ function renderAppointmentCard($apt, $conn) {
     
     echo '</div>';
     
-    if ($status !== 'Cancelled') {
+    if ($status !== 'Cancelled' && $status !== 'Completed') {
         echo '<div class="appointment-actions">';
         if (($apt['payment_status'] ?? 'Pending') !== 'Completed') {
             echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Pay Now</button>';
         }
-        echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\')">Edit</button>';
-        echo '<button class="action-btn btn-danger" onclick="cancelAppointment(' . $apt['id'] . ', \'' . $type . '\')">Cancel</button>';
+        if (!$isRescheduledOnce && $canRescheduleWithin24h) {
+            echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\', ' . (int)($apt['doctor_id'] ?? 0) . ', \'' . ($apt['created_at'] ?? '') . '\', \'' . ($apt['updated_at'] ?? '') . '\', \'' . addslashes($status) . '\', \'' . addslashes((string)($apt['notes'] ?? '')) . '\')">Reschedule</button>';
+        }
+        if ($isRescheduledOnce) {
+            echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#155724;background:#d4edda;border:1px solid #c3e6cb;border-radius:6px;padding:8px 10px;">Rescheduled. Cancellation is disabled for this appointment.</div>';
+        } else {
+            echo '<button class="action-btn btn-danger" onclick="cancelAppointment(' . $apt['id'] . ', \'' . $type . '\')">Cancel</button>';
+        }
+        echo '</div>';
+    } elseif ($isDoctorCancelled) {
+        echo '<div class="appointment-actions">';
+        if ($isRescheduledOnce) {
+            echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#155724;background:#d4edda;border:1px solid #c3e6cb;border-radius:6px;padding:8px 10px;">Already rescheduled once. Further rescheduling is disabled.</div>';
+        } elseif ($doctorCancelledWindowOpen) {
+            echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#8a6d3b;background:#fcf8e3;border:1px solid #faebcc;border-radius:6px;padding:8px 10px;">Cancelled by doctor. You can reschedule within 48 hours.</div>';
+            echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\', ' . (int)($apt['doctor_id'] ?? 0) . ', \'' . ($apt['created_at'] ?? '') . '\', \'' . ($apt['updated_at'] ?? '') . '\', \'' . addslashes($status) . '\', \'' . addslashes((string)($apt['notes'] ?? '')) . '\', true)">Reschedule</button>';
+        } else {
+            echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#8a6d3b;background:#fcf8e3;border:1px solid #faebcc;border-radius:6px;padding:8px 10px;">Cancelled by doctor. Reschedule window expired (48 hours).</div>';
+        }
         echo '</div>';
     }
     
@@ -138,6 +177,30 @@ function renderAppointmentCard($apt, $conn) {
 
 function countAll($appointments) {
     return count($appointments['consultations'] ?? []) + count($appointments['treatments'] ?? []);
+}
+
+function getConsultationAppointments($appointments) {
+    $consultations = [];
+    foreach ($appointments['consultations'] ?? [] as $apt) {
+        $apt['type'] = 'consultation';
+        $consultations[] = $apt;
+    }
+    usort($consultations, function ($a, $b) {
+        return strtotime($b['appointment_date'] . ' ' . $b['appointment_time']) <=> strtotime($a['appointment_date'] . ' ' . $a['appointment_time']);
+    });
+    return $consultations;
+}
+
+function getTreatmentAppointments($appointments) {
+    $treatments = [];
+    foreach ($appointments['treatments'] ?? [] as $apt) {
+        $apt['type'] = 'treatment';
+        $treatments[] = $apt;
+    }
+    usort($treatments, function ($a, $b) {
+        return strtotime($b['appointment_date'] . ' ' . ($b['appointment_time'] ?? '00:00:00')) <=> strtotime($a['appointment_date'] . ' ' . ($a['appointment_time'] ?? '00:00:00'));
+    });
+    return $treatments;
 }
 
 function countUpcoming($appointments) {
@@ -222,6 +285,7 @@ function getCancelledAppointments($appointments) {
                     <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                    <li><a href="/dheergayu/app/Views/Patient/contact_us.php">CONTACT US</a></li>
                 </ul>
             </nav>
             <div class="header-right">
@@ -256,8 +320,9 @@ function getCancelledAppointments($appointments) {
                 <!-- All Appointments -->
                 <div id="all-tab" class="tab-panel" style="display: block;">
                     <?php 
-                    $all = getAllAppointments($appointments);
-                    if (empty($all)): 
+                    $consultationOnly = getConsultationAppointments($appointments);
+                    $treatmentOnly = getTreatmentAppointments($appointments);
+                    if (empty($consultationOnly) && empty($treatmentOnly)): 
                     ?>
                         <div class="empty-state">
                             <h3>No Appointments</h3>
@@ -268,10 +333,49 @@ function getCancelledAppointments($appointments) {
                             </div>
                         </div>
                     <?php else: ?>
-                        <div class="appointments-list">
-                            <?php foreach ($all as $apt): ?>
-                                <?php renderAppointmentCard($apt, $conn); ?>
-                            <?php endforeach; ?>
+                        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+                            <button type="button" id="all-split-consultations-btn" class="tab-btn active" onclick="showAllSplit('consultations')">
+                                Consultations <span class="tab-badge"><?php echo count($consultationOnly); ?></span>
+                            </button>
+                            <button type="button" id="all-split-treatments-btn" class="tab-btn" onclick="showAllSplit('treatments')">
+                                Treatments <span class="tab-badge"><?php echo count($treatmentOnly); ?></span>
+                            </button>
+                        </div>
+
+                        <div id="all-split-consultations-panel">
+                            <?php if (empty($consultationOnly)): ?>
+                                <div class="empty-state" style="margin-bottom: 24px;">
+                                    <h3>No Consultation Appointments</h3>
+                                    <p>Book your first consultation today</p>
+                                    <div style="margin-top: 20px;">
+                                        <a href="channeling.php" class="book-btn">Book Consultation</a>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <div class="appointments-list" style="margin-bottom: 28px;">
+                                    <?php foreach ($consultationOnly as $apt): ?>
+                                        <?php renderAppointmentCard($apt, $conn); ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div id="all-split-treatments-panel" style="display:none;">
+                            <?php if (empty($treatmentOnly)): ?>
+                                <div class="empty-state">
+                                    <h3>No Treatment Appointments</h3>
+                                    <p>Book your first treatment today</p>
+                                    <div style="margin-top: 20px;">
+                                        <a href="treatment.php" class="book-btn">Book Treatment</a>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <div class="appointments-list">
+                                    <?php foreach ($treatmentOnly as $apt): ?>
+                                        <?php renderAppointmentCard($apt, $conn); ?>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -435,10 +539,11 @@ function getCancelledAppointments($appointments) {
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeEditModal()">&times;</span>
-            <h3>Edit Appointment</h3>
+            <h3>Reschedule Appointment</h3>
             <form id="editForm">
                 <input type="hidden" id="editId">
                 <input type="hidden" id="editType">
+                <input type="hidden" id="editDoctorId">
                 <div class="form-group">
                     <label for="editDate">Date</label>
                     <input type="date" id="editDate" required>
@@ -450,7 +555,7 @@ function getCancelledAppointments($appointments) {
                     </select>
                 </div>
                 <div class="modal-buttons">
-                    <button type="submit" class="action-btn btn-primary">Save Changes</button>
+                    <button type="submit" class="action-btn btn-primary">Confirm Reschedule</button>
                     <button type="button" class="action-btn btn-secondary" onclick="closeEditModal()">Cancel</button>
                 </div>
             </form>
@@ -547,6 +652,29 @@ function showTab(tabName) {
     });
 }
 
+function showAllSplit(section) {
+    const consultationsPanel = document.getElementById('all-split-consultations-panel');
+    const treatmentsPanel = document.getElementById('all-split-treatments-panel');
+    const consultationsBtn = document.getElementById('all-split-consultations-btn');
+    const treatmentsBtn = document.getElementById('all-split-treatments-btn');
+
+    if (!consultationsPanel || !treatmentsPanel || !consultationsBtn || !treatmentsBtn) {
+        return;
+    }
+
+    if (section === 'treatments') {
+        consultationsPanel.style.display = 'none';
+        treatmentsPanel.style.display = 'block';
+        consultationsBtn.classList.remove('active');
+        treatmentsBtn.classList.add('active');
+    } else {
+        consultationsPanel.style.display = 'block';
+        treatmentsPanel.style.display = 'none';
+        consultationsBtn.classList.add('active');
+        treatmentsBtn.classList.remove('active');
+    }
+}
+
 // FIX 2: Treatment plan confirmation functions
 function confirmTreatmentPlan(planId) {
     if (confirm('Confirm all treatment sessions and proceed to payment?')) {
@@ -558,7 +686,7 @@ function confirmTreatmentPlan(planId) {
         .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success) {
-                window.location.href = 'payment.php?plan_id=' + planId + '&type=treatment_plan';
+                window.location.href = 'treatment_plan_payment.php?plan_id=' + planId;
             } else {
                 alert('Error: ' + (data.message || 'Failed to confirm plan'));
             }
@@ -595,24 +723,55 @@ function requestPlanChange(planId) {
 }
 
 function payTreatmentPlan(planId) {
-    window.location.href = 'payment.php?plan_id=' + planId + '&type=treatment_plan';
+    window.location.href = 'treatment_plan_payment.php?plan_id=' + planId;
 }
 
 // Appointment editing functions
-function editAppointment(id, type, date, time) {
+function isRescheduleWindowOpen(createdAt) {
+    if (!createdAt) return true;
+    const created = new Date(createdAt.replace(' ', 'T'));
+    if (isNaN(created.getTime())) return true;
+    return (Date.now() - created.getTime()) <= (24 * 60 * 60 * 1000);
+}
+
+function isDoctorCancelledWindowOpen(updatedAt) {
+    if (!updatedAt) return false;
+    const cancelledAt = new Date(updatedAt.replace(' ', 'T'));
+    if (isNaN(cancelledAt.getTime())) return false;
+    return (Date.now() - cancelledAt.getTime()) <= (48 * 60 * 60 * 1000);
+}
+
+function editAppointment(id, type, date, time, doctorId, createdAt, updatedAt, status, notes, isDoctorCancelReschedule) {
     const editModal = document.getElementById('editModal');
     const editId = document.getElementById('editId');
     const editType = document.getElementById('editType');
+    const editDoctorId = document.getElementById('editDoctorId');
     const editDate = document.getElementById('editDate');
     const editTime = document.getElementById('editTime');
     
-    if (!editModal || !editId || !editType || !editDate || !editTime) {
+    if (!editModal || !editId || !editType || !editDoctorId || !editDate || !editTime) {
         alert('Error: Edit form not properly loaded');
         return;
+    }
+
+    const noteText = String(notes || '').trim().toLowerCase();
+    const doctorCancelled = String(status || '') === 'Cancelled' && (noteText.startsWith('doctor cancelled:') || noteText.length > 0);
+
+    if (type === 'consultation') {
+        if (doctorCancelled || isDoctorCancelReschedule === true) {
+            if (!isDoctorCancelledWindowOpen(updatedAt)) {
+                alert('Doctor-cancelled appointments can be rescheduled only within 48 hours.');
+                return;
+            }
+        } else if (!isRescheduleWindowOpen(createdAt)) {
+            alert('Rescheduling is allowed only within 24 hours of booking time.');
+            return;
+        }
     }
     
     editId.value = id;
     editType.value = type;
+    editDoctorId.value = doctorId || '';
     editDate.value = date;
     editTime.value = time;
     editDate.min = new Date().toISOString().split('T')[0];
@@ -620,7 +779,7 @@ function editAppointment(id, type, date, time) {
     if (type === 'treatment') {
         loadTreatmentEditSlots(date, id);
     } else {
-        loadEditSlots(date);
+        loadEditSlots(date, doctorId);
     }
     
     editModal.style.display = 'block';
@@ -679,10 +838,15 @@ function loadTreatmentEditSlots(date, bookingId) {
         });
 }
 
-function loadEditSlots(date) {
+function loadEditSlots(date, doctorId) {
     if (!date) return;
+
+    if (!doctorId) {
+        alert('Doctor information missing for this appointment.');
+        return;
+    }
     
-    fetch('/dheergayu/public/api/available-slots.php?date=' + date)
+    fetch('/dheergayu/public/api/available-slots.php?date=' + encodeURIComponent(date) + '&doctor_id=' + encodeURIComponent(doctorId))
         .then(function(res) { return res.json(); })
         .then(function(data) {
             const timeSelect = document.getElementById('editTime');
@@ -718,11 +882,12 @@ document.addEventListener('DOMContentLoaded', function() {
         editDateInput.addEventListener('change', function() {
             const type = document.getElementById('editType').value;
             const id = document.getElementById('editId').value;
+            const doctorId = document.getElementById('editDoctorId').value;
             
             if (type === 'treatment') {
                 loadTreatmentEditSlots(this.value, id);
             } else {
-                loadEditSlots(this.value);
+                loadEditSlots(this.value, doctorId);
             }
         });
     }
@@ -863,7 +1028,7 @@ function closeCancelModal() {
 }
 
 function payNow(id, type) {
-    window.location.href = 'payment.php?appointment_id=' + id + '&type=' + type;
+    window.location.href = 'appointment_payment.php?appointment_id=' + id + '&type=' + type;
 }
 
 // Modal close on outside click

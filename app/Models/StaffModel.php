@@ -2,94 +2,113 @@
 
 class StaffModel {
     private $conn;
-    
+
     public function __construct($db) {
         $this->conn = $db;
     }
-    
-    // Staff to Room Assignment Mapping
-    // Maps staff members to their assigned treatment rooms
-    private static $STAFF_ROOM_MAP = [
-        // Room 1: Udwarthana
-        'M.H.Gunarathne' => ['room' => 1, 'treatment_type' => 'Udwarthana', 'role' => 'Therapist'],
-        'K.A.Perera' => ['room' => 1, 'treatment_type' => 'Udwarthana', 'role' => 'Assistant'],
-        'S.M.Wickramasinghe' => ['room' => 1, 'treatment_type' => 'Udwarthana', 'role' => 'Therapist'],
-        'N.D.Fernando' => ['room' => 1, 'treatment_type' => 'Udwarthana', 'role' => 'Assistant'],
-        'R.P.Jayawardena' => ['room' => 1, 'treatment_type' => 'Udwarthana', 'role' => 'Therapist'],
-        
-        // Room 2: Nasya Karma
-        'A.B.Silva' => ['room' => 2, 'treatment_type' => 'Nasya Karma', 'role' => 'Therapist'],
-        'C.D.Mendis' => ['room' => 2, 'treatment_type' => 'Nasya Karma', 'role' => 'Assistant'],
-        'E.F.Ratnayake' => ['room' => 2, 'treatment_type' => 'Nasya Karma', 'role' => 'Therapist'],
-        'G.H.Amarasinghe' => ['room' => 2, 'treatment_type' => 'Nasya Karma', 'role' => 'Assistant'],
-        'I.J.Karunaratne' => ['room' => 2, 'treatment_type' => 'Nasya Karma', 'role' => 'Therapist'],
-        
-        // Room 3: Shirodhara
-        'L.M.Dissanayake' => ['room' => 3, 'treatment_type' => 'Shirodhara', 'role' => 'Therapist'],
-        'N.O.Peiris' => ['room' => 3, 'treatment_type' => 'Shirodhara', 'role' => 'Assistant'],
-        'P.Q.Rajapaksa' => ['room' => 3, 'treatment_type' => 'Shirodhara', 'role' => 'Therapist'],
-        'R.S.Tennakoon' => ['room' => 3, 'treatment_type' => 'Shirodhara', 'role' => 'Assistant'],
-        'T.U.Vithanage' => ['room' => 3, 'treatment_type' => 'Shirodhara', 'role' => 'Therapist'],
-        
-        // Room 4: Basti
-        'W.X.Yapa' => ['room' => 4, 'treatment_type' => 'Basti', 'role' => 'Therapist'],
-        'Z.A.Bandara' => ['room' => 4, 'treatment_type' => 'Basti', 'role' => 'Assistant'],
-        'B.C.Dharmasena' => ['room' => 4, 'treatment_type' => 'Basti', 'role' => 'Therapist'],
-        'D.E.Fonseka' => ['room' => 4, 'treatment_type' => 'Basti', 'role' => 'Assistant'],
-        'F.G.Gunasekara' => ['room' => 4, 'treatment_type' => 'Basti', 'role' => 'Therapist'],
-        
-        // Room 5: Panchakarma Detox
-        'H.I.Jayasinghe' => ['room' => 5, 'treatment_type' => 'Panchakarma Detox', 'role' => 'Therapist'],
-        'K.L.Munasinghe' => ['room' => 5, 'treatment_type' => 'Panchakarma Detox', 'role' => 'Assistant'],
-        'M.N.Opatha' => ['room' => 5, 'treatment_type' => 'Panchakarma Detox', 'role' => 'Therapist'],
-        'O.P.Qadir' => ['room' => 5, 'treatment_type' => 'Panchakarma Detox', 'role' => 'Assistant'],
-        'Q.R.Seneviratne' => ['room' => 5, 'treatment_type' => 'Panchakarma Detox', 'role' => 'Therapist'],
-        
-        // Room 6: Vashpa Sweda
-        'S.T.Udawatta' => ['room' => 6, 'treatment_type' => 'Vashpa Sweda', 'role' => 'Therapist'],
-        'U.V.Wijesekera' => ['room' => 6, 'treatment_type' => 'Vashpa Sweda', 'role' => 'Assistant'],
-        'W.X.Yapa' => ['room' => 6, 'treatment_type' => 'Vashpa Sweda', 'role' => 'Therapist'],
-        'Y.Z.Abeysekera' => ['room' => 6, 'treatment_type' => 'Vashpa Sweda', 'role' => 'Assistant'],
-        'A.B.Cooray' => ['room' => 6, 'treatment_type' => 'Vashpa Sweda', 'role' => 'Therapist'],
-        
-        // Room 7: Abhyanga Massage
-        'C.D.Edirisinghe' => ['room' => 7, 'treatment_type' => 'Abhyanga Massage', 'role' => 'Therapist'],
-        'E.F.Gunawardena' => ['room' => 7, 'treatment_type' => 'Abhyanga Massage', 'role' => 'Assistant'],
-        'G.H.Ihalagama' => ['room' => 7, 'treatment_type' => 'Abhyanga Massage', 'role' => 'Therapist'],
-        'I.J.Kulatunga' => ['room' => 7, 'treatment_type' => 'Abhyanga Massage', 'role' => 'Assistant'],
-        'K.L.Mahinda' => ['room' => 7, 'treatment_type' => 'Abhyanga Massage', 'role' => 'Therapist'],
-        
-        // Room 8: Elakizhi
-        'M.N.Nanayakkara' => ['room' => 8, 'treatment_type' => 'Elakizhi', 'role' => 'Therapist'],
-        'O.P.Premaratne' => ['room' => 8, 'treatment_type' => 'Elakizhi', 'role' => 'Assistant'],
-        'Q.R.Ranasinghe' => ['room' => 8, 'treatment_type' => 'Elakizhi', 'role' => 'Therapist'],
-        'S.T.Samarasinghe' => ['room' => 8, 'treatment_type' => 'Elakizhi', 'role' => 'Assistant'],
-        'U.V.Thilakarathne' => ['room' => 8, 'treatment_type' => 'Elakizhi', 'role' => 'Therapist'],
-    ];
-    
-    // Get staff room assignment
-    public function getStaffRoomAssignment($staff_name) {
-        return self::$STAFF_ROOM_MAP[$staff_name] ?? null;
+
+    /**
+     * Get staff's treatment assignment by looking up which treatments
+     * they are assigned to in the treatment_staff table.
+     * Returns the first matching assignment with room (treatment_id) and treatment info.
+     */
+    public function getStaffRoomAssignment($staffName) {
+        // Parse first and last name
+        $parts = explode(' ', trim($staffName), 2);
+        $firstName = $parts[0] ?? '';
+        $lastName = $parts[1] ?? '';
+
+        if (empty($firstName)) return null;
+
+        // Find the user ID for this staff member
+        $stmt = $this->conn->prepare("SELECT id FROM users WHERE first_name = ? AND last_name = ? AND role = 'staff' LIMIT 1");
+        $stmt->bind_param('ss', $firstName, $lastName);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$user) return null;
+
+        return $this->getStaffRoomAssignmentById($user['id']);
     }
-    
-    // Get all staff assigned to a specific room
-    public function getStaffByRoom($room_number) {
+
+    /**
+     * Get staff's treatment assignment by user ID.
+     */
+    public function getStaffRoomAssignmentById($staffId) {
+        $staffId = (int)$staffId;
+
+        // Check treatment_staff for this staff member in any role
+        $stmt = $this->conn->prepare("
+            SELECT ts.treatment_id, tl.treatment_name,
+                CASE
+                    WHEN ts.primary_staff1_id = ? THEN 'Primary Therapist'
+                    WHEN ts.primary_staff2_id = ? THEN 'Secondary Therapist'
+                    WHEN ts.backup_staff_id = ? THEN 'Backup Therapist'
+                END as role
+            FROM treatment_staff ts
+            JOIN treatment_list tl ON ts.treatment_id = tl.treatment_id
+            WHERE ts.primary_staff1_id = ? OR ts.primary_staff2_id = ? OR ts.backup_staff_id = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param('iiiiii', $staffId, $staffId, $staffId, $staffId, $staffId, $staffId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$row) return null;
+
+        return [
+            'room' => $row['treatment_id'],
+            'treatment_type' => $row['treatment_name'],
+            'role' => $row['role']
+        ];
+    }
+
+    /**
+     * Get all staff assigned to a specific treatment (room).
+     */
+    public function getStaffByRoom($treatmentId) {
+        $treatmentId = (int)$treatmentId;
         $staff = [];
-        foreach (self::$STAFF_ROOM_MAP as $name => $info) {
-            if ($info['room'] === (int)$room_number) {
-                $staff[] = [
-                    'name' => $name,
-                    'role' => $info['role'],
-                    'treatment_type' => $info['treatment_type']
-                ];
-            }
+
+        $stmt = $this->conn->prepare("
+            SELECT ts.primary_staff1_id, ts.primary_staff2_id, ts.backup_staff_id,
+                CONCAT(u1.first_name, ' ', u1.last_name) as p1_name,
+                CONCAT(u2.first_name, ' ', u2.last_name) as p2_name,
+                CONCAT(u3.first_name, ' ', u3.last_name) as backup_name,
+                tl.treatment_name
+            FROM treatment_staff ts
+            JOIN treatment_list tl ON ts.treatment_id = tl.treatment_id
+            LEFT JOIN users u1 ON ts.primary_staff1_id = u1.id
+            LEFT JOIN users u2 ON ts.primary_staff2_id = u2.id
+            LEFT JOIN users u3 ON ts.backup_staff_id = u3.id
+            WHERE ts.treatment_id = ?
+        ");
+        $stmt->bind_param('i', $treatmentId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if ($row) {
+            $staff[] = ['name' => $row['p1_name'], 'role' => 'Primary Therapist', 'treatment_type' => $row['treatment_name']];
+            $staff[] = ['name' => $row['p2_name'], 'role' => 'Secondary Therapist', 'treatment_type' => $row['treatment_name']];
+            $staff[] = ['name' => $row['backup_name'], 'role' => 'Backup Therapist', 'treatment_type' => $row['treatment_name']];
         }
+
         return $staff;
     }
-    
-    // Get all staff names
+
+    /**
+     * Get all staff members with role='staff' from users table.
+     */
     public function getAllStaffNames() {
-        return array_keys(self::$STAFF_ROOM_MAP);
+        $names = [];
+        $result = $this->conn->query("SELECT CONCAT(first_name, ' ', last_name) as name FROM users WHERE role = 'staff' ORDER BY first_name");
+        while ($row = $result->fetch_assoc()) {
+            $names[] = $row['name'];
+        }
+        return $names;
     }
 }
 

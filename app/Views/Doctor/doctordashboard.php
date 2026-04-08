@@ -116,6 +116,8 @@ $stmt = $db->prepare("
         c.appointment_date,
         c.appointment_time,
         c.status,
+        c.payment_status,
+        c.payment_method,
         c.notes as reason
     FROM consultations c
     LEFT JOIN patients p ON c.patient_id = p.id
@@ -307,8 +309,14 @@ foreach ($treatment_plans as $plan) {
                                 </td>
                                 <td class="actions">
                                     <?php if ($status === 'Upcoming') : ?>
-                                        <button class="btn-start" onclick="window.location.href='doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>'">Start Consultation</button>
+                                        <?php if (($apt['payment_status'] ?? '') === 'Completed'): ?>
+                                            <button class="btn-start" onclick="window.location.href='doctorconsultform.php?appointment_id=<?= htmlspecialchars($apt['appointment_id']) ?>'">Start Consultation</button>
+                                        <?php else: ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Consultation</button>
+                                            <span style="display:block;font-size:11px;color:#dc3545;margin-top:4px;">Payment pending</span>
+                                        <?php endif; ?>
                                         <button class="btn-cancel" onclick="showCancelReason(<?= $apt['appointment_id'] ?>)">Cancel</button>
+                                        <button class="btn-cancel" style="background:#6c757d;" onclick="markDayUnavailable('<?= htmlspecialchars($apt['appointment_date']) ?>')">Cancel Day</button>
                                     <?php elseif ($status === 'Completed') : ?>
                                         <button class="btn-view" onclick="showConsultationModal(<?= $apt['appointment_id'] ?>)">View</button>
                                     <?php elseif ($status === 'Cancelled') : ?>
@@ -552,6 +560,33 @@ function showCancelReason(appointmentId) {
         } else {
             alert('Error cancelling appointment');
         }
+    });
+}
+
+function markDayUnavailable(dateStr) {
+    if (!dateStr) return;
+    if (!confirm('Mark ' + dateStr + ' as unavailable for the full day?\n\nThis will cancel all active appointments for that date and block all slots.')) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('date', dateStr);
+
+    fetch('/dheergayu/public/api/doctor-unavailable-day.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            alert('Day blocked successfully.\nCancelled appointments: ' + (data.cancelled_count || 0) + '\nLocked slots: ' + (data.locked_slots_count || 0));
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to block day'));
+        }
+    })
+    .catch(function() {
+        alert('Network error while blocking day');
     });
 }
 

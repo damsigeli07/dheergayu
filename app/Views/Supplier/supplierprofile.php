@@ -11,14 +11,23 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSI
     exit();
 }
 
-// Example data – in real case, fetch from database
+require_once(dirname(__DIR__, 3) . '/config/config.php');
+
+$supplierId = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT supplier_name, contact_person, phone, email, address, created_at FROM suppliers WHERE id = ?");
+$stmt->bind_param("i", $supplierId);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+$conn->close();
+
 $supplier = [
-    'name' => 'Natural Extracts Ltd.',
-    'address' => '456 Supplier Street, Kandy, Sri Lanka',
-    'contactperson' => 'Mr. Amal Fernando',
-    'email' => 'supplier3@gmail.com',
-    'contact' => '0765558899',
-    'regdate' => '2025-11-20',
+    'name' => $row['supplier_name'] ?? '',
+    'address' => $row['address'] ?? 'N/A',
+    'contactperson' => $row['contact_person'] ?? '',
+    'email' => $row['email'] ?? '',
+    'contact' => $row['phone'] ?? '',
+    'regdate' => isset($row['created_at']) ? date('Y-m-d', strtotime($row['created_at'])) : 'N/A',
 ];
 ?>
 

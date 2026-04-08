@@ -25,17 +25,11 @@ if ($db->connect_error) {
 $staffUserId = $_SESSION['user_id'] ?? null;
 $staffName = $_SESSION['user_name'] ?? '';
 
-// Get staff's assigned treatment type from StaffModel
+// Get staff's assigned treatment type from StaffModel (uses DB, not hardcoded)
 require_once __DIR__ . '/../../Models/StaffModel.php';
 $staffModel = new StaffModel($db);
-$staffAssignment = $staffModel->getStaffRoomAssignment($staffName);
+$staffAssignment = $staffModel->getStaffRoomAssignmentById($staffUserId);
 $assignedTreatmentType = $staffAssignment['treatment_type'] ?? null;
-
-// Ensure treatment_plans has assigned_staff_id (set when staff confirms an assignment)
-$chk = @$db->query("SHOW COLUMNS FROM treatment_plans LIKE 'assigned_staff_id'");
-if ($chk && $chk->num_rows === 0) {
-    @$db->query("ALTER TABLE treatment_plans ADD COLUMN assigned_staff_id INT NULL");
-}
 
 // Ensure staff_treatment_forms table exists
 @$db->query("CREATE TABLE IF NOT EXISTS staff_treatment_forms (
@@ -171,6 +165,10 @@ if ($offers_stmt) {
         if ((int)$row['primary_staff1_id'] === (int)$staffUserId) $row['my_role'] = 'primary1';
         elseif ((int)$row['primary_staff2_id'] === (int)$staffUserId) $row['my_role'] = 'primary2';
         else $row['my_role'] = 'backup';
+        $row['my_declined'] = (
+            ($row['my_role'] === 'primary1' && (int)$row['primary1_declined'] === 1) ||
+            ($row['my_role'] === 'primary2' && (int)$row['primary2_declined'] === 1)
+        );
         $row['backup_can_confirm'] = ($row['primary1_declined'] && $row['primary2_declined']);
         $row['assigned_staff_name'] = '';
         if (!empty($row['assigned_staff_id'])) {
@@ -321,6 +319,10 @@ $db->close();
                                     Assigned to: <?= htmlspecialchars($off['assigned_staff_name']) ?>
                                 <?php endif; ?>
                             </span>
+                        <?php elseif (!empty($off['my_declined'])): ?>
+                            <span style="display:block;font-size:12px;color:#dc3545;margin-top:4px;">
+                                You declined this assignment.
+                            </span>
                         <?php elseif ($off['my_role'] === 'backup'): ?>
                             <span style="display:block;font-size:12px;color:#ff9800;margin-top:4px;">
                                 <?= $off['backup_can_confirm'] ? 'You can confirm now (primaries declined).' : 'Waiting for primary staff to respond.' ?>
@@ -329,7 +331,7 @@ $db->close();
                             <span style="display:block;font-size:12px;color:#666;margin-top:4px;">You are primary staff — confirm or decline</span>
                         <?php endif; ?>
                     </div>
-                    <?php if (empty($off['assigned_staff_id'])): ?>
+                    <?php if (empty($off['assigned_staff_id']) && empty($off['my_declined'])): ?>
                     <div style="display:flex;gap:8px;">
                         <?php if ($off['my_role'] !== 'backup' || $off['backup_can_confirm']): ?>
                         <button type="button" class="action-btn complete-btn btn-confirm-assign" data-offer-id="<?= (int)$off['offer_id'] ?>">I'll do this</button>
@@ -389,9 +391,20 @@ $db->close();
                         <?php if (!empty($treatment_plans)): ?>
                             <?php foreach ($treatment_plans as $plan): ?>
                                 <?php
-                                    $progress_percent = $plan['total_booked_sessions'] > 0 
-                                        ? ($plan['completed_sessions'] / $plan['total_booked_sessions'] * 100) 
+                                    $progress_percent = $plan['total_sessions'] > 0 
+                                        ? ($plan['completed_sessions'] / $plan['total_sessions'] * 100) 
                                         : 0;
+                                    $tpPay = ($plan['payment_status'] ?? '') === 'Completed';
+                                    $tpStatus = $plan['status'] ?? '';
+                                    $tpChange = !empty($plan['change_requested']);
+                                    $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
+                                    $tpAssignedId = (int)($plan['assigned_staff_id'] ?? 0);
+                                    $assignedToMe = $tpAssignedId !== 0 && $tpAssignedId === (int)$staffUserId;
+                                    $canStartTreatment = $tpPay && $tpConfirmed && !$tpChange && $assignedToMe;
+                                    $displayStatus = $tpStatus;
+                                    if ((int)($plan['total_sessions'] ?? 0) > 0 && (int)($plan['completed_sessions'] ?? 0) >= (int)$plan['total_sessions']) {
+                                        $displayStatus = 'Completed';
+                                    }
                                 ?>
                                 <tr>
                                     <td><?= $plan['plan_id'] ?></td>
@@ -402,14 +415,14 @@ $db->close();
                                         <small style="color:#666;"><?= $plan['sessions_per_week'] ?>x per week</small>
                                     </td>
                                     <td>
-                                        <?= $plan['completed_sessions'] ?>/<?= $plan['total_booked_sessions'] ?> completed
+                                        <?= $plan['completed_sessions'] ?>/<?= $plan['total_sessions'] ?> completed
                                         <div class="progress-bar-container">
                                             <div class="progress-bar" style="width:<?= $progress_percent ?>%;"></div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="status-badge <?= strtolower($plan['status']) ?>">
-                                            <?= $plan['status'] ?>
+                                        <span class="status-badge <?= strtolower($displayStatus) ?>">
+                                            <?= $displayStatus ?>
                                         </span>
                                         <?php if ($plan['change_requested']): ?>
                                             <span style="display:block;font-size:11px;color:#ff9800;margin-top:3px;">
@@ -420,7 +433,24 @@ $db->close();
                                     <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
                                     <td>
                                         <?php if ($plan['has_treatment_form'] > 0): ?>
-                                            <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
+                                            <?php if ($assignedToMe): ?>
+                                                <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
+                                            <?php else: ?>
+                                                <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Selected by another staff">View</button>
+                                                <span style="display:block;font-size:11px;color:#6c757d;margin-top:4px;">Selected by staff #<?= $tpAssignedId ?></span>
+                                            <?php endif; ?>
+                                        <?php elseif (!$tpPay): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#dc3545;margin-top:4px;">Payment pending</span>
+                                        <?php elseif ($tpChange): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient change request pending">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#ff9800;margin-top:4px;">Change requested</span>
+                                        <?php elseif (!$tpConfirmed): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not confirmed the plan">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#856404;margin-top:4px;">Awaiting patient confirmation</span>
+                                        <?php elseif (!$assignedToMe): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Selected by another staff">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#6c757d;margin-top:4px;">Selected by staff #<?= $tpAssignedId ?></span>
                                         <?php else: ?>
                                             <button class="btn-start" onclick="window.location.href='stafftreatmentform.php?plan_id=<?= htmlspecialchars($plan['plan_id']) ?>'">Start Treatment</button>
                                             <button class="btn-cancel" onclick="cancelTreatmentPlan(<?= $plan['plan_id'] ?>)">Cancel</button>
@@ -503,7 +533,10 @@ $db->close();
                 formData.append('action', 'confirm');
                 formData.append('offer_id', offerId);
                 fetch('/dheergayu/public/api/staff-treatment-assignment.php', { method: 'POST', body: formData })
-                    .then(function(r) { return r.json(); })
+                    .then(async function(r) {
+                        const text = await r.text();
+                        try { return JSON.parse(text); } catch (e) { throw new Error(text || 'Invalid server response'); }
+                    })
                     .then(function(data) {
                         if (data.success) {
                             alert(data.message);
@@ -513,7 +546,7 @@ $db->close();
                             btn.disabled = false;
                         }
                     })
-                    .catch(function() { alert('Network error'); btn.disabled = false; });
+                    .catch(function(err) { alert('Request failed: ' + (err.message || 'Network error')); btn.disabled = false; });
             });
         });
         document.querySelectorAll('.btn-decline-assign').forEach(function(btn) {
@@ -526,7 +559,10 @@ $db->close();
                 formData.append('action', 'decline');
                 formData.append('offer_id', offerId);
                 fetch('/dheergayu/public/api/staff-treatment-assignment.php', { method: 'POST', body: formData })
-                    .then(function(r) { return r.json(); })
+                    .then(async function(r) {
+                        const text = await r.text();
+                        try { return JSON.parse(text); } catch (e) { throw new Error(text || 'Invalid server response'); }
+                    })
                     .then(function(data) {
                         if (data.success) {
                             alert(data.message);
@@ -536,7 +572,7 @@ $db->close();
                             btn.disabled = false;
                         }
                     })
-                    .catch(function() { alert('Network error'); btn.disabled = false; });
+                    .catch(function(err) { alert('Request failed: ' + (err.message || 'Network error')); btn.disabled = false; });
             });
         });
     </script>

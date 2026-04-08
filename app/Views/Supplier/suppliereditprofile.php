@@ -1,12 +1,44 @@
 <?php
-// Example data – in real case, fetch from database
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('SUPPLIER_SID');
+    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+    session_start();
+}
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || $_SESSION['user_type'] !== 'supplier') {
+    header("Location: ../patient/login.php");
+    exit();
+}
+
+require_once(dirname(__DIR__, 2) . '/config/config.php');
+
+$supplierId = $_SESSION['user_id'];
+$successMsg = '';
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $stmt = $conn->prepare("UPDATE suppliers SET supplier_name=?, address=?, contact_person=?, email=?, phone=? WHERE id=?");
+    $stmt->bind_param("sssssi", $_POST['name'], $_POST['address'], $_POST['contactperson'], $_POST['email'], $_POST['contact'], $supplierId);
+    $stmt->execute();
+    $stmt->close();
+    $_SESSION['user_name'] = $_POST['name'];
+    $successMsg = 'Profile updated successfully!';
+}
+
+$stmt = $conn->prepare("SELECT supplier_name, contact_person, phone, email, address, created_at FROM suppliers WHERE id = ?");
+$stmt->bind_param("i", $supplierId);
+$stmt->execute();
+$row = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+$conn->close();
+
 $supplier = [
-    'name' => 'Natural Extracts Ltd.',
-    'address' => '456 Supplier Street, Kandy, Sri Lanka',
-    'contactperson' => 'Mr. Amal Fernando',
-    'email' => 'supplier3@gmail.com',
-    'contact' => '0765558899',
-    'regdate' => '2025-11-20',
+    'name' => $row['supplier_name'] ?? '',
+    'address' => $row['address'] ?? '',
+    'contactperson' => $row['contact_person'] ?? '',
+    'email' => $row['email'] ?? '',
+    'contact' => $row['phone'] ?? '',
+    'regdate' => isset($row['created_at']) ? date('Y-m-d', strtotime($row['created_at'])) : 'N/A',
 ];
 ?>
 
@@ -19,12 +51,6 @@ $supplier = [
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Supplier/suppliereditprofile.css">
-    <script>
-        function showAlert(event) {
-            event.preventDefault();
-            alert("Changes saved!");
-        }
-    </script>
 </head>
 <body class="has-sidebar">
     <!-- Sidebar -->
@@ -53,7 +79,12 @@ $supplier = [
 
         <h1 class="edit-profile-title">Edit Profile</h1>
         
-        <form class="edit-profile-form" onsubmit="showAlert(event)">
+        <?php if (!empty($successMsg)): ?>
+            <div style="background:#e6ffe6;color:green;text-align:center;padding:10px;border-radius:5px;margin-bottom:15px;">
+                <?= htmlspecialchars($successMsg) ?>
+            </div>
+        <?php endif; ?>
+        <form class="edit-profile-form" method="POST" action="suppliereditprofile.php">
             <div class="form-group">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" value="<?php echo $supplier['name']; ?>" required>

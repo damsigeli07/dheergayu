@@ -1,5 +1,8 @@
 <?php
 // Staff confirm or decline a treatment plan assignment (offered after patient confirms).
+error_reporting(0);
+ini_set('display_errors', 0);
+ob_start();
 session_start();
 header('Content-Type: application/json');
 
@@ -75,6 +78,9 @@ if ($action === 'decline') {
     } elseif ($is_primary2) {
         $conn->query("UPDATE treatment_plan_staff_offer SET primary2_declined = 1 WHERE id = " . (int)$offer_id);
     }
+    // Keep status pending so other eligible staff can accept.
+    $conn->query("UPDATE treatment_plan_staff_offer SET status = 'Pending' WHERE id = " . (int)$offer_id);
+    if (ob_get_length()) { ob_clean(); }
     echo json_encode(['success' => true, 'message' => 'You have declined this assignment']);
     exit;
 }
@@ -94,11 +100,8 @@ $upd->bind_param('ii', $staff_id, $offer_id);
 $upd->execute();
 $upd->close();
 
-// Optionally store assigned_staff_id on treatment_plans for easy lookup
-$chk = $conn->query("SHOW COLUMNS FROM treatment_plans LIKE 'assigned_staff_id'");
-if ($chk && $chk->num_rows === 0) {
-    $conn->query("ALTER TABLE treatment_plans ADD COLUMN assigned_staff_id INT NULL AFTER status");
-}
+// Store assigned_staff_id on treatment_plans for easy lookup
 $conn->query("UPDATE treatment_plans SET assigned_staff_id = " . (int)$staff_id . " WHERE plan_id = " . (int)$offer['plan_id']);
 
+if (ob_get_length()) { ob_clean(); }
 echo json_encode(['success' => true, 'message' => 'You have confirmed this treatment assignment']);

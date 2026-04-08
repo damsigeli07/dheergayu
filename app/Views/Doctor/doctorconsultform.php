@@ -40,6 +40,13 @@ if ($appointment_id) {
         header('Location: doctordashboard.php');
         exit;
     }
+
+    // Block until payment is recorded as completed (online PayHere or staff-recorded cash/onsite)
+    $payStatus = $appointment['payment_status'] ?? '';
+    if ($payStatus !== 'Completed') {
+        echo "<script>alert('Cannot start consultation — patient has not completed payment yet.'); window.location.href='doctordashboard.php';</script>";
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
