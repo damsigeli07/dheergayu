@@ -45,6 +45,14 @@ try {
 
     $availableSlots = [];
 
+    // Check if the optional unavailable days table exists before using it.
+    $unavailableDaysTableExists = false;
+    $result = $conn->query("SHOW TABLES LIKE 'doctor_unavailable_days'");
+    if ($result) {
+        $unavailableDaysTableExists = $result->num_rows > 0;
+        $result->free();
+    }
+
     while ($schedule = $scheduleResult->fetch_assoc()) {
         $doctor_id = $schedule['doctor_id'];
         $doctor_name = $schedule['doctor_name'];
@@ -52,23 +60,26 @@ try {
         $end = new DateTime($schedule['end_time']);
 
         // Day-level block by dedicated table (fallback to legacy notes for older records).
-        $dayBlockStmt = $conn->prepare("SELECT id FROM doctor_unavailable_days WHERE doctor_id = ? AND unavailable_date = ? LIMIT 1");
-        if ($dayBlockStmt) {
-            $dayBlockStmt->bind_param('is', $doctor_id, $date);
-            $dayBlockStmt->execute();
-            $isDayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
-            $dayBlockStmt->close();
-        } else {
-            $isDayBlocked = false;
+        $isDayBlocked = false;
+        if ($unavailableDaysTableExists) {
+            $dayBlockStmt = $conn->prepare("SELECT id FROM doctor_unavailable_days WHERE doctor_id = ? AND unavailable_date = ? LIMIT 1");
+            if ($dayBlockStmt) {
+                $dayBlockStmt->bind_param('is', $doctor_id, $date);
+                $dayBlockStmt->execute();
+                $isDayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
+                $dayBlockStmt->close();
+            }
         }
 
         if (!$isDayBlocked) {
             $dayBlockPattern = 'Doctor Cancelled: Doctor unavailable on ' . $date . '%';
             $dayBlockStmt = $conn->prepare("SELECT id FROM consultations WHERE doctor_id = ? AND appointment_date = ? AND status = 'Cancelled' AND notes LIKE ? LIMIT 1");
-            $dayBlockStmt->bind_param('iss', $doctor_id, $date, $dayBlockPattern);
-            $dayBlockStmt->execute();
-            $isDayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
-            $dayBlockStmt->close();
+            if ($dayBlockStmt) {
+                $dayBlockStmt->bind_param('iss', $doctor_id, $date, $dayBlockPattern);
+                $dayBlockStmt->execute();
+                $isDayBlocked = (bool)$dayBlockStmt->get_result()->fetch_assoc();
+                $dayBlockStmt->close();
+            }
         }
         
         // Generate 30-minute slots
