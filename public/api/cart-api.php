@@ -45,6 +45,9 @@ function addToCart($conn) {
     $quantity = intval($_POST['quantity'] ?? 1);
     $image = trim($_POST['image'] ?? '');
     
+    if (empty($userId)) {
+        throw new Exception('Please log in to add products to cart');
+    }
     if ($productId <= 0 || empty($productName) || $price <= 0) {
         throw new Exception('Invalid product data');
     }

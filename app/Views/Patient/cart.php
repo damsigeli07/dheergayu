@@ -113,8 +113,7 @@
             }
 
             const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const shipping = subtotal > 5000 ? 0 : 250;
-            const total = subtotal + shipping;
+            const total = subtotal;
 
             let itemsHTML = cartItems.map((item) => `
                 <div class="cart-item">
@@ -150,11 +149,6 @@
                             <span>Subtotal (${cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
                             <span>Rs. ${subtotal.toFixed(2)}</span>
                         </div>
-                        <div class="summary-row">
-                            <span>Shipping</span>
-                            <span>${shipping === 0 ? 'FREE' : 'Rs. ' + shipping.toFixed(2)}</span>
-                        </div>
-                        ${shipping === 0 ? '' : '<div class="summary-row" style="font-size: 0.85rem; color: #5CB85C;"><span>Free shipping on orders over Rs. 5,000</span><span></span></div>'}
                         <div class="summary-row total">
                             <span>Total</span>
                             <span class="amount">Rs. ${total.toFixed(2)}</span>
