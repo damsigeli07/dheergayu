@@ -30,7 +30,26 @@ if ($db->connect_error) {
         $result->free();
     }
 
+    $adminQuery = "SELECT product_id, name, price, description, image FROM products
+                   WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name ASC";
+    if ($result = $db->query($adminQuery)) {
+        while ($row = $result->fetch_assoc()) {
+            $imagePath = trim((string)($row['image'] ?? ''));
+            $imagePath = $imagePath !== ''
+                ? '/dheergayu/public/assets/images/Admin/' . ltrim(str_replace('images/', '', $imagePath), '/')
+                : '/dheergayu/public/assets/images/dheergayu.png';
 
+            $adminProducts[] = [
+                'id'          => (int)$row['product_id'],
+                'name'        => $row['name'] ?? 'Unnamed Product',
+                'price'       => number_format((float)($row['price'] ?? 0), 2),
+                'description' => $row['description'] ?? 'No description available.',
+                'image'       => $imagePath,
+                'type'        => 'admin',
+            ];
+        }
+        $result->free();
+    }
 
     if (empty($patientProducts) && empty($adminProducts)) {
         $productsError = 'Failed to load products. Please try again later.';
