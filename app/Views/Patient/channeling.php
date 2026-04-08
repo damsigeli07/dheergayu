@@ -284,7 +284,7 @@ while ($row = $scheduleResult->fetch_assoc()) {
                             <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($profilePhone); ?>" placeholder="<?php echo $profilePhone === '' ? '0712345678' : ''; ?>" required>
                         </div>
 
-                        <button type="submit" class="book-btn" id="bookBtn" disabled>Book Consultation</button>
+                        <button type="submit" class="book-btn" id="bookBtn" disabled>Book & Pay Now</button>
                     </form>
                 </div>
             </div>
@@ -526,7 +526,7 @@ document.getElementById('consultationForm').addEventListener('submit', function(
     formData.append('treatment_type', 'General Consultation');
     formData.append('appointment_date', date);
     formData.append('appointment_time', selectedTimeSlot);
-    formData.append('payment_method', 'onsite');
+    formData.append('payment_method', 'payhere');
     formData.append('doctor_id', selectedDoctorId);
     formData.append('doctor_name', selectedDoctorName);
 
@@ -559,19 +559,19 @@ document.getElementById('consultationForm').addEventListener('submit', function(
         console.log('Parsed response:', data);
         
         if (data.success) {
-            alert('Consultation booked successfully with ' + selectedDoctorName + '!');
-            window.location.href = 'patient_appointments.php';
+            alert('Consultation booked. Redirecting to payment...');
+            window.location.href = 'appointment_payment.php?appointment_id=' + encodeURIComponent(data.appointment_id) + '&type=consultation';
         } else {
             alert('Error: ' + (data.error || 'Failed to book consultation'));
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Book Consultation';
+            submitBtn.textContent = 'Book & Pay Now';
         }
     })
     .catch(err => {
         console.error('Booking error:', err);
         alert('Error: ' + err.message + '. Please try again.');
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Book Consultation';
+        submitBtn.textContent = 'Book & Pay Now';
     });
 });
     </script>

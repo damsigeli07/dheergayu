@@ -13,6 +13,7 @@ try {
     require_once __DIR__ . '/../../config/config.php';
     
     $date = $_GET['date'] ?? '';
+    $doctorId = (int)($_GET['doctor_id'] ?? 0);
 
     if (!$date) {
         ob_end_clean();
@@ -24,11 +25,21 @@ try {
     $dayOfWeek = date('l', strtotime($date));
 
     // Find doctors working on this day
-    $scheduleQuery = "SELECT doctor_id, doctor_name, start_time, end_time 
-                      FROM doctor_schedule 
-                      WHERE day_of_week = ? AND is_active = 1";
+    if ($doctorId > 0) {
+        $scheduleQuery = "SELECT doctor_id, doctor_name, start_time, end_time 
+                          FROM doctor_schedule 
+                          WHERE day_of_week = ? AND is_active = 1 AND doctor_id = ?";
+    } else {
+        $scheduleQuery = "SELECT doctor_id, doctor_name, start_time, end_time 
+                          FROM doctor_schedule 
+                          WHERE day_of_week = ? AND is_active = 1";
+    }
     $stmt = $conn->prepare($scheduleQuery);
-    $stmt->bind_param('s', $dayOfWeek);
+    if ($doctorId > 0) {
+        $stmt->bind_param('si', $dayOfWeek, $doctorId);
+    } else {
+        $stmt->bind_param('s', $dayOfWeek);
+    }
     $stmt->execute();
     $scheduleResult = $stmt->get_result();
 

@@ -85,6 +85,15 @@ if ($plan_id) {
     $tpStatus = $treatment_plan['status'] ?? '';
     $tpChange = !empty($treatment_plan['change_requested']);
     $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
+    $tpAssignedId = (int)($treatment_plan['assigned_staff_id'] ?? 0);
+    $assignedToMe = ($staff_id && $tpAssignedId !== 0 && $tpAssignedId === (int)$staff_id);
+
+    // Other staff should not open/submit this plan (only assigned staff can).
+    if (!$assignedToMe) {
+        echo "<script>alert('This treatment is selected by another staff.'); window.location.href='stafftreatment.php';</script>";
+        exit;
+    }
+
     $allowViewSaved = $view_mode && !empty($existing_form);
     if (!$allowViewSaved && (!$tpPay || $tpChange || !$tpConfirmed)) {
         $msg = 'Cannot open treatment — patient must complete payment and confirm the treatment plan.';

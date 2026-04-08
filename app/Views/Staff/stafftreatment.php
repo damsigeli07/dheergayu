@@ -398,7 +398,13 @@ $db->close();
                                     $tpStatus = $plan['status'] ?? '';
                                     $tpChange = !empty($plan['change_requested']);
                                     $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
-                                    $canStartTreatment = $tpPay && $tpConfirmed && !$tpChange;
+                                    $tpAssignedId = (int)($plan['assigned_staff_id'] ?? 0);
+                                    $assignedToMe = $tpAssignedId !== 0 && $tpAssignedId === (int)$staffUserId;
+                                    $canStartTreatment = $tpPay && $tpConfirmed && !$tpChange && $assignedToMe;
+                                    $displayStatus = $tpStatus;
+                                    if ((int)($plan['total_sessions'] ?? 0) > 0 && (int)($plan['completed_sessions'] ?? 0) >= (int)$plan['total_sessions']) {
+                                        $displayStatus = 'Completed';
+                                    }
                                 ?>
                                 <tr>
                                     <td><?= $plan['plan_id'] ?></td>
@@ -415,8 +421,8 @@ $db->close();
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="status-badge <?= strtolower($plan['status']) ?>">
-                                            <?= $plan['status'] ?>
+                                        <span class="status-badge <?= strtolower($displayStatus) ?>">
+                                            <?= $displayStatus ?>
                                         </span>
                                         <?php if ($plan['change_requested']): ?>
                                             <span style="display:block;font-size:11px;color:#ff9800;margin-top:3px;">
@@ -427,7 +433,12 @@ $db->close();
                                     <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
                                     <td>
                                         <?php if ($plan['has_treatment_form'] > 0): ?>
-                                            <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
+                                            <?php if ($assignedToMe): ?>
+                                                <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
+                                            <?php else: ?>
+                                                <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Selected by another staff">View</button>
+                                                <span style="display:block;font-size:11px;color:#6c757d;margin-top:4px;">Selected by staff #<?= $tpAssignedId ?></span>
+                                            <?php endif; ?>
                                         <?php elseif (!$tpPay): ?>
                                             <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Treatment</button>
                                             <span style="display:block;font-size:11px;color:#dc3545;margin-top:4px;">Payment pending</span>
@@ -437,6 +448,9 @@ $db->close();
                                         <?php elseif (!$tpConfirmed): ?>
                                             <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not confirmed the plan">Start Treatment</button>
                                             <span style="display:block;font-size:11px;color:#856404;margin-top:4px;">Awaiting patient confirmation</span>
+                                        <?php elseif (!$assignedToMe): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Selected by another staff">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#6c757d;margin-top:4px;">Selected by staff #<?= $tpAssignedId ?></span>
                                         <?php else: ?>
                                             <button class="btn-start" onclick="window.location.href='stafftreatmentform.php?plan_id=<?= htmlspecialchars($plan['plan_id']) ?>'">Start Treatment</button>
                                             <button class="btn-cancel" onclick="cancelTreatmentPlan(<?= $plan['plan_id'] ?>)">Cancel</button>

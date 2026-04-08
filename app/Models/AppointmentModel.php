@@ -8,6 +8,40 @@ class AppointmentModel {
         $this->conn = $conn;
     }
 
+    /**
+     * All general consultations (admin overview — every doctor).
+     */
+    public function getAllDoctorAppointments() {
+        $query = "SELECT 
+                    c.id AS appointment_id,
+                    COALESCE(NULLIF(TRIM(p.patient_number), ''), c.patient_no) AS patient_no,
+                    CASE
+                        WHEN p.id IS NOT NULL AND TRIM(CONCAT(IFNULL(p.first_name, ''), ' ', IFNULL(p.last_name, ''))) <> ''
+                            THEN TRIM(CONCAT(p.first_name, ' ', p.last_name))
+                        WHEN c.patient_name IS NOT NULL AND TRIM(c.patient_name) NOT IN ('', '0')
+                            THEN c.patient_name
+                        ELSE CONCAT('Patient #', c.patient_id)
+                    END AS patient_name,
+                    CONCAT(c.appointment_date, ' ', c.appointment_time) AS appointment_datetime,
+                    c.status,
+                    c.doctor_name
+                  FROM consultations c
+                  LEFT JOIN patients p ON c.patient_id = p.id
+                  WHERE c.treatment_type = 'General Consultation'
+                  ORDER BY c.appointment_date DESC, c.appointment_time DESC";
+
+        $result = $this->conn->query($query);
+        if (!$result) {
+            return [];
+        }
+
+        $appointments = [];
+        while ($row = $result->fetch_assoc()) {
+            $appointments[] = $row;
+        }
+        return $appointments;
+    }
+
     // Get doctor appointments by doctor's user_id
     public function getDoctorAppointments($doctor_id) {
         if (!$doctor_id) {
@@ -56,7 +90,10 @@ class AppointmentModel {
                 appointment_time,
                 status,
                 payment_method,
-                payment_status
+                payment_status,
+                created_at,
+                updated_at,
+                notes
             FROM consultations 
             WHERE patient_id = ?
             ORDER BY appointment_date DESC, appointment_time DESC
@@ -82,7 +119,10 @@ class AppointmentModel {
                 ts.slot_time as appointment_time,
                 tb.status,
                 'onsite' as payment_method,
-                CASE WHEN tb.status = 'Completed' THEN 'Completed' ELSE 'Pending' END as payment_status
+                CASE WHEN tb.status = 'Completed' THEN 'Completed' ELSE 'Pending' END as payment_status,
+                NULL as created_at,
+                NULL as updated_at,
+                NULL as notes
             FROM treatment_bookings tb
             LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id
             LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id

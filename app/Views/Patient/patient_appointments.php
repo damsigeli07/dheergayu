@@ -77,6 +77,20 @@ function renderAppointmentCard($apt, $conn) {
     $type = $apt['type'];
     $isConsultation = $type === 'consultation';
     $status = $apt['status'];
+    $noteText = trim((string)($apt['notes'] ?? ''));
+    $isDoctorCancelled = $isConsultation
+        && $status === 'Cancelled'
+        && (
+            stripos($noteText, 'Doctor Cancelled:') === 0
+            || $noteText !== ''
+        );
+    $doctorCancelledWindowOpen = false;
+    if ($isDoctorCancelled && !empty($apt['updated_at'])) {
+        $cancelledAtTs = strtotime($apt['updated_at']);
+        if ($cancelledAtTs !== false) {
+            $doctorCancelledWindowOpen = (time() <= ($cancelledAtTs + 172800));
+        }
+    }
     
     if ($isConsultation) {
         $fee = 2000;
@@ -128,8 +142,17 @@ function renderAppointmentCard($apt, $conn) {
         if (($apt['payment_status'] ?? 'Pending') !== 'Completed') {
             echo '<button class="action-btn btn-primary" onclick="payNow(' . $apt['id'] . ', \'' . $type . '\')">Pay Now</button>';
         }
-        echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\')">Edit</button>';
+        echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\', ' . (int)($apt['doctor_id'] ?? 0) . ', \'' . ($apt['created_at'] ?? '') . '\', \'' . ($apt['updated_at'] ?? '') . '\', \'' . addslashes($status) . '\', \'' . addslashes((string)($apt['notes'] ?? '')) . '\')">Reschedule</button>';
         echo '<button class="action-btn btn-danger" onclick="cancelAppointment(' . $apt['id'] . ', \'' . $type . '\')">Cancel</button>';
+        echo '</div>';
+    } elseif ($isDoctorCancelled) {
+        echo '<div class="appointment-actions">';
+        echo '<div style="width:100%;margin-bottom:8px;font-size:12px;color:#8a6d3b;background:#fcf8e3;border:1px solid #faebcc;border-radius:6px;padding:8px 10px;">Cancelled by doctor. You can reschedule within 48 hours.</div>';
+        if ($doctorCancelledWindowOpen) {
+            echo '<button class="action-btn btn-warning" onclick="editAppointment(' . $apt['id'] . ', \'' . $type . '\', \'' . $apt['appointment_date'] . '\', \'' . $apt['appointment_time'] . '\', ' . (int)($apt['doctor_id'] ?? 0) . ', \'' . ($apt['created_at'] ?? '') . '\', \'' . ($apt['updated_at'] ?? '') . '\', \'' . addslashes($status) . '\', \'' . addslashes((string)($apt['notes'] ?? '')) . '\', true)">Reschedule</button>';
+        } else {
+            echo '<button class="action-btn btn-secondary" disabled>Reschedule Window Expired</button>';
+        }
         echo '</div>';
     }
     
@@ -436,10 +459,11 @@ function getCancelledAppointments($appointments) {
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeEditModal()">&times;</span>
-            <h3>Edit Appointment</h3>
+            <h3>Reschedule Appointment</h3>
             <form id="editForm">
                 <input type="hidden" id="editId">
                 <input type="hidden" id="editType">
+                <input type="hidden" id="editDoctorId">
                 <div class="form-group">
                     <label for="editDate">Date</label>
                     <input type="date" id="editDate" required>
@@ -451,7 +475,7 @@ function getCancelledAppointments($appointments) {
                     </select>
                 </div>
                 <div class="modal-buttons">
-                    <button type="submit" class="action-btn btn-primary">Save Changes</button>
+                    <button type="submit" class="action-btn btn-primary">Confirm Reschedule</button>
                     <button type="button" class="action-btn btn-secondary" onclick="closeEditModal()">Cancel</button>
                 </div>
             </form>
@@ -600,20 +624,51 @@ function payTreatmentPlan(planId) {
 }
 
 // Appointment editing functions
-function editAppointment(id, type, date, time) {
+function isRescheduleWindowOpen(createdAt) {
+    if (!createdAt) return true;
+    const created = new Date(createdAt.replace(' ', 'T'));
+    if (isNaN(created.getTime())) return true;
+    return (Date.now() - created.getTime()) <= (24 * 60 * 60 * 1000);
+}
+
+function isDoctorCancelledWindowOpen(updatedAt) {
+    if (!updatedAt) return false;
+    const cancelledAt = new Date(updatedAt.replace(' ', 'T'));
+    if (isNaN(cancelledAt.getTime())) return false;
+    return (Date.now() - cancelledAt.getTime()) <= (48 * 60 * 60 * 1000);
+}
+
+function editAppointment(id, type, date, time, doctorId, createdAt, updatedAt, status, notes, isDoctorCancelReschedule) {
     const editModal = document.getElementById('editModal');
     const editId = document.getElementById('editId');
     const editType = document.getElementById('editType');
+    const editDoctorId = document.getElementById('editDoctorId');
     const editDate = document.getElementById('editDate');
     const editTime = document.getElementById('editTime');
     
-    if (!editModal || !editId || !editType || !editDate || !editTime) {
+    if (!editModal || !editId || !editType || !editDoctorId || !editDate || !editTime) {
         alert('Error: Edit form not properly loaded');
         return;
+    }
+
+    const noteText = String(notes || '').trim().toLowerCase();
+    const doctorCancelled = String(status || '') === 'Cancelled' && (noteText.startsWith('doctor cancelled:') || noteText.length > 0);
+
+    if (type === 'consultation') {
+        if (doctorCancelled || isDoctorCancelReschedule === true) {
+            if (!isDoctorCancelledWindowOpen(updatedAt)) {
+                alert('Doctor-cancelled appointments can be rescheduled only within 48 hours.');
+                return;
+            }
+        } else if (!isRescheduleWindowOpen(createdAt)) {
+            alert('Rescheduling is allowed only within 24 hours of booking time.');
+            return;
+        }
     }
     
     editId.value = id;
     editType.value = type;
+    editDoctorId.value = doctorId || '';
     editDate.value = date;
     editTime.value = time;
     editDate.min = new Date().toISOString().split('T')[0];
@@ -621,7 +676,7 @@ function editAppointment(id, type, date, time) {
     if (type === 'treatment') {
         loadTreatmentEditSlots(date, id);
     } else {
-        loadEditSlots(date);
+        loadEditSlots(date, doctorId);
     }
     
     editModal.style.display = 'block';
@@ -680,10 +735,15 @@ function loadTreatmentEditSlots(date, bookingId) {
         });
 }
 
-function loadEditSlots(date) {
+function loadEditSlots(date, doctorId) {
     if (!date) return;
+
+    if (!doctorId) {
+        alert('Doctor information missing for this appointment.');
+        return;
+    }
     
-    fetch('/dheergayu/public/api/available-slots.php?date=' + date)
+    fetch('/dheergayu/public/api/available-slots.php?date=' + encodeURIComponent(date) + '&doctor_id=' + encodeURIComponent(doctorId))
         .then(function(res) { return res.json(); })
         .then(function(data) {
             const timeSelect = document.getElementById('editTime');
@@ -719,11 +779,12 @@ document.addEventListener('DOMContentLoaded', function() {
         editDateInput.addEventListener('change', function() {
             const type = document.getElementById('editType').value;
             const id = document.getElementById('editId').value;
+            const doctorId = document.getElementById('editDoctorId').value;
             
             if (type === 'treatment') {
                 loadTreatmentEditSlots(this.value, id);
             } else {
-                loadEditSlots(this.value);
+                loadEditSlots(this.value, doctorId);
             }
         });
     }

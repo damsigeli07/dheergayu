@@ -11,24 +11,36 @@ if (!$appointments) {
     $appointments = [];
 }
 
-// Fetch treatments for treatment schedule tab
-$treatmentQuery = "SELECT * FROM treatments WHERE treatment_type != 'General Consultation' ORDER BY appointment_date DESC, appointment_time DESC";
-$treatmentResult = $db->query($treatmentQuery);
+// Treatment schedule tab: show treatment plans (same "plan" concept staff/doctor sees)
+$plansQuery = "
+    SELECT
+        tp.plan_id,
+        tp.patient_id,
+        TRIM(CONCAT(IFNULL(p.first_name, ''), ' ', IFNULL(p.last_name, ''))) AS patient_name,
+        tl.treatment_name,
+        tp.total_sessions,
+        tp.start_date,
+        tp.status,
+        tp.payment_status,
+        tp.change_requested,
+        tp.total_cost,
+        (SELECT COUNT(*) FROM treatment_sessions ts WHERE ts.plan_id = tp.plan_id) AS total_booked_sessions,
+        (SELECT COUNT(*) FROM treatment_sessions ts WHERE ts.plan_id = tp.plan_id AND ts.status = 'Completed') AS completed_sessions
+    FROM treatment_plans tp
+    LEFT JOIN patients p ON tp.patient_id = p.id
+    LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+    ORDER BY tp.created_at DESC
+";
+$plansResult = $db->query($plansQuery);
 
-$treatments = [];
-if ($treatmentResult && $treatmentResult->num_rows > 0) {
-    while ($row = $treatmentResult->fetch_assoc()) {
-        $treatments[] = [
-            'id' => $row['id'],
-            'patient_id' => $row['patient_id'],
-            'patient_name' => $row['patient_name'],
-            'treatment_type' => $row['treatment_type'],
-            'appointment_date' => $row['appointment_date'],
-            'appointment_time' => $row['appointment_time'],
-            'status' => $row['status'],
-            'treatment_fee' => $row['treatment_fee'],
-            'duration' => $row['duration']
-        ];
+$treatmentPlans = [];
+if ($plansResult && $plansResult->num_rows > 0) {
+    while ($row = $plansResult->fetch_assoc()) {
+        $row['patient_name'] = trim($row['patient_name'] ?? '');
+        if ($row['patient_name'] === '') {
+            $row['patient_name'] = 'Patient #' . ($row['patient_id'] ?? '');
+        }
+        $treatmentPlans[] = $row;
     }
 }
 
@@ -138,6 +150,20 @@ function getStatusClass($status) {
     .treatment-table tbody tr:hover {
         background-color: #f5f5f5;
     }
+
+    .pill {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.5;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+    .pill.paid { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+    .pill.pending { background: #fff3cd; color: #856404; border-color: #ffeeba; }
+    .pill.change { background: #fff3e0; color: #e65100; border-color: #ffe0b2; }
 
     .action-btn {
         background: #5d9b57;
@@ -358,35 +384,51 @@ function getStatusClass($status) {
           <table class="treatment-table">
             <thead>
               <tr>
-                <th>Patient ID</th>
-                <th>Patient Name</th>
-                <th>Treatment Type</th>
-                <th>Date and Time</th>
-                <th>Duration</th>
-                <th>Fee</th>
+                <th>Plan ID</th>
+                <th>Patient</th>
+                <th>Treatment</th>
+                <th>Sessions</th>
+                <th>Start Date</th>
                 <th>Status</th>
+                <th>Payment</th>
+                <th>Total</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <?php if (!empty($treatments)): ?>
-                <?php foreach ($treatments as $treatment): ?>
+              <?php if (!empty($treatmentPlans)): ?>
+                <?php foreach ($treatmentPlans as $plan): ?>
+                <?php
+                    $status = $plan['status'] ?? 'Pending';
+                    $pay = $plan['payment_status'] ?? 'Pending';
+                    $changeReq = !empty($plan['change_requested']);
+                    $completed = (int)($plan['completed_sessions'] ?? 0);
+                    $totalSess = (int)($plan['total_sessions'] ?? 0);
+                ?>
                 <tr>
-                  <td><?php echo htmlspecialchars($treatment['patient_id']); ?></td>
-                  <td><?php echo htmlspecialchars($treatment['patient_name']); ?></td>
-                  <td><?php echo htmlspecialchars($treatment['treatment_type']); ?></td>
-                  <td><?php echo htmlspecialchars($treatment['appointment_date'] . ' - ' . $treatment['appointment_time']); ?></td>
-                  <td><?php echo htmlspecialchars($treatment['duration'] . ' min'); ?></td>
-                  <td>Rs. <?php echo number_format($treatment['treatment_fee'], 2); ?></td>
+                  <td><?= htmlspecialchars($plan['plan_id'] ?? '') ?></td>
+                  <td><?= htmlspecialchars($plan['patient_name'] ?? '') ?></td>
+                  <td><?= htmlspecialchars($plan['treatment_name'] ?? 'Treatment') ?></td>
+                  <td><?= $completed ?>/<?= $totalSess ?: (int)($plan['total_booked_sessions'] ?? 0) ?></td>
+                  <td><?= !empty($plan['start_date']) ? htmlspecialchars($plan['start_date']) : '—' ?></td>
                   <td>
-                    <span class="status-badge <?php echo getStatusClass($treatment['status']); ?>">
-                      <?php echo htmlspecialchars($treatment['status']); ?>
-                    </span>
+                    <span class="status-badge <?= strtolower($status) ?>"><?= htmlspecialchars($status) ?></span>
+                    <?php if ($changeReq): ?>
+                      <span class="pill change" style="margin-left:6px;">Change requested</span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <span class="pill <?= ($pay === 'Completed' ? 'paid' : 'pending') ?>"><?= htmlspecialchars($pay) ?></span>
+                  </td>
+                  <td>Rs. <?= number_format((float)($plan['total_cost'] ?? 0), 2) ?></td>
+                  <td>
+                    <button type="button" class="action-btn" onclick="window.open('/dheergayu/app/Views/Doctor/view_treatment_plan.php?plan_id=<?= (int)$plan['plan_id'] ?>','treatment_plan','width=900,height=700')">View</button>
                   </td>
                 </tr>
                 <?php endforeach; ?>
               <?php else: ?>
                 <tr>
-                  <td colspan="7" style="text-align: center; padding: 20px;">No treatments found.</td>
+                  <td colspan="9" style="text-align: center; padding: 20px;">No treatment plans found.</td>
                 </tr>
               <?php endif; ?>
             </tbody>

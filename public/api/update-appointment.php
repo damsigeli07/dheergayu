@@ -42,7 +42,7 @@ try {
     $table = ($type === 'consultation') ? 'consultations' : 'consultations';
 
     // Get current appointment details
-    $stmt = $conn->prepare("SELECT appointment_date, appointment_time, doctor_id FROM $table WHERE id = ? AND patient_id = ?");
+    $stmt = $conn->prepare("SELECT appointment_date, appointment_time, doctor_id, created_at, updated_at, status, notes FROM $table WHERE id = ? AND patient_id = ?");
     $stmt->bind_param("ii", $id, $_SESSION['user_id']);
     $stmt->execute();
     $current = $stmt->get_result()->fetch_assoc();
@@ -51,6 +51,36 @@ try {
     if (!$current) {
         echo json_encode(['success' => false, 'error' => 'Appointment not found']);
         exit;
+    }
+
+    $noteText = trim((string)($current['notes'] ?? ''));
+    $isDoctorCancelled = ($current['status'] === 'Cancelled')
+        && (
+            stripos($noteText, 'Doctor Cancelled:') === 0
+            || $noteText !== ''
+        );
+
+    if ($isDoctorCancelled) {
+        // Doctor-cancelled appointments can be rescheduled by patient within 48 hours from cancellation time.
+        if (!empty($current['updated_at'])) {
+            $cancelledAtTs = strtotime($current['updated_at']);
+            if ($cancelledAtTs === false || time() > ($cancelledAtTs + 172800)) {
+                echo json_encode(['success' => false, 'error' => 'Rescheduling window has expired. Doctor-cancelled appointments can be rescheduled within 48 hours.']);
+                exit;
+            }
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Rescheduling window unavailable for this appointment.']);
+            exit;
+        }
+    } else {
+        // Standard rule: rescheduling is allowed only within 24 hours from booking creation time.
+        if (!empty($current['created_at'])) {
+            $createdAtTs = strtotime($current['created_at']);
+            if ($createdAtTs !== false && time() > ($createdAtTs + 86400)) {
+                echo json_encode(['success' => false, 'error' => 'Rescheduling window has expired. You can reschedule only within 24 hours of booking.']);
+                exit;
+            }
+        }
     }
 
     // If date/time hasn't changed, just allow it
@@ -77,8 +107,12 @@ try {
     }
     $checkStmt->close();
 
-    // Update the appointment
-    $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ? WHERE id = ? AND patient_id = ?");
+    // Update the appointment. If this was doctor-cancelled and patient is rescheduling, move it back to Pending.
+    if ($isDoctorCancelled) {
+        $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ?, status = 'Pending' WHERE id = ? AND patient_id = ?");
+    } else {
+        $stmt = $conn->prepare("UPDATE $table SET appointment_date = ?, appointment_time = ? WHERE id = ? AND patient_id = ?");
+    }
     $stmt->bind_param("ssii", $date, $time, $id, $_SESSION['user_id']);
 
     if ($stmt->execute()) {
