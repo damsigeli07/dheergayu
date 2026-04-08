@@ -40,6 +40,7 @@ if ($isLoggedIn && !empty($userName)) {
                     <li><a href="#" onclick="handleBooking(event)">BOOKING</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/treatment.php">TREATMENTS</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                    <li><a href="#" onclick="handleContact(event)">CONTACT US</a></li>
                 </ul>
             </nav>
             <div class="header-right">
@@ -59,6 +60,7 @@ if ($isLoggedIn && !empty($userName)) {
                         <div class="dropdown-menu" id="dropdownMenu">
                             <a href="patient_profile.php" class="dropdown-item">Profile</a>
                             <a href="patient_appointments.php" class="dropdown-item">My Appointments</a>
+                            <a href="my_inquiries.php" class="dropdown-item">My Inquiries</a>
                             <a href="logout.php" class="dropdown-item logout" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
                         </div>
                     </div>
@@ -615,6 +617,15 @@ if ($isLoggedIn && !empty($userName)) {
             event.preventDefault();
             if (isLoggedIn) {
                 window.location.href = '/dheergayu/app/Views/Patient/channeling.php';
+            } else {
+                window.location.href = '/dheergayu/app/Views/Patient/login.php';
+            }
+        }
+
+        function handleContact(event) {
+            event.preventDefault();
+            if (isLoggedIn) {
+                window.location.href = '/dheergayu/app/Views/Patient/contact_us.php';
             } else {
                 window.location.href = '/dheergayu/app/Views/Patient/login.php';
             }

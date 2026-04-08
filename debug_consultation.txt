@@ -418,3 +418,45 @@ Array
 )
 
 
+2026-04-08 05:14:38
+POST Data:
+Array
+(
+    [appointment_id] => 54
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 22
+    [gender] => Female
+    [diagnosis] => hfkfkjf
+    [personal_products] => [{"product":"Chandanasawaya","qty":3}]
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"1","name":"Full Steam Treatment","date":"2026-04-09","time":"14:00:00","description":"","price":6000,"booking_id":16}
+    [recommended_treatment] => Treatment: Full Steam Treatment | Date: 2026-04-09 | Time: 14:00:00
+    [notes] => 
+)
+
+
+2026-04-08 05:24:28
+POST Data:
+Array
+(
+    [appointment_id] => 55
+    [patient_id] => 3
+    [patient_no] => P0003
+    [first_name] => Amashi
+    [last_name] => Vithanage
+    [age] => 22
+    [gender] => Female
+    [diagnosis] => fsdfsds
+    [personal_products] => []
+    [treatment_plan_choice] => single_session
+    [treatment_schedule_data] => 
+    [single_treatment_data] => {"id":"4","name":"Eye Treatment","date":"2026-04-23","time":"10:00:00","description":"","price":2000,"booking_id":17}
+    [recommended_treatment] => Treatment: Eye Treatment | Date: 2026-04-23 | Time: 10:00:00
+    [notes] => 
+)
+
+

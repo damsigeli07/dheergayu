@@ -36,6 +36,7 @@ $pharmacist = [
             <a href="adminusers.php" class="nav-btn">Users</a>
             <a href="admintreatment.php" class="nav-btn">Treatments</a>
             <a href="adminsuppliers.php" class="nav-btn">Supplier-info</a>
+            <a href="admincontact.php" class="nav-btn">Contact Submissions</a>
         </nav>
         
         <div class="user-section">
