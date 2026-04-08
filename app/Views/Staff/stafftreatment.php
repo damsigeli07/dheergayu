@@ -165,6 +165,10 @@ if ($offers_stmt) {
         if ((int)$row['primary_staff1_id'] === (int)$staffUserId) $row['my_role'] = 'primary1';
         elseif ((int)$row['primary_staff2_id'] === (int)$staffUserId) $row['my_role'] = 'primary2';
         else $row['my_role'] = 'backup';
+        $row['my_declined'] = (
+            ($row['my_role'] === 'primary1' && (int)$row['primary1_declined'] === 1) ||
+            ($row['my_role'] === 'primary2' && (int)$row['primary2_declined'] === 1)
+        );
         $row['backup_can_confirm'] = ($row['primary1_declined'] && $row['primary2_declined']);
         $row['assigned_staff_name'] = '';
         if (!empty($row['assigned_staff_id'])) {
@@ -315,6 +319,10 @@ $db->close();
                                     Assigned to: <?= htmlspecialchars($off['assigned_staff_name']) ?>
                                 <?php endif; ?>
                             </span>
+                        <?php elseif (!empty($off['my_declined'])): ?>
+                            <span style="display:block;font-size:12px;color:#dc3545;margin-top:4px;">
+                                You declined this assignment.
+                            </span>
                         <?php elseif ($off['my_role'] === 'backup'): ?>
                             <span style="display:block;font-size:12px;color:#ff9800;margin-top:4px;">
                                 <?= $off['backup_can_confirm'] ? 'You can confirm now (primaries declined).' : 'Waiting for primary staff to respond.' ?>
@@ -323,7 +331,7 @@ $db->close();
                             <span style="display:block;font-size:12px;color:#666;margin-top:4px;">You are primary staff — confirm or decline</span>
                         <?php endif; ?>
                     </div>
-                    <?php if (empty($off['assigned_staff_id'])): ?>
+                    <?php if (empty($off['assigned_staff_id']) && empty($off['my_declined'])): ?>
                     <div style="display:flex;gap:8px;">
                         <?php if ($off['my_role'] !== 'backup' || $off['backup_can_confirm']): ?>
                         <button type="button" class="action-btn complete-btn btn-confirm-assign" data-offer-id="<?= (int)$off['offer_id'] ?>">I'll do this</button>
@@ -500,7 +508,10 @@ $db->close();
                 formData.append('action', 'confirm');
                 formData.append('offer_id', offerId);
                 fetch('/dheergayu/public/api/staff-treatment-assignment.php', { method: 'POST', body: formData })
-                    .then(function(r) { return r.json(); })
+                    .then(async function(r) {
+                        const text = await r.text();
+                        try { return JSON.parse(text); } catch (e) { throw new Error(text || 'Invalid server response'); }
+                    })
                     .then(function(data) {
                         if (data.success) {
                             alert(data.message);
@@ -510,7 +521,7 @@ $db->close();
                             btn.disabled = false;
                         }
                     })
-                    .catch(function() { alert('Network error'); btn.disabled = false; });
+                    .catch(function(err) { alert('Request failed: ' + (err.message || 'Network error')); btn.disabled = false; });
             });
         });
         document.querySelectorAll('.btn-decline-assign').forEach(function(btn) {
@@ -523,7 +534,10 @@ $db->close();
                 formData.append('action', 'decline');
                 formData.append('offer_id', offerId);
                 fetch('/dheergayu/public/api/staff-treatment-assignment.php', { method: 'POST', body: formData })
-                    .then(function(r) { return r.json(); })
+                    .then(async function(r) {
+                        const text = await r.text();
+                        try { return JSON.parse(text); } catch (e) { throw new Error(text || 'Invalid server response'); }
+                    })
                     .then(function(data) {
                         if (data.success) {
                             alert(data.message);
@@ -533,7 +547,7 @@ $db->close();
                             btn.disabled = false;
                         }
                     })
-                    .catch(function() { alert('Network error'); btn.disabled = false; });
+                    .catch(function(err) { alert('Request failed: ' + (err.message || 'Network error')); btn.disabled = false; });
             });
         });
     </script>
