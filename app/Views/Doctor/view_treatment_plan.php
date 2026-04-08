@@ -56,6 +56,33 @@ while ($row = $sessions_result->fetch_assoc()) {
     $sessions[] = $row;
 }
 $stmt->close();
+
+// Get latest staff session notes for this plan (one note per session_number)
+$session_notes = [];
+$sn_stmt = $conn->prepare(
+    "SELECT s.session_number, s.session_note, s.created_at, s.staff_id, u.first_name, u.last_name
+     FROM staff_treatment_session_notes s
+     LEFT JOIN users u ON s.staff_id = u.id
+     WHERE s.plan_id = ?
+     ORDER BY s.id DESC"
+);
+if ($sn_stmt) {
+    $sn_stmt->bind_param('i', $plan_id);
+    $sn_stmt->execute();
+    $sn_result = $sn_stmt->get_result();
+    while ($r = $sn_result->fetch_assoc()) {
+        $num = (int)$r['session_number'];
+        if (!isset($session_notes[$num])) {
+            $session_notes[$num] = [
+                'note' => $r['session_note'],
+                'created_at' => $r['created_at'],
+                'staff_id' => $r['staff_id'],
+                'staff_name' => trim(($r['first_name'] ?? '') . ' ' . ($r['last_name'] ?? ''))
+            ];
+        }
+    }
+    $sn_stmt->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -102,6 +129,13 @@ $stmt->close();
         .actions { display: flex; gap: 10px; margin-top: 20px; }
         .progress-container { background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; }
         .progress-bar { background: linear-gradient(90deg, #10b981, #34d399); height: 100%; transition: width 0.3s; }
+        /* Modal for viewing session notes */
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .modal { background: #fff; padding: 20px; border-radius: 8px; max-width: 640px; width: 90%; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+        .modal-title { font-weight:700; color:#111827; }
+        .modal-body { max-height: 60vh; overflow:auto; color:#374151; line-height:1.5; }
+        .modal-close { background:transparent; border:none; font-size:18px; cursor:pointer; }
     </style>
 </head>
 <body>
@@ -209,7 +243,23 @@ $stmt->close();
                                     <?= $session['status'] ?>
                                 </span>
                             </td>
-                            <td><?= htmlspecialchars($session['notes'] ?? '-') ?></td>
+                            <td>
+                                <?php
+                                    $sn = $session_notes[$session['session_number']] ?? null;
+                                    if (strtolower($session['status']) === 'completed' && $sn && trim($sn['note']) !== ''):
+                                        $staff_name = $sn['staff_name'] ?: ('Staff #' . ($sn['staff_id'] ?? '')); 
+                                        $created_at = $sn['created_at'] ? date('F d, Y g:i A', strtotime($sn['created_at'])) : '';
+                                ?>
+                                    <button class="btn btn-primary view-note-btn"
+                                        data-session="<?= $session['session_number'] ?>"
+                                        data-staff="<?= htmlspecialchars($staff_name, ENT_QUOTES) ?>"
+                                        data-created="<?= htmlspecialchars($created_at, ENT_QUOTES) ?>"
+                                    >View</button>
+                                    <div id="note-<?= $session['session_number'] ?>" style="display:none"><?= htmlspecialchars($sn['note']) ?></div>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -233,6 +283,59 @@ $stmt->close();
             window.location.href = 'reschedule_treatment_plan.php?plan_id=<?= $plan_id ?>';
         }
     }
+    </script>
+    
+    <!-- Modal for session notes -->
+    <div id="note-modal-backdrop" class="modal-backdrop">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
+            <div class="modal-header">
+                <div class="modal-title" id="note-modal-title">Session Note</div>
+                <button class="modal-close" id="note-modal-close">✕</button>
+            </div>
+            <div class="modal-body" id="note-modal-body">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        var backdrop = document.getElementById('note-modal-backdrop');
+        var bodyEl = document.getElementById('note-modal-body');
+        var closeBtn = document.getElementById('note-modal-close');
+
+        function openModal(content, title) {
+            document.getElementById('note-modal-title').textContent = title || 'Session Note';
+            // Convert encoded HTML entities back to text and display preserving line breaks
+            var text = content || '';
+            bodyEl.innerHTML = text.replace(/\n/g, '<br>');
+            backdrop.style.display = 'flex';
+            // focus for accessibility
+            backdrop.querySelector('.modal').focus();
+        }
+
+        function closeModal() {
+            backdrop.style.display = 'none';
+            bodyEl.innerHTML = '';
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', function(e){ if (e.target === backdrop) closeModal(); });
+
+        // Attach handlers to all view buttons
+        var buttons = document.querySelectorAll('.view-note-btn');
+        buttons.forEach(function(btn){
+            btn.addEventListener('click', function(){
+                var session = btn.getAttribute('data-session');
+                var staff = btn.getAttribute('data-staff') || '';
+                var created = btn.getAttribute('data-created') || '';
+                var hidden = document.getElementById('note-' + session);
+                var content = hidden ? (hidden.textContent || hidden.innerText || '') : '';
+                var title = 'Session ' + session + ' Note';
+                if (staff || created) title += ' — ' + (staff ? staff : '') + (created ? (' on ' + created) : '');
+                if (!content) content = 'No note available';
+                openModal(content, title);
+            });
+        });
+    })();
     </script>
 </body>
 </html>

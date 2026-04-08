@@ -20,11 +20,16 @@ $response = [];
 if (!empty($patients) && isset($patients[0]['patient_no'])) {
     $patient = $patients[0];
     $history = $model->getConsultationFormHistory($patient['patient_no']);
+    $treatments = [];
+    if (!empty($patient['id'])) {
+        $treatments = $model->getTreatmentPlansByPatientId($patient['id']);
+    }
 
     $response = [
         'success' => true,
         'patient' => $patient,
-        'history' => $history
+        'history' => $history,
+        'treatments' => $treatments
     ];
 } else {
     $response = [
