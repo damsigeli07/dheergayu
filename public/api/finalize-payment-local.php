@@ -120,8 +120,7 @@ try {
     foreach ($items as $item) {
         $amount += ((float)$item['price']) * ((int)$item['quantity']);
     }
-    $shipping = $amount > 5000 ? 0 : 250;
-    $totalAmount = $amount + $shipping;
+    $totalAmount = $amount;
 
     $conn->begin_transaction();
 

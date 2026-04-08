@@ -235,8 +235,7 @@ $showTestPayment = payhere_test_payment_allowed();
 
     function renderOrderSummary(items) {
         const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-        const shipping = subtotal > 5000 ? 0 : 250;
-        const total    = subtotal + shipping;
+        const total    = subtotal;
 
         document.getElementById('orderItems').innerHTML = items.map(item => `
             <div class="order-item">
@@ -257,10 +256,6 @@ $showTestPayment = payhere_test_payment_allowed();
                 <span>Subtotal (${items.reduce((s,i)=>s+i.quantity,0)} items)</span>
                 <span>Rs. ${subtotal.toFixed(2)}</span>
             </div>
-            <div class="summary-row">
-                <span>Shipping</span>
-                <span>${shipping === 0 ? 'FREE' : 'Rs. ' + shipping.toFixed(2)}</span>
-            </div>
             <div class="summary-row total">
                 <span>Total Amount</span>
                 <span class="amount">Rs. ${total.toFixed(2)}</span>
@@ -268,8 +263,7 @@ $showTestPayment = payhere_test_payment_allowed();
     }
 
     function getTotal() {
-        const sub = cartItems.reduce((s,i) => s + i.price*i.quantity, 0);
-        return sub + (sub > 5000 ? 0 : 250);
+        return cartItems.reduce((s,i) => s + i.price*i.quantity, 0);
     }
 
     function validateForm() {
