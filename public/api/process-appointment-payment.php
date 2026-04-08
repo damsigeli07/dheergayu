@@ -12,6 +12,13 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../config/payhere_config.php';
+
+$isSimulate = (($_POST['action'] ?? '') === 'simulate');
+if ($isSimulate && !payhere_test_payment_allowed()) {
+    echo json_encode(['success' => false, 'error' => 'Test payment is disabled']);
+    exit;
+}
 
 $appointmentId = (int)($_POST['appointment_id'] ?? 0);
 $type          = trim($_POST['type'] ?? '');
@@ -62,14 +69,16 @@ try {
             exit;
         }
 
+        $payMethod = $isSimulate ? 'sandbox_test' : 'payhere';
+        $txnId = $paymentId !== '' ? $paymentId : $orderId;
         $stmt = $conn->prepare("
             UPDATE consultations
             SET payment_status = 'Completed',
-                payment_method = 'payhere',
+                payment_method = ?,
                 transaction_id = ?
             WHERE id = ? AND patient_id = ?
         ");
-        $stmt->bind_param('sii', $orderId, $appointmentId, $userId);
+        $stmt->bind_param('ssii', $payMethod, $txnId, $appointmentId, $userId);
         $stmt->execute();
         $stmt->close();
 
@@ -99,6 +108,7 @@ try {
     // Store in orders table for record keeping
     $itemsDesc = ucfirst($type) . ' #' . $appointmentId;
     $status = 'paid';
+    $orderPayMethod = $isSimulate ? 'sandbox_test' : 'payhere';
 
     $ins = $conn->prepare("
         INSERT INTO orders
@@ -106,12 +116,12 @@ try {
              payment_method, status, customer_name, customer_email,
              customer_phone, delivery_address, delivery_city,
              order_items, created_at)
-        VALUES (?, ?, ?, ?, 'LKR', 'payhere', ?, ?, ?, ?, 'N/A', 'N/A', ?, NOW())
+        VALUES (?, ?, ?, ?, 'LKR', ?, ?, ?, ?, ?, 'N/A', 'N/A', ?, NOW())
         ON DUPLICATE KEY UPDATE status = VALUES(status), payment_id = VALUES(payment_id)
     ");
-    $ins->bind_param('ssiisssss',
+    $ins->bind_param('ssiissssss',
         $orderId, $paymentId, $userId, $amount,
-        $status, $customerName, $customerEmail, $customerPhone,
+        $orderPayMethod, $status, $customerName, $customerEmail, $customerPhone,
         $itemsDesc
     );
     $ins->execute();

@@ -41,10 +41,9 @@ if ($appointment_id) {
         exit;
     }
 
-    // Block if patient hasn't paid (allow onsite payments — patient pays at clinic)
+    // Block until payment is recorded as completed (online PayHere or staff-recorded cash/onsite)
     $payStatus = $appointment['payment_status'] ?? '';
-    $payMethod = $appointment['payment_method'] ?? '';
-    if ($payStatus !== 'Completed' && $payMethod !== 'onsite') {
+    if ($payStatus !== 'Completed') {
         echo "<script>alert('Cannot start consultation — patient has not completed payment yet.'); window.location.href='doctordashboard.php';</script>";
         exit;
     }

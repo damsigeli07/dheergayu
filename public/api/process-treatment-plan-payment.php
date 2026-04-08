@@ -12,6 +12,13 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../../config/payhere_config.php';
+
+$isSimulate = (($_POST['action'] ?? '') === 'simulate');
+if ($isSimulate && !payhere_test_payment_allowed()) {
+    echo json_encode(['success' => false, 'error' => 'Test payment is disabled']);
+    exit;
+}
 
 $planId        = (int)($_POST['plan_id'] ?? 0);
 $orderId       = trim($_POST['order_id'] ?? '');
@@ -74,18 +81,20 @@ try {
     $itemsDesc = 'Treatment Plan #' . $planId . ' - ' . ($plan['treatment_name'] ?? 'Treatment');
     $status = 'paid';
 
+    $orderPayMethod = $isSimulate ? 'sandbox_test' : 'payhere';
+
     $ins = $conn->prepare("
         INSERT INTO orders
             (order_id, payment_id, user_id, amount, currency,
              payment_method, status, customer_name, customer_email,
              customer_phone, delivery_address, delivery_city,
              order_items, created_at)
-        VALUES (?, ?, ?, ?, 'LKR', 'payhere', ?, ?, ?, ?, 'N/A', 'N/A', ?, NOW())
+        VALUES (?, ?, ?, ?, 'LKR', ?, ?, ?, ?, ?, 'N/A', 'N/A', ?, NOW())
         ON DUPLICATE KEY UPDATE status = VALUES(status), payment_id = VALUES(payment_id)
     ");
-    $ins->bind_param('ssiisssss',
+    $ins->bind_param('ssiissssss',
         $orderId, $paymentId, $userId, $amount,
-        $status, $customerName, $customerEmail, $customerPhone,
+        $orderPayMethod, $status, $customerName, $customerEmail, $customerPhone,
         $itemsDesc
     );
     $ins->execute();

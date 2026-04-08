@@ -386,6 +386,11 @@ $db->close();
                                     $progress_percent = $plan['total_sessions'] > 0 
                                         ? ($plan['completed_sessions'] / $plan['total_sessions'] * 100) 
                                         : 0;
+                                    $tpPay = ($plan['payment_status'] ?? '') === 'Completed';
+                                    $tpStatus = $plan['status'] ?? '';
+                                    $tpChange = !empty($plan['change_requested']);
+                                    $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
+                                    $canStartTreatment = $tpPay && $tpConfirmed && !$tpChange;
                                 ?>
                                 <tr>
                                     <td><?= $plan['plan_id'] ?></td>
@@ -415,9 +420,15 @@ $db->close();
                                     <td>
                                         <?php if ($plan['has_treatment_form'] > 0): ?>
                                             <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
-                                        <?php elseif (($plan['payment_status'] ?? '') !== 'Completed'): ?>
+                                        <?php elseif (!$tpPay): ?>
                                             <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not paid yet">Start Treatment</button>
                                             <span style="display:block;font-size:11px;color:#dc3545;margin-top:4px;">Payment pending</span>
+                                        <?php elseif ($tpChange): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient change request pending">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#ff9800;margin-top:4px;">Change requested</span>
+                                        <?php elseif (!$tpConfirmed): ?>
+                                            <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="Patient has not confirmed the plan">Start Treatment</button>
+                                            <span style="display:block;font-size:11px;color:#856404;margin-top:4px;">Awaiting patient confirmation</span>
                                         <?php else: ?>
                                             <button class="btn-start" onclick="window.location.href='stafftreatmentform.php?plan_id=<?= htmlspecialchars($plan['plan_id']) ?>'">Start Treatment</button>
                                             <button class="btn-cancel" onclick="cancelTreatmentPlan(<?= $plan['plan_id'] ?>)">Cancel</button>

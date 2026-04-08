@@ -71,6 +71,7 @@ $sessStmt->close();
 
 $orderId   = generateOrderId();
 $isSandbox = (PAYHERE_MODE === 'sandbox');
+$showTestPayment = payhere_test_payment_allowed();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -216,11 +217,16 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
             <div class="card">
                 <h2 class="card-title">Payment Details</h2>
 
-                <?php if ($isSandbox): ?>
+                <?php if ($showTestPayment): ?>
                 <div class="sandbox-notice">
+                    <?php if ($isSandbox): ?>
                     <strong>&#9888;&#65039; Sandbox Mode Active.</strong>
                     Use the <em>"Test Payment"</em> button below to simulate a successful payment
                     without going through the PayHere gateway.
+                    <?php else: ?>
+                    <strong>Test payment enabled.</strong>
+                    Use <em>"Test Payment"</em> to simulate success without PayHere. Set <code>PAYHERE_ALLOW_TEST_PAYMENT</code> to <code>false</code> in production.
+                    <?php endif; ?>
                 </div>
                 <?php endif; ?>
 
@@ -242,11 +248,11 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
                                placeholder="0712345678" required>
                     </div>
 
-                    <!-- Sandbox test button -->
-                    <?php if ($isSandbox): ?>
+                    <!-- Test payment (sandbox or PAYHERE_ALLOW_TEST_PAYMENT) -->
+                    <?php if ($showTestPayment): ?>
                     <button type="button" class="test-pay-btn" id="testPayBtn"
                             onclick="simulatePayment()">
-                        &#10004; Test Payment - Rs. <?= number_format($fee, 2) ?> (Sandbox)
+                        &#10004; Test Payment - Rs. <?= number_format($fee, 2) ?> (no gateway)
                     </button>
                     <div class="divider">&mdash; or use PayHere gateway below &mdash;</div>
                     <?php endif; ?>
@@ -319,8 +325,8 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
     <form method="post" action="<?= PAYHERE_CHECKOUT_URL ?>"
           id="payhereForm" style="display:none;">
         <input type="hidden" name="merchant_id"  value="<?= PAYHERE_MERCHANT_ID ?>">
-        <input type="hidden" name="return_url"   value="<?= PAYHERE_RETURN_URL ?>">
-        <input type="hidden" name="cancel_url"   value="<?= PAYHERE_CANCEL_URL ?>">
+        <input type="hidden" name="return_url"   value="<?= PAYHERE_TREATMENT_PLAN_RETURN_URL ?>">
+        <input type="hidden" name="cancel_url"   value="<?= PAYHERE_TREATMENT_PLAN_CANCEL_URL ?>">
         <input type="hidden" name="notify_url"   value="<?= PAYHERE_NOTIFY_URL ?>">
         <input type="hidden" name="order_id"     id="ph_order_id"  value="<?= $orderId ?>">
         <input type="hidden" name="items"        id="ph_items"     value="<?= htmlspecialchars($description) ?>">
@@ -396,6 +402,7 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
 
         try {
             const fd = new FormData();
+            fd.append('action',         'simulate');
             fd.append('plan_id',        PLAN_ID);
             fd.append('order_id',       ORDER_ID);
             fd.append('payment_id',     'SIM_' + Date.now());
@@ -418,7 +425,7 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
         } catch (err) {
             console.error('Simulate error:', err);
             alert('Payment simulation failed: ' + err.message);
-            if (btn) { btn.disabled = false; btn.textContent = '\u2705 Test Payment - Rs. ' + PLAN_FEE.toFixed(2) + ' (Sandbox)'; }
+            if (btn) { btn.disabled = false; btn.textContent = '\u2705 Test Payment - Rs. ' + PLAN_FEE.toFixed(2) + ' (no gateway)'; }
         }
     }
 
@@ -473,7 +480,7 @@ $isSandbox = (PAYHERE_MODE === 'sandbox');
         } catch (err) {
             console.error('Payment error:', err);
             alert('Could not prepare payment: ' + err.message +
-                  '\n\nTip: In sandbox mode use the "Test Payment" button instead.');
+                  '\n\nTip: Use the "Test Payment" button if test payments are enabled.');
             btn.disabled = false;
             btn.textContent = 'Proceed to PayHere - Rs. ' + PLAN_FEE.toFixed(2);
         }

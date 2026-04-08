@@ -34,6 +34,8 @@ $stmt = $db->prepare("
         c.appointment_date,
         c.appointment_time,
         c.status,
+        c.payment_status,
+        c.payment_method,
         c.notes as reason
     FROM consultations c
     LEFT JOIN patients p ON c.patient_id = p.id
@@ -176,6 +178,23 @@ function showCancelDetails(reason) {
     alert('Cancellation Reason:\n' + reason);
 }
 
+function markConsultationPaid(consultationId) {
+    if (!confirm('Record that this patient has paid (cash/onsite)? The doctor can start the consultation after this.')) return;
+    var fd = new FormData();
+    fd.append('consultation_id', consultationId);
+    fetch('/dheergayu/public/api/mark-consultation-onsite-paid.php', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert(data.message || 'Saved');
+                location.reload();
+            } else {
+                alert(data.message || 'Could not save');
+            }
+        })
+        .catch(function() { alert('Network error'); });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const tabs = document.querySelectorAll('.tab-btn');
     const rows = document.querySelectorAll('.appointment-row');
@@ -316,6 +335,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <th>Doctor Name</th>
                             <th>Date & Time</th>
                             <th>Status</th>
+                            <th>Payment</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="appointments-tbody">
@@ -342,10 +363,29 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <td>
                                         <span class="status-badge <?= strtolower($status) ?>"><?= $status ?></span>
                                     </td>
+                                    <td>
+                                        <?php
+                                        $ps = $apt['payment_status'] ?? 'Pending';
+                                        $paid = ($ps === 'Completed');
+                                        ?>
+                                        <span style="font-size:12px;color:<?= $paid ? '#2e7d32' : '#c62828' ?>;"><?= htmlspecialchars($ps) ?></span>
+                                        <?php if (!empty($apt['payment_method'])): ?>
+                                            <span style="font-size:11px;color:#666;display:block;"><?= htmlspecialchars($apt['payment_method']) ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($status === 'Upcoming' && !$paid): ?>
+                                            <button type="button" class="pagination-btn" style="padding:6px 10px;font-size:12px;" onclick="markConsultationPaid(<?= (int)$apt['appointment_id'] ?>)">Mark paid</button>
+                                        <?php elseif ($paid): ?>
+                                            <span style="font-size:12px;color:#666;">—</span>
+                                        <?php else: ?>
+                                            <span style="font-size:12px;color:#999;">—</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else : ?>
-                            <tr><td colspan="6" style="text-align:center;padding:40px;">
+                            <tr><td colspan="8" style="text-align:center;padding:40px;">
                                 <p>No appointments found.</p>
                                 <p style="font-size:12px;color:#666;margin-top:10px;">
                                     When patients book appointments with doctors, they will appear here.
