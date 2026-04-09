@@ -94,6 +94,7 @@ foreach ($treatment_plans as $plan) {
 
 // Pending assignments offered to this staff (patient confirmed; staff must confirm to take it)
 $staff_offers = [];
+$offerSessionsByPlan = [];
 @$db->query("CREATE TABLE IF NOT EXISTS treatment_plan_staff_offer (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     plan_id INT NOT NULL,
@@ -151,6 +152,40 @@ if ($offers_stmt) {
         $staff_offers[] = $row;
     }
     $offers_stmt->close();
+}
+
+// Load all session slots for offered plans so staff can review every date/time before accepting.
+if (!empty($staff_offers)) {
+    $offerPlanIds = [];
+    foreach ($staff_offers as $offerItem) {
+        $offerPlanIds[] = (int)($offerItem['plan_id'] ?? 0);
+    }
+    $offerPlanIds = array_values(array_unique(array_filter($offerPlanIds)));
+
+    if (!empty($offerPlanIds)) {
+        $placeholders = implode(',', array_fill(0, count($offerPlanIds), '?'));
+        $types = str_repeat('i', count($offerPlanIds));
+        $sessionsSql = "
+            SELECT plan_id, session_number, session_date, session_time
+            FROM treatment_sessions
+            WHERE plan_id IN ($placeholders)
+            ORDER BY plan_id ASC, session_number ASC
+        ";
+        $sessionsStmt = $db->prepare($sessionsSql);
+        if ($sessionsStmt) {
+            $sessionsStmt->bind_param($types, ...$offerPlanIds);
+            $sessionsStmt->execute();
+            $sessionsRes = $sessionsStmt->get_result();
+            while ($sessionRow = $sessionsRes->fetch_assoc()) {
+                $pid = (int)$sessionRow['plan_id'];
+                if (!isset($offerSessionsByPlan[$pid])) {
+                    $offerSessionsByPlan[$pid] = [];
+                }
+                $offerSessionsByPlan[$pid][] = $sessionRow;
+            }
+            $sessionsStmt->close();
+        }
+    }
 }
 
 $db->close();
@@ -264,25 +299,11 @@ $db->close();
         <!-- Assignments offered to you (patient confirmed; you confirm to take it) -->
         <?php if (!empty($staff_offers)): ?>
         <?php
-            $takenByOthersOffers = [];
-            $visibleOffers = [];
-            foreach ($staff_offers as $offerItem) {
-                if (!empty($offerItem['assigned_staff_id']) && empty($offerItem['is_assigned_to_me'])) {
-                    $takenByOthersOffers[] = $offerItem;
-                    continue;
-                }
-                $visibleOffers[] = $offerItem;
-            }
+            $visibleOffers = $staff_offers;
         ?>
         <div class="assignments-offered" style="margin-bottom:30px;background:#e8f5e9;border:1px solid #81c784;border-radius:10px;padding:20px;">
             <h3 style="margin:0 0 15px 0;color:#2e7d32;">Treatment assignments</h3>
             <p style="color:#555;font-size:14px;margin-bottom:15px;">Plans offered to you. Confirm to take one.</p>
-
-            <?php if (!empty($takenByOthersOffers)): ?>
-                <div style="margin-bottom:12px;padding:10px 12px;background:#fff3cd;border:1px solid #ffe08a;color:#856404;border-radius:8px;font-size:13px;">
-                    Some offers were already taken by another staff member.
-                </div>
-            <?php endif; ?>
 
             <?php if (empty($visibleOffers)): ?>
                 <div style="padding:12px;background:#fff;border:1px solid #d6d6d6;border-radius:8px;color:#666;font-size:13px;">
@@ -296,15 +317,49 @@ $db->close();
                         <strong>Plan #<?= (int)$off['plan_id'] ?></strong> — <?= htmlspecialchars($off['treatment_name'] ?? 'Treatment') ?>
                         <span style="color:#666;font-size:13px;"> • <?= htmlspecialchars($off['first_name'] . ' ' . $off['last_name']) ?> • <?= (int)$off['total_sessions'] ?> session(s)</span>
                         <?php
-                        $firstDate = trim($off['first_session_date'] ?? '');
-                        $firstTime = trim($off['first_session_time'] ?? '');
-                        if ($firstDate !== '' || $firstTime !== ''):
-                            $dateStr = $firstDate ? date('M j, Y', strtotime($firstDate)) : '—';
-                            $timeStr = $firstTime ? date('g:i A', strtotime($firstTime)) : '—';
+                        $planId = (int)($off['plan_id'] ?? 0);
+                        $sessionSlots = $offerSessionsByPlan[$planId] ?? [];
+                        if (!empty($sessionSlots)):
                         ?>
-                        <span style="display:block;font-size:13px;color:#333;margin-top:4px;">
-                            📅 <?= $dateStr ?> &nbsp; ⏰ <?= $timeStr ?>
-                        </span>
+                            <?php if (count($sessionSlots) === 1): ?>
+                                <?php
+                                $sessionDate = trim($sessionSlots[0]['session_date'] ?? '');
+                                $sessionTime = trim($sessionSlots[0]['session_time'] ?? '');
+                                $dateStr = $sessionDate ? date('M j, Y', strtotime($sessionDate)) : '—';
+                                $timeStr = $sessionTime ? date('g:i A', strtotime($sessionTime)) : '—';
+                                ?>
+                                <span style="display:block;font-size:13px;color:#333;margin-top:4px;">
+                                    📅 <?= $dateStr ?> &nbsp; ⏰ <?= $timeStr ?>
+                                </span>
+                            <?php else: ?>
+                                <div style="display:block;font-size:12px;color:#333;margin-top:6px;line-height:1.45;">
+                                    <strong>All sessions:</strong>
+                                    <?php foreach ($sessionSlots as $slot): ?>
+                                        <?php
+                                        $slotDate = trim($slot['session_date'] ?? '');
+                                        $slotTime = trim($slot['session_time'] ?? '');
+                                        $slotDateStr = $slotDate ? date('M j, Y', strtotime($slotDate)) : '—';
+                                        $slotTimeStr = $slotTime ? date('g:i A', strtotime($slotTime)) : '—';
+                                        $slotNum = (int)($slot['session_number'] ?? 0);
+                                        ?>
+                                        <span style="display:block;">
+                                            <?= $slotNum > 0 ? ('Session ' . $slotNum) : 'Session' ?>: 📅 <?= $slotDateStr ?> &nbsp; ⏰ <?= $slotTimeStr ?>
+                                        </span>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <?php
+                            $firstDate = trim($off['first_session_date'] ?? '');
+                            $firstTime = trim($off['first_session_time'] ?? '');
+                            if ($firstDate !== '' || $firstTime !== ''):
+                                $dateStr = $firstDate ? date('M j, Y', strtotime($firstDate)) : '—';
+                                $timeStr = $firstTime ? date('g:i A', strtotime($firstTime)) : '—';
+                            ?>
+                            <span style="display:block;font-size:13px;color:#333;margin-top:4px;">
+                                📅 <?= $dateStr ?> &nbsp; ⏰ <?= $timeStr ?>
+                            </span>
+                            <?php endif; ?>
                         <?php endif; ?>
                         <?php if (!empty($off['assigned_staff_id'])): ?>
                             <span style="display:block;font-size:13px;margin-top:6px;font-weight:600;color:#1976d2;">
@@ -435,7 +490,6 @@ $db->close();
                                             <span style="display:block;font-size:11px;color:#6c757d;margin-top:4px;">Selected by staff #<?= $tpAssignedId ?></span>
                                         <?php else: ?>
                                             <button class="btn-start" onclick="window.location.href='stafftreatmentform.php?plan_id=<?= htmlspecialchars($plan['plan_id']) ?>'">Start Treatment</button>
-                                            <button class="btn-cancel" onclick="cancelTreatmentPlan(<?= $plan['plan_id'] ?>)">Cancel</button>
                                         <?php endif; ?>
                                         <button class="action-btn" style="margin-top:5px;background:#6c757d;" onclick="viewTreatmentPlan(<?= $plan['plan_id'] ?>)">View More Details</button>
                                     </td>
