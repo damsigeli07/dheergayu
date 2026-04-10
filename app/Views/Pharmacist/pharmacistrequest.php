@@ -282,7 +282,6 @@ if (!empty($_SESSION['user_id'])) {
                     try {
                         data = JSON.parse(text);
                     } catch (e) {
-                        console.error('Invalid JSON from get-requests:', text);
                         throw new Error('Invalid response from server');
                     }
                     var tbody = document.getElementById('requestsTableBody');
@@ -319,7 +318,6 @@ if (!empty($_SESSION['user_id'])) {
                     }
                 })
                 .catch(function(error) {
-                    console.error('Error loading requests:', error);
                     document.getElementById('requestsTableBody').innerHTML =
                         '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #721c24;">Error loading requests. Check console or try again.</td></tr>';
                 });
@@ -434,7 +432,6 @@ if (!empty($_SESSION['user_id'])) {
                 }
             }.bind(this))
             .catch(function(error) {
-                console.error('Error:', error);
                 showMessage('Error', 'An error occurred while submitting the request.', 'error');
             });
         });
@@ -510,7 +507,7 @@ if (!empty($_SESSION['user_id'])) {
                         if (num > maxNum) maxNum = num;
                     }
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) { }
             var next = String(maxNum + 1).padStart(3, '0');
             document.getElementById('inv_batch_number').value = prefix + next;
         }
@@ -531,16 +528,6 @@ if (!empty($_SESSION['user_id'])) {
                 return;
             }
 
-            // Determine product_source: Herbal supplier → patient, Ayurvedic → admin
-            var isPatient = false;
-            for (var sid in supplierProductsMap) {
-                var prods = supplierProductsMap[sid];
-                if (String(sid) === String(supplierId) && prods.length > 0) {
-                    // Check if any of these match patient products by checking the map origin
-                    // We determine from the supplier name passed via data or by checking known IDs
-                    break;
-                }
-            }
             // Determine product_source from supplier name
             var supplierCell = btn.closest('tr') ? btn.closest('tr').cells[2] : null;
             var supplierName = supplierCell ? supplierCell.textContent.trim().toLowerCase() : '';

@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // Query user from database
-    $stmt = $conn->prepare("SELECT id, first_name, last_name, email, password, role FROM users WHERE email = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT id, first_name, last_name, email, password, role, must_change_password FROM users WHERE email = ? LIMIT 1");
     $stmt->bind_param('s', $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -51,6 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['logged_in'] = true;
     if (isset($_SESSION['login_error'])) {
         unset($_SESSION['login_error']);
+    }
+
+    // Force password change on first login
+    if (!empty($user['must_change_password'])) {
+        header('Location: /dheergayu/app/Views/change_password.php');
+        exit;
     }
 
     switch (strtolower($role)) {

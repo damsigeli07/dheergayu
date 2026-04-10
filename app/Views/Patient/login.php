@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->close();
 
         // 2) Try users table
-        $stmt = $conn->prepare("SELECT id, first_name, last_name, password, role FROM users WHERE email = ?");
+        $stmt = $conn->prepare("SELECT id, first_name, last_name, password, role, must_change_password FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -67,6 +67,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['user_name'] = $row['first_name'] . ' ' . $row['last_name'];
                 $_SESSION['role'] = $row['role'];
                 $_SESSION['name'] = $_SESSION['user_name'];
+
+                // Force password change on first login
+                if (!empty($row['must_change_password'])) {
+                    header("Location: /dheergayu/app/Views/change_password.php");
+                    exit();
+                }
 
                 switch ($role) {
                     case 'admin':

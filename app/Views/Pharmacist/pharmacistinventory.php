@@ -86,7 +86,6 @@ if ($allProductsResult && $allProductsResult->num_rows > 0) {
 $adminProducts = $regularProducts;
 $patientProducts = [];
 $adminProductNameToId = $allProductNameToId;
-$patientProductNameToId = [];
 
 // Get suppliers from database
 require_once __DIR__ . '/../../../config/config.php';
@@ -101,24 +100,24 @@ $expiringSoonCount = 0;
 $today = new DateTime();
 $thirtyDaysFromNow = (new DateTime())->add(new DateInterval('P30D'));
 
-$allProducts = array_merge($adminProducts, $patientProducts);
-foreach ($allProducts as $item) {
+$allProductsForStats = array_merge($regularProducts, $treatmentProducts);
+foreach ($allProductsForStats as $item) {
     $qty = (int)$item['total_quantity'];
-    if ($qty <= 5) { 
-        $criticalStockCount++; 
-    } elseif ($qty <= 15) { 
-        $lowStockCount++; 
+    if ($qty <= 5) {
+        $criticalStockCount++;
+    } elseif ($qty <= 15) {
+        $lowStockCount++;
     }
-    
+
     if ($item['earliest_exp']) {
         $expDate = new DateTime($item['earliest_exp']);
         if ($expDate <= $thirtyDaysFromNow && $expDate >= $today) {
-                $expiringSoonCount++;
+            $expiringSoonCount++;
         }
     }
 }
 
-$totalProducts = count($allProducts);
+$totalProducts = count($allProductsForStats);
 $db->close();
 ?>
 
@@ -409,7 +408,6 @@ function renderInventoryTable(array $items): string {
 
 <script>
     const adminProductNameToId = <?= json_encode($allProductNameToId) ?>;
-    const patientProductNameToId = {};
     const allProductNameToId = <?= json_encode($allProductNameToId) ?>;
 
     function switchInvTab(tab, btn) {
@@ -421,34 +419,28 @@ function renderInventoryTable(array $items): string {
 
     // Make functions globally accessible
     window.addBatch = function(productName, productId) {
-        console.log('addBatch called with:', productName, productId);
         if (typeof productName === 'undefined' || typeof productId === 'undefined') {
-            console.error('Invalid parameters:', productName, productId);
             alert('Error: Invalid product information');
             return;
         }
         if (typeof window.openAddBatchModal === 'function') {
             window.openAddBatchModal(productName, productId);
         } else {
-            console.error('openAddBatchModal function not found');
             alert('Error: Add batch function not available');
         }
     };
 
     window.openAddBatchModal = function(productName, productId) {
-        console.log('openAddBatchModal called with:', productName, productId);
         const modal = document.getElementById('addBatchModal');
         if (!modal) {
-            console.error('Add batch modal not found');
             alert('Error: Add batch modal not found');
             return;
         }
         const productSelect = document.getElementById('product');
         const mfdInput = document.getElementById('mfd');
         const expInput = document.getElementById('exp');
-        
+
         if (!productSelect || !mfdInput || !expInput) {
-            console.error('Form elements not found', {productSelect, mfdInput, expInput});
             alert('Error: Form elements not found');
             return;
         }
@@ -476,9 +468,7 @@ function renderInventoryTable(array $items): string {
         if (typeof suggestNextBatchNumber === 'function') {
             try {
                 suggestNextBatchNumber();
-            } catch (e) {
-                console.error('Error suggesting batch number:', e);
-            }
+            } catch (e) { }
         }
         modal.style.display = 'block';
     };
@@ -488,19 +478,16 @@ function renderInventoryTable(array $items): string {
     };
 
     window.viewBatches = async function(productName, productId) {
-        console.log('viewBatches called with:', productName, productId);
         if (typeof productName === 'undefined' || typeof productId === 'undefined') {
-            console.error('Invalid parameters:', productName, productId);
             alert('Error: Invalid product information');
             return;
         }
-        
+
         const modal = document.getElementById('batchModal');
         const modalTitle = document.getElementById('modalTitle');
         const batchDetails = document.getElementById('batchDetails');
-        
+
         if (!modal || !modalTitle || !batchDetails) {
-            console.error('Modal elements not found', {modal, modalTitle, batchDetails});
             alert('Error: Modal elements not found');
             return;
         }
@@ -517,16 +504,13 @@ function renderInventoryTable(array $items): string {
                 const dataType = row ? row.getAttribute('data-type') : 'admin';
                 const productSource = dataType === 'patient' ? 'patient' : dataType === 'treatment' ? 'treatment' : 'admin';
                 const url = `/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`;
-                console.log('Fetching batches from:', url);
                 const res = await fetch(url);
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);
                 }
                 const data = await res.json();
-                console.log('Batch data received:', data);
                 rows = data.data || [];
-            } catch (e) { 
-                console.error('Error fetching batches:', e); 
+            } catch (e) {
                 batchDetails.innerHTML = `<p style="color: red;">Error loading batches: ${e.message}</p>`;
                 return;
             }
@@ -598,11 +582,9 @@ function renderInventoryTable(array $items): string {
                     const escapedProductName = String(productName || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                     const escapedBatchNumber = String(batch.batch_number || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                     
-                    // Ensure productId is a valid number
                     const productIdNum = parseInt(productId, 10);
                     if (isNaN(productIdNum) || productIdNum <= 0) {
-                        console.error('Invalid productId in viewBatches:', productId);
-                        return; // Skip this batch if productId is invalid
+                        return;
                     }
                     
                     html += `
@@ -666,8 +648,6 @@ function renderInventoryTable(array $items): string {
                         const batchNumber = this.getAttribute('data-batch-number');
                         if (window.openEditBatchModal) {
                             window.openEditBatchModal(productName, productId, batchNumber);
-                        } else {
-                            console.error('openEditBatchModal function not found');
                         }
                     });
                 });
@@ -679,8 +659,6 @@ function renderInventoryTable(array $items): string {
                         const batchNumber = this.getAttribute('data-batch-number');
                         if (window.deleteBatch) {
                             window.deleteBatch(productName, productId, batchNumber);
-                        } else {
-                            console.error('deleteBatch function not found');
                         }
                     });
                 });
@@ -704,7 +682,7 @@ function renderInventoryTable(array $items): string {
                 const data = await res.json();
                 const rows = data.data || [];
                 batch = rows.find(b => String(b.batch_number) === String(batchNumber));
-            } catch (e) { console.error(e); }
+            } catch (e) { }
             if (!batch) { alert('Batch not found'); return; }
             document.getElementById('edit_product_id').value = productId;
             document.getElementById('edit_product_name').value = productName;
@@ -726,56 +704,39 @@ function renderInventoryTable(array $items): string {
     };
 
     window.deleteBatch = async function(productName, productId, batchNumber) {
-            // Validate parameters
             if (!productId || !batchNumber) {
-                console.error('Invalid parameters:', { productName, productId, batchNumber });
                 alert('❌ Error: Missing product ID or batch number');
                 return;
             }
-            
-            // Convert productId to integer
+
             const productIdInt = parseInt(productId, 10);
             if (isNaN(productIdInt) || productIdInt <= 0) {
-                console.error('Invalid product ID:', productId);
                 alert('❌ Error: Invalid product ID');
                 return;
             }
-            
-            // Ensure batchNumber is a string and not empty
+
             const batchNumberStr = String(batchNumber || '').trim();
             if (!batchNumberStr) {
-                console.error('Invalid batch number:', batchNumber);
                 alert('❌ Error: Invalid batch number');
                 return;
             }
-            
+
             if (!confirm(`Delete Batch: ${batchNumberStr}\n\nProduct: ${productName}\n\nThis action cannot be undone. Proceed?`)) return;
-            
-            console.log('Deleting batch:', { productName, productId: productIdInt, batchNumber: batchNumberStr });
-            
+
             const form = new FormData();
             form.append('product_id', productIdInt);
             form.append('batch_number', batchNumberStr);
-            
-            // Debug: Log FormData contents
-            console.log('FormData contents:');
-            for (let [key, value] of form.entries()) {
-                console.log(key, '=', value, '(type:', typeof value, ')');
-            }
-            
+
             try {
                 const res = await fetch('/dheergayu/public/api/batches/delete', { method: 'POST', body: form });
-                
+
                 if (!res.ok) {
-                    const errorText = await res.text();
-                    console.error('API error response:', errorText);
                     alert(`❌ Delete failed: ${res.status} ${res.statusText}`);
                     return;
                 }
-                
+
                 const data = await res.json();
-                console.log('Delete API response:', data);
-                
+
                 if (data.success) {
                     alert('✅ Batch deleted successfully');
                     viewBatches(productName, productIdInt);
@@ -785,7 +746,6 @@ function renderInventoryTable(array $items): string {
                     alert(`❌ Delete failed: ${errorMsg}`);
                 }
             } catch (error) {
-                console.error('Error deleting batch:', error);
                 alert(`❌ Error: ${error.message}`);
             }
         }
@@ -878,17 +838,15 @@ function renderInventoryTable(array $items): string {
                         quantityCell.innerHTML += '<span class="stock-warning low">Low</span>';
                     }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { }
         }
 
         // Handle add-batch form submit via API
         function attachAddBatchFormHandler() {
             const addBatchForm = document.getElementById('addBatchForm');
             if (addBatchForm) {
-                console.log('Add batch form found, attaching submit handler');
                 addBatchForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                console.log('Add batch form submitted');
                 
                 const formEl = e.target;
                 const productSelect = document.getElementById('product');
@@ -932,8 +890,7 @@ function renderInventoryTable(array $items): string {
                 const productSource = dt === 'patient' ? 'patient' : dt === 'treatment' ? 'treatment' : 'admin';
                 
                 const batchNumberValue = formEl.batch_number.value.trim();
-                console.log('Batch number from form:', batchNumberValue, 'Type:', typeof batchNumberValue, 'Length:', batchNumberValue.length);
-                
+
                 if (!batchNumberValue) {
                     alert('❌ Batch number is required');
                     return;
@@ -948,31 +905,17 @@ function renderInventoryTable(array $items): string {
                 payload.append('exp', expDate);
                 payload.append('status', autoStatus);
                 
-                // Debug: Log FormData contents
-                console.log('Submitting batch FormData:');
-                for (let [key, value] of payload.entries()) {
-                    console.log(key, '=', value, '(type:', typeof value, ')');
-                }
-                
                 try {
                     const res = await fetch('/dheergayu/public/api/batches/create', { method: 'POST', body: payload });
-                    
-                    // Get response as text first to check if it's JSON
                     const responseText = await res.text();
-                    console.log('Raw API response:', responseText);
-                    
                     let data;
                     try {
                         data = JSON.parse(responseText);
                     } catch (parseError) {
-                        console.error('Failed to parse JSON response:', parseError);
-                        console.error('Response was:', responseText);
-                        alert('❌ Server returned invalid response. Check console for details.');
+                        alert('❌ Server returned invalid response.');
                         return;
                     }
-                    
-                    console.log('Parsed API response:', data);
-                    
+
                     if (data.success) {
                         alert('✅ Batch added successfully');
                         closeAddBatchModal();
@@ -984,12 +927,9 @@ function renderInventoryTable(array $items): string {
                         alert(`❌ Failed to add batch: ${errorMsg}`);
                     }
                 } catch (error) {
-                    console.error('Error submitting batch:', error);
                     alert(`❌ Error: ${error.message}`);
                 }
                 });
-            } else {
-                console.error('Add batch form not found');
             }
         }
         
@@ -1038,10 +978,7 @@ function renderInventoryTable(array $items): string {
                 const dt2 = row3 ? row3.getAttribute('data-type') : 'admin';
                 const productSource = dt2 === 'patient' ? 'patient' : dt2 === 'treatment' ? 'treatment' : 'admin';
                 const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
-                if (!res.ok) {
-                    console.error('Failed to fetch batches:', res.status, res.statusText);
-                    return;
-                }
+                if (!res.ok) return;
                 const data = await res.json();
                 const rows = data.data || [];
                 rows.forEach(b => {
@@ -1052,7 +989,7 @@ function renderInventoryTable(array $items): string {
                         if (existingPrefix === prefix && num > maxNum) maxNum = num;
                     }
                 });
-            } catch (e) { console.error('Error in suggestNextBatchNumber:', e); }
+            } catch (e) { }
             const nextNum = String(maxNum + 1).padStart(3, '0');
             document.getElementById('batch_number').value = `${prefix}${nextNum}`;
         }
@@ -1126,43 +1063,33 @@ function renderInventoryTable(array $items): string {
 
     // Add event listeners to buttons using data attributes
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, attaching event listeners...');
-        
-        // Add Batch buttons
         document.querySelectorAll('.btn-add-batch').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 const productName = this.getAttribute('data-product-name');
                 const productId = parseInt(this.getAttribute('data-product-id'));
-                console.log('Add Batch button clicked:', productName, productId);
                 if (window.addBatch && typeof window.addBatch === 'function') {
                     window.addBatch(productName, productId);
                 } else {
-                    console.error('window.addBatch is not a function');
                     alert('Error: Add batch function not available');
                 }
             });
         });
-        
-        // View Batches buttons
+
         document.querySelectorAll('.btn-batches').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 const productName = this.getAttribute('data-product-name');
                 const productId = parseInt(this.getAttribute('data-product-id'));
-                console.log('View Batches button clicked:', productName, productId);
                 if (window.viewBatches && typeof window.viewBatches === 'function') {
                     window.viewBatches(productName, productId);
                 } else {
-                    console.error('window.viewBatches is not a function');
                     alert('Error: View batches function not available');
                 }
             });
         });
-        
-        console.log('Event listeners attached. Found', document.querySelectorAll('.btn-add-batch').length, 'Add Batch buttons and', document.querySelectorAll('.btn-batches').length, 'View Batches buttons');
     });
 </script>
 </body>
