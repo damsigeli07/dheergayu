@@ -14,14 +14,16 @@ function input(string $key): string
 }
 
 try {
+    $accountType = strtolower(input('account_type'));
     $email = input('email');
     $nic = input('nic');
     $dob = input('dob');
+    $phone = preg_replace('/\D+/', '', input('phone'));
     $newPassword = input('new_password');
     $confirmPassword = input('confirm_password');
 
-    if ($email === '' || $nic === '' || $dob === '' || $newPassword === '' || $confirmPassword === '') {
-        throw new Exception('All fields are required.');
+    if ($accountType === '' || $email === '' || $newPassword === '' || $confirmPassword === '') {
+        throw new Exception('Please fill all required fields.');
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -36,19 +38,47 @@ try {
         throw new Exception('Password must be 8+ chars with uppercase, lowercase, number and special character.');
     }
 
-    $stmt = $conn->prepare("SELECT id FROM patients WHERE email = ? AND nic = ? AND dob = ? LIMIT 1");
-    $stmt->bind_param('sss', $email, $nic, $dob);
-    $stmt->execute();
-    $patient = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $targetTable = '';
+    $idColumn = 'id';
+    $verifyStmt = null;
 
-    if (!$patient) {
-        throw new Exception('Patient verification failed. Please check email, NIC, and date of birth.');
+    if ($accountType === 'patient') {
+        if ($nic === '' || $dob === '') {
+            throw new Exception('NIC and Date of Birth are required for patient reset.');
+        }
+        $targetTable = 'patients';
+        $verifyStmt = $conn->prepare("SELECT id FROM patients WHERE email = ? AND nic = ? AND dob = ? LIMIT 1");
+        $verifyStmt->bind_param('sss', $email, $nic, $dob);
+    } elseif (in_array($accountType, ['admin', 'doctor', 'staff', 'pharmacist'], true)) {
+        if ($phone === '') {
+            throw new Exception('Phone number is required for this account type.');
+        }
+        $targetTable = 'users';
+        $verifyStmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND role = ? AND REPLACE(phone,' ','') = ? LIMIT 1");
+        $verifyStmt->bind_param('sss', $email, $accountType, $phone);
+    } elseif ($accountType === 'supplier') {
+        if ($phone === '') {
+            throw new Exception('Phone number is required for supplier reset.');
+        }
+        $targetTable = 'suppliers';
+        $verifyStmt = $conn->prepare("SELECT id FROM suppliers WHERE email = ? AND REPLACE(phone,' ','') = ? LIMIT 1");
+        $verifyStmt->bind_param('ss', $email, $phone);
+    } else {
+        throw new Exception('Invalid account type.');
+    }
+
+    $verifyStmt->execute();
+    $userRow = $verifyStmt->get_result()->fetch_assoc();
+    $verifyStmt->close();
+
+    if (!$userRow) {
+        throw new Exception('Verification failed. Please check your details.');
     }
 
     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-    $updateStmt = $conn->prepare("UPDATE patients SET password = ? WHERE id = ?");
-    $updateStmt->bind_param('si', $hashedPassword, $patient['id']);
+    $updateSql = "UPDATE {$targetTable} SET password = ? WHERE {$idColumn} = ?";
+    $updateStmt = $conn->prepare($updateSql);
+    $updateStmt->bind_param('si', $hashedPassword, $userRow[$idColumn]);
     $updateStmt->execute();
     $updateStmt->close();
 

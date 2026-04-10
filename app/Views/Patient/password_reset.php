@@ -15,18 +15,35 @@
         <div class="form-container">
             <form id="resetForm">
                 <div class="form-group">
+                    <label for="accountType">Account Type</label>
+                    <select id="accountType" name="account_type" required>
+                        <option value="patient">Patient</option>
+                        <option value="admin">Admin</option>
+                        <option value="doctor">Doctor</option>
+                        <option value="staff">Staff</option>
+                        <option value="pharmacist">Pharmacist</option>
+                        <option value="supplier">Supplier</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" placeholder="Enter account email" required>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group patient-only">
                     <label for="nic">NIC</label>
                     <input type="text" id="nic" name="nic" placeholder="Enter NIC used at signup" required>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group patient-only">
                     <label for="dob">Date of Birth</label>
                     <input type="date" id="dob" name="dob" required>
+                </div>
+
+                <div class="form-group non-patient-only" style="display:none;">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" name="phone" placeholder="Enter registered phone number">
                 </div>
 
                 <div class="form-group">
@@ -81,51 +98,86 @@
             }
         }
 
+        function syncResetFormFields() {
+            const accountType = document.getElementById('accountType').value;
+            const patientFields = document.querySelectorAll('.patient-only');
+            const nonPatientFields = document.querySelectorAll('.non-patient-only');
+            const nic = document.getElementById('nic');
+            const dob = document.getElementById('dob');
+            const phone = document.getElementById('phone');
+
+            const isPatient = accountType === 'patient';
+
+            patientFields.forEach(el => el.style.display = isPatient ? 'block' : 'none');
+            nonPatientFields.forEach(el => el.style.display = isPatient ? 'none' : 'block');
+
+            nic.required = isPatient;
+            dob.required = isPatient;
+            phone.required = !isPatient;
+        }
+
+        document.getElementById('accountType').addEventListener('change', syncResetFormFields);
+        syncResetFormFields();
+
         document.getElementById('resetForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const formData = new FormData();
+            formData.set('account_type', document.getElementById('accountType').value);
             formData.set('email', document.getElementById('email').value.trim());
             formData.set('nic', document.getElementById('nic').value.trim());
             formData.set('dob', document.getElementById('dob').value);
+            formData.set('phone', PatientFormUtils.toDigits(document.getElementById('phone').value, 10));
             formData.set('newPassword', document.getElementById('newPassword').value);
             formData.set('confirmPassword', document.getElementById('confirmPassword').value);
 
-            const error = PatientFormUtils.validateRules(formData, {
+            const isPatient = formData.get('account_type') === 'patient';
+            const baseRules = {
+                account_type: { required: true, message: 'Account type is required.' },
                 email: {
                     required: true,
                     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     message: 'Please enter a valid email address.'
                 },
-                nic: {
-                    required: true,
-                    message: 'NIC is required.'
-                },
-                dob: {
-                    required: true,
-                    message: 'Date of birth is required.'
-                },
                 newPassword: {
                     required: true,
                     pattern: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/,
                     message: 'Password must be 8+ chars with uppercase, lowercase, number and special character.'
-                },
+                }
+            };
+
+            const extraRules = isPatient ? {
+                nic: { required: true, message: 'NIC is required for patient reset.' },
+                dob: { required: true, message: 'Date of birth is required for patient reset.' }
+            } : {
+                phone: {
+                    required: true,
+                    pattern: /^0[0-9]{9}$/,
+                    message: 'Registered phone number is required (e.g. 0712345678).'
+                }
+            };
+
+            const confirmRule = {
                 confirmPassword: {
                     required: true,
                     custom: function (value, fd) {
                         return value !== String(fd.get('newPassword')) ? 'Passwords do not match.' : '';
                     }
                 }
-            });
+            };
+
+            const error = PatientFormUtils.validateRules(formData, { ...baseRules, ...extraRules, ...confirmRule });
             if (error) {
                 alert(error);
                 return;
             }
 
             const payload = new FormData();
+            payload.append('account_type', String(formData.get('account_type')));
             payload.append('email', String(formData.get('email')));
             payload.append('nic', String(formData.get('nic')));
             payload.append('dob', String(formData.get('dob')));
+            payload.append('phone', String(formData.get('phone')));
             payload.append('new_password', String(formData.get('newPassword')));
             payload.append('confirm_password', String(formData.get('confirmPassword')));
 
