@@ -10,116 +10,59 @@ use App\Models\BatchModel;
 
 $model = new BatchModel();
 
-// Get inventory overview from database for admin products
-$overview = $model->getInventoryOverview();
-
-// Get inventory overview for patient products
+// Get inventory overview for all product types
+$overview        = $model->getInventoryOverview();
 $patientOverview = $model->getPatientProductsOverview();
+$treatmentOverview = $model->getTreatmentProductsOverview();
 
-// Get expiring items (within 30 days) for both admin and patient products
 $expiringItems = [];
 $today = new DateTime();
 $thirtyDaysFromNow = clone $today;
 $thirtyDaysFromNow->modify('+30 days');
 
-// Check admin products
-foreach ($overview as $row) {
-    $productId = $row['product_id'];
-    $productName = $row['product'];
-    $batches = $model->getBatchesByProductId($productId, 'admin');
-    
-    foreach ($batches as $batch) {
-        if ($batch['exp']) {
-            $expDate = new DateTime($batch['exp']);
-            if ($expDate <= $thirtyDaysFromNow && $expDate >= $today) {
-                // Group by product and expiry month
-                $expMonth = $expDate->format('M Y');
-                $key = $productName . '_' . $expMonth;
-                
-                if (!isset($expiringItems[$key])) {
-                    $expiringItems[$key] = [
-                        'product' => $productName,
-                        'expiry' => $expMonth,
-                        'count' => 0
-                    ];
+$allOverviews = [
+    ['rows' => $overview,         'source' => 'admin'],
+    ['rows' => $patientOverview,  'source' => 'patient'],
+    ['rows' => $treatmentOverview,'source' => 'treatment'],
+];
+
+foreach ($allOverviews as $group) {
+    foreach ($group['rows'] as $row) {
+        $batches = $model->getBatchesByProductId($row['product_id'], $group['source']);
+        foreach ($batches as $batch) {
+            if ($batch['exp']) {
+                $expDate = new DateTime($batch['exp']);
+                if ($expDate <= $thirtyDaysFromNow && $expDate >= $today) {
+                    $expMonth = $expDate->format('M Y');
+                    $key = $row['product'] . '_' . $expMonth;
+                    if (!isset($expiringItems[$key])) {
+                        $expiringItems[$key] = ['product' => $row['product'], 'expiry' => $expMonth, 'count' => 0];
+                    }
+                    $expiringItems[$key]['count'] += (int)$batch['quantity'];
                 }
-                $expiringItems[$key]['count'] += (int)$batch['quantity'];
             }
         }
     }
 }
 
-// Check patient products
-foreach ($patientOverview as $row) {
-    $productId = $row['product_id'];
-    $productName = $row['product'];
-    $batches = $model->getBatchesByProductId($productId, 'patient');
-    
-    foreach ($batches as $batch) {
-        if ($batch['exp']) {
-            $expDate = new DateTime($batch['exp']);
-            if ($expDate <= $thirtyDaysFromNow && $expDate >= $today) {
-                // Group by product and expiry month
-                $expMonth = $expDate->format('M Y');
-                $key = $productName . '_' . $expMonth;
-                
-                if (!isset($expiringItems[$key])) {
-                    $expiringItems[$key] = [
-                        'product' => $productName,
-                        'expiry' => $expMonth,
-                        'count' => 0
-                    ];
-                }
-                $expiringItems[$key]['count'] += (int)$batch['quantity'];
-            }
-        }
-    }
-}
-
-// Sort expiring items by expiry date
 usort($expiringItems, function($a, $b) {
     return strtotime($a['expiry']) - strtotime($b['expiry']);
 });
 
-// Prepare chart data for admin products
-$chartLabels = [];
-$chartData = [];
-$chartColors = [];
-
-foreach ($overview as $row) {
-    $qty = (int)$row['total_quantity'];
-    $chartLabels[] = $row['product'];
-    $chartData[] = $qty;
-    
-    // Color coding based on stock level
-    if ($qty <= 5) {
-        $chartColors[] = '#FF6B6B'; // Critical - Red
-    } elseif ($qty <= 15) {
-        $chartColors[] = '#FF8C42'; // Low - Orange
-    } else {
-        $chartColors[] = '#FFB84D'; // Normal - Yellow
+function buildChartData(array $rows): array {
+    $labels = []; $data = []; $colors = [];
+    foreach ($rows as $row) {
+        $qty = (int)$row['total_quantity'];
+        $labels[] = $row['product'];
+        $data[]   = $qty;
+        $colors[] = $qty <= 5 ? '#FF6B6B' : ($qty <= 15 ? '#FF8C42' : '#FFB84D');
     }
+    return [$labels, $data, $colors];
 }
 
-// Prepare chart data for patient products
-$patientChartLabels = [];
-$patientChartData = [];
-$patientChartColors = [];
-
-foreach ($patientOverview as $row) {
-    $qty = (int)$row['total_quantity'];
-    $patientChartLabels[] = $row['product'];
-    $patientChartData[] = $qty;
-    
-    // Color coding based on stock level
-    if ($qty <= 5) {
-        $patientChartColors[] = '#FF6B6B'; // Critical - Red
-    } elseif ($qty <= 15) {
-        $patientChartColors[] = '#FF8C42'; // Low - Orange
-    } else {
-        $patientChartColors[] = '#FFB84D'; // Normal - Yellow
-    }
-}
+[$chartLabels,         $chartData,         $chartColors]         = buildChartData($overview);
+[$patientChartLabels,  $patientChartData,  $patientChartColors]  = buildChartData($patientOverview);
+[$treatmentChartLabels,$treatmentChartData,$treatmentChartColors] = buildChartData($treatmentOverview);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -188,26 +131,26 @@ foreach ($patientOverview as $row) {
                 <?php endif; ?>
             </div>
 
-            <!-- Admin Products Chart -->
+            <!-- Medicines Chart -->
             <div class="report-card full-width">
-                <h3>Admin Products - Stock Levels</h3>
+                <h3>Medicines - Stock Levels</h3>
                 <div class="chart-container">
                     <canvas id="stockChart"></canvas>
                 </div>
             </div>
 
-            <!-- Patient Products Chart -->
+            <!-- Treatment Oils Chart -->
             <div class="report-card full-width" style="margin-top: 2rem;">
-                <h3>Patient Products - Stock Levels</h3>
+                <h3>Treatment Oils - Stock Levels</h3>
                 <div class="chart-container">
-                    <canvas id="patientStockChart"></canvas>
+                    <canvas id="treatmentStockChart"></canvas>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        // Admin Products Stock Levels Chart
+        // Medicines Stock Levels Chart
         const stockCtx = document.getElementById('stockChart').getContext('2d');
         const chartLabels = <?= json_encode($chartLabels) ?>;
         const chartData = <?= json_encode($chartData) ?>;
@@ -237,7 +180,7 @@ foreach ($patientOverview as $row) {
                     x: {
                         title: {
                             display: true,
-                            text: 'Admin Products'
+                            text: 'Medicines'
                         },
                         ticks: {
                             maxRotation: 45,
@@ -255,20 +198,20 @@ foreach ($patientOverview as $row) {
             }
         });
 
-        // Patient Products Stock Levels Chart
-        const patientStockCtx = document.getElementById('patientStockChart').getContext('2d');
-        const patientChartLabels = <?= json_encode($patientChartLabels) ?>;
-        const patientChartData = <?= json_encode($patientChartData) ?>;
-        const patientChartColors = <?= json_encode($patientChartColors) ?>;
-        
-        new Chart(patientStockCtx, {
+        // Treatment Oils Stock Levels Chart
+        const treatmentStockCtx = document.getElementById('treatmentStockChart').getContext('2d');
+        const treatmentChartLabels = <?= json_encode($treatmentChartLabels) ?>;
+        const treatmentChartData = <?= json_encode($treatmentChartData) ?>;
+        const treatmentChartColors = <?= json_encode($treatmentChartColors) ?>;
+
+        new Chart(treatmentStockCtx, {
             type: 'bar',
             data: {
-                labels: patientChartLabels,
+                labels: treatmentChartLabels,
                 datasets: [{
                     label: 'Current Stock',
-                    data: patientChartData,
-                    backgroundColor: patientChartColors,
+                    data: treatmentChartData,
+                    backgroundColor: treatmentChartColors,
                     borderColor: '#333',
                     borderWidth: 1
                 }]
@@ -276,29 +219,10 @@ foreach ($patientOverview as $row) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Patient Products'
-                        },
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Quantity'
-                        }
-                    }
+                    x: { title: { display: true, text: 'Treatment Oils' }, ticks: { maxRotation: 45, minRotation: 45 } },
+                    y: { beginAtZero: true, title: { display: true, text: 'Quantity (Bottles)' } }
                 }
             }
         });

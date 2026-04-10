@@ -1,4 +1,83 @@
 <!DOCTYPE html>
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('PHARMACIST_SID');
+    session_set_cookie_params(['path' => '/', 'httponly' => true]);
+    session_start();
+}
+require_once __DIR__ . '/../../Models/ConsultationFormModel.php';
+
+$db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+
+$consultations = [];
+$dispatchStatuses = [];
+
+if (!$db->connect_error) {
+    $consultationModel = new ConsultationFormModel($db);
+    $all = $consultationModel->getAllConsultationForms();
+    if (is_array($all)) {
+        $consultations = array_values(array_filter($all, function($c) {
+            $p = $c['personal_products'] ?? '';
+            if (empty($p)) return false;
+            $d = json_decode($p, true);
+            return is_array($d) && count($d) > 0;
+        }));
+    }
+    $dq = $db->query("SELECT consultation_id, status FROM consultation_dispatches");
+    if ($dq) {
+        while ($row = $dq->fetch_assoc()) $dispatchStatuses[(int)$row['consultation_id']] = $row['status'];
+        $dq->free();
+    }
+}
+
+$pendingOrders = [];
+$dispatchedOrders = [];
+foreach ($consultations as $c) {
+    if (!empty($dispatchStatuses[$c['id']]) && $dispatchStatuses[$c['id']] === 'Dispatched') {
+        $dispatchedOrders[] = $c;
+    } else {
+        $pendingOrders[] = $c;
+    }
+}
+
+// Inventory alerts
+$todayStr = date('Y-m-d');
+$soonStr = date('Y-m-d', strtotime('+30 days'));
+$lowStockItems = [];
+$expiringSoonItems = [];
+
+if (!$db->connect_error) {
+    $sq = $db->query("
+        SELECT p.name,
+               COALESCE(SUM(CASE WHEN b.exp IS NULL OR b.exp >= '$todayStr' THEN b.quantity ELSE 0 END), 0) AS avail_qty,
+               MIN(CASE WHEN b.exp IS NOT NULL AND b.exp >= '$todayStr' THEN b.exp ELSE NULL END) AS earliest_exp
+        FROM products p
+        LEFT JOIN batches b ON b.product_id = p.product_id
+        GROUP BY p.product_id, p.name
+        ORDER BY avail_qty ASC, earliest_exp ASC
+    ");
+    if ($sq) {
+        while ($row = $sq->fetch_assoc()) {
+            $qty = (int)$row['avail_qty'];
+            if ($qty <= 15) $lowStockItems[] = ['name' => $row['name'], 'qty' => $qty];
+            if (!empty($row['earliest_exp']) && $row['earliest_exp'] <= $soonStr) {
+                $daysLeft = (int)round((strtotime($row['earliest_exp']) - time()) / 86400);
+                $expiringSoonItems[] = ['name' => $row['name'], 'days' => max(0, $daysLeft)];
+            }
+        }
+        $sq->free();
+    }
+    $db->close();
+}
+
+$pendingCount = count($pendingOrders);
+$dispatchedCount = count($dispatchedOrders);
+$lowStockCount = count($lowStockItems);
+$expiringSoonCount = count($expiringSoonItems);
+
+$recentPending = array_slice($pendingOrders, 0, 3);
+$recentDispatched = array_slice($dispatchedOrders, 0, 2);
+?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,7 +94,7 @@
             <img src="/dheergayu/public/assets/images/dheergayu.png" alt="Dheergayu Logo" class="logo">
             <h1 class="header-title">Dheergayu</h1>
         </div>
-        
+
         <nav class="navigation">
             <button class="nav-btn active">Home</button>
             <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
@@ -24,11 +103,10 @@
             <a href="pharmacistrequest.php" class="nav-btn">Request</a>
             <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
         </nav>
-        
+
         <div class="user-section">
             <div class="user-icon" id="user-icon">👤</div>
             <span class="user-role">Pharmacist</span>
-            <!-- Dropdown -->
             <div class="user-dropdown" id="user-dropdown">
                 <a href="pharmacistprofile.php" class="profile-btn">Profile</a>
                 <a href="../patient/login.php" class="logout-btn">Logout</a>
@@ -51,35 +129,35 @@
                     <div class="card-icon">📋</div>
                     <div class="card-content">
                         <h3 class="card-label">Pending Orders</h3>
-                        <p class="card-value">12</p>
-                        <span class="card-change">+3 from yesterday</span>
+                        <p class="card-value"><?= $pendingCount ?></p>
+                        <span class="card-change">Awaiting dispatch</span>
                     </div>
                 </div>
-                
+
                 <div class="summary-card dispatched-card">
                     <div class="card-icon">✅</div>
                     <div class="card-content">
-                        <h3 class="card-label">Dispatched Today</h3>
-                        <p class="card-value">8</p>
+                        <h3 class="card-label">Dispatched Orders</h3>
+                        <p class="card-value"><?= $dispatchedCount ?></p>
                         <span class="card-change">Ready for pickup</span>
                     </div>
                 </div>
-                
+
                 <div class="summary-card low-stock-card">
                     <div class="card-icon">⚠️</div>
                     <div class="card-content">
                         <h3 class="card-label">Low Stock Items</h3>
-                        <p class="card-value">5</p>
+                        <p class="card-value"><?= $lowStockCount ?></p>
                         <span class="card-change">Requires attention</span>
                     </div>
                 </div>
-                
+
                 <div class="summary-card expiring-card">
                     <div class="card-icon">⏰</div>
                     <div class="card-content">
                         <h3 class="card-label">Expiring Soon</h3>
-                        <p class="card-value">7</p>
-                        <span class="card-change">Within 10 days</span>
+                        <p class="card-value"><?= $expiringSoonCount ?></p>
+                        <span class="card-change">Within 30 days</span>
                     </div>
                 </div>
             </div>
@@ -92,117 +170,88 @@
                         <h2 class="section-title">Recent Orders</h2>
                         <a href="pharmacistorders.php" class="view-all-link">View All →</a>
                     </div>
-                    
+
                     <!-- Pending Orders -->
                     <div class="order-group">
                         <h3 class="order-group-title">
                             <span class="status-badge pending-badge">Pending</span>
-                            <span class="order-count">5 orders</span>
+                            <span class="order-count"><?= $pendingCount ?> order<?= $pendingCount != 1 ? 's' : '' ?></span>
                         </h3>
-                        
+
                         <div class="order-list">
-                            <div class="order-card">
-                                <div class="order-header">
-                                    <span class="order-id">Order #ORD-2024-001</span>
-                                    <span class="order-date">Today, 10:30 AM</span>
-                                </div>
-                                <div class="order-patient">
-                                    <strong>Patient:</strong> John Doe
-                                </div>
-                                <div class="order-medicines">
-                                    <span class="medicine-tag">Ashwagandha Capsules x2</span>
-                                    <span class="medicine-tag">Arawindasawaya x1</span>
-                                    <span class="medicine-tag">Arjunarishtaya x1</span>
-                                </div>
-                                <div class="order-footer">
-                                    <span class="consultation-ref">Consultation #101</span>
-                                    <button class="action-button dispatch-btn">Mark as Dispatched</button>
-                                </div>
-                            </div>
-                            
-                            <div class="order-card">
-                                <div class="order-header">
-                                    <span class="order-id">Order #ORD-2024-002</span>
-                                    <span class="order-date">Today, 09:15 AM</span>
-                                </div>
-                                <div class="order-patient">
-                                    <strong>Patient:</strong> Jane Smith
-                                </div>
-                                <div class="order-medicines">
-                                    <span class="medicine-tag">Kothalahimbutu Capsules x2</span>
-                                    <span class="medicine-tag">Abayarishtaya x1</span>
-                                    <span class="medicine-tag">Kanakasawaya x1</span>
-                                </div>
-                                <div class="order-footer">
-                                    <span class="consultation-ref">Consultation #102</span>
-                                    <button class="action-button dispatch-btn">Mark as Dispatched</button>
-                                </div>
-                            </div>
-                            
-                            <div class="order-card">
-                                <div class="order-header">
-                                    <span class="order-id">Order #ORD-2024-003</span>
-                                    <span class="order-date">Today, 08:45 AM</span>
-                                </div>
-                                <div class="order-patient">
-                                    <strong>Patient:</strong> Robert Johnson
-                                </div>
-                                <div class="order-medicines">
-                                    <span class="medicine-tag">Chandanasawaya x1</span>
-                                    <span class="medicine-tag">Amurtharishtaya x2</span>
-                                    <span class="medicine-tag">Arawindasawaya x1</span>
-                                </div>
-                                <div class="order-footer">
-                                    <span class="consultation-ref">Consultation #103</span>
-                                    <button class="action-button dispatch-btn">Mark as Dispatched</button>
-                                </div>
-                            </div>
+                            <?php if (empty($recentPending)): ?>
+                                <p style="color:#666;padding:1rem 0;">No pending orders.</p>
+                            <?php else: ?>
+                                <?php foreach ($recentPending as $order): ?>
+                                    <?php
+                                    $medicines = json_decode($order['personal_products'] ?? '[]', true);
+                                    if (!is_array($medicines)) $medicines = [];
+                                    $patientName = trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+                                    if (!$patientName) $patientName = 'Patient #' . $order['id'];
+                                    ?>
+                                    <div class="order-card">
+                                        <div class="order-header">
+                                            <span class="order-id">Consultation #<?= $order['id'] ?></span>
+                                            <span class="order-date"><?= htmlspecialchars($order['created_at'] ?? '') ?></span>
+                                        </div>
+                                        <div class="order-patient">
+                                            <strong>Patient:</strong> <?= htmlspecialchars($patientName) ?>
+                                        </div>
+                                        <div class="order-medicines">
+                                            <?php foreach ($medicines as $med): ?>
+                                                <?php $mName = is_array($med) ? ($med['product'] ?? '') : $med; $mQty = is_array($med) ? ($med['qty'] ?? 1) : 1; if (!$mName) continue; ?>
+                                                <span class="medicine-tag"><?= htmlspecialchars($mName) ?> x<?= (int)$mQty ?></span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <div class="order-footer">
+                                            <span class="consultation-ref">Consultation #<?= $order['id'] ?></span>
+                                            <a href="pharmacistorders.php" class="action-button dispatch-btn">View Orders</a>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
-                    
+
                     <!-- Dispatched Orders -->
                     <div class="order-group">
                         <h3 class="order-group-title">
                             <span class="status-badge dispatched-badge">Dispatched</span>
-                            <span class="order-count">3 orders</span>
+                            <span class="order-count"><?= $dispatchedCount ?> order<?= $dispatchedCount != 1 ? 's' : '' ?></span>
                         </h3>
-                        
+
                         <div class="order-list">
-                            <div class="order-card dispatched">
-                                <div class="order-header">
-                                    <span class="order-id">Order #ORD-2024-004</span>
-                                    <span class="order-date">Today, 11:00 AM</span>
-                                </div>
-                                <div class="order-patient">
-                                    <strong>Patient:</strong> Sarah Williams
-                                </div>
-                                <div class="order-medicines">
-                                    <span class="medicine-tag">Ashwagandha Capsules x2</span>
-                                    <span class="medicine-tag">Arjunarishtaya x1</span>
-                                </div>
-                                <div class="order-footer">
-                                    <span class="consultation-ref">Consultation #104</span>
-                                    <span class="dispatched-label">✓ Dispatched</span>
-                                </div>
-                            </div>
-                            
-                            <div class="order-card dispatched">
-                                <div class="order-header">
-                                    <span class="order-id">Order #ORD-2024-005</span>
-                                    <span class="order-date">Today, 10:00 AM</span>
-                                </div>
-                                <div class="order-patient">
-                                    <strong>Patient:</strong> Michael Brown
-                                </div>
-                                <div class="order-medicines">
-                                    <span class="medicine-tag">Kothalahimbutu Capsules x1</span>
-                                    <span class="medicine-tag">Kanakasawaya x2</span>
-                                </div>
-                                <div class="order-footer">
-                                    <span class="consultation-ref">Consultation #105</span>
-                                    <span class="dispatched-label">✓ Dispatched</span>
-                                </div>
-                            </div>
+                            <?php if (empty($recentDispatched)): ?>
+                                <p style="color:#666;padding:1rem 0;">No dispatched orders.</p>
+                            <?php else: ?>
+                                <?php foreach ($recentDispatched as $order): ?>
+                                    <?php
+                                    $medicines = json_decode($order['personal_products'] ?? '[]', true);
+                                    if (!is_array($medicines)) $medicines = [];
+                                    $patientName = trim(($order['first_name'] ?? '') . ' ' . ($order['last_name'] ?? ''));
+                                    if (!$patientName) $patientName = 'Patient #' . $order['id'];
+                                    ?>
+                                    <div class="order-card dispatched">
+                                        <div class="order-header">
+                                            <span class="order-id">Consultation #<?= $order['id'] ?></span>
+                                            <span class="order-date"><?= htmlspecialchars($order['created_at'] ?? '') ?></span>
+                                        </div>
+                                        <div class="order-patient">
+                                            <strong>Patient:</strong> <?= htmlspecialchars($patientName) ?>
+                                        </div>
+                                        <div class="order-medicines">
+                                            <?php foreach ($medicines as $med): ?>
+                                                <?php $mName = is_array($med) ? ($med['product'] ?? '') : $med; $mQty = is_array($med) ? ($med['qty'] ?? 1) : 1; if (!$mName) continue; ?>
+                                                <span class="medicine-tag"><?= htmlspecialchars($mName) ?> x<?= (int)$mQty ?></span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <div class="order-footer">
+                                            <span class="consultation-ref">Consultation #<?= $order['id'] ?></span>
+                                            <span class="dispatched-label">✓ Dispatched</span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -218,41 +267,19 @@
                             <h3 class="alert-title">Low Stock Items</h3>
                         </div>
                         <div class="alert-content">
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Turmeric Powder</span>
-                                    <span class="item-detail">2 kg remaining</span>
-                                </div>
-                                <span class="item-status critical">Critical</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Ayurvedic Massage Oil</span>
-                                    <span class="item-detail">1 bottle left</span>
-                                </div>
-                                <span class="item-status critical">Critical</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Herbal Steam Herbs</span>
-                                    <span class="item-detail">3 packets</span>
-                                </div>
-                                <span class="item-status warning">Low</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Neem Paste</span>
-                                    <span class="item-detail">5 units</span>
-                                </div>
-                                <span class="item-status warning">Low</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Medicated Oil</span>
-                                    <span class="item-detail">4 bottles</span>
-                                </div>
-                                <span class="item-status warning">Low</span>
-                            </div>
+                            <?php if (empty($lowStockItems)): ?>
+                                <p style="color:#666;padding:0.5rem 0;">All stock levels are adequate.</p>
+                            <?php else: ?>
+                                <?php foreach (array_slice($lowStockItems, 0, 7) as $item): ?>
+                                    <div class="alert-item">
+                                        <div class="alert-item-info">
+                                            <span class="item-name"><?= htmlspecialchars($item['name']) ?></span>
+                                            <span class="item-detail"><?= $item['qty'] ?> bottle<?= $item['qty'] != 1 ? 's' : '' ?> remaining</span>
+                                        </div>
+                                        <span class="item-status <?= $item['qty'] <= 5 ? 'critical' : 'warning' ?>"><?= $item['qty'] <= 5 ? 'Critical' : 'Low' ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                         <a href="pharmacistinventory.php" class="alert-action-link">View Inventory →</a>
                     </div>
@@ -266,55 +293,19 @@
                             <h3 class="alert-title">Expiring Soon</h3>
                         </div>
                         <div class="alert-content">
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Neem Paste</span>
-                                    <span class="item-detail">Expires in 5 days</span>
-                                </div>
-                                <span class="item-status urgent">Urgent</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Herbal Tea Mix</span>
-                                    <span class="item-detail">Expires in 7 days</span>
-                                </div>
-                                <span class="item-status urgent">Urgent</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Medicated Oil</span>
-                                    <span class="item-detail">Expires in 10 days</span>
-                                </div>
-                                <span class="item-status warning">Soon</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Dashamoolarishta</span>
-                                    <span class="item-detail">Expires in 12 days</span>
-                                </div>
-                                <span class="item-status warning">Soon</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Paspanguwa Pack</span>
-                                    <span class="item-detail">Expires in 15 days</span>
-                                </div>
-                                <span class="item-status warning">Soon</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Siddhalepa Balm</span>
-                                    <span class="item-detail">Expires in 18 days</span>
-                                </div>
-                                <span class="item-status warning">Soon</span>
-                            </div>
-                            <div class="alert-item">
-                                <div class="alert-item-info">
-                                    <span class="item-name">Ayurvedic Massage Oil</span>
-                                    <span class="item-detail">Expires in 20 days</span>
-                                </div>
-                                <span class="item-status warning">Soon</span>
-                            </div>
+                            <?php if (empty($expiringSoonItems)): ?>
+                                <p style="color:#666;padding:0.5rem 0;">No items expiring within 30 days.</p>
+                            <?php else: ?>
+                                <?php foreach (array_slice($expiringSoonItems, 0, 7) as $item): ?>
+                                    <div class="alert-item">
+                                        <div class="alert-item-info">
+                                            <span class="item-name"><?= htmlspecialchars($item['name']) ?></span>
+                                            <span class="item-detail">Expires in <?= $item['days'] ?> day<?= $item['days'] != 1 ? 's' : '' ?></span>
+                                        </div>
+                                        <span class="item-status <?= $item['days'] <= 7 ? 'urgent' : 'warning' ?>"><?= $item['days'] <= 7 ? 'Urgent' : 'Soon' ?></span>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
                         <a href="pharmacistinventory.php" class="alert-action-link">View Inventory →</a>
                     </div>

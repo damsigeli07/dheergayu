@@ -22,7 +22,7 @@ if ($db->connect_error) {
 // Get product prices and list of admin products
 $productPrices = [];
 $adminProducts = [];
-$productsQuery = @$db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
+$productsQuery = $db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
 if ($productsQuery) {
     while ($product = $productsQuery->fetch_assoc()) {
         $productPrices[$product['name']] = [
@@ -40,7 +40,7 @@ if ($productsQuery) {
 
 // Fetch dispatch statuses (consultation_dispatches table)
 $dispatchStatuses = [];
-$dispatchQuery = @$db->query("SELECT consultation_id, status FROM consultation_dispatches");
+$dispatchQuery = $db->query("SELECT consultation_id, status FROM consultation_dispatches");
 if ($dispatchQuery && $dispatchQuery->num_rows >= 0) {
     while ($row = $dispatchQuery->fetch_assoc()) {
         $dispatchStatuses[(int)$row['consultation_id']] = $row['status'];
@@ -435,7 +435,6 @@ if (!$db->connect_error) $db->close();
                     document.querySelector('.orders-tab[data-tab="dispatched"]').textContent = 'Dispatched Orders (' + dispatchedCount + ')';
                 }
             } catch (error) {
-                console.error('Dispatch update failed', error);
                 alert('Failed to update dispatch status');
                 checkbox.checked = !isDispatched;
             }

@@ -55,16 +55,17 @@ class BatchModel {
         return $products;
     }
 
-    /** Get inventory overview for admin products */
+    /** Get inventory overview for medicines (admin + patient products, excludes treatment oils) */
     public function getInventoryOverview(): array {
         $idCol = $this->productIdColumn;
         $nameCol = $this->productNameColumn;
-        $sql = "SELECT p.`$idCol` AS product_id, p.`$nameCol` AS product, 
+        $sql = "SELECT p.`$idCol` AS product_id, p.`$nameCol` AS product,
                        COALESCE(SUM(b.quantity), 0) AS total_quantity,
                        MIN(b.exp) AS earliest_exp,
                        COUNT(b.product_id) AS batches_count
                 FROM products p
-                LEFT JOIN batches b ON b.product_id = p.`$idCol` AND (b.product_source = 'admin' OR b.product_source IS NULL)
+                LEFT JOIN batches b ON b.product_id = p.`$idCol` AND b.product_source != 'treatment'
+                WHERE COALESCE(p.product_type, 'admin') != 'treatment'
                 GROUP BY p.`$idCol`, p.`$nameCol`
                 ORDER BY p.`$nameCol`";
         $res = $this->db->query($sql);
@@ -87,6 +88,28 @@ class BatchModel {
                 FROM products p
                 LEFT JOIN batches b ON b.product_id = p.product_id AND b.product_source = 'patient'
                 WHERE p.product_type = 'patient'
+                GROUP BY p.product_id, p.name
+                ORDER BY p.name";
+        $res = $this->db->query($sql);
+        $rows = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $rows[] = $row;
+            }
+            $res->close();
+        }
+        return $rows;
+    }
+
+    /** Get inventory overview for treatment products */
+    public function getTreatmentProductsOverview(): array {
+        $sql = "SELECT p.product_id, p.name AS product,
+                       COALESCE(SUM(b.quantity), 0) AS total_quantity,
+                       MIN(b.exp) AS earliest_exp,
+                       COUNT(b.product_id) AS batches_count
+                FROM products p
+                LEFT JOIN batches b ON b.product_id = p.product_id AND b.product_source = 'treatment'
+                WHERE p.product_type = 'treatment'
                 GROUP BY p.product_id, p.name
                 ORDER BY p.name";
         $res = $this->db->query($sql);

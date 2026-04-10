@@ -48,14 +48,8 @@
             <label for="lastName">Last Name <span>*</span></label>
             <input type="text" id="lastName" name="last_name" required autocomplete="off" value="">
 
-            <label for="password">Password <span>*</span></label>
-            <input type="password" id="password" name="password" required autocomplete="new-password" value="">
-
-            <label for="email">Email <span>*</span></label>
-            <input type="email" id="email" name="email" required autocomplete="off" value="">
-
-            <label for="phone">Phone <span>*</span></label>
-            <input type="text" id="phone" name="phone" required autocomplete="off" value="">
+            <label for="password">Default Password <span>*</span></label>
+            <input type="password" id="password" name="password" required autocomplete="new-password" value="1234">
 
             <label for="role">Role <span>*</span></label>
             <select id="role" name="role" required autocomplete="off">
@@ -66,8 +60,14 @@
                 <option value="Admin">Admin</option>
             </select>
 
-            <label class="checkbox-label">
-                <input type="checkbox" id="verified" name="verified" required>
+            <label for="email">Email <span>*</span></label>
+            <input type="email" id="email" name="email" required autocomplete="off" placeholder="Select a role to auto-generate" readonly style="background:#f8f8f8;color:#555;cursor:default;">
+
+            <label for="phone">Phone <span>*</span></label>
+            <input type="text" id="phone" name="phone" required autocomplete="off" value="">
+
+            <label class="checkbox-label" id="certLabel" style="display:none;">
+                <input type="checkbox" id="verified" name="verified">
                 Certification is verified
             </label>
 
@@ -76,6 +76,42 @@
                 <button type="submit" class="submit-btn">Submit</button>
             </div>
         </form>
+
+        <script>
+        (function() {
+            const roleSelect = document.getElementById('role');
+            const emailInput = document.getElementById('email');
+            const certLabel = document.getElementById('certLabel');
+            const certCheckbox = document.getElementById('verified');
+
+            roleSelect.addEventListener('change', function() {
+                const role = this.value.toLowerCase();
+
+                // Show/hide certification checkbox
+                if (role === 'doctor' || role === 'pharmacist') {
+                    certLabel.style.display = '';
+                } else {
+                    certLabel.style.display = 'none';
+                    certCheckbox.checked = false;
+                }
+
+                // Fetch next email suggestion
+                fetch('/dheergayu/public/api/next-email.php?role=' + encodeURIComponent(role))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.email) emailInput.value = data.email;
+                    });
+            });
+
+            document.getElementById('addUserForm').addEventListener('submit', function(e) {
+                const role = roleSelect.value.toLowerCase();
+                if ((role === 'doctor' || role === 'pharmacist') && !certCheckbox.checked) {
+                    e.preventDefault();
+                    alert('Certification must be verified before adding a Doctor or Pharmacist.');
+                }
+            });
+        })();
+        </script>
         </div>
     </main>
 </body>
