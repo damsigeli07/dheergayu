@@ -11,19 +11,22 @@
 
 <div class="form-container-main">
     <div class="reset-container">
-        <div class="title">
-            Reset your Password
-        </div>
+        <div class="title">Reset your Password</div>
         <div class="form-container">
             <form id="resetForm">
                 <div class="form-group">
-                    <label for="verificationCode">Enter the code sent to your email</label>
-                    <input 
-                        type="text" 
-                        id="verificationCode" 
-                        placeholder="Enter verification code"
-                        required
-                    >
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter account email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nic">NIC</label>
+                    <input type="text" id="nic" name="nic" placeholder="Enter NIC used at signup" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" name="dob" required>
                 </div>
 
                 <div class="form-group">
@@ -82,14 +85,25 @@
             e.preventDefault();
             
             const formData = new FormData();
-            formData.set('verificationCode', document.getElementById('verificationCode').value);
+            formData.set('email', document.getElementById('email').value.trim());
+            formData.set('nic', document.getElementById('nic').value.trim());
+            formData.set('dob', document.getElementById('dob').value);
             formData.set('newPassword', document.getElementById('newPassword').value);
             formData.set('confirmPassword', document.getElementById('confirmPassword').value);
 
             const error = PatientFormUtils.validateRules(formData, {
-                verificationCode: {
+                email: {
                     required: true,
-                    message: 'Verification code is required.'
+                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Please enter a valid email address.'
+                },
+                nic: {
+                    required: true,
+                    message: 'NIC is required.'
+                },
+                dob: {
+                    required: true,
+                    message: 'Date of birth is required.'
                 },
                 newPassword: {
                     required: true,
@@ -107,9 +121,30 @@
                 alert(error);
                 return;
             }
-            
-            alert('Password reset successful!');
-            this.reset();
+
+            const payload = new FormData();
+            payload.append('email', String(formData.get('email')));
+            payload.append('nic', String(formData.get('nic')));
+            payload.append('dob', String(formData.get('dob')));
+            payload.append('new_password', String(formData.get('newPassword')));
+            payload.append('confirm_password', String(formData.get('confirmPassword')));
+
+            fetch('/dheergayu/public/api/reset-patient-password.php', {
+                method: 'POST',
+                body: payload
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert(data.error || 'Password reset failed.');
+                    return;
+                }
+                alert(data.message || 'Password reset successful.');
+                window.location.href = '/dheergayu/app/Views/Patient/login.php';
+            })
+            .catch(() => {
+                alert('Unable to reset password now. Please try again.');
+            });
         });
 
         

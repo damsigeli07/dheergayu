@@ -60,6 +60,7 @@ if ($isLoggedIn && !empty($userName)) {
                         <div class="dropdown-menu" id="dropdownMenu">
                             <a href="patient_profile.php" class="dropdown-item">Profile</a>
                             <a href="patient_appointments.php" class="dropdown-item">My Appointments</a>
+                            <a href="my_orders.php" class="dropdown-item">My Orders</a>
                             <a href="my_inquiries.php" class="dropdown-item">My Inquiries</a>
                             <a href="logout.php" class="dropdown-item logout" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
                         </div>
@@ -162,383 +163,44 @@ if ($isLoggedIn && !empty($userName)) {
         </div>
     </section>
 
-    <!-- Gift Certificates -->
-    <section class="gift-certificates">
+    <!-- NEW: Why Choose Dheergayu Section -->
+    <section class="why-choose-section">
         <div class="container">
-            <p class="subtitle">Make an Order</p>
-            <h2>TREATMENT COMBO SPECIAL PACKAGES</h2>
+            <p class="subtitle">Why Choose Dheergayu</p>
+            <h2>ANCIENT WISDOM, MODERN EXCELLENCE</h2>
             <div class="decorative-line"></div>
-            <p class="description">There is no better gift to the ones we love than a gift of a healthy, therapeutic, or relaxing session of massage</p>
-            <div class="certificate-cards">
-                <!-- Silver Package -->
-                <div class="certificate-card">
-                    <p class="certificate-level silver">Silver</p>
-                    <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/silver2.jpg" alt="Silver Certificate" class="circle-image">
-                    </div>
-                    <h3 class="price">
-                        <span class="price-original">18 500 LKR</span>
-                        <span class="price-current">14 000 LKR</span>
-                    </h3>
-                    <p class="package-saving">You save 4 500 LKR (24% off)</p>
-                    <button class="btn certificate-btn" onclick="openPackageModal('silver')">LEARN MORE</button>
+            <p class="description">Experience the perfect blend of time-tested Ayurvedic practices and contemporary healthcare standards</p>
+            
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <h3>Traditional Methods</h3>
+                    <p>Authentic Ayurvedic formulations prepared using classical techniques passed down through generations</p>
                 </div>
-                <!-- Gold Package -->
-                <div class="certificate-card">
-                    <p class="certificate-level gold">Gold</p>
-                    <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/silver.jpg" alt="Gold Certificate" class="circle-image">
-                    </div>
-                    <h3 class="price">
-                        <span class="price-original">22 000 LKR</span>
-                        <span class="price-current">15 500 LKR</span>
-                    </h3>
-                    <p class="package-saving">You save 6 500 LKR (30% off)</p>
-                    <button class="btn certificate-btn" onclick="openPackageModal('gold')">LEARN MORE</button>
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <h3>Holistic Wellness</h3>
+                    <p>Personalized treatment plans addressing your unique health needs for complete mind-body balance</p>
                 </div>
-                <!-- Platinum Package -->
-                <div class="certificate-card">
-                    <p class="certificate-level platinum">Platinum</p>
-                    <div class="certificate-image-circle">
-                        <img src="/dheergayu/public/assets/images/Patient/platinum.jpg" alt="Platinum Certificate" class="circle-image">
-                    </div>
-                    <h3 class="price">
-                        <span class="price-original">35 000 LKR</span>
-                        <span class="price-current">8 000 LKR</span>
-                    </h3>
-                    <p class="package-saving">You save 27 000 LKR (77% off)</p>
-                    <button class="btn certificate-btn" onclick="openPackageModal('platinum')">LEARN MORE</button>
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <h3>Quality & Safety</h3>
+                    <p>Hygienic preparation, patient safety protocols, and continuous care follow-up you can trust</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Package Detail Modals -->
-    <!-- Silver Modal -->
-    <div class="package-modal-overlay" id="modal-silver">
-        <div class="package-modal">
-            <button class="modal-close-btn" onclick="closePackageModal('silver')">&times;</button>
-            <div class="modal-header silver-header">
-                <h2>Silver Package</h2>
-                <p class="modal-price-tag">14 000 LKR <span class="modal-original-price">18 500 LKR</span></p>
-            </div>
-            <div class="modal-body">
-                <div class="modal-section">
-                    <h3>Included Treatments & Facilities</h3>
-                    <div class="modal-treatment-list">
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Geothermal Massage</span>
-                                <span class="treatment-individual-price">5 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Reflexology Massage</span>
-                                <span class="treatment-individual-price">4 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Herbal Steam Bath</span>
-                                <span class="treatment-individual-price">3 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Consultation Session</span>
-                                <span class="treatment-individual-price">5 000 LKR</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <h3>Expert Practitioners</h3>
+                    <p>Certified Ayurvedic doctors with years of experience in traditional healing practices</p>
                 </div>
-                <div class="modal-section">
-                    <h3>Package Facilities</h3>
-                    <ul class="modal-facilities-list">
-                        <li>Access to relaxation lounge</li>
-                        <li>Complimentary herbal tea</li>
-                        <li>Towel & bathrobe provided</li>
-                        <li>Valid for 30 days</li>
-                    </ul>
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <h3>Natural Ingredients</h3>
+                    <p>Carefully sourced organic herbs and botanicals ensuring purity and maximum therapeutic benefit</p>
                 </div>
-                <div class="modal-discount-summary">
-                    <div class="discount-row">
-                        <span>Individual Total:</span>
-                        <span>18 500 LKR</span>
-                    </div>
-                    <div class="discount-row">
-                        <span>Package Discount:</span>
-                        <span class="discount-text">- 4 500 LKR (24%)</span>
-                    </div>
-                    <div class="discount-row total-row">
-                        <span>Package Price:</span>
-                        <span>14 000 LKR</span>
-                    </div>
-                </div>
-                <button class="btn modal-book-btn" onclick="handleBooking(event)">BOOK THIS PACKAGE</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Gold Modal -->
-    <div class="package-modal-overlay" id="modal-gold">
-        <div class="package-modal">
-            <button class="modal-close-btn" onclick="closePackageModal('gold')">&times;</button>
-            <div class="modal-header gold-header">
-                <h2>Gold Package</h2>
-                <p class="modal-price-tag">15 500 LKR <span class="modal-original-price">22 000 LKR</span></p>
-            </div>
-            <div class="modal-body">
-                <div class="modal-section">
-                    <h3>Included Treatments & Facilities</h3>
-                    <div class="modal-treatment-list">
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Geothermal Massage</span>
-                                <span class="treatment-individual-price">5 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Prenatal Massage</span>
-                                <span class="treatment-individual-price">5 000 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Trigger Point Massage</span>
-                                <span class="treatment-individual-price">4 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Herbal Steam Bath</span>
-                                <span class="treatment-individual-price">3 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Consultation Session</span>
-                                <span class="treatment-individual-price">3 500 LKR</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-section">
-                    <h3>Package Facilities</h3>
-                    <ul class="modal-facilities-list">
-                        <li>Access to relaxation lounge</li>
-                        <li>Complimentary herbal tea & snacks</li>
-                        <li>Premium towel & bathrobe provided</li>
-                        <li>Priority booking access</li>
-                        <li>Valid for 45 days</li>
-                    </ul>
-                </div>
-                <div class="modal-discount-summary">
-                    <div class="discount-row">
-                        <span>Individual Total:</span>
-                        <span>22 000 LKR</span>
-                    </div>
-                    <div class="discount-row">
-                        <span>Package Discount:</span>
-                        <span class="discount-text">- 6 500 LKR (30%)</span>
-                    </div>
-                    <div class="discount-row total-row">
-                        <span>Package Price:</span>
-                        <span>15 500 LKR</span>
-                    </div>
-                </div>
-                <button class="btn modal-book-btn" onclick="handleBooking(event)">BOOK THIS PACKAGE</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Platinum Modal -->
-    <div class="package-modal-overlay" id="modal-platinum">
-        <div class="package-modal">
-            <button class="modal-close-btn" onclick="closePackageModal('platinum')">&times;</button>
-            <div class="modal-header platinum-header">
-                <h2>Platinum Package</h2>
-                <p class="modal-price-tag">8 000 LKR <span class="modal-original-price">35 000 LKR</span></p>
-            </div>
-            <div class="modal-body">
-                <div class="modal-section">
-                    <h3>Included Treatments & Facilities</h3>
-                    <div class="modal-treatment-list">
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Geothermal Massage</span>
-                                <span class="treatment-individual-price">5 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Prenatal Massage</span>
-                                <span class="treatment-individual-price">5 000 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Reflexology Massage</span>
-                                <span class="treatment-individual-price">4 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Trigger Point Massage</span>
-                                <span class="treatment-individual-price">4 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Manual Lymph Massage</span>
-                                <span class="treatment-individual-price">5 000 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Myofascial Massage</span>
-                                <span class="treatment-individual-price">5 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Herbal Steam Bath</span>
-                                <span class="treatment-individual-price">3 500 LKR</span>
-                            </div>
-                        </div>
-                        <div class="modal-treatment-item">
-                            <span class="treatment-icon">✦</span>
-                            <div class="treatment-details">
-                                <span class="treatment-name">Consultation Session (x2)</span>
-                                <span class="treatment-individual-price">1 000 LKR</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-section">
-                    <h3>Package Facilities</h3>
-                    <ul class="modal-facilities-list">
-                        <li>Full access to all wellness facilities</li>
-                        <li>Complimentary herbal tea, snacks & fruit basket</li>
-                        <li>Luxury towel & premium bathrobe</li>
-                        <li>Priority booking & VIP lounge access</li>
-                        <li>Free parking throughout validity</li>
-                        <li>Valid for 60 days</li>
-                    </ul>
-                </div>
-                <div class="modal-discount-summary">
-                    <div class="discount-row">
-                        <span>Individual Total:</span>
-                        <span>35 000 LKR</span>
-                    </div>
-                    <div class="discount-row">
-                        <span>Package Discount:</span>
-                        <span class="discount-text">- 27 000 LKR (77%)</span>
-                    </div>
-                    <div class="discount-row total-row">
-                        <span>Package Price:</span>
-                        <span>8 000 LKR</span>
-                    </div>
-                </div>
-                <button class="btn modal-book-btn" onclick="handleBooking(event)">BOOK THIS PACKAGE</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Products Section -->
-    <section class="products-section">
-        <div class="container">
-            <p class="subtitle">Premium Quality</p>
-            <h2>DHEERGAYU MASSAGE CENTER</h2>
-            <div class="decorative-line"></div>
-        </div>
-    </section>
-
-    <!-- Massage Therapy Details -->
-    <section class="massage-therapy-details">
-        <div class="container">
-            <div class="therapy-navigation">
-                <div class="nav-item active" data-therapy="geothermal">
-                    <span class="icon">✨</span>
-                    <span class="nav-text-group">
-                        <span class="nav-label">GEOTHERMAL MASSAGE</span>
-                        <span class="nav-price">5 500 LKR</span>
-                    </span>
-                </div>
-                <div class="nav-item" data-therapy="prenatal">
-                    <span class="icon">✨</span>
-                    <span class="nav-text-group">
-                        <span class="nav-label">PRENATAL MASSAGE</span>
-                        <span class="nav-price">5 000 LKR</span>
-                    </span>
-                </div>
-                <div class="nav-item" data-therapy="reflexology">
-                    <span class="icon">✨</span>
-                    <span class="nav-text-group">
-                        <span class="nav-label">REFLEXOLOGY MASSAGE</span>
-                        <span class="nav-price">4 500 LKR</span>
-                    </span>
-                </div>
-                <div class="nav-item" data-therapy="trigger">
-                    <span class="icon">✨</span>
-                    <span class="nav-text-group">
-                        <span class="nav-label">TRIGGER POINT MASSAGE</span>
-                        <span class="nav-price">4 500 LKR</span>
-                    </span>
-                </div>
-                <div class="nav-item" data-therapy="lymph">
-                    <span class="icon">✨</span>
-                    <span class="nav-text-group">
-                        <span class="nav-label">MANUAL LYMPH MASSAGE</span>
-                        <span class="nav-price">5 000 LKR</span>
-                    </span>
-                </div>
-                <div class="nav-item" data-therapy="myofacial">
-                    <span class="icon">✨</span>
-                    <span class="nav-text-group">
-                        <span class="nav-label">MYOFACIAL MASSAGE</span>
-                        <span class="nav-price">5 500 LKR</span>
-                    </span>
-                </div>
-            </div>
-            <div class="therapy-content">
-                <div class="therapy-image">
-                    <img id="therapy-img" src="/dheergayu/public/assets/images/Patient/head-massage.jpg" alt="Massage Therapy">
-                </div>
-                <div class="therapy-description">
-                    <h2 id="therapy-title">GEOTHERMAL MASSAGE THERAPY</h2>
-                    <p class="therapy-price-display" id="therapy-price">5 500 LKR</p>
-                    <p id="therapy-desc">Massage is the manipulation of soft tissues in the body. The techniques are commonly applied with hands, fingers, or a device. Its purpose is for the treatment of body stress or pain:</p>
-                    <div class="list-columns">
-                        <ul id="therapy-list-1">
-                            <li>Back pain</li>
-                            <li>Sciatica</li>
-                            <li>Sleep disorder</li>
-                        </ul>
-                        <ul id="therapy-list-2">
-                            <li>Hip or leg pain</li>
-                            <li>Muscle pain</li>
-                            <li>Depression</li>
-                        </ul>
-                    </div>
-                    <button class="btn therapy-book-btn" onclick="handleBooking(event)">BOOK SESSION</button>
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <h3>Lasting Results</h3>
+                    <p>Focus on root-cause healing for sustainable wellness, not just symptom management</p>
                 </div>
             </div>
         </div>
@@ -631,29 +293,6 @@ if ($isLoggedIn && !empty($userName)) {
             }
         }
 
-        // ─── Package Modals ──────────────────────────────────────────────────
-        function openPackageModal(type) {
-            document.getElementById('modal-' + type).classList.add('active');
-            document.body.classList.add('modal-open');
-        }
-        function closePackageModal(type) {
-            document.getElementById('modal-' + type).classList.remove('active');
-            document.body.classList.remove('modal-open');
-        }
-        document.querySelectorAll('.package-modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                    document.body.classList.remove('modal-open');
-                }
-            });
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.package-modal-overlay.active').forEach(m => m.classList.remove('active'));
-                document.body.classList.remove('modal-open');
-            }
-        });
 
         // ─── User profile dropdown ────────────────────────────────────────────
         const userProfile  = document.getElementById('userProfile');
@@ -701,58 +340,6 @@ if ($isLoggedIn && !empty($userName)) {
         showSlide(currentSlide);
         setInterval(nextSlide, 5000);
 
-        // ─── Therapy Navigation ───────────────────────────────────────────────
-        const therapyData = {
-            geothermal: {
-                title:'GEOTHERMAL MASSAGE THERAPY', price:'5 500 LKR',
-                description:'Massage is the manipulation of soft tissues in the body for treatment of body stress or pain:',
-                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
-                image:'/dheergayu/public/assets/images/Patient/head-massage.jpg'
-            },
-            prenatal: {
-                title:'PREGNANCY OR PRENATAL MASSAGE', price:'5 000 LKR',
-                description:'Pregnancy massage focuses on the special needs of the Mother-to-be:',
-                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
-                image:'/dheergayu/public/assets/images/Patient/stone2.jpg'
-            },
-            reflexology: {
-                title:'REFLEXOLOGY MASSAGE', price:'4 500 LKR',
-                description:'This massage involves applying pressure to the feet, hands, and ears, which are connected to certain organs:',
-                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
-                image:'/dheergayu/public/assets/images/Patient/massage2.jpg'
-            },
-            trigger: {
-                title:'TRIGGER POINT MASSAGE', price:'4 500 LKR',
-                description:'Let your sore and painful spots feel the pressure that slowly turns into pleasure:',
-                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
-                image:'/dheergayu/public/assets/images/Patient/massage3.jpg'
-            },
-            lymph: {
-                title:'MANUAL LYMPH MASSAGE', price:'5 000 LKR',
-                description:'We help your body maintain its fluid balance with this lymph massage:',
-                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
-                image:'/dheergayu/public/assets/images/Patient/massage4.jpg'
-            },
-            myofacial: {
-                title:'MYOFACIAL MASSAGE', price:'5 500 LKR',
-                description:'Myofascial therapy works the broader network of muscles that might be causing your pain:',
-                list1:['Back pain','Sciatica','Sleep disorder'], list2:['Hip or leg pain','Muscle pain','Depression'],
-                image:'/dheergayu/public/assets/images/Patient/massage5.jpg'
-            }
-        };
-        document.querySelectorAll('.therapy-navigation .nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.therapy-navigation .nav-item').forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
-                const d = therapyData[item.getAttribute('data-therapy')];
-                document.getElementById('therapy-title').textContent = d.title;
-                document.getElementById('therapy-price').textContent = d.price;
-                document.getElementById('therapy-desc').textContent  = d.description;
-                document.getElementById('therapy-img').src           = d.image;
-                document.getElementById('therapy-list-1').innerHTML  = d.list1.map(x => `<li>${x}</li>`).join('');
-                document.getElementById('therapy-list-2').innerHTML  = d.list2.map(x => `<li>${x}</li>`).join('');
-            });
-        });
     </script>
 </body>
 </html>
