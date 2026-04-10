@@ -77,6 +77,7 @@ if (!empty($_SESSION['user_id'])) {
             <a href="pharmacistorders.php" class="nav-btn">Orders</a>
             <a href="pharmacistreports.php" class="nav-btn">Reports</a>
             <button class="nav-btn active">Request</button>
+            <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
         </nav>
         
         <div class="user-section">

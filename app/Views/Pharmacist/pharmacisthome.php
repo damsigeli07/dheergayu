@@ -22,6 +22,7 @@
             <a href="pharmacistorders.php" class="nav-btn">Orders</a>
             <a href="pharmacistreports.php" class="nav-btn">Reports</a>
             <a href="pharmacistrequest.php" class="nav-btn">Request</a>
+            <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
         </nav>
         
         <div class="user-section">

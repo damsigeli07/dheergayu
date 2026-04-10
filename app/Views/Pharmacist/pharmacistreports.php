@@ -146,6 +146,7 @@ foreach ($patientOverview as $row) {
             <a href="pharmacistorders.php" class="nav-btn">Orders</a>
             <button class="nav-btn active">Reports</button>
             <a href="pharmacistrequest.php" class="nav-btn">Request</a>
+            <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
         </nav>
         
         <div class="user-section">

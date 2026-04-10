@@ -206,6 +206,7 @@ $db->close();
         <a href="pharmacistorders.php" class="nav-btn">Orders</a>
         <a href="pharmacistreports.php" class="nav-btn">Reports</a>
         <a href="pharmacistrequest.php" class="nav-btn">Request</a>
+        <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
     </nav>
     
     <div class="user-section">
@@ -513,7 +514,8 @@ function renderInventoryTable(array $items): string {
             try {
                 // Determine product_source from the row
                 const row = document.querySelector(`tr[data-product-id="${productId}"]`);
-                const productSource = row && row.getAttribute('data-type') === 'patient' ? 'patient' : 'admin';
+                const dataType = row ? row.getAttribute('data-type') : 'admin';
+                const productSource = dataType === 'patient' ? 'patient' : dataType === 'treatment' ? 'treatment' : 'admin';
                 const url = `/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`;
                 console.log('Fetching batches from:', url);
                 const res = await fetch(url);
@@ -696,7 +698,8 @@ function renderInventoryTable(array $items): string {
             try {
                 // Determine product_source from the row
                 const row = document.querySelector(`tr[data-product-id="${productId}"]`);
-                const productSource = row && row.getAttribute('data-type') === 'patient' ? 'patient' : 'admin';
+                const dataType2 = row ? row.getAttribute('data-type') : 'admin';
+                const productSource = dataType2 === 'patient' ? 'patient' : dataType2 === 'treatment' ? 'treatment' : 'admin';
                 const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
                 const data = await res.json();
                 const rows = data.data || [];
@@ -824,7 +827,8 @@ function renderInventoryTable(array $items): string {
             try {
                 // Determine product_source from the row
                 const rowById = document.querySelector(`tr[data-product-id="${productId}"]`);
-                const productSource = rowById && rowById.getAttribute('data-type') === 'patient' ? 'patient' : 'admin';
+                const dt4 = rowById ? rowById.getAttribute('data-type') : 'admin';
+                const productSource = dt4 === 'patient' ? 'patient' : dt4 === 'treatment' ? 'treatment' : 'admin';
                 const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
                 const data = await res.json();
                 const rows = data.data || [];
@@ -923,8 +927,9 @@ function renderInventoryTable(array $items): string {
                 const expDate = formEl.exp.value;
                 const autoStatus = calculateStatus(expDate);
                 // Determine product_source from selected product
-                const isPatientProduct = patientProductNameToId.hasOwnProperty(productName);
-                const productSource = isPatientProduct ? 'patient' : 'admin';
+                const row2 = document.querySelector(`tr[data-product-name="${productName}"]`);
+                const dt = row2 ? row2.getAttribute('data-type') : 'admin';
+                const productSource = dt === 'patient' ? 'patient' : dt === 'treatment' ? 'treatment' : 'admin';
                 
                 const batchNumberValue = formEl.batch_number.value.trim();
                 console.log('Batch number from form:', batchNumberValue, 'Type:', typeof batchNumberValue, 'Length:', batchNumberValue.length);
@@ -1029,8 +1034,9 @@ function renderInventoryTable(array $items): string {
             let maxNum = 0;
             try {
                 // Determine product_source
-                const isPatientProduct = patientProductNameToId.hasOwnProperty(productName);
-                const productSource = isPatientProduct ? 'patient' : 'admin';
+                const row3 = document.querySelector(`tr[data-product-id="${productId}"]`);
+                const dt2 = row3 ? row3.getAttribute('data-type') : 'admin';
+                const productSource = dt2 === 'patient' ? 'patient' : dt2 === 'treatment' ? 'treatment' : 'admin';
                 const res = await fetch(`/dheergayu/public/api/batches/by-product?product_id=${productId}&product_source=${productSource}`);
                 if (!res.ok) {
                     console.error('Failed to fetch batches:', res.status, res.statusText);
