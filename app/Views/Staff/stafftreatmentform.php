@@ -95,12 +95,10 @@ if ($plan_id) {
     }
 
     $allowViewSaved = $view_mode && !empty($existing_form);
-    if (!$allowViewSaved && (!$tpPay || $tpChange || !$tpConfirmed)) {
+    if (!$allowViewSaved && (!$tpPay || !$tpConfirmed)) {
         $msg = 'Cannot open treatment — patient must complete payment and confirm the treatment plan.';
         if (!$tpPay) {
             $msg = 'Cannot start treatment — patient has not completed payment yet.';
-        } elseif ($tpChange) {
-            $msg = 'Cannot start treatment — patient has requested changes to the plan.';
         } elseif (!$tpConfirmed) {
             $msg = 'Cannot start treatment — patient has not confirmed the plan yet.';
         }

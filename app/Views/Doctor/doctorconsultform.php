@@ -137,12 +137,12 @@ if ($appointment_id) {
                                 <label style="display:flex;align-items:center;gap:6px;">
                                     <input type="radio" name="treatment_plan_choice" value="multiple_sessions"> Multiple sessions
                                 </label>
-                                <button type="button" id="open_schedule_generator" disabled 
-                                        style="background:linear-gradient(135deg,#28a745,#20c997);color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;">
+                                <button type="button" id="open_schedule_generator"
+                                        style="display:none;background:linear-gradient(135deg,#28a745,#20c997);color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;">
                                     Generate Schedule
                                 </button>
-                                <button type="button" id="open_single_treatment" disabled 
-                                        style="background:linear-gradient(135deg,#d17f1b,#e88f39);color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;">
+                                <button type="button" id="open_single_treatment"
+                                        style="display:none;background:linear-gradient(135deg,#d17f1b,#e88f39);color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;">
                                     Select Treatment
                                 </button>
                             </div>
@@ -175,7 +175,6 @@ if ($appointment_id) {
                 <div class="button-container">
                     <button type="button" class="btn btn-back" onclick="window.location.href='doctordashboard.php'">Back</button>
                     <button type="submit" name="save_type" value="save" class="btn btn-secondary">Save</button>
-                    <button type="submit" name="save_type" value="pharmacy" class="btn btn-primary">Send to Pharmacy</button>
                     <button type="button" class="btn btn-tertiary" onclick="window.print()">Print</button>
                 </div>
             </form>
@@ -284,22 +283,27 @@ const singleSummary = document.getElementById('single_treatment_summary');
 
 function updateTreatmentButtons() {
     const choice = document.querySelector('input[name="treatment_plan_choice"]:checked')?.value;
-    
-    scheduleGeneratorBtn.disabled = choice !== 'multiple_sessions';
-    singleTreatmentBtn.disabled = choice !== 'single_session';
-    
+
+    // Show/hide each button based on selection
+    scheduleGeneratorBtn.style.display = choice === 'multiple_sessions' ? 'inline-block' : 'none';
+    singleTreatmentBtn.style.display   = choice === 'single_session'    ? 'inline-block' : 'none';
+
+    // Always enable the visible button
+    scheduleGeneratorBtn.disabled = false;
+    singleTreatmentBtn.disabled   = false;
+
     if (choice === 'no_need') {
         scheduleSummary.style.display = 'none';
         singleSummary.style.display = 'none';
         document.getElementById('treatment_schedule_data').value = '';
         document.getElementById('single_treatment_data').value = '';
         document.getElementById('recommended_treatment').value = 'No treatment needed';
-    } else if (choice !== 'multiple_sessions') {
-        scheduleSummary.style.display = 'none';
-        document.getElementById('treatment_schedule_data').value = '';
-    } else if (choice !== 'single_session') {
+    } else if (choice === 'multiple_sessions') {
         singleSummary.style.display = 'none';
         document.getElementById('single_treatment_data').value = '';
+    } else if (choice === 'single_session') {
+        scheduleSummary.style.display = 'none';
+        document.getElementById('treatment_schedule_data').value = '';
     }
 }
 
@@ -416,17 +420,6 @@ document.getElementById('consultationForm').addEventListener('submit', function(
     // IMPORTANT: Add action parameter to URL
     const url = '/dheergayu/app/Controllers/ConsultationFormController.php?action=save_consultation_form';
     
-    // DEBUG: Log form data
-    console.log('=== FORM SUBMISSION DEBUG ===');
-    console.log('Gender:', formData.get('gender'));
-    console.log('Recommended Treatment:', formData.get('recommended_treatment'));
-    console.log('Personal Products:', formData.get('personal_products'));
-    console.log('Treatment Choice:', treatmentChoice);
-    console.log('All form data:');
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
-    
     // Disable submit button
     submitButton.disabled = true;
     submitButton.textContent = 'Saving...';
@@ -444,7 +437,7 @@ document.getElementById('consultationForm').addEventListener('submit', function(
         } else {
             alert('Error: ' + (data.message || 'Failed to save'));
             submitButton.disabled = false;
-            submitButton.textContent = submitButton.name === 'save_type' && submitButton.value === 'pharmacy' ? 'Send to Pharmacy' : 'Save';
+            submitButton.textContent = 'Save';
         }
     })
     .catch(err => {

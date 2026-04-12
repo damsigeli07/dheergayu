@@ -209,8 +209,23 @@ $stmt->bind_param(
             $treatment_id = $treatment_row['treatment_id'];
             $total_sessions = intval($scheduleData['sessions']);
             $sessions_per_week = intval($scheduleData['sessionsPerWeek']);
-            $start_date = $scheduleData['startDate'];
-            $total_cost = $total_sessions * 4500;
+            // Use first session's actual date as start_date (doctor may have edited it)
+            $schedule_sessions = $scheduleData['schedule'] ?? [];
+            $start_date = !empty($schedule_sessions[0]['date'])
+                ? $schedule_sessions[0]['date']
+                : $scheduleData['startDate'];
+            // Use treatment's actual price per session; fall back to DB price, then 4500
+            if (!empty($scheduleData['pricePerSession'])) {
+                $price_per_session = floatval($scheduleData['pricePerSession']);
+            } else {
+                $pr = $db->prepare("SELECT price FROM treatment_list WHERE treatment_id = ? LIMIT 1");
+                $pr->bind_param('i', $treatment_id);
+                $pr->execute();
+                $pr_row = $pr->get_result()->fetch_assoc();
+                $pr->close();
+                $price_per_session = $pr_row ? floatval($pr_row['price']) : 4500;
+            }
+            $total_cost = $total_sessions * $price_per_session;
             $plan_diagnosis = $scheduleData['diagnosis'];
             
             // Ensure treatment_plans.plan_id and treatment_sessions PK auto-increment (avoids Duplicate entry '0' for key 'PRIMARY')

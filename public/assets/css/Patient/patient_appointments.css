@@ -346,6 +346,15 @@ ul {
     background: #e0a800;
 }
 
+.btn-prescription {
+    background: linear-gradient(135deg, #38a169, #276749);
+    color: white;
+}
+
+.btn-prescription:hover {
+    background: linear-gradient(135deg, #2f855a, #1e4d35);
+}
+
 .empty-state {
     text-align: center;
     padding: 60px 20px;

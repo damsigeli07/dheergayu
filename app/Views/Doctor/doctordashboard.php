@@ -218,8 +218,8 @@ foreach ($treatment_plans as $plan) {
         <button class="nav-btn active" id="appointments-tab" onclick="showAppointments()">Appointments</button>
         <button class="nav-btn" id="treatment-plans-tab" onclick="showTreatmentPlans()">
             Treatment Plans
-            <?php if ($pending_plans + $change_requested_plans > 0): ?>
-                <span class="badge"><?= $pending_plans + $change_requested_plans ?></span>
+            <?php if ($pending_plans > 0): ?>
+                <span class="badge"><?= $pending_plans ?></span>
             <?php endif; ?>
         </button>
         <a href="patienthistory.php" class="nav-btn">Patient History</a>
@@ -363,10 +363,6 @@ foreach ($treatment_plans as $plan) {
                 <div class="stat-number"><?= $pending_plans ?></div>
                 <div class="stat-label">Pending Confirmation</div>
             </div>
-            <div class="stat-box" style="border-left:4px solid #ff9800;">
-                <div class="stat-number"><?= $change_requested_plans ?></div>
-                <div class="stat-label">Change Requested</div>
-            </div>
             <div class="stat-box" style="border-left:4px solid #28a745;">
                 <div class="stat-number"><?= $confirmed_plans ?></div>
                 <div class="stat-label">Confirmed</div>
@@ -413,20 +409,10 @@ foreach ($treatment_plans as $plan) {
                                     <span class="status-badge <?= strtolower($plan['status']) ?>">
                                         <?= $plan['status'] ?>
                                     </span>
-                                    <?php if ($plan['change_requested']): ?>
-                                        <span style="display:block;font-size:11px;color:#ff9800;margin-top:3px;">
-                                            ⚠️ Changes requested
-                                        </span>
-                                    <?php endif; ?>
                                 </td>
                                 <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
                                 <td>
                                     <button class="btn-view" onclick="viewTreatmentPlan(<?= $plan['plan_id'] ?>)">View Details</button>
-                                    <?php if ($plan['change_requested']): ?>
-                                        <button class="btn-start" style="margin-top:5px;" onclick="viewChangeRequest(<?= $plan['plan_id'] ?>, '<?= htmlspecialchars(addslashes($plan['change_reason'] ?? '')) ?>')">
-                                            View Request
-                                        </button>
-                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

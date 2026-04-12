@@ -192,6 +192,13 @@ function renderAppointmentCard($apt, $conn) {
     
     echo '</div>';
     
+    // Show "View Prescription" button for completed consultations
+    if ($isConsultation && $status === 'Completed') {
+        echo '<div class="appointment-actions">';
+        echo '<button class="action-btn btn-prescription" onclick="viewPrescription(' . $apt['id'] . ')">View Prescription</button>';
+        echo '</div>';
+    }
+
     if ($status !== 'Cancelled' && $status !== 'Completed') {
         echo '<div class="appointment-actions">';
         if ($isConsultation) {
@@ -641,6 +648,20 @@ $treatmentPlansTabCount = count($treatment_plans);
                     <button type="button" class="action-btn btn-secondary" onclick="closePlanRescheduleModal()">Cancel</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Prescription Modal -->
+    <div id="prescriptionModal" class="modal" style="z-index:1100;">
+        <div class="modal-content" style="max-width:600px;width:95%;max-height:85vh;overflow-y:auto;">
+            <span class="close" onclick="closePrescriptionModal()" style="font-size:24px;cursor:pointer;float:right;">&times;</span>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                <div style="background:linear-gradient(135deg,#00b4d8,#0077b6);border-radius:8px;padding:8px 14px;color:#fff;font-weight:700;font-size:13px;letter-spacing:1px;">PRESCRIPTION</div>
+                <h3 style="margin:0;color:#1a202c;font-size:18px;">Consultation Details</h3>
+            </div>
+            <div id="prescriptionContent">
+                <div style="text-align:center;padding:30px;color:#888;">Loading...</div>
+            </div>
         </div>
     </div>
 
@@ -1327,10 +1348,84 @@ window.addEventListener('click', function(e) {
     const editModal = document.getElementById('editModal');
     const cancelModal = document.getElementById('cancelModal');
     const planRescheduleModal = document.getElementById('planRescheduleModal');
+    const prescriptionModal = document.getElementById('prescriptionModal');
     if (e.target === editModal) closeEditModal();
     if (e.target === cancelModal) closeCancelModal();
     if (e.target === planRescheduleModal) closePlanRescheduleModal();
+    if (e.target === prescriptionModal) closePrescriptionModal();
 });
+
+// --- Prescription Modal ---
+function viewPrescription(appointmentId) {
+    const modal = document.getElementById('prescriptionModal');
+    const content = document.getElementById('prescriptionContent');
+    content.innerHTML = '<div style="text-align:center;padding:30px;color:#888;">Loading...</div>';
+    modal.style.display = 'block';
+
+    fetch('/dheergayu/app/Controllers/ConsultationFormController.php?action=get_consultation_form&appointment_id=' + appointmentId)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data || !data.form) {
+                content.innerHTML = '<div style="text-align:center;padding:30px;color:#888;">No prescription found for this consultation.</div>';
+                return;
+            }
+            const form = data.form;
+            const merged = data.merged || {};
+
+            // Parse prescribed products
+            let productsHtml = '<em style="color:#888;">None</em>';
+            try {
+                const products = JSON.parse(form.personal_products || '[]');
+                if (products && products.length > 0) {
+                    productsHtml = '<ul style="margin:6px 0 0 0;padding-left:20px;">';
+                    products.forEach(function(p) {
+                        productsHtml += '<li><strong>' + escHtml(p.product) + '</strong> &times; ' + escHtml(String(p.qty)) + '</li>';
+                    });
+                    productsHtml += '</ul>';
+                }
+            } catch(e) {}
+
+            const treatmentText = merged.recommended_treatment || form.recommended_treatment || 'No treatment needed';
+            const notesText = form.notes ? form.notes.trim() : '';
+
+            content.innerHTML =
+                '<div style="border-bottom:1px solid #e2e8f0;padding-bottom:14px;margin-bottom:14px;">' +
+                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;">' +
+                        '<div><span style="font-size:12px;color:#718096;text-transform:uppercase;letter-spacing:.5px;">Patient</span>' +
+                            '<div style="font-weight:600;color:#1a202c;">' + escHtml(form.first_name + ' ' + form.last_name) + '</div></div>' +
+                        '<div><span style="font-size:12px;color:#718096;text-transform:uppercase;letter-spacing:.5px;">Age / Gender</span>' +
+                            '<div style="font-weight:600;color:#1a202c;">' + escHtml(String(form.age)) + ' / ' + escHtml(form.gender) + '</div></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="margin-bottom:14px;">' +
+                    '<div style="font-size:12px;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Diagnosis</div>' +
+                    '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:10px 14px;color:#7c2d12;font-weight:500;">' + escHtml(form.diagnosis) + '</div>' +
+                '</div>' +
+                '<div style="margin-bottom:14px;">' +
+                    '<div style="font-size:12px;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Prescribed Products</div>' +
+                    '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px 14px;color:#14532d;">' + productsHtml + '</div>' +
+                '</div>' +
+                '<div style="margin-bottom:14px;">' +
+                    '<div style="font-size:12px;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Recommended Treatment</div>' +
+                    '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 14px;color:#1e40af;">' + escHtml(treatmentText) + '</div>' +
+                '</div>' +
+                (notesText ? '<div style="margin-bottom:6px;">' +
+                    '<div style="font-size:12px;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Doctor\'s Notes</div>' +
+                    '<div style="background:#fafafa;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;color:#4a5568;">' + escHtml(notesText) + '</div>' +
+                '</div>' : '');
+        })
+        .catch(function() {
+            content.innerHTML = '<div style="text-align:center;padding:30px;color:#e53e3e;">Failed to load prescription. Please try again.</div>';
+        });
+}
+
+function closePrescriptionModal() {
+    document.getElementById('prescriptionModal').style.display = 'none';
+}
+
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 </script>
 </body>
