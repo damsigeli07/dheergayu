@@ -47,6 +47,56 @@ if ($appointment_id) {
         echo "<script>alert('Cannot start consultation — patient has not completed payment yet.'); window.location.href='doctordashboard.php';</script>";
         exit;
     }
+
+    // Load any existing consultation form for this appointment so we can prefill values for editing
+    $form = null;
+    $fstmt = $db->prepare("SELECT * FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+    if ($fstmt) {
+        $fstmt->bind_param('i', $appointment_id);
+        $fstmt->execute();
+        $form = $fstmt->get_result()->fetch_assoc();
+        $fstmt->close();
+    }
+    // If the consultation form exists but doesn't include a recommended treatment,
+    // try to load a linked treatment plan for this appointment so the edit form
+    // can show the treatment type (single or multiple) when opening the page.
+    if ($form && (empty($form['recommended_treatment']) || trim($form['recommended_treatment']) === '')) {
+        $pst = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tp.diagnosis, tl.treatment_name, tl.price
+                             FROM treatment_plans tp
+                             LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
+                             WHERE tp.appointment_id = ? LIMIT 1");
+        if ($pst) {
+            $pst->bind_param('i', $appointment_id);
+            $pst->execute();
+            $prow = $pst->get_result()->fetch_assoc();
+            $pst->close();
+            if ($prow) {
+                $form['recommended_treatment'] = "Treatment Plan: " . ($prow['treatment_name'] ?? '') . " | " . intval($prow['total_sessions']) . " sessions | Start: " . ($prow['start_date'] ?? '');
+                $form['treatment_plan'] = $prow;
+
+                // Populate single_treatment_data for single-session plans so UI shows it as a selected treatment
+                if (intval($prow['total_sessions']) === 1) {
+                    $single = [
+                        'name' => $prow['treatment_name'] ?? '',
+                        'date' => $prow['start_date'] ?? '',
+                        'time' => ''
+                    ];
+                    $form['single_treatment_data'] = json_encode($single);
+                } else {
+                    // For multiple sessions, construct a lightweight schedule object the front-end expects
+                    $sched = [
+                        'treatmentType' => $prow['treatment_name'] ?? '',
+                        'sessions' => intval($prow['total_sessions']),
+                        'sessionsPerWeek' => intval($prow['sessions_per_week'] ?? 1),
+                        'startDate' => $prow['start_date'] ?? '',
+                        'diagnosis' => $prow['diagnosis'] ?? '',
+                        'schedule' => []
+                    ];
+                    $form['treatment_schedule_data'] = json_encode($sched);
+                }
+            }
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -66,6 +116,7 @@ if ($appointment_id) {
 
         <div class="form-container">
             <form id="consultationForm" method="POST">
+                <pre id="initial_form_debug" style="display:none;background:#f7f7f7;border:1px solid #eee;padding:10px;white-space:pre-wrap;max-height:200px;overflow:auto;margin-bottom:12px;font-size:12px;color:#333;"></pre>
                 <input type="hidden" name="appointment_id" value="<?= htmlspecialchars($appointment_id) ?>">
                 <input type="hidden" name="patient_id" value="<?= htmlspecialchars($appointment['patient_id'] ?? '') ?>">
                 <input type="hidden" name="patient_no" value="<?= htmlspecialchars($appointment['patient_no'] ?? '') ?>">
@@ -77,33 +128,33 @@ if ($appointment_id) {
                         <div class="form-row">
                             <div class="form-group half">
                                 <label>First Name</label>
-                                <input type="text" name="first_name" value="<?= htmlspecialchars($appointment['first_name'] ?? '') ?>" required>
+                                <input type="text" name="first_name" value="<?= htmlspecialchars($form['first_name'] ?? $appointment['first_name'] ?? '') ?>" required>
                             </div>
                             <div class="form-group half">
                                 <label>Last Name</label>
-                                <input type="text" name="last_name" value="<?= htmlspecialchars($appointment['last_name'] ?? '') ?>" required>
+                                <input type="text" name="last_name" value="<?= htmlspecialchars($form['last_name'] ?? $appointment['last_name'] ?? '') ?>" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group half">
                                 <label>Age</label>
-                                <input type="number" name="age" value="<?= htmlspecialchars($appointment['age'] ?? '') ?>" required>
+                                <input type="number" name="age" value="<?= htmlspecialchars($form['age'] ?? $appointment['age'] ?? '') ?>" required>
                             </div>
                             <div class="form-group half">
                                 <label>Gender</label>
-                                <select name="gender" required>
+                                    <select name="gender" required>
                                     <option value="">Select</option>
-                                    <option value="Male" <?= ($appointment['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>Male</option>
-                                    <option value="Female" <?= ($appointment['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>Female</option>
-                                    <option value="Other" <?= ($appointment['gender'] ?? '') == 'Other' ? 'selected' : '' ?>>Other</option>
+                                    <option value="Male" <?= ($form['gender'] ?? $appointment['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>Male</option>
+                                    <option value="Female" <?= ($form['gender'] ?? $appointment['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>Female</option>
+                                    <option value="Other" <?= ($form['gender'] ?? $appointment['gender'] ?? '') == 'Other' ? 'selected' : '' ?>>Other</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label>Diagnosis</label>
-                            <textarea name="diagnosis" required></textarea>
+                            <textarea name="diagnosis" required><?= htmlspecialchars($form['diagnosis'] ?? '') ?></textarea>
                         </div>
 
                         <!-- Products Section -->
@@ -115,7 +166,7 @@ if ($appointment_id) {
                                 <input type="number" id="product_qty" min="1" placeholder="Qty">
                                 <button type="button" id="add_product">Add</button>
                             </div>
-                            <input type="hidden" name="personal_products" id="personal_products" value="[]">
+                            <input type="hidden" name="personal_products" id="personal_products" value="<?= htmlspecialchars($form['personal_products'] ?? '[]') ?>">
                             <table class="product-table" id="cart_table" style="display:none;">
                                 <thead>
                                     <tr><th>Product</th><th>Qty</th><th>Remove</th></tr>
@@ -128,14 +179,25 @@ if ($appointment_id) {
                         <div class="form-group">
                             <label>Treatment Plan</label>
                             <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                                <?php
+                                    $saved_choice = 'no_need';
+                                    if (!empty($form['single_treatment_data'])) {
+                                        $saved_choice = 'single_session';
+                                    } elseif (!empty($form['treatment_schedule_data'])) {
+                                        $saved_choice = 'multiple_sessions';
+                                    } elseif (!empty($form['recommended_treatment']) && strtolower($form['recommended_treatment']) !== 'no treatment needed') {
+                                        // If recommended treatment exists but specific fields empty, keep no_need but allow manual selection
+                                        $saved_choice = 'no_need';
+                                    }
+                                ?>
                                 <label style="display:flex;align-items:center;gap:6px;">
-                                    <input type="radio" name="treatment_plan_choice" value="no_need" checked> No treatment needed
+                                    <input type="radio" name="treatment_plan_choice" value="no_need" <?= $saved_choice === 'no_need' ? 'checked' : '' ?>> No treatment needed
                                 </label>
                                 <label style="display:flex;align-items:center;gap:6px;">
-                                    <input type="radio" name="treatment_plan_choice" value="single_session"> Single session
+                                    <input type="radio" name="treatment_plan_choice" value="single_session" <?= $saved_choice === 'single_session' ? 'checked' : '' ?>> Single session
                                 </label>
                                 <label style="display:flex;align-items:center;gap:6px;">
-                                    <input type="radio" name="treatment_plan_choice" value="multiple_sessions"> Multiple sessions
+                                    <input type="radio" name="treatment_plan_choice" value="multiple_sessions" <?= $saved_choice === 'multiple_sessions' ? 'checked' : '' ?>> Multiple sessions
                                 </label>
                                 <button type="button" id="open_schedule_generator"
                                         style="display:none;background:linear-gradient(135deg,#28a745,#20c997);color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;">
@@ -160,14 +222,20 @@ if ($appointment_id) {
                                 <div id="schedule_details" style="margin-top:8px;"></div>
                             </div>
 
-                            <input type="hidden" name="treatment_schedule_data" id="treatment_schedule_data" value="">
-                            <input type="hidden" name="single_treatment_data" id="single_treatment_data" value="">
-                            <input type="hidden" name="recommended_treatment" id="recommended_treatment" value="">
+                            <!-- Recommended treatment display fallback -->
+                            <div id="recommended_treatment_display" style="display:none;margin-top:12px;padding:8px;border-radius:6px;background:#fff3cd;border:1px solid #ffeeba;color:#856404;">
+                                <strong>Recommended Treatment:</strong>
+                                <div id="recommended_treatment_text" style="margin-top:6px;"></div>
+                            </div>
+
+                            <input type="hidden" name="treatment_schedule_data" id="treatment_schedule_data" value="<?= htmlspecialchars($form['treatment_schedule_data'] ?? '') ?>">
+                            <input type="hidden" name="single_treatment_data" id="single_treatment_data" value="<?= htmlspecialchars($form['single_treatment_data'] ?? '') ?>">
+                            <input type="hidden" name="recommended_treatment" id="recommended_treatment" value="<?= htmlspecialchars($form['recommended_treatment'] ?? '') ?>">
                         </div>
 
                         <div class="form-group">
                             <label>Notes</label>
-                            <textarea name="notes"></textarea>
+                            <textarea name="notes"><?= htmlspecialchars($form['notes'] ?? '') ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -182,6 +250,108 @@ if ($appointment_id) {
     </div>
 
     <script>
+    // Provide initial form data from server to JS
+    window.initialConsultationForm = <?= json_encode($form ?? null) ?>;
+    // Initialize UI from server data once the DOM is ready (independent of product API timing)
+    document.addEventListener('DOMContentLoaded', function() {
+        var init = window.initialConsultationForm;
+        console.log('initialConsultationForm:', init);
+        // If URL contains debug=1 show raw data for troubleshooting
+        try {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('debug') === '1') {
+                var pre = document.getElementById('initial_form_debug');
+                pre.style.display = 'block';
+                pre.textContent = JSON.stringify(init, null, 2);
+            }
+        } catch (e) {}
+        if (!init) return;
+
+        // Ensure hidden recommended field is set
+        try { if (init.recommended_treatment) document.getElementById('recommended_treatment').value = init.recommended_treatment; } catch(e){}
+
+        // Restore treatment choice and summaries
+        try {
+            console.log('restoring treatment data, recommended_treatment=', init.recommended_treatment);
+            if (init.single_treatment_data && init.single_treatment_data !== '') {
+                var single = JSON.parse(init.single_treatment_data);
+                document.querySelector('input[name="treatment_plan_choice"][value="single_session"]').checked = true;
+                if (typeof setSingleTreatment === 'function') setSingleTreatment(single);
+                // also show recommended display fallback if no detailed single text is rendered
+                if (!document.getElementById('single_treatment_text').innerHTML && init.recommended_treatment) {
+                    document.getElementById('recommended_treatment_text').innerText = init.recommended_treatment;
+                    document.getElementById('recommended_treatment_display').style.display = 'block';
+                }
+            } else if (init.treatment_schedule_data && init.treatment_schedule_data !== '') {
+                try {
+                    var sched = JSON.parse(init.treatment_schedule_data);
+                    document.querySelector('input[name="treatment_plan_choice"][value="multiple_sessions"]').checked = true;
+                    if (typeof setTreatmentSchedule === 'function') setTreatmentSchedule(sched);
+                    if (!document.getElementById('schedule_details').innerHTML && init.recommended_treatment && String(init.recommended_treatment).toLowerCase().trim() !== 'no treatment needed') {
+                        document.getElementById('recommended_treatment_text').innerText = init.recommended_treatment;
+                        document.getElementById('recommended_treatment_display').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Invalid treatment_schedule_data JSON', e);
+                }
+            } else {
+                // If schedule JSON missing but recommended_treatment contains a plan summary, try parsing it
+                try {
+                    var rec = init.recommended_treatment || '';
+                    var m = String(rec).match(/Treatment\s*Plan:\s*(.*?)\s*\|\s*(\d+)\s*sessions\s*\|\s*Start:\s*(\d{4}-\d{2}-\d{2})/i);
+                    if (m) {
+                        var sched = {
+                            treatmentType: m[1].trim(),
+                            sessions: parseInt(m[2],10),
+                            sessionsPerWeek: 1,
+                            startDate: m[3]
+                        };
+                        document.querySelector('input[name="treatment_plan_choice"][value="multiple_sessions"]').checked = true;
+                        if (typeof setTreatmentSchedule === 'function') setTreatmentSchedule(sched);
+                    } else if (rec && String(rec).toLowerCase().trim() !== 'no treatment needed') {
+                        // show recommended text if present but not the default
+                        document.getElementById('recommended_treatment_text').innerText = rec;
+                        document.getElementById('recommended_treatment_display').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Error parsing recommended_treatment for schedule', e);
+                }
+            }
+        } catch (e) {
+            console.error('Error restoring treatment data', e);
+        }
+
+        // Restore selected products into the cart UI (works even if product list not loaded)
+        try {
+            if (init.personal_products && init.personal_products !== '') {
+                selectedProducts = JSON.parse(init.personal_products || '[]');
+                if (Array.isArray(selectedProducts) && selectedProducts.length > 0) {
+                    const table = document.getElementById('product_list_table');
+                    const cartTable = document.getElementById('cart_table');
+                    cartTable.style.display = 'table';
+                    table.innerHTML = '';
+                    selectedProducts.forEach(function(item, idx) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `\n                        <td>${item.product}</td>\n                        <td>${item.qty}</td>\n                        <td><button type="button" class="remove-btn">X</button></td>\n                    `;
+                        row.querySelector('.remove-btn').addEventListener('click', function() {
+                            selectedProducts = selectedProducts.filter(function(p, i){ return !(p.product === item.product && p.qty == item.qty && i === idx); });
+                            document.getElementById('personal_products').value = JSON.stringify(selectedProducts);
+                            row.remove();
+                            if (table.children.length === 0) cartTable.style.display = 'none';
+                        });
+                        table.appendChild(row);
+                    });
+                    document.getElementById('personal_products').value = JSON.stringify(selectedProducts);
+                }
+            }
+        } catch (e) {
+            console.error('Error restoring products', e);
+        }
+
+        // Update UI toggles
+        if (typeof updateTreatmentButtons === 'function') updateTreatmentButtons();
+    });
+
 // Product management
 var selectedProducts = [];
 var availableProducts = [];
@@ -221,6 +391,57 @@ function populateProductList() {
         option.setAttribute('data-expired-qty', product.expired_quantity);
         datalist.appendChild(option);
     });
+
+        // If the server provided an existing consultation form, populate selected products and other fields
+    if (window.initialConsultationForm && window.initialConsultationForm.personal_products) {
+        try {
+            selectedProducts = JSON.parse(window.initialConsultationForm.personal_products || '[]');
+        } catch (e) {
+            selectedProducts = [];
+        }
+
+        if (Array.isArray(selectedProducts) && selectedProducts.length > 0) {
+            const table = document.getElementById('product_list_table');
+            const cartTable = document.getElementById('cart_table');
+            cartTable.style.display = 'table';
+            table.innerHTML = '';
+            selectedProducts.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `\n                    <td>${item.product}</td>\n                    <td>${item.qty}</td>\n                    <td><button type="button" class="remove-btn">X</button></td>\n                `;
+                row.querySelector('.remove-btn').addEventListener('click', function() {
+                    selectedProducts = selectedProducts.filter(p => !(p.product === item.product && p.qty == item.qty));
+                    document.getElementById('personal_products').value = JSON.stringify(selectedProducts);
+                    row.remove();
+                    if (table.children.length === 0) cartTable.style.display = 'none';
+                });
+                table.appendChild(row);
+            });
+            document.getElementById('personal_products').value = JSON.stringify(selectedProducts);
+        }
+
+        // Prefill treatment plan summaries if present
+        if (window.initialConsultationForm.recommended_treatment) {
+            document.getElementById('recommended_treatment').value = window.initialConsultationForm.recommended_treatment;
+            if ((window.initialConsultationForm.single_treatment_data || '') !== '') {
+                try {
+                    const single = JSON.parse(window.initialConsultationForm.single_treatment_data);
+                    setSingleTreatment(single);
+                } catch (e) {}
+            }
+            if ((window.initialConsultationForm.treatment_schedule_data || '') !== '') {
+                try {
+                    const schedule = JSON.parse(window.initialConsultationForm.treatment_schedule_data);
+                    setTreatmentSchedule(schedule);
+                } catch (e) {}
+            }
+        }
+
+        // Re-run UI toggles so the treatment buttons/summaries reflect restored choice
+        if (typeof updateTreatmentButtons === 'function') updateTreatmentButtons();
+
+        // Remove sentinel so we don't reapply
+        delete window.initialConsultationForm;
+    }
 }
 
 document.getElementById("add_product").addEventListener("click", function() {
@@ -297,13 +518,37 @@ function updateTreatmentButtons() {
         singleSummary.style.display = 'none';
         document.getElementById('treatment_schedule_data').value = '';
         document.getElementById('single_treatment_data').value = '';
-        document.getElementById('recommended_treatment').value = 'No treatment needed';
+        // If there is an existing recommended_treatment (not the default), show it even when 'no_need' is selected
+        var rec = (document.getElementById('recommended_treatment') && document.getElementById('recommended_treatment').value) || '';
+        if (rec && rec.toLowerCase().trim() !== 'no treatment needed') {
+            document.getElementById('recommended_treatment_text').innerText = rec;
+            document.getElementById('recommended_treatment_display').style.display = 'block';
+        } else {
+            document.getElementById('recommended_treatment').value = 'No treatment needed';
+            document.getElementById('recommended_treatment_display').style.display = 'none';
+        }
     } else if (choice === 'multiple_sessions') {
         singleSummary.style.display = 'none';
         document.getElementById('single_treatment_data').value = '';
+        // show recommended if available and not the default placeholder
+        var recVal = (document.getElementById('recommended_treatment') && document.getElementById('recommended_treatment').value) || '';
+        if (recVal && recVal.toLowerCase().trim() !== 'no treatment needed') {
+            document.getElementById('recommended_treatment_text').innerText = recVal;
+            document.getElementById('recommended_treatment_display').style.display = 'block';
+        } else {
+            document.getElementById('recommended_treatment_display').style.display = 'none';
+        }
     } else if (choice === 'single_session') {
         scheduleSummary.style.display = 'none';
         document.getElementById('treatment_schedule_data').value = '';
+        // show recommended if available and not the default placeholder
+        var recVal2 = (document.getElementById('recommended_treatment') && document.getElementById('recommended_treatment').value) || '';
+        if (recVal2 && recVal2.toLowerCase().trim() !== 'no treatment needed') {
+            document.getElementById('recommended_treatment_text').innerText = recVal2;
+            document.getElementById('recommended_treatment_display').style.display = 'block';
+        } else {
+            document.getElementById('recommended_treatment_display').style.display = 'none';
+        }
     }
 }
 
@@ -428,23 +673,33 @@ document.getElementById('consultationForm').addEventListener('submit', function(
         method: 'POST',
         body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-        console.log('Server response:', data);
-        if (data.status === 'success') {
-            alert('Consultation saved successfully!');
-            window.location.href = 'doctordashboard.php';
-        } else {
-            alert('Error: ' + (data.message || 'Failed to save'));
+    .then(res => res.text())
+    .then(text => {
+        // Try to parse JSON, but if the server returned HTML (PHP error), show it for debugging
+        try {
+            const data = JSON.parse(text);
+            console.log('Server response (json):', data);
+            if (data.status === 'success') {
+                alert('Consultation saved successfully!');
+                window.location.href = 'doctordashboard.php';
+            } else {
+                alert('Error: ' + (data.message || 'Failed to save'));
+                submitButton.disabled = false;
+                submitButton.textContent = 'Save';
+            }
+        } catch (e) {
+            console.error('Save error, non-JSON response:', text);
+            // Show a truncated HTML/text response so you can inspect the PHP error
+            alert('Error saving consultation form: Non-JSON response received. Check console and server logs.\n\n' + text.substring(0, 1000));
             submitButton.disabled = false;
             submitButton.textContent = 'Save';
         }
     })
     .catch(err => {
-        console.error('Save error:', err);
+        console.error('Save error (fetch):', err);
         alert('Error saving consultation form: ' + err.message);
         submitButton.disabled = false;
-        submitButton.textContent = submitButton.name === 'save_type' && submitButton.value === 'pharmacy' ? 'Send to Pharmacy' : 'Save';
+        submitButton.textContent = 'Save';
     });
 });
 

@@ -4,565 +4,333 @@ header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Database connection - use direct mysqli instead of bootloader
 function getDbConnection() {
     $host = 'localhost';
     $username = 'root';
     $password = '';
-    $database = 'dheergayu_db'; // Make sure this matches your actual database name
-    
+    $database = 'dheergayu_db';
+
     $conn = new mysqli($host, $username, $password, $database);
-    
     if ($conn->connect_error) {
         error_log("Database connection failed: " . $conn->connect_error);
         throw new Exception("Database connection failed");
     }
-    
     return $conn;
 }
 
+// Helper: safe fetch POST
+function post($key, $default = null) {
+    return isset($_POST[$key]) ? $_POST[$key] : $default;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
     try {
         $db = getDbConnection();
         $db->begin_transaction();
 
-    
-    // DEBUG: Log received data
-    file_put_contents(
-        'C:/xampp/htdocs/dheergayu/debug_consultation.txt',
-        date('Y-m-d H:i:s') . "\n" .
-        "POST Data:\n" .
-        print_r($_POST, true) . "\n\n",
-        FILE_APPEND
-    );
+        // Debug
+        file_put_contents(__DIR__ . '/../../debug_consultation.txt', date('c') . " POST:\n" . print_r($_POST, true) . "\n\n", FILE_APPEND);
 
-        error_log("POST data received: " . print_r($_POST, true));
-        
-        // Get and validate form data
-        $appointment_id = intval($_POST['appointment_id'] ?? 0);
-        
-        if ($appointment_id === 0) {
-            throw new Exception("Invalid appointment ID");
-        }
+        $appointment_id = intval(post('appointment_id', 0));
+        if ($appointment_id <= 0) throw new Exception('Invalid appointment id');
 
-        // Require completed payment before saving consultation (same rule as doctor UI)
-        $payStmt = $db->prepare("SELECT patient_id, payment_status FROM consultations WHERE id = ? LIMIT 1");
-        $payStmt->bind_param('i', $appointment_id);
-        $payStmt->execute();
-        $payRow = $payStmt->get_result()->fetch_assoc();
-        $payStmt->close();
-        if (!$payRow) {
-            throw new Exception("Appointment not found");
-        }
-        if (($payRow['payment_status'] ?? '') !== 'Completed') {
-            throw new Exception("Payment must be completed before the consultation can be saved.");
-        }
-        
-        $patient_id = intval($payRow['patient_id'] ?? 0);
-        
-        // Patient number in P0003 format from patients table
+        // fetch consultation to get patient id
+        $pq = $db->prepare("SELECT patient_id FROM consultations WHERE id = ? LIMIT 1");
+        $pq->bind_param('i', $appointment_id);
+        $pq->execute();
+        $prow = $pq->get_result()->fetch_assoc();
+        $pq->close();
+        $patient_id = intval($prow['patient_id'] ?? 0);
+
+        // Normalize patient_no (try to get from patients table)
         $patient_no = '';
         if ($patient_id > 0) {
-            $pq = $db->prepare("SELECT patient_number FROM patients WHERE id = ? LIMIT 1");
-            $pq->bind_param('i', $patient_id);
-            $pq->execute();
-            $pr = $pq->get_result()->fetch_assoc();
-            $pq->close();
-            if ($pr && !empty(trim($pr['patient_number'] ?? ''))) {
+            $pp = $db->prepare("SELECT patient_number FROM patients WHERE id = ? LIMIT 1");
+            $pp->bind_param('i', $patient_id);
+            $pp->execute();
+            $pr = $pp->get_result()->fetch_assoc();
+            $pp->close();
+            if (!empty($pr['patient_number'])) {
                 $n = preg_replace('/^P/i', '', trim($pr['patient_number']));
                 $patient_no = is_numeric($n) ? ('P' . str_pad((int)$n, 4, '0', STR_PAD_LEFT)) : trim($pr['patient_number']);
             }
         }
-        if ($patient_no === '' && !empty(trim($_POST['patient_no'] ?? ''))) {
-            $raw = trim($_POST['patient_no']);
+        if (empty($patient_no) && !empty(post('patient_no'))) {
+            $raw = trim(post('patient_no'));
             $n = preg_replace('/^P/i', '', $raw);
             $patient_no = is_numeric($n) ? ('P' . str_pad((int)$n, 4, '0', STR_PAD_LEFT)) : $raw;
         }
-        if ($patient_no === '') {
-            $patient_no = 'P' . str_pad(1, 4, '0', STR_PAD_LEFT);
-        }
-        
-        // Ensure consultationforms has patient_id column so we can record it
-        $chk = $db->query("SHOW COLUMNS FROM consultationforms LIKE 'patient_id'");
-        if ($chk && $chk->num_rows === 0) {
-            $db->query("ALTER TABLE consultationforms ADD COLUMN patient_id INT NULL AFTER appointment_id");
-        }
-        if ($chk) @$chk->free();
-        
-        $first_name = trim($_POST['first_name'] ?? '');
-        $last_name = trim($_POST['last_name'] ?? '');
-        $age = intval($_POST['age'] ?? 0);
-        $gender = trim($_POST['gender'] ?? '');
-        $diagnosis = trim($_POST['diagnosis'] ?? '');
-        $personal_products = $_POST['personal_products'] ?? '[]';
-        $notes = trim($_POST['notes'] ?? '');
-        $treatment_plan_choice = $_POST['treatment_plan_choice'] ?? 'no_need';
-        $treatment_schedule_data = $_POST['treatment_schedule_data'] ?? '';
-        $single_treatment_data = $_POST['single_treatment_data'] ?? '';
-        
-        // Validate required fields
-        if (empty($first_name) || empty($last_name) || $age === 0 || empty($gender)) {
-            throw new Exception("Please fill all required patient information fields");
-        }
-        
-        // Check if consultation form exists
-        $check_stmt = $db->prepare("SELECT id FROM consultationforms WHERE appointment_id = ? LIMIT 1");
-        if (!$check_stmt) {
-            throw new Exception("Database prepare error: " . $db->error);
-        }
-        
-        $check_stmt->bind_param('i', $appointment_id);
-        $check_stmt->execute();
-        $existing = $check_stmt->get_result()->fetch_assoc();
-        $check_stmt->close();
-        
-        if ($existing) {
-           // Get recommended_treatment from POST
-$recommended_treatment = trim($_POST['recommended_treatment'] ?? '');
+        if (empty($patient_no)) $patient_no = 'P0001';
 
-// UPDATE existing form (include patient_id and patient_no so they are recorded)
-$stmt = $db->prepare("
-    UPDATE consultationforms SET
-        first_name = ?,
-        last_name = ?,
-        age = ?,
-        gender = ?,
-        diagnosis = ?,
-        personal_products = ?,
-        recommended_treatment = ?,
-        notes = ?,
-        patient_id = ?,
-        patient_no = ?,
-        updated_at = NOW()
-    WHERE appointment_id = ?
-");
+        // Read fields from POST
+        $first_name = trim((string)post('first_name', ''));
+        $last_name = trim((string)post('last_name', ''));
+        $age = intval(post('age', 0));
+        $gender = trim((string)post('gender', ''));
+        $diagnosis = trim((string)post('diagnosis', ''));
+        $personal_products = post('personal_products', '[]');
+        $notes = trim((string)post('notes', ''));
+        $recommended_treatment = trim((string)post('recommended_treatment', ''));
+        if (strtolower($recommended_treatment) === 'no treatment needed') $recommended_treatment = '';
 
-if (!$stmt) {
-    throw new Exception("Update prepare error: " . $db->error);
-}
-
-$stmt->bind_param(
-    'ssisssssisi',
-    $first_name, $last_name, $age, $gender,
-    $diagnosis, $personal_products, $recommended_treatment, $notes,
-    $patient_id, $patient_no, $appointment_id
-);
-            
-       } else {
-    // INSERT new form (include patient_id and patient_no so they are recorded)
-    $stmt = $db->prepare("
-        INSERT INTO consultationforms (
-            appointment_id, patient_id, patient_no, first_name, last_name, age, gender, 
-            diagnosis, personal_products, recommended_treatment, notes, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    ");
-    
-    if (!$stmt) {
-        throw new Exception("Insert prepare error: " . $db->error);
-    }
-    
-    $stmt->bind_param(
-        'iississssss',
-        $appointment_id, $patient_id, $patient_no, $first_name, $last_name, $age, $gender,
-        $diagnosis, $personal_products, $recommended_treatment, $notes
-    );
-}
-        
-        if (!$stmt->execute()) {
-            throw new Exception("Failed to save consultation form: " . $stmt->error);
+        // basic required validation
+        $missing = [];
+        if ($first_name === '') $missing[] = 'first_name';
+        if ($last_name === '') $missing[] = 'last_name';
+        if ($age <= 0) $missing[] = 'age';
+        if ($gender === '') $missing[] = 'gender';
+        if (!empty($missing)) {
+            throw new Exception('Missing fields: ' . implode(', ', $missing));
         }
-        $stmt->close();
-        
-        // Handle treatment plans
+
+        // Upsert consultationforms
+        $check = $db->prepare("SELECT id FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+        $check->bind_param('i', $appointment_id);
+        $check->execute();
+        $ex = $check->get_result()->fetch_assoc();
+        $check->close();
+
+        if ($ex) {
+            $upd = $db->prepare("UPDATE consultationforms SET first_name = ?, last_name = ?, age = ?, gender = ?, diagnosis = ?, personal_products = ?, recommended_treatment = ?, notes = ?, patient_id = ?, patient_no = ?, updated_at = NOW() WHERE appointment_id = ?");
+            $upd->bind_param('ssisssssisi', $first_name, $last_name, $age, $gender, $diagnosis, $personal_products, $recommended_treatment, $notes, $patient_id, $patient_no, $appointment_id);
+            if (!$upd->execute()) throw new Exception('Failed updating consultation form: ' . $upd->error);
+            $upd->close();
+        } else {
+            $ins = $db->prepare("INSERT INTO consultationforms (appointment_id, patient_id, patient_no, first_name, last_name, age, gender, diagnosis, personal_products, recommended_treatment, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $ins->bind_param('iississssss', $appointment_id, $patient_id, $patient_no, $first_name, $last_name, $age, $gender, $diagnosis, $personal_products, $recommended_treatment, $notes);
+            if (!$ins->execute()) throw new Exception('Failed inserting consultation form: ' . $ins->error);
+            $ins->close();
+        }
+
+        // Handle treatment plans syncing
+        $treatment_plan_choice = post('treatment_plan_choice', 'no_need');
+        $treatment_schedule_data = post('treatment_schedule_data', '');
+        $single_treatment_data = post('single_treatment_data', '');
+
+        // Helper: delete other plans for this appointment (keep plan_id)
+        $delete_other_plans = function($keep_plan_id) use ($db, $appointment_id) {
+            $c = $db->prepare("DELETE FROM treatment_plans WHERE appointment_id = ? AND plan_id != ?");
+            if ($c) { $c->bind_param('ii', $appointment_id, $keep_plan_id); $c->execute(); $c->close(); }
+        };
+
         if ($treatment_plan_choice === 'multiple_sessions' && !empty($treatment_schedule_data)) {
-            
-            $scheduleData = json_decode($treatment_schedule_data, true);
-            
-            if (!$scheduleData) {
-                throw new Exception("Invalid treatment schedule data");
-            }
-            
-            // Get treatment_id
-            $treatment_name = $scheduleData['treatmentType'];
-            $stmt = $db->prepare("SELECT treatment_id FROM treatment_list WHERE treatment_name = ? LIMIT 1");
-            
-            if (!$stmt) {
-                throw new Exception("Treatment lookup error: " . $db->error);
-            }
-            
+            $schedule = json_decode($treatment_schedule_data, true);
+            if (!$schedule) throw new Exception('Invalid schedule data');
+
+            $treatment_name = $schedule['treatmentType'] ?? '';
+            $stmt = $db->prepare("SELECT treatment_id, price FROM treatment_list WHERE treatment_name = ? LIMIT 1");
             $stmt->bind_param('s', $treatment_name);
             $stmt->execute();
-            $result = $stmt->get_result();
-            $treatment_row = $result->fetch_assoc();
+            $tr = $stmt->get_result()->fetch_assoc();
             $stmt->close();
-            
-            if (!$treatment_row) {
-                throw new Exception("Treatment '" . $treatment_name . "' not found in database");
-            }
-            
-            $treatment_id = $treatment_row['treatment_id'];
-            $total_sessions = intval($scheduleData['sessions']);
-            $sessions_per_week = intval($scheduleData['sessionsPerWeek']);
-            // Use first session's actual date as start_date (doctor may have edited it)
-            $schedule_sessions = $scheduleData['schedule'] ?? [];
-            $start_date = !empty($schedule_sessions[0]['date'])
-                ? $schedule_sessions[0]['date']
-                : $scheduleData['startDate'];
-            // Use treatment's actual price per session; fall back to DB price, then 4500
-            if (!empty($scheduleData['pricePerSession'])) {
-                $price_per_session = floatval($scheduleData['pricePerSession']);
-            } else {
-                $pr = $db->prepare("SELECT price FROM treatment_list WHERE treatment_id = ? LIMIT 1");
-                $pr->bind_param('i', $treatment_id);
-                $pr->execute();
-                $pr_row = $pr->get_result()->fetch_assoc();
-                $pr->close();
-                $price_per_session = $pr_row ? floatval($pr_row['price']) : 4500;
-            }
+            if (!$tr) throw new Exception('Treatment not found');
+
+            $treatment_id = intval($tr['treatment_id']);
+            $total_sessions = intval($schedule['sessions'] ?? 0);
+            $sessions_per_week = intval($schedule['sessionsPerWeek'] ?? 1);
+            $start_date = $schedule['startDate'] ?? ($schedule['schedule'][0]['date'] ?? date('Y-m-d'));
+            $price_per_session = floatval($schedule['pricePerSession'] ?? $tr['price'] ?? 0);
             $total_cost = $total_sessions * $price_per_session;
-            $plan_diagnosis = $scheduleData['diagnosis'];
-            
-            // Ensure treatment_plans.plan_id and treatment_sessions PK auto-increment (avoids Duplicate entry '0' for key 'PRIMARY')
-            $maxPlan = $db->query("SELECT COALESCE(MAX(plan_id), 0) AS m FROM treatment_plans");
-            if ($maxPlan && ($row = $maxPlan->fetch_assoc())) {
-                $m = (int)$row['m'];
-                while (true) {
-                    $db->query("UPDATE treatment_plans SET plan_id = " . ($m + 1) . " WHERE plan_id = 0 LIMIT 1");
-                    if (!$db->affected_rows) break;
-                    $m++;
-                }
+            $plan_diagnosis = $schedule['diagnosis'] ?? $diagnosis;
+
+            // find existing plan by appointment
+            $plan_id = 0;
+            $chk = $db->prepare("SELECT plan_id FROM treatment_plans WHERE appointment_id = ? LIMIT 1");
+            $chk->bind_param('i', $appointment_id);
+            $chk->execute();
+            $cres = $chk->get_result()->fetch_assoc();
+            $chk->close();
+            if ($cres && !empty($cres['plan_id'])) $plan_id = (int)$cres['plan_id'];
+
+            if ($plan_id > 0) {
+                $up = $db->prepare("UPDATE treatment_plans SET treatment_id = ?, diagnosis = ?, total_sessions = ?, sessions_per_week = ?, start_date = ?, total_cost = ?, updated_at = NOW() WHERE plan_id = ?");
+                $up->bind_param('isiisdi', $treatment_id, $plan_diagnosis, $total_sessions, $sessions_per_week, $start_date, $total_cost, $plan_id);
+                if (!$up->execute()) throw new Exception('Failed updating plan: ' . $up->error);
+                $up->close();
+            } else {
+                $ins = $db->prepare("INSERT INTO treatment_plans (appointment_id, patient_id, treatment_id, diagnosis, total_sessions, sessions_per_week, start_date, total_cost, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())");
+                $ins->bind_param('iiisiisd', $appointment_id, $patient_id, $treatment_id, $plan_diagnosis, $total_sessions, $sessions_per_week, $start_date, $total_cost);
+                if (!$ins->execute()) throw new Exception('Failed creating plan: ' . $ins->error);
+                $plan_id = (int)$ins->insert_id;
+                $ins->close();
             }
-            @$db->query("ALTER TABLE treatment_plans MODIFY COLUMN plan_id INT NOT NULL AUTO_INCREMENT");
-            $pkCol = 'session_id';
-            $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'session_id'");
-            if (!$cols || $cols->num_rows === 0) {
-                $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'id'");
-                $pkCol = ($cols && $cols->num_rows > 0) ? 'id' : null;
-            }
-            if ($pkCol) {
-                $maxSess = $db->query("SELECT COALESCE(MAX(" . $pkCol . "), 0) AS m FROM treatment_sessions");
-                if ($maxSess && ($row = $maxSess->fetch_assoc())) {
-                    $m = (int)$row['m'];
-                    while (true) {
-                        $db->query("UPDATE treatment_sessions SET " . $pkCol . " = " . ($m + 1) . " WHERE " . $pkCol . " = 0 LIMIT 1");
-                        if (!$db->affected_rows) break;
-                        $m++;
+
+            if ($plan_id > 0) {
+                // replace sessions
+                $del = $db->prepare("DELETE FROM treatment_sessions WHERE plan_id = ?");
+                $del->bind_param('i', $plan_id);
+                $del->execute();
+                $del->close();
+
+                if (!empty($schedule['schedule']) && is_array($schedule['schedule'])) {
+                    foreach ($schedule['schedule'] as $s) {
+                        $sess = $db->prepare("INSERT INTO treatment_sessions (plan_id, session_number, session_date, session_time, status, created_at) VALUES (?, ?, ?, ?, 'Pending', NOW())");
+                        $num = intval($s['sessionNumber'] ?? 1);
+                        $date = $s['date'] ?? $start_date;
+                        $time = $s['time'] ?? '09:00';
+                        $sess->bind_param('iiss', $plan_id, $num, $date, $time);
+                        $sess->execute();
+                        $sess->close();
                     }
                 }
-                @$db->query("ALTER TABLE treatment_sessions MODIFY COLUMN " . $pkCol . " INT NOT NULL AUTO_INCREMENT");
+
+                // remove other duplicate plans
+                $delete_other_plans($plan_id);
             }
-            
-            // Insert treatment plan
-            $stmt = $db->prepare("
-                INSERT INTO treatment_plans (
-                    appointment_id, patient_id, treatment_id, diagnosis,
-                    total_sessions, sessions_per_week, start_date, total_cost,
-                    status, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
-            ");
-            
-            if (!$stmt) {
-                throw new Exception("Treatment plan insert error: " . $db->error);
-            }
-            
-            $stmt->bind_param(
-                'iiisiisd',
-                $appointment_id,
-                $patient_id,
-                $treatment_id,
-                $plan_diagnosis,
-                $total_sessions,
-                $sessions_per_week,
-                $start_date,
-                $total_cost
-            );
-            
-            if (!$stmt->execute()) {
-                throw new Exception("Failed to create treatment plan: " . $stmt->error);
-            }
-            
-            $plan_id = (int) $stmt->insert_id;
-            $stmt->close();
-            if ($plan_id <= 0) {
-                $g = $db->prepare("SELECT plan_id FROM treatment_plans WHERE appointment_id = ? ORDER BY created_at DESC LIMIT 1");
-                $g->bind_param('i', $appointment_id);
-                $g->execute();
-                $gr = $g->get_result()->fetch_assoc();
-                $g->close();
-                $plan_id = $gr ? (int)$gr['plan_id'] : 0;
-            }
-            if ($plan_id <= 0) {
-                throw new Exception("Could not get treatment plan id after insert");
-            }
-            
-            // Insert sessions
-            if (isset($scheduleData['schedule']) && is_array($scheduleData['schedule'])) {
-                foreach ($scheduleData['schedule'] as $session) {
-                    $stmt = $db->prepare("
-                        INSERT INTO treatment_sessions (
-                            plan_id, session_number, session_date, session_time,
-                            status, created_at
-                        ) VALUES (?, ?, ?, ?, 'Pending', NOW())
-                    ");
-                    
-                    if (!$stmt) {
-                        throw new Exception("Session insert error: " . $db->error);
-                    }
-                    
-                    $session_num = intval($session['sessionNumber']);
-                    $session_date = $session['date'];
-                    $session_time = $session['time'];
-                    
-                    $stmt->bind_param('iiss', $plan_id, $session_num, $session_date, $session_time);
-                    
-                    if (!$stmt->execute()) {
-                        throw new Exception("Failed to create session: " . $stmt->error);
-                    }
-                    
-                    $stmt->close();
-                }
-            }
-            
+
         } elseif ($treatment_plan_choice === 'single_session' && !empty($single_treatment_data)) {
-            
-            $treatmentData = json_decode($single_treatment_data, true);
-            
-            if ($treatmentData && isset($treatmentData['booking_id'])) {
-                $booking_id = intval($treatmentData['booking_id']);
-                
-                // Link booking to consultation form
-                $stmt = $db->prepare("
-                    UPDATE consultationforms 
-                    SET treatment_booking_id = ? 
-                    WHERE appointment_id = ?
-                ");
-                if (!$stmt) {
-                    throw new Exception("Booking link error: " . $db->error);
-                }
-                $stmt->bind_param('ii', $booking_id, $appointment_id);
-                $stmt->execute();
-                $stmt->close();
-                
-                // Create a treatment_plan + one session so it appears in the patient's Treatment Plans
-                $b = $db->prepare("SELECT tb.patient_id, tb.treatment_id, tb.booking_date, ts.slot_time, tl.treatment_name, tl.price 
-                    FROM treatment_bookings tb 
-                    LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id 
-                    LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id 
-                    WHERE tb.booking_id = ? LIMIT 1");
+            $tData = json_decode($single_treatment_data, true);
+            if ($tData && isset($tData['booking_id'])) {
+                $booking_id = intval($tData['booking_id']);
+
+                // link booking
+                $u = $db->prepare("UPDATE consultationforms SET treatment_booking_id = ? WHERE appointment_id = ?");
+                $u->bind_param('ii', $booking_id, $appointment_id);
+                $u->execute();
+                $u->close();
+
+                // load booking
+                $b = $db->prepare("SELECT tb.patient_id, tb.treatment_id, tb.booking_date, ts.slot_time, tl.treatment_name, tl.price FROM treatment_bookings tb LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id WHERE tb.booking_id = ? LIMIT 1");
                 $b->bind_param('i', $booking_id);
                 $b->execute();
                 $booking = $b->get_result()->fetch_assoc();
                 $b->close();
-                
+
                 if ($booking) {
-                    // Always use consultation's patient so the plan shows under the patient's account
-                    $plan_patient_id = (int)$patient_id;
-                    $plan_treatment_id = (int)$booking['treatment_id'];
+                    $plan_patient_id = $patient_id;
+                    $plan_treatment_id = intval($booking['treatment_id']);
                     $plan_start_date = $booking['booking_date'] ?? date('Y-m-d');
                     $plan_session_time = $booking['slot_time'] ?? '09:00';
-                    $plan_diagnosis_single = trim($diagnosis ?? '') !== '' ? $diagnosis : 'Single session';
-                    $plan_total_cost = (float)($booking['price'] ?? 4500);
-                    
-                    $maxPlan = $db->query("SELECT COALESCE(MAX(plan_id), 0) AS m FROM treatment_plans");
-                    if ($maxPlan && ($row = $maxPlan->fetch_assoc())) {
-                        $m = (int)$row['m'];
-                        while (true) {
-                            $db->query("UPDATE treatment_plans SET plan_id = " . ($m + 1) . " WHERE plan_id = 0 LIMIT 1");
-                            if (!$db->affected_rows) break;
-                            $m++;
-                        }
-                    }
-                    @$db->query("ALTER TABLE treatment_plans MODIFY COLUMN plan_id INT NOT NULL AUTO_INCREMENT");
-                    
-                    $ins = $db->prepare("
-                        INSERT INTO treatment_plans (
-                            appointment_id, patient_id, treatment_id, diagnosis,
-                            total_sessions, sessions_per_week, start_date, total_cost,
-                            status, created_at
-                        ) VALUES (?, ?, ?, ?, 1, 1, ?, ?, 'Pending', NOW())
-                    ");
-                    if ($ins) {
+                    $plan_diagnosis_single = $diagnosis ?: 'Single session';
+                    $plan_total_cost = floatval($booking['price'] ?? 0);
+
+                    // find or create plan
+                    $plan_id_single = 0;
+                    $chk = $db->prepare("SELECT plan_id FROM treatment_plans WHERE appointment_id = ? LIMIT 1");
+                    $chk->bind_param('i', $appointment_id);
+                    $chk->execute();
+                    $cres = $chk->get_result()->fetch_assoc();
+                    $chk->close();
+                    if ($cres && !empty($cres['plan_id'])) $plan_id_single = (int)$cres['plan_id'];
+
+                    if ($plan_id_single > 0) {
+                        $up = $db->prepare("UPDATE treatment_plans SET patient_id = ?, treatment_id = ?, diagnosis = ?, total_sessions = 1, sessions_per_week = 1, start_date = ?, total_cost = ?, updated_at = NOW() WHERE plan_id = ?");
+                        $up->bind_param('iissdi', $plan_patient_id, $plan_treatment_id, $plan_diagnosis_single, $plan_start_date, $plan_total_cost, $plan_id_single);
+                        $up->execute();
+                        $up->close();
+                    } else {
+                        $ins = $db->prepare("INSERT INTO treatment_plans (appointment_id, patient_id, treatment_id, diagnosis, total_sessions, sessions_per_week, start_date, total_cost, status, created_at) VALUES (?, ?, ?, ?, 1, 1, ?, ?, 'Pending', NOW())");
                         $ins->bind_param('iiissd', $appointment_id, $plan_patient_id, $plan_treatment_id, $plan_diagnosis_single, $plan_start_date, $plan_total_cost);
                         $ins->execute();
                         $plan_id_single = (int)$ins->insert_id;
                         $ins->close();
-                        if ($plan_id_single <= 0) {
-                            $g = $db->prepare("SELECT plan_id FROM treatment_plans WHERE appointment_id = ? ORDER BY created_at DESC LIMIT 1");
-                            $g->bind_param('i', $appointment_id);
-                            $g->execute();
-                            $gr = $g->get_result()->fetch_assoc();
-                            $g->close();
-                            $plan_id_single = $gr ? (int)$gr['plan_id'] : 0;
-                        }
-                        if ($plan_id_single > 0) {
-                            $pkCol = 'session_id';
-                            $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'session_id'");
-                            if (!$cols || $cols->num_rows === 0) {
-                                $cols = @$db->query("SHOW COLUMNS FROM treatment_sessions LIKE 'id'");
-                                $pkCol = ($cols && $cols->num_rows > 0) ? 'id' : null;
-                            }
-                            if ($pkCol) {
-                                $maxSess = $db->query("SELECT COALESCE(MAX(" . $pkCol . "), 0) AS m FROM treatment_sessions");
-                                if ($maxSess && ($row = $maxSess->fetch_assoc())) {
-                                    $m = (int)$row['m'];
-                                    while (true) {
-                                        $db->query("UPDATE treatment_sessions SET " . $pkCol . " = " . ($m + 1) . " WHERE " . $pkCol . " = 0 LIMIT 1");
-                                        if (!$db->affected_rows) break;
-                                        $m++;
-                                    }
-                                }
-                                @$db->query("ALTER TABLE treatment_sessions MODIFY COLUMN " . $pkCol . " INT NOT NULL AUTO_INCREMENT");
-                            }
-                            $sess = $db->prepare("
-                                INSERT INTO treatment_sessions (
-                                    plan_id, session_number, session_date, session_time,
-                                    status, created_at
-                                ) VALUES (?, 1, ?, ?, 'Pending', NOW())
-                            ");
-                            if ($sess) {
-                                $sess->bind_param('iss', $plan_id_single, $plan_start_date, $plan_session_time);
-                                $sess->execute();
-                                $sess->close();
-                            }
-                        }
+                    }
+
+                    if ($plan_id_single > 0) {
+                        // replace sessions
+                        $del = $db->prepare("DELETE FROM treatment_sessions WHERE plan_id = ?");
+                        $del->bind_param('i', $plan_id_single);
+                        $del->execute();
+                        $del->close();
+
+                        $sess = $db->prepare("INSERT INTO treatment_sessions (plan_id, session_number, session_date, session_time, status, created_at) VALUES (?, 1, ?, ?, 'Pending', NOW())");
+                        $sess->bind_param('iss', $plan_id_single, $plan_start_date, $plan_session_time);
+                        $sess->execute();
+                        $sess->close();
+
+                        // cleanup duplicates
+                        $delete_other_plans($plan_id_single);
                     }
                 }
             }
         }
-        
-        // Mark appointment as completed
-        $stmt = $db->prepare("UPDATE consultations SET status = 'Completed' WHERE id = ?");
-        
-        if (!$stmt) {
-            throw new Exception("Appointment update error: " . $db->error);
-        }
-        
-        $stmt->bind_param('i', $appointment_id);
-        $stmt->execute();
-        $stmt->close();
-        
+
+        // finalize
+        $u2 = $db->prepare("UPDATE consultations SET status = 'Completed' WHERE id = ?");
+        $u2->bind_param('i', $appointment_id);
+        $u2->execute();
+        $u2->close();
+
         $db->commit();
         $db->close();
-        
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Consultation saved successfully'
-        ]);
-        
+
+        echo json_encode(['status' => 'success', 'message' => 'Consultation saved successfully']);
+
     } catch (Exception $e) {
-        if (isset($db)) {
-            $db->rollback();
-            $db->close();
-        }
-        
-        error_log("Consultation save error: " . $e->getMessage());
-        
-        echo json_encode([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ]);
+        if (isset($db)) { $db->rollback(); $db->close(); }
+        error_log('Consultation save error: ' . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
-    
+
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
-    
+
     if ($_GET['action'] === 'get_consultation_form') {
-        
         try {
             $appointment_id = intval($_GET['appointment_id'] ?? 0);
-            
-            if ($appointment_id === 0) {
-                throw new Exception('Invalid appointment_id');
-            }
-            
+            if ($appointment_id <= 0) throw new Exception('Invalid appointment_id');
+
             $db = getDbConnection();
             $stmt = $db->prepare("SELECT * FROM consultationforms WHERE appointment_id = ? LIMIT 1");
-            
-            if (!$stmt) {
-                throw new Exception("Query error: " . $db->error);
-            }
-            
             $stmt->bind_param('i', $appointment_id);
             $stmt->execute();
-            $result = $stmt->get_result();
-            $form = $result->fetch_assoc();
+            $form = $stmt->get_result()->fetch_assoc();
             $stmt->close();
 
             $response = ['form' => $form ?? null];
             $merged = [];
 
             if ($form) {
-                // If the form already contains a recommended treatment, prefer it
                 if (!empty($form['recommended_treatment'])) {
                     $merged['recommended_treatment'] = $form['recommended_treatment'];
                 }
-
-                // 1) If linked to a single-session booking, fetch booking details
+                // linked booking
                 if (empty($merged['recommended_treatment']) && !empty($form['treatment_booking_id'])) {
                     $booking_id = intval($form['treatment_booking_id']);
-                    $bst = $db->prepare("SELECT tb.booking_id, tb.booking_date, ts.slot_time, tl.treatment_name, tl.price FROM treatment_bookings tb
-                                         LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id
-                                         LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id
-                                         WHERE tb.booking_id = ? LIMIT 1");
-                    if ($bst) {
-                        $bst->bind_param('i', $booking_id);
-                        $bst->execute();
-                        $brow = $bst->get_result()->fetch_assoc();
-                        $bst->close();
-                        if ($brow) {
-                            $merged['recommended_treatment'] = "Treatment: " . ($brow['treatment_name'] ?? '') . " | Date: " . ($brow['booking_date'] ?? '') . " | Time: " . ($brow['slot_time'] ?? '');
-                            $merged['treatment_booking'] = $brow;
-                        }
+                    $bst = $db->prepare("SELECT tb.booking_id, tb.booking_date, ts.slot_time, tl.treatment_name, tl.price FROM treatment_bookings tb LEFT JOIN treatment_slots ts ON tb.slot_id = ts.slot_id LEFT JOIN treatment_list tl ON tb.treatment_id = tl.treatment_id WHERE tb.booking_id = ? LIMIT 1");
+                    $bst->bind_param('i', $booking_id);
+                    $bst->execute();
+                    $brow = $bst->get_result()->fetch_assoc();
+                    $bst->close();
+                    if ($brow) {
+                        $merged['recommended_treatment'] = "Treatment: " . ($brow['treatment_name'] ?? '') . " | Date: " . ($brow['booking_date'] ?? '') . " | Time: " . ($brow['slot_time'] ?? '');
+                        $merged['treatment_booking'] = $brow;
                     }
                 }
 
-                // 2) If still empty, look for a treatment plan linked to this appointment
+                // linked plan
                 if (empty($merged['recommended_treatment'])) {
-                    $pst = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tp.diagnosis, tl.treatment_name, tl.price
-                                         FROM treatment_plans tp
-                                         LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
-                                         WHERE tp.appointment_id = ? LIMIT 1");
-                    if ($pst) {
-                        $pst->bind_param('i', $appointment_id);
-                        $pst->execute();
-                        $prow = $pst->get_result()->fetch_assoc();
-                        $pst->close();
-                        if ($prow) {
-                            $merged['recommended_treatment'] = "Treatment Plan: " . ($prow['treatment_name'] ?? '') . " | " . intval($prow['total_sessions']) . " sessions | Start: " . ($prow['start_date'] ?? '');
-                            $merged['treatment_plan'] = $prow;
-                        }
+                    $pst = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tp.diagnosis, tl.treatment_name, tl.price FROM treatment_plans tp LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id WHERE tp.appointment_id = ? LIMIT 1");
+                    $pst->bind_param('i', $appointment_id);
+                    $pst->execute();
+                    $prow = $pst->get_result()->fetch_assoc();
+                    $pst->close();
+                    if ($prow) {
+                        $merged['recommended_treatment'] = "Treatment Plan: " . ($prow['treatment_name'] ?? '') . " | " . intval($prow['total_sessions']) . " sessions | Start: " . ($prow['start_date'] ?? '');
+                        $merged['treatment_plan'] = $prow;
                     }
                 }
 
-                // 3) Fallback: find most recent treatment plan for the patient (if any)
+                // fallback most recent for patient
                 if (empty($merged['recommended_treatment'])) {
                     $cst = $db->prepare("SELECT patient_id FROM consultations WHERE id = ? LIMIT 1");
-                    if ($cst) {
-                        $cst->bind_param('i', $appointment_id);
-                        $cst->execute();
-                        $crow = $cst->get_result()->fetch_assoc();
-                        $cst->close();
-                        $patient_id = intval($crow['patient_id'] ?? 0);
-                        if ($patient_id > 0) {
-                            $pst2 = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tl.treatment_name, tl.price
-                                                 FROM treatment_plans tp
-                                                 LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
-                                                 WHERE tp.patient_id = ? ORDER BY tp.created_at DESC LIMIT 1");
-                            if ($pst2) {
-                                $pst2->bind_param('i', $patient_id);
-                                $pst2->execute();
-                                $prow2 = $pst2->get_result()->fetch_assoc();
-                                $pst2->close();
-                                if ($prow2) {
-                                    $merged['recommended_treatment'] = "Treatment Plan: " . ($prow2['treatment_name'] ?? '') . " | " . intval($prow2['total_sessions']) . " sessions | Start: " . ($prow2['start_date'] ?? '');
-                                    $merged['treatment_plan'] = $prow2;
-                                }
-                            }
+                    $cst->bind_param('i', $appointment_id);
+                    $cst->execute();
+                    $crow = $cst->get_result()->fetch_assoc();
+                    $cst->close();
+                    $pid = intval($crow['patient_id'] ?? 0);
+                    if ($pid > 0) {
+                        $pst2 = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tl.treatment_name, tl.price FROM treatment_plans tp LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id WHERE tp.patient_id = ? ORDER BY tp.created_at DESC LIMIT 1");
+                        $pst2->bind_param('i', $pid);
+                        $pst2->execute();
+                        $prow2 = $pst2->get_result()->fetch_assoc();
+                        $pst2->close();
+                        if ($prow2) {
+                            $merged['recommended_treatment'] = "Treatment Plan: " . ($prow2['treatment_name'] ?? '') . " | " . intval($prow2['total_sessions']) . " sessions | Start: " . ($prow2['start_date'] ?? '');
+                            $merged['treatment_plan'] = $prow2;
                         }
                     }
                 }
@@ -571,21 +339,14 @@ $stmt->bind_param(
             $response['merged'] = $merged;
             $db->close();
 
-            if ($form) {
-                echo json_encode($response);
-            } else {
-                echo json_encode([]);
-            }
-            
+            echo json_encode($response);
+
         } catch (Exception $e) {
-            error_log("Get consultation error: " . $e->getMessage());
+            error_log('Get consultation error: ' . $e->getMessage());
             echo json_encode(['error' => $e->getMessage()]);
-        } 
+        }
     }
-    
+
 } else {
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Invalid request method'
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
 }

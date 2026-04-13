@@ -465,62 +465,165 @@ function showConsultationModal(appointmentId) {
     var content = document.getElementById('consultationFormData');
     content.innerHTML = '<div style="text-align:center;padding:40px;">Loading...</div>';
     modal.style.display = 'flex';
-    
+
+    function renderProductsToText(val) {
+        if (!val) return '';
+        try {
+            var arr = (typeof val === 'string') ? JSON.parse(val) : val;
+            if (!Array.isArray(arr)) return '';
+            return arr.map(p => (p.product || '') + (p.qty ? ' x' + p.qty : '')).join(', ');
+        } catch (e) { return String(val || ''); }
+    }
+
+    function productsTextToJson(text) {
+        if (!text) return [];
+        return text.split(',').map(s => {
+            var part = s.trim(); if (!part) return null;
+            var m = part.match(/^(.*) x(\\d+)$/i);
+            if (m) return {product: m[1].trim(), qty: parseInt(m[2],10)};
+            return {product: part, qty: 1};
+        }).filter(Boolean);
+    }
+
+    function htmlspecialchars(str){
+        if (str === null || typeof str === 'undefined') return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    function renderView(data) {
+        var formData = data.form || {};
+        var allowed = {
+            first_name: 'First Name', last_name: 'Last Name', age: 'Age', gender: 'Gender',
+            diagnosis: 'Diagnosis', personal_products: 'Prescribed Products', recommended_treatment: 'Recommended Treatment', notes: 'Notes'
+        };
+        var html = '<table style="width:100%;border-collapse:separate;border-spacing:0 8px;">';
+        for (var key in allowed) {
+            var value = '';
+            if (formData && typeof formData[key] !== 'undefined' && formData[key] !== null) value = formData[key];
+            else if (data && data.merged && typeof data.merged[key] !== 'undefined' && data.merged[key] !== null) value = data.merged[key];
+            else value = '';
+
+            if (key === 'personal_products') {
+                try { value = renderProductsToText(value); } catch (e) { value = ''; }
+            }
+
+            html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
+            html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;">' + allowed[key] + '</td>';
+            html += '<td style="padding:10px 16px;">' + (value || '') + '</td></tr>';
+        }
+        html += '</table>';
+        html += '<div style="display:flex;justify-content:flex-end;margin-top:12px;gap:8px;">';
+        html += '<button id="consultation-edit-btn" style="background:#fff;border:1px solid #ccc;padding:8px 12px;border-radius:6px;cursor:pointer;">Edit</button>';
+        html += '</div>';
+        content.innerHTML = html;
+
+        document.getElementById('consultation-edit-btn').addEventListener('click', function(){
+            // Navigate to the full consultation form page to allow editing there
+            window.location.href = 'doctorconsultform.php?appointment_id=' + appointmentId;
+        });
+    }
+
+    function renderEdit(formData, dataMerged) {
+        var first_name = formData.first_name || '';
+        var last_name = formData.last_name || '';
+        var age = formData.age || '';
+        var gender = formData.gender || '';
+        var diagnosis = formData.diagnosis || (dataMerged.merged && dataMerged.merged.diagnosis) || '';
+        var personal_products = renderProductsToText(formData.personal_products || '');
+        var recommended_treatment = formData.recommended_treatment || (dataMerged.merged && dataMerged.merged.recommended_treatment) || '';
+        var notes = formData.notes || '';
+
+        var html = '<form id="consultation-edit-form" style="width:100%;">';
+        html += '<div style="display:flex;gap:8px;margin-bottom:10px;">';
+        html += '<div style="flex:1"><label style="color:#E6A85A;font-weight:600">First Name</label><input name="first_name" value="' + htmlspecialchars(first_name) + '" style="width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd"/></div>';
+        html += '<div style="flex:1"><label style="color:#E6A85A;font-weight:600">Last Name</label><input name="last_name" value="' + htmlspecialchars(last_name) + '" style="width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd"/></div>';
+        html += '</div>';
+        html += '<div style="display:flex;gap:8px;margin-bottom:10px;">';
+        html += '<div style="flex:1"><label style="color:#E6A85A;font-weight:600">Age</label><input name="age" type="number" value="' + htmlspecialchars(age) + '" style="width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd"/></div>';
+        html += '<div style="flex:1"><label style="color:#E6A85A;font-weight:600">Gender</label><select name="gender" style="width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd"><option value="">Select</option><option value="Male" ' + (gender==='Male' ? 'selected' : '') + '>Male</option><option value="Female" ' + (gender==='Female' ? 'selected' : '') + '>Female</option><option value="Other" ' + (gender==='Other' ? 'selected' : '') + '>Other</option></select></div>';
+        html += '</div>';
+        html += '<div style="margin-bottom:10px;"><label style="color:#E6A85A;font-weight:600">Diagnosis</label><textarea name="diagnosis" style="width:100%;min-height:60px;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd">' + htmlspecialchars(diagnosis) + '</textarea></div>';
+        html += '<div style="margin-bottom:10px;"><label style="color:#E6A85A;font-weight:600">Prescribed Products (comma separated, e.g. "Ashwagandha Capsules x1, Oil x2")</label><textarea name="personal_products_text" style="width:100%;min-height:50px;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd">' + htmlspecialchars(personal_products) + '</textarea></div>';
+        html += '<div style="margin-bottom:10px;"><label style="color:#E6A85A;font-weight:600">Recommended Treatment</label><textarea name="recommended_treatment" style="width:100%;min-height:50px;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd">' + htmlspecialchars(recommended_treatment) + '</textarea></div>';
+        html += '<div style="margin-bottom:10px;"><label style="color:#E6A85A;font-weight:600">Notes</label><textarea name="notes" style="width:100%;min-height:40px;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd">' + htmlspecialchars(notes) + '</textarea></div>';
+        html += '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">';
+        html += '<button type="button" id="consultation-cancel-btn" style="background:#fff;border:1px solid #ccc;padding:8px 12px;border-radius:6px;cursor:pointer;margin-right:8px;">Cancel</button>';
+        html += '<button id="consultation-save-btn" type="button" style="background:#E6A85A;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;">Save</button></div>';
+        html += '</form>';
+
+        content.innerHTML = html;
+
+        document.getElementById('consultation-cancel-btn').addEventListener('click', function(){ renderView(dataMerged); });
+
+        document.getElementById('consultation-save-btn').addEventListener('click', function(){
+            var form = document.getElementById('consultation-edit-form');
+            // basic client-side validation
+            if (!form.elements['first_name'].value.trim() || !form.elements['last_name'].value.trim() || !form.elements['age'].value.trim() || !form.elements['gender'].value) {
+                alert('Please fill First name, Last name, Age and Gender.');
+                return;
+            }
+
+            var fd = new FormData();
+            fd.append('appointment_id', appointmentId);
+            fd.append('first_name', form.elements['first_name'].value.trim());
+            fd.append('last_name', form.elements['last_name'].value.trim());
+            fd.append('age', form.elements['age'].value.trim());
+            fd.append('gender', form.elements['gender'].value);
+            fd.append('diagnosis', form.elements['diagnosis'].value.trim());
+            fd.append('personal_products', JSON.stringify(productsTextToJson(form.elements['personal_products_text'].value)));
+            fd.append('recommended_treatment', form.elements['recommended_treatment'].value.trim());
+            fd.append('notes', form.elements['notes'].value.trim());
+
+            fetch('/dheergayu/app/Controllers/ConsultationFormController.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(resp => {
+                    if (resp && resp.status === 'success') {
+                            alert('Consultation saved');
+                            // refresh modal view with latest saved data so user can re-edit without full page reload
+                            fetch('/dheergayu/app/Controllers/ConsultationFormController.php?action=get_consultation_form&appointment_id=' + appointmentId)
+                                .then(r => r.text())
+                                .then(function(text){
+                                    try {
+                                        var newData = JSON.parse(text);
+                                    } catch (e) {
+                                        content.innerHTML = '<div style="text-align:left;padding:16px;color:#e74c3c;white-space:pre-wrap;">Error parsing server response after save:\n' + htmlspecialchars(text.substring(0,2000)) + '</div>';
+                                        setTimeout(function(){ closeConsultationModal(); location.reload(); }, 1800);
+                                        return;
+                                    }
+                                    if (newData && Object.keys(newData).length > 0) {
+                                        renderView(newData);
+                                    } else {
+                                        closeConsultationModal();
+                                        location.reload();
+                                    }
+                                }).catch(function(){
+                                    // fallback: close modal and reload
+                                    closeConsultationModal();
+                                    location.reload();
+                                });
+                        } else {
+                        alert('Error: ' + (resp.message || 'Failed to save'));
+                    }
+                }).catch(() => { alert('Network error while saving'); });
+        });
+    }
+
     fetch('/dheergayu/app/Controllers/ConsultationFormController.php?action=get_consultation_form&appointment_id=' + appointmentId)
-        .then(r => r.json())
-        .then(data => {
+        .then(r => r.text())
+        .then(text => {
+            try {
+                var data = JSON.parse(text);
+            } catch (e) {
+                content.innerHTML = '<div style="text-align:left;padding:16px;color:#e74c3c;white-space:pre-wrap;">Error parsing server response:\n' + htmlspecialchars(text.substring(0, 2000)) + '</div>';
+                return;
+            }
             if (data && Object.keys(data).length > 0) {
-                var html = '<table style="width:100%;border-collapse:separate;border-spacing:0 8px;">';
-                // Preferred source: raw consultationforms row (returned as data.form) so we reflect table values
-                var formData = data.form || {};
-                var allowed = {
-                    first_name: 'First Name',
-                    last_name: 'Last Name',
-                    age: 'Age',
-                    gender: 'Gender',
-                    diagnosis: 'Diagnosis',
-                    personal_products: 'Prescribed Products',
-                    recommended_treatment: 'Recommended Treatment',
-                    notes: 'Notes'
-                };
-
-                // Render rows for all allowed keys in order (show empty values as blank)
-                for (var key in allowed) {
-                    var value = '';
-                    if (formData && typeof formData[key] !== 'undefined' && formData[key] !== null) {
-                        // Prefer the raw form table value
-                        value = formData[key];
-                    } else if (data && data.merged && typeof data.merged[key] !== 'undefined' && data.merged[key] !== null) {
-                        // Fallback to merged data (consultation + patient + booking)
-                        value = data.merged[key];
-                    } else if (data && typeof data[key] !== 'undefined' && data[key] !== null) {
-                        // Historic fallback if controller returned flat data
-                        value = data[key];
-                    } else {
-                        value = '';
-                    }
-
-                    if (key === 'personal_products') {
-                        try {
-                            var items = typeof value === 'string' ? JSON.parse(value || '[]') : value;
-                            if (Array.isArray(items)) {
-                                value = items.map(p => (p.product || '') + (p.qty ? ' x'+p.qty : '')).join(', ');
-                            } else {
-                                value = '';
-                            }
-                        } catch (e) { value = '' }
-                    }
-
-                    html += '<tr style="background:#fff;box-shadow:0 2px 8px #e3e6f3;border-radius:8px;">';
-                    html += '<td style="font-weight:500;padding:10px 16px;color:#E6A85A;width:40%;">' + allowed[key] + '</td>';
-                    html += '<td style="padding:10px 16px;">' + (value || '') + '</td></tr>';
-                }
-                content.innerHTML = html + '</table>';
+                renderView(data);
             } else {
                 content.innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;">No data found</div>';
             }
         })
-        .catch(() => {
+        .catch((err) => {
             content.innerHTML = '<div style="text-align:center;padding:40px;color:#e74c3c;">Error loading data</div>';
         });
 }
