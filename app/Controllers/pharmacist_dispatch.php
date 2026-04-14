@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 session_start();
+require_once __DIR__ . '/../../config/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Only POST allowed']);
@@ -17,7 +18,7 @@ if ($consultationId <= 0) {
 }
 
 try {
-    $db = new mysqli('localhost', 'root', '', 'dheergayu_db');
+    $db = $conn;
     if ($db->connect_error) {
         throw new Exception('Database connection failed: ' . $db->connect_error);
     }
