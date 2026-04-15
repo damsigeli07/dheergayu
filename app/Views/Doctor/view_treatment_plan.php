@@ -1,9 +1,9 @@
 <?php
-require_once __DIR__ . '/../../includes/auth_doctor.php';
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
+require_once __DIR__ . '/../../includes/auth_doctor.php';
 require_once __DIR__ . '/../../../config/config.php';
 
-$user_role = strtolower($_SESSION['role'] ?? $_SESSION['user_type'] ?? '');
+$user_role = strtolower($_SESSION['role'] ?? $_SESSION['user_type'] ?? $_SESSION['user_role'] ?? '');
 if (!isset($_SESSION['user_id']) || ($user_role !== 'doctor' && $user_role !== 'staff')) {
     die('Access denied');
 }
