@@ -79,8 +79,7 @@ $stmt->close();
 
         <div class="info-box">
             <strong>Patient: <?= htmlspecialchars($plan['first_name'] . ' ' . $plan['last_name']) ?></strong>
-            <p>Total Sessions: <?= $plan['total_sessions'] ?></p>
-            <p>Sessions per Week: <?= $plan['sessions_per_week'] ?></p>
+            <p>Total Sessions: <?= count($sessions) ?></p>
             <p>Original Start Date: <?= date('M d, Y', strtotime($plan['start_date'])) ?></p>
         </div>
 
@@ -151,7 +150,7 @@ $stmt->close();
 
         // Generate new schedule
         const selectedSessions = sessions.filter(s => selectedIds.includes(s.session_id));
-        const newSchedule = calculateNewSchedule(selectedSessions, newStartDate, plan.sessions_per_week);
+        const newSchedule = calculateNewSchedule(selectedSessions, newStartDate, 1);
         
         // Display preview
         const previewList = document.getElementById('preview-list');
@@ -217,7 +216,7 @@ $stmt->close();
         const selectedIds = Array.from(document.querySelectorAll('input[name="sessions[]"]:checked')).map(cb => parseInt(cb.value));
         const newStartDate = document.getElementById('new_start_date').value;
         const selectedSessions = sessions.filter(s => selectedIds.includes(s.session_id));
-        const newSchedule = calculateNewSchedule(selectedSessions, newStartDate, plan.sessions_per_week);
+        const newSchedule = calculateNewSchedule(selectedSessions, newStartDate, 1);
         
         // Send to server
         fetch('/dheergayu/public/api/reschedule-treatment-sessions.php', {

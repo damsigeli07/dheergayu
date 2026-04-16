@@ -14,7 +14,7 @@ $model = new AppointmentModel($conn);
 $patient_id = $_SESSION['user_id'];
 $appointments = $model->getPatientAppointments($patient_id);
 
-// Get treatment plans for patient (join treatment_list so treatment type and diagnosis show correctly)
+// Get treatment plans for patient
 $plans_query = "
     SELECT tp.*, tl.treatment_name
     FROM treatment_plans tp
@@ -328,7 +328,6 @@ function getCancelledAppointments($appointments) {
 
 $consultationOnly = getConsultationAppointments($appointments);
 $treatmentOnly = getTreatmentAppointments($appointments);
-$upcoming = getUpcomingAppointments($appointments);
 $cancelled = getCancelledAppointments($appointments);
 $treatmentPlansTabCount = count($treatment_plans);
 ?>
@@ -377,9 +376,6 @@ $treatmentPlansTabCount = count($treatment_plans);
     <button class="tab-btn" onclick="showTab('treatment-plans')">
         Treatment Plans <span class="tab-badge"><?php echo $treatmentPlansTabCount; ?></span>
     </button>
-    <button class="tab-btn" onclick="showTab('upcoming')">
-        Upcoming <span class="tab-badge"><?php echo countUpcoming($appointments); ?></span>
-    </button>
     <button class="tab-btn" onclick="showTab('cancelled')">
         Cancelled
     </button>
@@ -407,28 +403,6 @@ $treatmentPlansTabCount = count($treatment_plans);
                     <?php endif; ?>
                 </div>
 
-                <!-- Upcoming Appointments -->
-                <div id="upcoming-tab" class="tab-panel" style="display: none;">
-                    <?php 
-                    if (empty($upcoming)): 
-                    ?>
-                        <div class="empty-state">
-                            <h3>No Upcoming Appointments</h3>
-                            <p>Book your first consultation or treatment today</p>
-                            <div style="margin-top: 20px;">
-                                <a href="channeling.php" class="book-btn">Book Consultation</a>
-                                <a href="treatment.php" class="book-btn">Book Treatment</a>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div class="appointments-list">
-                            <?php foreach ($upcoming as $apt): ?>
-                                <?php renderAppointmentCard($apt, $conn); ?>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
                 <!-- Treatment Plans Tab -->
                 <div id="treatment-plans-tab" class="tab-panel" style="display: none;">
                     <?php if (empty($treatment_plans)): ?>
@@ -440,9 +414,12 @@ $treatmentPlansTabCount = count($treatment_plans);
                         <h3 style="margin:0 0 12px 0;color:#2d3748;">Doctor Treatment Plans</h3>
 
                         <div class="appointments-list">
-                            <?php foreach ($treatment_plans as $plan): 
-                                // Get sessions for this plan
-                                $sessions_query = "SELECT * FROM treatment_sessions WHERE plan_id = ? ORDER BY session_number";
+                            <?php foreach ($treatment_plans as $plan):
+                                // Get sessions for this plan — coerce NULL status to AwaitingPayment for sessions added by staff after initial plan payment
+                                $planAlreadyPaid = ($plan['payment_status'] ?? '') === 'Completed';
+                                $sessions_query = "SELECT session_number, session_date, session_time,
+                                    CASE WHEN (status IS NULL OR status = '') THEN 'AwaitingPayment' ELSE status END AS status
+                                    FROM treatment_sessions WHERE plan_id = ? ORDER BY session_number";
                                 $stmt = $conn->prepare($sessions_query);
                                 $stmt->bind_param('i', $plan['plan_id']);
                                 $stmt->execute();
@@ -472,7 +449,7 @@ $treatmentPlansTabCount = count($treatment_plans);
                                         </div>
                                         <div class="detail-item">
                                             <span class="detail-label">Total Sessions</span>
-                                            <span class="detail-value"><?= $plan['total_sessions'] ?> sessions (<?= $plan['sessions_per_week'] ?>x per week)</span>
+                                            <span class="detail-value">1 session</span>
                                         </div>
                                         <div class="detail-item">
                                             <span class="detail-label">Start Date</span>
@@ -510,18 +487,51 @@ $treatmentPlansTabCount = count($treatment_plans);
                                     <div style="margin-top:20px;background:#f8f9fa;padding:15px;border-radius:8px;">
                                         <strong style="color:#333;font-size:15px;">Treatment Sessions:</strong>
                                         <div style="margin-top:12px;">
-                                            <?php foreach ($sessions as $session): ?>
-                                                <div style="background:#fff;padding:12px;margin:8px 0;border-radius:6px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid <?= $session['status'] === 'Completed' ? '#28a745' : ($session['status'] === 'Pending' ? '#ffc107' : '#17a2b8') ?>;">
-                                                    <div>
-                                                        <strong style="color:#333;">Session <?= $session['session_number'] ?></strong>
-                                                        <div style="font-size:13px;color:#666;margin-top:4px;">
-                                                            📅 <?= date('l, M d, Y', strtotime($session['session_date'])) ?> 
-                                                            at ⏰ <?= date('g:i A', strtotime($session['session_time'])) ?>
+                                            <?php foreach ($sessions as $idx => $session):
+                                                $isAwaitingPayment = ($session['status'] === 'AwaitingPayment');
+                                                $borderColor = $session['status'] === 'Completed' ? '#28a745'
+                                                    : ($isAwaitingPayment ? '#E8A020'
+                                                    : ($session['status'] === 'Confirmed' ? '#17a2b8'
+                                                    : '#ffc107'));
+                                                // Min date = day after previous session's date
+                                                $prevSession = $idx > 0 ? $sessions[$idx - 1] : null;
+                                                $reschedMinDate = ($prevSession && !empty($prevSession['session_date']))
+                                                    ? date('Y-m-d', strtotime($prevSession['session_date'] . ' +1 day'))
+                                                    : date('Y-m-d');
+                                            ?>
+                                                <div style="background:#fff;padding:12px;margin:8px 0;border-radius:6px;border-left:3px solid <?= $borderColor ?>;<?= $isAwaitingPayment ? 'box-shadow:0 2px 8px rgba(156,39,176,.15);' : '' ?>">
+                                                    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+                                                        <div>
+                                                            <strong style="color:#333;">Session <?= $session['session_number'] ?></strong>
+                                                            <?php if ($isAwaitingPayment): ?>
+                                                                <span style="background:#f3e5f5;color:#7b1fa2;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px;">New</span>
+                                                            <?php endif; ?>
+                                                            <div style="font-size:13px;color:#666;margin-top:4px;">
+                                                                <?php if (!empty($session['session_date']) && !empty($session['session_time'])): ?>
+                                                                    📅 <?= date('l, M d, Y', strtotime($session['session_date'])) ?> at ⏰ <?= date('g:i A', strtotime($session['session_time'])) ?>
+                                                                <?php else: ?>
+                                                                    🗓 Date to be scheduled by staff
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                        <span class="status-badge status-<?= strtolower(str_replace(' ', '', $session['status'])) ?>" style="font-size:11px;">
+                                                            <?= $isAwaitingPayment ? 'Payment Required' : $session['status'] ?>
+                                                        </span>
+                                                    </div>
+
+                                                    <?php if ($isAwaitingPayment): ?>
+                                                    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #f3e5f5;">
+                                                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                                            <a href="session_payment.php?plan_id=<?= $plan['plan_id'] ?>&session_number=<?= $session['session_number'] ?>"
+                                                               class="action-btn btn-primary" style="text-decoration:none;">
+                                                                ✓ Confirm &amp; Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
+                                                            </a>
+                                                            <button class="action-btn btn-warning" onclick="openSessionReschedule(<?= $plan['plan_id'] ?>, <?= $session['session_number'] ?>, <?= intval($plan['treatment_id'] ?? 0) ?>, '<?= $reschedMinDate ?>')">
+                                                                Reschedule &amp; Pay
+                                                            </button>
                                                         </div>
                                                     </div>
-                                                    <span class="status-badge status-<?= strtolower($session['status']) ?>" style="font-size:11px;">
-                                                        <?= $session['status'] ?>
-                                                    </span>
+                                                    <?php endif; ?>
                                                 </div>
                                             <?php endforeach; ?>
                                         </div>
@@ -621,9 +631,6 @@ $treatmentPlansTabCount = count($treatment_plans);
             </div>
         </div>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="channeling.php" class="book-new-btn">Book New Appointment</a>
-        </div>
     </div>
 
     <!-- Edit Modal -->
@@ -672,6 +679,34 @@ $treatmentPlansTabCount = count($treatment_plans);
                     <button type="button" class="action-btn btn-secondary" onclick="closePlanRescheduleModal()">Cancel</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Session Reschedule Modal -->
+    <div id="sessionRescheduleModal" class="modal">
+        <div class="modal-content" style="max-width:440px;">
+            <span class="close" onclick="closeSessionReschedule()">&times;</span>
+            <h3>Reschedule Session</h3>
+            <p style="margin-top:0;color:#666;font-size:14px;">Pick a new date and available slot. You can pay after updating.</p>
+            <input type="hidden" id="reschedPlanId">
+            <input type="hidden" id="reschedSessionNum">
+            <input type="hidden" id="reschedTreatmentId">
+            <input type="hidden" id="reschedTime">
+            <div class="form-group" style="margin-top:12px;">
+                <label>New Date</label>
+                <input type="date" id="reschedDate" min="<?= date('Y-m-d') ?>" onchange="loadReschedSlots()">
+            </div>
+            <div class="form-group">
+                <label>Available Slots</label>
+                <div id="reschedSlotContainer" style="min-height:36px;">
+                    <span style="font-size:13px;color:#999;">Select a date first</span>
+                </div>
+            </div>
+            <p id="reschedMsg" style="font-size:13px;min-height:18px;"></p>
+            <div class="modal-buttons">
+                <button class="action-btn btn-primary" onclick="submitSessionReschedule()">Update Schedule</button>
+                <button class="action-btn btn-secondary" onclick="closeSessionReschedule()">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -920,6 +955,89 @@ function rescheduleAndPayTreatmentPlan(planId, treatmentId, triggerButton) {
     modal.style.display = 'block';
 }
 
+function formatTime12h(t) {
+    const [h, m] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+}
+
+function openSessionReschedule(planId, sessionNumber, treatmentId, minDate) {
+    document.getElementById('reschedPlanId').value      = planId;
+    document.getElementById('reschedSessionNum').value  = sessionNumber;
+    document.getElementById('reschedTreatmentId').value = treatmentId;
+    document.getElementById('reschedDate').value        = '';
+    document.getElementById('reschedDate').min          = minDate || '';
+    document.getElementById('reschedTime').value        = '';
+    document.getElementById('reschedMsg').textContent   = '';
+    document.getElementById('reschedSlotContainer').innerHTML = '<span style="font-size:13px;color:#999;">Select a date first</span>';
+    document.getElementById('sessionRescheduleModal').style.display = 'flex';
+}
+function closeSessionReschedule() {
+    document.getElementById('sessionRescheduleModal').style.display = 'none';
+}
+function loadReschedSlots() {
+    const date        = document.getElementById('reschedDate').value;
+    const treatmentId = document.getElementById('reschedTreatmentId').value;
+    const container   = document.getElementById('reschedSlotContainer');
+    document.getElementById('reschedTime').value = '';
+    if (!date || !treatmentId) { container.innerHTML = '<span style="font-size:13px;color:#999;">Select a date first</span>'; return; }
+    container.innerHTML = '<span style="font-size:13px;color:#999;">Loading slots…</span>';
+    fetch('/dheergayu/public/api/treatment-slot-availability.php?treatment_id=' + treatmentId + '&date=' + date)
+        .then(r => r.json())
+        .then(data => {
+            const slots = data.slots || [];
+            if (slots.length === 0) {
+                container.innerHTML = '<span style="font-size:13px;color:#c0392b;">No slots available for this date</span>';
+                return;
+            }
+            container.innerHTML = '';
+            slots.forEach(s => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = formatTime12h(s.slot_time);
+                if (s.booked) {
+                    btn.disabled = true;
+                    btn.style.cssText = 'padding:6px 12px;margin:3px 4px 3px 0;border-radius:6px;border:1px dashed #ccc;background:#f5f5f5;color:#aaa;cursor:not-allowed;font-size:13px;';
+                } else {
+                    btn.style.cssText = 'padding:6px 12px;margin:3px 4px 3px 0;border-radius:6px;border:1px solid #E8A020;background:#fff;color:#E8A020;cursor:pointer;font-size:13px;font-weight:600;';
+                    btn.onclick = function() {
+                        container.querySelectorAll('button').forEach(b => { b.style.background='#fff'; b.style.color='#E8A020'; });
+                        btn.style.background = '#E8A020'; btn.style.color = '#fff';
+                        document.getElementById('reschedTime').value = s.slot_time;
+                    };
+                }
+                container.appendChild(btn);
+            });
+        })
+        .catch(() => { container.innerHTML = '<span style="font-size:13px;color:#c0392b;">Failed to load slots</span>'; });
+}
+function submitSessionReschedule() {
+    const planId  = document.getElementById('reschedPlanId').value;
+    const sessNum = document.getElementById('reschedSessionNum').value;
+    const date    = document.getElementById('reschedDate').value;
+    const time    = document.getElementById('reschedTime').value;
+    const msg     = document.getElementById('reschedMsg');
+
+    if (!date) { msg.style.color = '#c0392b'; msg.textContent = 'Please select a date.'; return; }
+    if (!time) { msg.style.color = '#c0392b'; msg.textContent = 'Please select a time slot.'; return; }
+
+    msg.style.color = '#555'; msg.textContent = 'Updating…';
+    const fd = new FormData();
+    fd.append('plan_id', planId); fd.append('session_number', sessNum);
+    fd.append('session_date', date); fd.append('session_time', time);
+
+    fetch('/dheergayu/public/api/update-session-date.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                msg.style.color = '#28a745'; msg.textContent = '✓ ' + data.message;
+                setTimeout(() => { closeSessionReschedule(); location.reload(); }, 1500);
+            } else { msg.style.color = '#c0392b'; msg.textContent = 'Error: ' + data.error; }
+        })
+        .catch(err => { msg.style.color = '#c0392b'; msg.textContent = 'Error: ' + err.message; });
+}
+
 function closePlanRescheduleModal() {
     const modal = document.getElementById('planRescheduleModal');
     if (modal) {
@@ -1153,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const requestedTab = new URLSearchParams(window.location.search).get('tab');
     if (requestedTab) {
         const normalizedTab = (requestedTab === 'all') ? 'consultations' : requestedTab;
-        if (['consultations', 'upcoming', 'treatment-plans', 'cancelled'].indexOf(normalizedTab) !== -1) {
+        if (['consultations', 'treatment-plans', 'cancelled'].indexOf(normalizedTab) !== -1) {
             showTab(normalizedTab);
         }
     }

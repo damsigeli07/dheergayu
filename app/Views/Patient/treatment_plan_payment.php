@@ -54,7 +54,7 @@ if ($plan['payment_status'] === 'Completed') {
 
 $fee = (float)$plan['total_cost'];
 $treatmentName = $plan['treatment_name'] ?? $plan['list_treatment_name'] ?? 'Treatment';
-$description = $treatmentName . ' - ' . $plan['total_sessions'] . ' Session(s)';
+$description = $treatmentName . ' - Treatment Plan';
 $startDate = $plan['start_date'];
 $diagnosis = $plan['diagnosis'] ?? '';
 
@@ -288,7 +288,7 @@ $showTestPayment = payhere_test_payment_allowed();
                     <?php endif; ?>
                     <div class="summary-item">
                         <span class="label">Total Sessions</span>
-                        <span class="value"><?= $plan['total_sessions'] ?> (<?= $plan['sessions_per_week'] ?>x per week)</span>
+                        <span class="value"><?= $plan['session_count'] ?? '1' ?> session(s)</span>
                     </div>
                     <div class="summary-item">
                         <span class="label">Start Date</span>

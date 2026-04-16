@@ -32,6 +32,12 @@ if (!defined('PAYHERE_TREATMENT_PLAN_RETURN_URL')) {
 if (!defined('PAYHERE_TREATMENT_PLAN_CANCEL_URL')) {
     define('PAYHERE_TREATMENT_PLAN_CANCEL_URL', str_replace('payment_success.php', 'patient_appointments.php', PAYHERE_RETURN_URL));
 }
+if (!defined('PAYHERE_SESSION_RETURN_URL')) {
+    define('PAYHERE_SESSION_RETURN_URL', str_replace('payment_success.php', 'session_payment_return.php', PAYHERE_RETURN_URL));
+}
+if (!defined('PAYHERE_SESSION_CANCEL_URL')) {
+    define('PAYHERE_SESSION_CANCEL_URL', str_replace('payment_success.php', 'patient_appointments.php', PAYHERE_RETURN_URL));
+}
 
 // Business Details
 define('PAYHERE_BUSINESS_NAME', 'Dheergayu Ayurvedic Center');

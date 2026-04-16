@@ -42,7 +42,6 @@ try {
         $slotId = (int)($_POST['slot_id'] ?? 0);
         $date = trim($_POST['date'] ?? '');
         $description = trim($_POST['description'] ?? '');
-
         if (!$patientIdForBooking || !$treatmentId || !$slotId || !$date) {
             echo json_encode(['success' => false, 'message' => 'Missing parameters (include patient when booking from consultation)']);
             exit;

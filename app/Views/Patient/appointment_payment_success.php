@@ -25,7 +25,7 @@ if ($type === 'treatment_plan' && $planId) {
     $planRow = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     if ($planRow) {
-        $description = ($planRow['treatment_name'] ?? $planRow['list_name'] ?? 'Treatment') . ' — ' . (int)($planRow['total_sessions'] ?? 0) . ' session(s)';
+        $description = ($planRow['treatment_name'] ?? $planRow['list_name'] ?? 'Treatment') . ' — Treatment Plan';
         $appointmentDate = $planRow['start_date'] ?? '';
         $appointmentTime = '';
     }

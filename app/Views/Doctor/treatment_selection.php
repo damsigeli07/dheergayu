@@ -31,7 +31,27 @@ try {
     $treatments = [];
 }
 $appointment_id = $_GET['appointment_id'] ?? '';
-$patient_id = $_GET['patient_id'] ?? ''; 
+$patient_id = $_GET['patient_id'] ?? '';
+
+// Determine the minimum selectable treatment date (day after the consultation date)
+$min_treatment_date = date('Y-m-d', strtotime('+1 day')); // fallback: tomorrow
+if ($appointment_id) {
+    try {
+        $db2 = isset($db) ? $db : (class_exists('\\Core\\Database') ? \Core\Database::connect() : null);
+        if ($db2) {
+            $dstmt = $db2->prepare("SELECT appointment_date FROM consultations WHERE id = ? LIMIT 1");
+            if ($dstmt) {
+                $dstmt->bind_param('i', $appointment_id);
+                $dstmt->execute();
+                $drow = $dstmt->get_result()->fetch_assoc();
+                $dstmt->close();
+                if ($drow && !empty($drow['appointment_date'])) {
+                    $min_treatment_date = date('Y-m-d', strtotime($drow['appointment_date'] . ' +1 day'));
+                }
+            }
+        }
+    } catch (Exception $e) { /* keep fallback */ }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,7 +97,7 @@ $patient_id = $_GET['patient_id'] ?? '';
         </div>
 
         <div class="field">
-            <label class="hint">Treatment Date</label>
+            <label class="hint">Treatment Date <span style="color:#888;font-size:12px;">(must be after consultation date)</span></label>
             <input type="date" id="treatment_date" />
         </div>
 
@@ -112,13 +132,12 @@ $patient_id = $_GET['patient_id'] ?? '';
         document.getElementById('treatment_price_display').textContent = 'Rs ' + price.toFixed(2);
     }
 
-    // min date = tomorrow
+    // min date = day after consultation date
     (function setMinDate(){
-        const today = new Date();
-        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-        dateInput.min = tomorrow.toISOString().split('T')[0];
-        if (!dateInput.value) {
-            dateInput.value = dateInput.min;
+        const minDate = '<?= $min_treatment_date ?>';
+        dateInput.min = minDate;
+        if (!dateInput.value || dateInput.value < minDate) {
+            dateInput.value = minDate;
         }
     })();
 

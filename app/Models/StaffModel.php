@@ -44,14 +44,13 @@ class StaffModel {
                 CASE
                     WHEN ts.primary_staff1_id = ? THEN 'Primary Therapist'
                     WHEN ts.primary_staff2_id = ? THEN 'Secondary Therapist'
-                    WHEN ts.backup_staff_id = ? THEN 'Backup Therapist'
                 END as role
             FROM treatment_staff ts
             JOIN treatment_list tl ON ts.treatment_id = tl.treatment_id
-            WHERE ts.primary_staff1_id = ? OR ts.primary_staff2_id = ? OR ts.backup_staff_id = ?
+            WHERE ts.primary_staff1_id = ? OR ts.primary_staff2_id = ?
             LIMIT 1
         ");
-        $stmt->bind_param('iiiiii', $staffId, $staffId, $staffId, $staffId, $staffId, $staffId);
+        $stmt->bind_param('iiii', $staffId, $staffId, $staffId, $staffId);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
@@ -73,16 +72,14 @@ class StaffModel {
         $staff = [];
 
         $stmt = $this->conn->prepare("
-            SELECT ts.primary_staff1_id, ts.primary_staff2_id, ts.backup_staff_id,
+            SELECT ts.primary_staff1_id, ts.primary_staff2_id,
                 CONCAT(u1.first_name, ' ', u1.last_name) as p1_name,
                 CONCAT(u2.first_name, ' ', u2.last_name) as p2_name,
-                CONCAT(u3.first_name, ' ', u3.last_name) as backup_name,
                 tl.treatment_name
             FROM treatment_staff ts
             JOIN treatment_list tl ON ts.treatment_id = tl.treatment_id
             LEFT JOIN users u1 ON ts.primary_staff1_id = u1.id
             LEFT JOIN users u2 ON ts.primary_staff2_id = u2.id
-            LEFT JOIN users u3 ON ts.backup_staff_id = u3.id
             WHERE ts.treatment_id = ?
         ");
         $stmt->bind_param('i', $treatmentId);
@@ -93,7 +90,6 @@ class StaffModel {
         if ($row) {
             $staff[] = ['name' => $row['p1_name'], 'role' => 'Primary Therapist', 'treatment_type' => $row['treatment_name']];
             $staff[] = ['name' => $row['p2_name'], 'role' => 'Secondary Therapist', 'treatment_type' => $row['treatment_name']];
-            $staff[] = ['name' => $row['backup_name'], 'role' => 'Backup Therapist', 'treatment_type' => $row['treatment_name']];
         }
 
         return $staff;

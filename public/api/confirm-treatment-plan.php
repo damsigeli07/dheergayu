@@ -21,19 +21,16 @@ function ensureTreatmentPlanStaffOffer(mysqli $conn, int $plan_id, int $treatmen
         treatment_id INT NOT NULL,
         primary_staff1_id INT NOT NULL,
         primary_staff2_id INT NOT NULL,
-        backup_staff_id INT NOT NULL,
         assigned_staff_id INT NULL,
-        primary1_declined TINYINT(1) NOT NULL DEFAULT 0,
-        primary2_declined TINYINT(1) NOT NULL DEFAULT 0,
         status VARCHAR(20) NOT NULL DEFAULT 'Pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         confirmed_at TIMESTAMP NULL,
         UNIQUE KEY one_offer_per_plan (plan_id),
-        INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id, backup_staff_id),
+        INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id),
         INDEX idx_offer_status (status)
     )");
 
-    $ts = $conn->prepare("SELECT primary_staff1_id, primary_staff2_id, backup_staff_id FROM treatment_staff WHERE treatment_id = ? LIMIT 1");
+    $ts = $conn->prepare("SELECT primary_staff1_id, primary_staff2_id FROM treatment_staff WHERE treatment_id = ? LIMIT 1");
     if (!$ts) {
         return;
     }
@@ -47,12 +44,12 @@ function ensureTreatmentPlanStaffOffer(mysqli $conn, int $plan_id, int $treatmen
         return;
     }
 
-    $ins = $conn->prepare("INSERT INTO treatment_plan_staff_offer (plan_id, treatment_id, primary_staff1_id, primary_staff2_id, backup_staff_id) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE treatment_id = VALUES(treatment_id), primary_staff1_id = VALUES(primary_staff1_id), primary_staff2_id = VALUES(primary_staff2_id), backup_staff_id = VALUES(backup_staff_id)");
+    $ins = $conn->prepare("INSERT INTO treatment_plan_staff_offer (plan_id, treatment_id, primary_staff1_id, primary_staff2_id) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE treatment_id = VALUES(treatment_id), primary_staff1_id = VALUES(primary_staff1_id), primary_staff2_id = VALUES(primary_staff2_id)");
     if (!$ins) {
         return;
     }
 
-    $ins->bind_param('iiiii', $plan_id, $treatment_id, $ts_row['primary_staff1_id'], $ts_row['primary_staff2_id'], $ts_row['backup_staff_id']);
+    $ins->bind_param('iiii', $plan_id, $treatment_id, $ts_row['primary_staff1_id'], $ts_row['primary_staff2_id']);
     $ins->execute();
     $ins->close();
 }

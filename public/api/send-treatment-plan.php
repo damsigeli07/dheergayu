@@ -40,29 +40,25 @@ try {
     }
     
     $treatment_id = $treatment['treatment_id'];
-    $session_cost = $treatment['price'];
-    $total_sessions = intval($schedule_data['sessions']);
-    $total_cost = $session_cost * $total_sessions;
-    
+    $total_cost = $treatment['price'];
+
     // Begin transaction
     $conn->begin_transaction();
-    
-    // Insert treatment plan (matching your existing table structure)
+
+    // Insert treatment plan
     $stmt = $conn->prepare("
-        INSERT INTO treatment_plans 
-        (patient_id, appointment_id, treatment_id, diagnosis, 
-         total_sessions, sessions_per_week, start_date, total_cost, status, payment_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pending')
+        INSERT INTO treatment_plans
+        (patient_id, appointment_id, treatment_id, diagnosis,
+         start_date, total_cost, status, payment_status)
+        VALUES (?, ?, ?, ?, ?, ?, 'Pending', 'Pending')
     ");
-    
+
     $stmt->bind_param(
-        'iiisisd',
+        'iiisd',
         $patient_id,
         $appointment_id,
         $treatment_id,
         $schedule_data['diagnosis'],
-        $total_sessions,
-        $schedule_data['sessionsPerWeek'],
         $schedule_data['startDate'],
         $total_cost
     );

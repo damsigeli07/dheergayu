@@ -85,7 +85,7 @@ if ($plan_id) {
     $tpPay = ($treatment_plan['payment_status'] ?? '') === 'Completed';
     $tpStatus = $treatment_plan['status'] ?? '';
     $tpChange = !empty($treatment_plan['change_requested']);
-    $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
+    $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress', 'Completed'], true);
     $tpAssignedId = (int)($treatment_plan['assigned_staff_id'] ?? 0);
     $assignedToMe = ($staff_id && $tpAssignedId !== 0 && $tpAssignedId === (int)$staff_id);
 
@@ -128,9 +128,6 @@ if ($plan_id) {
     UNIQUE KEY uniq_plan_staff_session (plan_id, staff_id, session_number)
 )");
 
-// Get total sessions for this treatment plan
-$total_sessions = max(1, intval($treatment_plan['total_sessions'] ?? 1));
-
 // Fetch session dates/times from treatment_sessions table
 $session_meta = [];
 $sm_stmt = $db->prepare("SELECT session_number, session_date, session_time, status FROM treatment_sessions WHERE plan_id = ? ORDER BY session_number ASC");
@@ -143,6 +140,22 @@ if ($sm_stmt) {
     }
     $sm_stmt->close();
 }
+
+// Get total sessions from actual session records
+$total_sessions = max(1, count($session_meta));
+
+// Min date for new session = day after the latest existing session date
+$last_session_date = null;
+foreach ($session_meta as $sm) {
+    if (!empty($sm['session_date'])) {
+        if ($last_session_date === null || $sm['session_date'] > $last_session_date) {
+            $last_session_date = $sm['session_date'];
+        }
+    }
+}
+$new_session_min_date = $last_session_date
+    ? date('Y-m-d', strtotime($last_session_date . ' +1 day'))
+    : date('Y-m-d');
 
 // Fetch saved session notes
 $session_notes_map = [];
@@ -289,6 +302,35 @@ if ($view_mode && $existing_form) {
         </table>
     </div>
 </div>
+                    <!-- Add New Session -->
+                    <div class="form-group" style="margin-top:20px;padding:16px;background:#f0f7f4;border-radius:8px;border:1px solid #c3e6cb;">
+                        <label style="font-weight:600;color:#2d6a4f;font-size:15px;">Add New Session for Patient</label>
+                        <p style="font-size:13px;color:#555;margin:4px 0 12px;">Schedule an additional session — patient will be asked to confirm and pay.</p>
+                        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+                            <div>
+                                <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">
+                                    Date <span style="color:#999;">(after <?= date('M d, Y', strtotime($new_session_min_date)) ?>)</span>
+                                </label>
+                                <input type="date" id="newSessionDate" min="<?= $new_session_min_date ?>"
+                                    style="padding:8px 10px;border:1px solid #ccc;border-radius:6px;"
+                                    onchange="loadStaffSessionSlots()">
+                            </div>
+                            <div>
+                                <label style="font-size:12px;color:#666;display:block;margin-bottom:4px;">Available Slots</label>
+                                <div id="staffSlotContainer" style="min-width:200px;">
+                                    <span style="font-size:12px;color:#999;">Select a date first</span>
+                                </div>
+                                <input type="hidden" id="newSessionTime">
+                            </div>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <button type="button" id="addSessionBtn" onclick="addNewSession()"
+                                style="padding:9px 20px;background:#28a745;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">
+                                Save
+                            </button>
+                        </div>
+                        <p id="addSessionMsg" style="font-size:13px;margin-top:10px;min-height:18px;"></p>
+                    </div>
                     </div>
                 </div>
 
@@ -302,6 +344,100 @@ if ($view_mode && $existing_form) {
     </div>
 
     <script>
+        const STAFF_TREATMENT_ID  = <?= intval($treatment_plan['treatment_id'] ?? 0) ?>;
+        const NEW_SESSION_MIN_DATE = '<?= $new_session_min_date ?>';
+
+        function loadStaffSessionSlots() {
+            const date = document.getElementById('newSessionDate').value;
+            const container = document.getElementById('staffSlotContainer');
+            document.getElementById('newSessionTime').value = '';
+            if (!date) { container.innerHTML = '<span style="font-size:12px;color:#999;">Select a date first</span>'; return; }
+            container.innerHTML = '<span style="font-size:12px;color:#999;">Loading slots…</span>';
+            fetch('/dheergayu/public/api/treatment-slot-availability.php?treatment_id=' + STAFF_TREATMENT_ID + '&date=' + date)
+                .then(r => r.json())
+                .then(data => {
+                    const slots = data.slots || [];
+                    if (slots.length === 0) {
+                        container.innerHTML = '<span style="font-size:12px;color:#c0392b;">No slots available for this date</span>';
+                        return;
+                    }
+                    container.innerHTML = '';
+                    slots.forEach(s => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        const label = formatTime12h(s.slot_time);
+                        btn.textContent = label;
+                        if (s.booked) {
+                            btn.disabled = true;
+                            btn.style.cssText = 'padding:6px 12px;margin:3px 4px 3px 0;border-radius:6px;border:1px dashed #ccc;background:#f5f5f5;color:#aaa;cursor:not-allowed;font-size:13px;';
+                            btn.title = 'Already booked';
+                        } else {
+                            btn.style.cssText = 'padding:6px 12px;margin:3px 4px 3px 0;border-radius:6px;border:1px solid #28a745;background:#fff;color:#28a745;cursor:pointer;font-size:13px;font-weight:600;';
+                            btn.onclick = function() {
+                                document.querySelectorAll('#staffSlotContainer button').forEach(b => {
+                                    b.style.background = '#fff'; b.style.color = '#28a745';
+                                });
+                                btn.style.background = '#28a745'; btn.style.color = '#fff';
+                                document.getElementById('newSessionTime').value = s.slot_time;
+                            };
+                        }
+                        container.appendChild(btn);
+                    });
+                })
+                .catch(() => { container.innerHTML = '<span style="font-size:12px;color:#c0392b;">Failed to load slots</span>'; });
+        }
+
+        function formatTime12h(t) {
+            const [h, m] = t.split(':').map(Number);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+        }
+
+        function addNewSession() {
+            const date = document.getElementById('newSessionDate').value;
+            const time = document.getElementById('newSessionTime').value;
+            const msg  = document.getElementById('addSessionMsg');
+            const btn  = document.getElementById('addSessionBtn');
+
+            if (!date || !time) {
+                msg.style.color = '#c0392b';
+                msg.textContent = !date ? 'Please select a date.' : 'Please select a time slot.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Adding…';
+
+            const fd = new FormData();
+            fd.append('plan_id',      '<?= intval($plan_id) ?>');
+            fd.append('session_date', date);
+            fd.append('session_time', time);
+
+            fetch('/dheergayu/public/api/add-treatment-session.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        msg.style.color = '#28a745';
+                        msg.textContent = '✓ ' + data.message;
+                        document.getElementById('newSessionDate').value = '';
+                        document.getElementById('newSessionTime').value = '';
+                        setTimeout(() => location.reload(), 1800);
+                    } else {
+                        msg.style.color = '#c0392b';
+                        msg.textContent = 'Error: ' + data.error;
+                        btn.disabled = false;
+                        btn.textContent = 'Save';
+                    }
+                })
+                .catch(err => {
+                    msg.style.color = '#c0392b';
+                    msg.textContent = 'Error: ' + err.message;
+                    btn.disabled = false;
+                    btn.textContent = 'Save';
+                });
+        }
+
         // Form submission
         document.getElementById('treatmentForm').addEventListener('submit', function(e) {
             e.preventDefault();
