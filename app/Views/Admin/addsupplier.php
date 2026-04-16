@@ -99,8 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" name="password" class="form-input" required placeholder="Enter password for supplier login" autocomplete="new-password" value="">
+                    <label for="password" class="form-label">Default Password <span style="color:red;">*</span></label>
+                    <input type="password" id="password" name="password" class="form-input" required autocomplete="new-password" value="1234" readonly style="background:#f8f8f8;color:#555;cursor:default;">
+                    <small style="color:#888;">Supplier will be asked to change this on first login.</small>
                 </div>
 
                 <div class="form-actions">

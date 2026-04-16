@@ -32,19 +32,21 @@ class SupplierModel {
 
     // Create new supplier
     public function createSupplier($data) {
+        $mustChange = 1;
         $stmt = $this->conn->prepare("
             INSERT INTO suppliers (
-                supplier_name, contact_person, phone, email, password
-            ) VALUES (?, ?, ?, ?, ?)
+                supplier_name, contact_person, phone, email, password, must_change_password
+            ) VALUES (?, ?, ?, ?, ?, ?)
         ");
-        
+
         $stmt->bind_param(
-            "sssss",
+            "sssssi",
             $data['supplier_name'],
             $data['contact_person'],
             $data['phone'],
             $data['email'],
-            $data['password']
+            $data['password'],
+            $mustChange
         );
         
         $result = $stmt->execute();
