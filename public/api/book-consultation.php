@@ -148,9 +148,9 @@ try {
         // patient_id(i), doctor_id(i), doctor_name(s), patient_no(s),
         // patient_name(s), age(i), gender(s), email(s), phone(s),
         // treatment_type(s), appointment_date(s), appointment_time(s),
-        // status(s), payment_method(s)  → 14 params: iissssisssssss
+        // status(s), payment_method(s)  → 14 params: iisssissssssss
         $stmt->bind_param(
-            'iisssississsss',
+            'iisssissssssss',
             $patient_id,
             $doctor_id,
             $doctor_name,

@@ -6,6 +6,20 @@
 session_start();
 require_once __DIR__ . '/../../../config/config.php';
 
+$logsDir = __DIR__ . '/../../../logs';
+if (!is_dir($logsDir)) {
+    mkdir($logsDir, 0755, true);
+}
+
+function logPayhereReturnFallback($reason, array $context = []) {
+    global $logsDir;
+    $line = '[' . date('Y-m-d H:i:s') . '] ' . $reason;
+    if (!empty($context)) {
+        $line .= ' | ' . json_encode($context, JSON_UNESCAPED_SLASHES);
+    }
+    file_put_contents($logsDir . '/appointment_payment_fallback.log', $line . PHP_EOL, FILE_APPEND);
+}
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
@@ -15,12 +29,22 @@ $orderId = trim($_GET['order_id'] ?? '');
 $statusCode = $_GET['status_code'] ?? '';
 
 if ($statusCode !== '' && (string) $statusCode !== '2') {
+    logPayhereReturnFallback('payhere_status_not_success', [
+        'status_code' => (string)$statusCode,
+        'order_id' => $orderId,
+        'session_user_id' => (int)($_SESSION['user_id'] ?? 0),
+    ]);
     header('Location: patient_appointments.php?payment=failed');
     exit;
 }
 
 $sessOrder = $_SESSION['apt_pay_order_id'] ?? '';
 if ($orderId === '' || $sessOrder === '' || $orderId !== $sessOrder) {
+    logPayhereReturnFallback('session_order_mismatch', [
+        'order_id' => $orderId,
+        'session_order_id' => $sessOrder,
+        'session_user_id' => (int)($_SESSION['user_id'] ?? 0),
+    ]);
     header('Location: patient_appointments.php?payment=session');
     exit;
 }
@@ -68,6 +92,13 @@ $raw = @file_get_contents($apiUrl, false, $ctx);
 $data = $raw ? json_decode($raw, true) : null;
 
 if (!$data || empty($data['success'])) {
+    logPayhereReturnFallback('payment_processing_failed', [
+        'order_id' => $orderId,
+        'appointment_id' => $appointmentId,
+        'type' => $type,
+        'api_response' => $data,
+        'raw_response' => $raw,
+    ]);
     header('Location: patient_appointments.php?payment=error');
     exit;
 }

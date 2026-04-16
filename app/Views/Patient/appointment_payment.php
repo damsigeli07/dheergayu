@@ -3,6 +3,20 @@ session_start();
 require_once __DIR__ . '/../../../config/payhere_config.php';
 require_once __DIR__ . '/../../../config/config.php';
 
+$logsDir = __DIR__ . '/../../../logs';
+if (!is_dir($logsDir)) {
+    mkdir($logsDir, 0755, true);
+}
+
+function logAppointmentPaymentFallback($reason, array $context = []) {
+    global $logsDir;
+    $line = '[' . date('Y-m-d H:i:s') . '] ' . $reason;
+    if (!empty($context)) {
+        $line .= ' | ' . json_encode($context, JSON_UNESCAPED_SLASHES);
+    }
+    file_put_contents($logsDir . '/appointment_payment_fallback.log', $line . PHP_EOL, FILE_APPEND);
+}
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
@@ -27,6 +41,12 @@ $appointmentId = (int)($_GET['appointment_id'] ?? 0);
 $type          = $_GET['type'] ?? '';
 
 if (!$appointmentId || !in_array($type, ['consultation', 'treatment'])) {
+    logAppointmentPaymentFallback('invalid_request_params', [
+        'session_user_id' => (int)($_SESSION['user_id'] ?? 0),
+        'appointment_id' => $appointmentId,
+        'type' => $type,
+        'query' => $_GET,
+    ]);
     header('Location: patient_appointments.php');
     exit;
 }
@@ -72,6 +92,12 @@ if ($type === 'consultation') {
 }
 
 if (!$appointment) {
+    logAppointmentPaymentFallback('appointment_not_found_or_owner_mismatch', [
+        'session_user_id' => (int)($_SESSION['user_id'] ?? 0),
+        'session_email' => (string)($_SESSION['user_email'] ?? ''),
+        'appointment_id' => $appointmentId,
+        'type' => $type,
+    ]);
     header('Location: patient_appointments.php');
     exit;
 }
