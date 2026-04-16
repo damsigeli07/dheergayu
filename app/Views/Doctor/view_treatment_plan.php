@@ -185,7 +185,7 @@ if ($sn_stmt) {
                 </div>
                 <div class="info-item">
                     <div class="info-label">Total Sessions</div>
-                    <div class="info-value"><?= $plan['total_sessions'] ?> sessions (<?= $plan['sessions_per_week'] ?>x per week)</div>
+                    <div class="info-value"><?= count($sessions) ?> session(s)</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">Start Date</div>

@@ -234,7 +234,7 @@ function performSearch(params) {
                 <div class="icon">📝</div>
                 <div>
                   <div class="title">Plan #${esc(tp.plan_id)} — ${esc(tp.treatment_name)}</div>
-                  <div class="meta">${esc(tp.start_date)} • ${esc(tp.total_sessions)} sessions</div>
+                  <div class="meta">${esc(tp.start_date)} • ${(tp.sessions ? tp.sessions.length : 1)} session(s)</div>
                 </div>
               </div>
               <div style="text-align:right">

@@ -35,15 +35,12 @@ $conn->query("CREATE TABLE IF NOT EXISTS treatment_plan_staff_offer (
     treatment_id INT NOT NULL,
     primary_staff1_id INT NOT NULL,
     primary_staff2_id INT NOT NULL,
-    backup_staff_id INT NOT NULL,
     assigned_staff_id INT NULL,
-    primary1_declined TINYINT(1) NOT NULL DEFAULT 0,
-    primary2_declined TINYINT(1) NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     confirmed_at TIMESTAMP NULL,
     UNIQUE KEY one_offer_per_plan (plan_id),
-    INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id, backup_staff_id),
+    INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id),
     INDEX idx_offer_status (status)
 )");
 
@@ -65,34 +62,17 @@ if ($offer['status'] !== 'Pending' || $offer['assigned_staff_id'] !== null) {
 
 $is_primary1 = (int)$offer['primary_staff1_id'] === $staff_id;
 $is_primary2 = (int)$offer['primary_staff2_id'] === $staff_id;
-$is_backup   = (int)$offer['backup_staff_id'] === $staff_id;
 
-if (!$is_primary1 && !$is_primary2 && !$is_backup) {
+if (!$is_primary1 && !$is_primary2) {
     echo json_encode(['success' => false, 'message' => 'You are not assigned to this treatment']);
     exit;
 }
 
 if ($action === 'decline') {
-    if ($is_primary1) {
-        $conn->query("UPDATE treatment_plan_staff_offer SET primary1_declined = 1 WHERE id = " . (int)$offer_id);
-    } elseif ($is_primary2) {
-        $conn->query("UPDATE treatment_plan_staff_offer SET primary2_declined = 1 WHERE id = " . (int)$offer_id);
-    }
-    // Keep status pending so other eligible staff can accept.
     $conn->query("UPDATE treatment_plan_staff_offer SET status = 'Pending' WHERE id = " . (int)$offer_id);
     if (ob_get_length()) { ob_clean(); }
     echo json_encode(['success' => true, 'message' => 'You have declined this assignment']);
     exit;
-}
-
-// action === 'confirm'
-if ($is_backup) {
-    $p1 = (int)$offer['primary1_declined'];
-    $p2 = (int)$offer['primary2_declined'];
-    if (!$p1 || !$p2) {
-        echo json_encode(['success' => false, 'message' => 'Backup can only confirm after both primary staff have declined']);
-        exit;
-    }
 }
 
 // Check for session time conflicts with treatments already assigned to this staff

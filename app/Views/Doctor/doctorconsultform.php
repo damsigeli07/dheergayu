@@ -62,7 +62,7 @@ if ($appointment_id) {
     // try to load a linked treatment plan for this appointment so the edit form
     // can show the treatment type (single or multiple) when opening the page.
     if ($form && (empty($form['recommended_treatment']) || trim($form['recommended_treatment']) === '')) {
-        $pst = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.total_sessions, tp.sessions_per_week, tp.start_date, tp.diagnosis, tl.treatment_name, tl.price
+        $pst = $db->prepare("SELECT tp.plan_id, tp.treatment_id, tp.start_date, tp.diagnosis, tl.treatment_name, tl.price
                              FROM treatment_plans tp
                              LEFT JOIN treatment_list tl ON tp.treatment_id = tl.treatment_id
                              WHERE tp.appointment_id = ? LIMIT 1");
@@ -72,29 +72,16 @@ if ($appointment_id) {
             $prow = $pst->get_result()->fetch_assoc();
             $pst->close();
             if ($prow) {
-                $form['recommended_treatment'] = "Treatment Plan: " . ($prow['treatment_name'] ?? '') . " | " . intval($prow['total_sessions']) . " sessions | Start: " . ($prow['start_date'] ?? '');
+                $form['recommended_treatment'] = "Treatment Plan: " . ($prow['treatment_name'] ?? '') . " | Start: " . ($prow['start_date'] ?? '');
                 $form['treatment_plan'] = $prow;
 
-                // Populate single_treatment_data for single-session plans so UI shows it as a selected treatment
-                if (intval($prow['total_sessions']) === 1) {
-                    $single = [
-                        'name' => $prow['treatment_name'] ?? '',
-                        'date' => $prow['start_date'] ?? '',
-                        'time' => ''
-                    ];
-                    $form['single_treatment_data'] = json_encode($single);
-                } else {
-                    // For multiple sessions, construct a lightweight schedule object the front-end expects
-                    $sched = [
-                        'treatmentType' => $prow['treatment_name'] ?? '',
-                        'sessions' => intval($prow['total_sessions']),
-                        'sessionsPerWeek' => intval($prow['sessions_per_week'] ?? 1),
-                        'startDate' => $prow['start_date'] ?? '',
-                        'diagnosis' => $prow['diagnosis'] ?? '',
-                        'schedule' => []
-                    ];
-                    $form['treatment_schedule_data'] = json_encode($sched);
-                }
+                // Populate single_treatment_data so UI shows it as a selected treatment
+                $single = [
+                    'name' => $prow['treatment_name'] ?? '',
+                    'date' => $prow['start_date'] ?? '',
+                    'time' => ''
+                ];
+                $form['single_treatment_data'] = json_encode($single);
             }
         }
     }
@@ -184,26 +171,14 @@ if ($appointment_id) {
                                     $saved_choice = 'no_need';
                                     if (!empty($form['single_treatment_data'])) {
                                         $saved_choice = 'single_session';
-                                    } elseif (!empty($form['treatment_schedule_data'])) {
-                                        $saved_choice = 'multiple_sessions';
-                                    } elseif (!empty($form['recommended_treatment']) && strtolower($form['recommended_treatment']) !== 'no treatment needed') {
-                                        // If recommended treatment exists but specific fields empty, keep no_need but allow manual selection
-                                        $saved_choice = 'no_need';
                                     }
                                 ?>
                                 <label style="display:flex;align-items:center;gap:6px;">
                                     <input type="radio" name="treatment_plan_choice" value="no_need" <?= $saved_choice === 'no_need' ? 'checked' : '' ?>> No treatment needed
                                 </label>
                                 <label style="display:flex;align-items:center;gap:6px;">
-                                    <input type="radio" name="treatment_plan_choice" value="single_session" <?= $saved_choice === 'single_session' ? 'checked' : '' ?>> Single session
+                                    <input type="radio" name="treatment_plan_choice" value="single_session" <?= $saved_choice === 'single_session' ? 'checked' : '' ?>> Treatment needed
                                 </label>
-                                <label style="display:flex;align-items:center;gap:6px;">
-                                    <input type="radio" name="treatment_plan_choice" value="multiple_sessions" <?= $saved_choice === 'multiple_sessions' ? 'checked' : '' ?>> Multiple sessions
-                                </label>
-                                <button type="button" id="open_schedule_generator"
-                                        style="display:none;background:linear-gradient(135deg,#28a745,#20c997);color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;">
-                                    Generate Schedule
-                                </button>
                                 <button type="button" id="open_single_treatment"
                                         style="display:none;background:linear-gradient(135deg,#d17f1b,#e88f39);color:#fff;padding:8px 16px;border:none;border-radius:6px;font-size:14px;">
                                     Select Treatment
@@ -217,19 +192,12 @@ if ($appointment_id) {
                                 <button type="button" id="edit_single_treatment" style="background:linear-gradient(135deg,#d17f1b,#e88f39);color:#fff;padding:6px 12px;border:none;border-radius:6px;font-size:13px;margin-top:6px;">Edit</button>
                             </div>
 
-                            <!-- Multiple sessions display -->
-                            <div id="treatment_schedule_summary" style="display:none;margin-top:12px;border:1px solid rgba(40,167,69,0.3);padding:12px;border-radius:6px;background:#d4edda;">
-                                <strong style="color:#155724;">Treatment Schedule:</strong>
-                                <div id="schedule_details" style="margin-top:8px;"></div>
-                            </div>
-
                             <!-- Recommended treatment display fallback -->
                             <div id="recommended_treatment_display" style="display:none;margin-top:12px;padding:8px;border-radius:6px;background:#fff3cd;border:1px solid #ffeeba;color:#856404;">
                                 <strong>Recommended Treatment:</strong>
                                 <div id="recommended_treatment_text" style="margin-top:6px;"></div>
                             </div>
 
-                            <input type="hidden" name="treatment_schedule_data" id="treatment_schedule_data" value="<?= htmlspecialchars($form['treatment_schedule_data'] ?? '') ?>">
                             <input type="hidden" name="single_treatment_data" id="single_treatment_data" value="<?= htmlspecialchars($form['single_treatment_data'] ?? '') ?>">
                             <input type="hidden" name="recommended_treatment" id="recommended_treatment" value="<?= htmlspecialchars($form['recommended_treatment'] ?? '') ?>">
                         </div>
@@ -283,39 +251,11 @@ if ($appointment_id) {
                     document.getElementById('recommended_treatment_text').innerText = init.recommended_treatment;
                     document.getElementById('recommended_treatment_display').style.display = 'block';
                 }
-            } else if (init.treatment_schedule_data && init.treatment_schedule_data !== '') {
-                try {
-                    var sched = JSON.parse(init.treatment_schedule_data);
-                    document.querySelector('input[name="treatment_plan_choice"][value="multiple_sessions"]').checked = true;
-                    if (typeof setTreatmentSchedule === 'function') setTreatmentSchedule(sched);
-                    if (!document.getElementById('schedule_details').innerHTML && init.recommended_treatment && String(init.recommended_treatment).toLowerCase().trim() !== 'no treatment needed') {
-                        document.getElementById('recommended_treatment_text').innerText = init.recommended_treatment;
-                        document.getElementById('recommended_treatment_display').style.display = 'block';
-                    }
-                } catch (e) {
-                    console.error('Invalid treatment_schedule_data JSON', e);
-                }
             } else {
-                // If schedule JSON missing but recommended_treatment contains a plan summary, try parsing it
-                try {
-                    var rec = init.recommended_treatment || '';
-                    var m = String(rec).match(/Treatment\s*Plan:\s*(.*?)\s*\|\s*(\d+)\s*sessions\s*\|\s*Start:\s*(\d{4}-\d{2}-\d{2})/i);
-                    if (m) {
-                        var sched = {
-                            treatmentType: m[1].trim(),
-                            sessions: parseInt(m[2],10),
-                            sessionsPerWeek: 1,
-                            startDate: m[3]
-                        };
-                        document.querySelector('input[name="treatment_plan_choice"][value="multiple_sessions"]').checked = true;
-                        if (typeof setTreatmentSchedule === 'function') setTreatmentSchedule(sched);
-                    } else if (rec && String(rec).toLowerCase().trim() !== 'no treatment needed') {
-                        // show recommended text if present but not the default
-                        document.getElementById('recommended_treatment_text').innerText = rec;
-                        document.getElementById('recommended_treatment_display').style.display = 'block';
-                    }
-                } catch (e) {
-                    console.error('Error parsing recommended_treatment for schedule', e);
+                var rec = (init.recommended_treatment || '').trim();
+                if (rec && rec.toLowerCase() !== 'no treatment needed') {
+                    document.getElementById('recommended_treatment_text').innerText = rec;
+                    document.getElementById('recommended_treatment_display').style.display = 'block';
                 }
             }
         } catch (e) {
@@ -429,12 +369,6 @@ function populateProductList() {
                     setSingleTreatment(single);
                 } catch (e) {}
             }
-            if ((window.initialConsultationForm.treatment_schedule_data || '') !== '') {
-                try {
-                    const schedule = JSON.parse(window.initialConsultationForm.treatment_schedule_data);
-                    setTreatmentSchedule(schedule);
-                } catch (e) {}
-            }
         }
 
         // Re-run UI toggles so the treatment buttons/summaries reflect restored choice
@@ -498,28 +432,18 @@ document.getElementById("add_product").addEventListener("click", function() {
 
 // Treatment plan management
 const treatmentPlanRadios = document.querySelectorAll('input[name="treatment_plan_choice"]');
-const scheduleGeneratorBtn = document.getElementById('open_schedule_generator');
 const singleTreatmentBtn = document.getElementById('open_single_treatment');
-const scheduleSummary = document.getElementById('treatment_schedule_summary');
 const singleSummary = document.getElementById('single_treatment_summary');
 
 function updateTreatmentButtons() {
     const choice = document.querySelector('input[name="treatment_plan_choice"]:checked')?.value;
 
-    // Show/hide each button based on selection
-    scheduleGeneratorBtn.style.display = choice === 'multiple_sessions' ? 'inline-block' : 'none';
-    singleTreatmentBtn.style.display   = choice === 'single_session'    ? 'inline-block' : 'none';
-
-    // Always enable the visible button
-    scheduleGeneratorBtn.disabled = false;
-    singleTreatmentBtn.disabled   = false;
+    singleTreatmentBtn.style.display = choice === 'single_session' ? 'inline-block' : 'none';
+    singleTreatmentBtn.disabled = false;
 
     if (choice === 'no_need') {
-        scheduleSummary.style.display = 'none';
         singleSummary.style.display = 'none';
-        document.getElementById('treatment_schedule_data').value = '';
         document.getElementById('single_treatment_data').value = '';
-        // If there is an existing recommended_treatment (not the default), show it even when 'no_need' is selected
         var rec = (document.getElementById('recommended_treatment') && document.getElementById('recommended_treatment').value) || '';
         if (rec && rec.toLowerCase().trim() !== 'no treatment needed') {
             document.getElementById('recommended_treatment_text').innerText = rec;
@@ -528,24 +452,10 @@ function updateTreatmentButtons() {
             document.getElementById('recommended_treatment').value = 'No treatment needed';
             document.getElementById('recommended_treatment_display').style.display = 'none';
         }
-    } else if (choice === 'multiple_sessions') {
-        singleSummary.style.display = 'none';
-        document.getElementById('single_treatment_data').value = '';
-        // show recommended if available and not the default placeholder
+    } else if (choice === 'single_session') {
         var recVal = (document.getElementById('recommended_treatment') && document.getElementById('recommended_treatment').value) || '';
         if (recVal && recVal.toLowerCase().trim() !== 'no treatment needed') {
             document.getElementById('recommended_treatment_text').innerText = recVal;
-            document.getElementById('recommended_treatment_display').style.display = 'block';
-        } else {
-            document.getElementById('recommended_treatment_display').style.display = 'none';
-        }
-    } else if (choice === 'single_session') {
-        scheduleSummary.style.display = 'none';
-        document.getElementById('treatment_schedule_data').value = '';
-        // show recommended if available and not the default placeholder
-        var recVal2 = (document.getElementById('recommended_treatment') && document.getElementById('recommended_treatment').value) || '';
-        if (recVal2 && recVal2.toLowerCase().trim() !== 'no treatment needed') {
-            document.getElementById('recommended_treatment_text').innerText = recVal2;
             document.getElementById('recommended_treatment_display').style.display = 'block';
         } else {
             document.getElementById('recommended_treatment_display').style.display = 'none';
@@ -558,14 +468,6 @@ updateTreatmentButtons();
 
 // IMPORTANT: Set initial recommended_treatment value
 document.getElementById('recommended_treatment').value = 'No treatment needed';
-
-// Open schedule generator
-scheduleGeneratorBtn.addEventListener('click', function() {
-    const appointmentId = document.querySelector('input[name="appointment_id"]').value;
-    const patientId = document.querySelector('input[name="patient_id"]').value;
-    const url = `/dheergayu/app/Views/Doctor/treatment_schedule_generator.php?appointment_id=${appointmentId}&patient_id=${patientId}`;
-    window.open(url, 'schedule_generator', 'width=950,height=700');
-});
 
 // Open single treatment selector
 singleTreatmentBtn.addEventListener('click', function() {
@@ -584,9 +486,7 @@ window.addEventListener('message', function(event) {
     try {
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         
-        if (data.type === 'schedule_generated') {
-            setTreatmentSchedule(data.payload);
-        } else if (data.type === 'treatment_selected') {
+        if (data.type === 'treatment_selected') {
             setSingleTreatment(data.payload);
         }
     } catch (e) {
@@ -594,39 +494,18 @@ window.addEventListener('message', function(event) {
     }
 });
 
-function setTreatmentSchedule(scheduleData) {
-    document.getElementById('treatment_schedule_data').value = JSON.stringify(scheduleData);
-    
-    const totalCost = scheduleData.sessions * 4500;
-    const detailsHtml = `
-        <strong>Treatment:</strong> ${scheduleData.treatmentType}<br>
-        <strong>Diagnosis:</strong> ${scheduleData.diagnosis}<br>
-        <strong>Sessions:</strong> ${scheduleData.sessions} sessions, ${scheduleData.sessionsPerWeek}x per week<br>
-        <strong>Start Date:</strong> ${scheduleData.startDate}<br>
-        <strong>Total Cost:</strong> Rs ${totalCost.toLocaleString()}
-    `;
-    
-    // Update recommended_treatment field
-    const summary = `Treatment Plan: ${scheduleData.treatmentType} | ${scheduleData.sessions} sessions | Start: ${scheduleData.startDate}`;
-    document.getElementById('recommended_treatment').value = summary;
-    
-    document.getElementById('schedule_details').innerHTML = detailsHtml;
-    scheduleSummary.style.display = 'block';
-}
-
 function setSingleTreatment(treatmentData) {
     document.getElementById('single_treatment_data').value = JSON.stringify(treatmentData);
-    
+
     document.getElementById('single_treatment_text').innerHTML = `
         Treatment: ${treatmentData.name}<br>
         Date: ${treatmentData.date}<br>
         Time: ${treatmentData.time}
     `;
-    
-    // Update recommended_treatment field
+
     const summary = `Treatment: ${treatmentData.name} | Date: ${treatmentData.date} | Time: ${treatmentData.time}`;
     document.getElementById('recommended_treatment').value = summary;
-    
+
     singleSummary.style.display = 'block';
 }
 

@@ -136,12 +136,13 @@ $update_stmt->bind_param('sii', $therapist_name, $plan_id, $staff_id);
                 $sn_stmt->execute();
                 $sn_stmt->close();
 
-                // Update existing planned session only (do not insert new session rows)
+                // Update existing planned session only — never overwrite AwaitingPayment
                 $session_status = $is_completed ? 'Completed' : 'Pending';
                 $ts_stmt = $db->prepare("
                     UPDATE treatment_sessions
                     SET status = ?
                     WHERE plan_id = ? AND session_number = ?
+                    AND status != 'AwaitingPayment'
                     LIMIT 1
                 ");
                 if ($ts_stmt) {
@@ -160,12 +161,12 @@ $update_stmt->bind_param('sii', $therapist_name, $plan_id, $staff_id);
             $cnt->close();
             $done = (int)($doneRow['done'] ?? 0);
             if ($done > 0) {
-                $tot = $db->prepare("SELECT total_sessions FROM treatment_plans WHERE plan_id = ? LIMIT 1");
+                $tot = $db->prepare("SELECT COUNT(*) AS total FROM treatment_sessions WHERE plan_id = ?");
                 $tot->bind_param('i', $plan_id);
                 $tot->execute();
                 $totRow = $tot->get_result()->fetch_assoc();
                 $tot->close();
-                $totalSessions = (int)($totRow['total_sessions'] ?? 0);
+                $totalSessions = (int)($totRow['total'] ?? 0);
                 if ($totalSessions > 0 && $done >= $totalSessions) {
                     $db->query("UPDATE treatment_plans SET status = 'Completed' WHERE plan_id = " . (int)$plan_id);
                 } elseif ($done > 0) {
@@ -218,12 +219,13 @@ foreach ($session_notes_input as $session_num => $note) {
     $sn_stmt->execute();
     $sn_stmt->close();
     
-    // Update existing planned session only (do not insert new session rows)
+    // Update existing planned session only — never overwrite AwaitingPayment
     $session_status = $is_completed ? 'Completed' : 'Pending';
     $ts_stmt = $db->prepare("
         UPDATE treatment_sessions
         SET status = ?
         WHERE plan_id = ? AND session_number = ?
+        AND status != 'AwaitingPayment'
         LIMIT 1
     ");
     if ($ts_stmt) {
@@ -241,12 +243,12 @@ foreach ($session_notes_input as $session_num => $note) {
             $cnt->close();
             $done = (int)($doneRow['done'] ?? 0);
             if ($done > 0) {
-                $tot = $db->prepare("SELECT total_sessions FROM treatment_plans WHERE plan_id = ? LIMIT 1");
+                $tot = $db->prepare("SELECT COUNT(*) AS total FROM treatment_sessions WHERE plan_id = ?");
                 $tot->bind_param('i', $plan_id);
                 $tot->execute();
                 $totRow = $tot->get_result()->fetch_assoc();
                 $tot->close();
-                $totalSessions = (int)($totRow['total_sessions'] ?? 0);
+                $totalSessions = (int)($totRow['total'] ?? 0);
                 if ($totalSessions > 0 && $done >= $totalSessions) {
                     $db->query("UPDATE treatment_plans SET status = 'Completed' WHERE plan_id = " . (int)$plan_id);
                 } elseif ($done > 0) {

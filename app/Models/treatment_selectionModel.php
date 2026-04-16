@@ -75,7 +75,7 @@ class TreatmentSelectionModel {
             return false; // Slot already booked
         }
 
-        $sql = "INSERT INTO treatment_bookings 
+        $sql = "INSERT INTO treatment_bookings
                 (patient_id, treatment_id, slot_id, booking_date, description, status, created_at)
                 VALUES (?, ?, ?, ?, ?, 'Pending', NOW())";
 

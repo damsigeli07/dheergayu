@@ -62,11 +62,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
     <p id="patientsCount">Loading...</p>
     <span>Unique patients this month</span>
   </div>
-  <div class="card purple">
-    <h3>Today's Income</h3>
-    <p id="todayIncome">Loading...</p>
-    <span>From completed appointments</span>
-  </div>
 </section>
 
       <section class="graph-section" style="margin-top: 40px;">
@@ -75,12 +70,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
     <canvas id="appointmentsChart"></canvas>
   </div>
 </section>
-      <section class="graph-section" style="margin-top: 40px;">
-  <h2 style="text-align:center; color:#000;">Monthly Income</h2>
-  <div class="chart-wrapper">
-    <canvas id="incomeChart"></canvas>
-  </div>
-</section>
+    <!-- Monthly Income chart removed -->
 
 
       </header>
@@ -95,10 +85,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
   <script>
   // Global variables for charts
   let appointmentsChart;
-  let incomeChart;
 
   // Set to true for sample 30-day charts (set false to use real data only)
-  const USE_SAMPLE_CHART_DATA = true;
+  const USE_SAMPLE_CHART_DATA = false;
 
   // Build sample data for last N days
   function buildSampleLastNDays(days) {
@@ -114,12 +103,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
     return data;
   }
 
-  function buildSampleIncomeFromAppointments(appointments) {
-    return appointments.map(item => ({
-      date: item.date,
-      income: item.count * 2000
-    }));
-  }
+    // income sample builder removed
 
   // Fetch report data from API
   async function fetchReportData() {
@@ -130,32 +114,26 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
       if (result.success) {
         const data = result.data;
         
-        // Update summary cards
-        document.getElementById('appointmentsCount').textContent = data.appointmentsThisMonth;
-        document.getElementById('patientsCount').textContent = data.totalPatientsThisMonth;
-        document.getElementById('todayIncome').textContent = 'Rs. ' + data.todayIncome.toLocaleString();
-        
+        // Update summary cards with formatted numbers
+        document.getElementById('appointmentsCount').textContent = Number(data.appointmentsThisMonth).toLocaleString();
+        document.getElementById('patientsCount').textContent = Number(data.totalPatientsThisMonth).toLocaleString();
+
         // Update charts (use sample 30-day data when enabled)
         if (USE_SAMPLE_CHART_DATA) {
           const sampleAppointments = buildSampleLastNDays(30);
-          const sampleIncome = buildSampleIncomeFromAppointments(sampleAppointments);
           updateAppointmentsChart(sampleAppointments);
-          updateIncomeChart(sampleIncome);
         } else {
           updateAppointmentsChart(data.monthlyAppointments);
-          updateIncomeChart(data.monthlyIncome);
         }
       } else {
         console.error('Error fetching report data:', result.message);
         document.getElementById('appointmentsCount').textContent = 'Error';
         document.getElementById('patientsCount').textContent = 'Error';
-        document.getElementById('todayIncome').textContent = 'Error';
       }
     } catch (error) {
       console.error('Error:', error);
       document.getElementById('appointmentsCount').textContent = 'Error';
       document.getElementById('patientsCount').textContent = 'Error';
-      document.getElementById('todayIncome').textContent = 'Error';
     }
   }
 
@@ -208,7 +186,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
         scales: {
           y: {
             beginAtZero: true,
-            title: { display: false },
+            title: { display: true, text: 'Appointments', font: { size: 14 } },
             ticks: {
               stepSize: 1,
               maxTicksLimit: 6,
@@ -221,7 +199,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
             }
           },
           x: {
-            title: { display: false },
+            title: { display: true, text: 'Date', font: { size: 14 } },
             ticks: {
               autoSkip: true,
               maxTicksLimit: 10,
@@ -237,90 +215,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
     });
   }
 
-  // Update income chart
-  function updateIncomeChart(incomeData) {
-    const incomeCtx = document.getElementById('incomeChart').getContext('2d');
-    
-    // Format dates and get income
-    const labels = incomeData.map(item => {
-      const date = new Date(item.date);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    });
-    const incomes = incomeData.map(item => item.income);
-    
-    // Destroy existing chart if it exists
-    if (incomeChart) {
-      incomeChart.destroy();
-    }
-    
-    incomeChart = new Chart(incomeCtx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Income (Rs.)',
-          data: incomes,
-          backgroundColor: 'rgba(209, 127, 27, 0.8)',
-          borderColor: '#d17f1b',
-          borderWidth: 2,
-          borderRadius: 5,
-          hoverBackgroundColor: '#d17f1b',
-          hoverBorderColor: '#b86115',
-          hoverBorderWidth: 2,
-          barPercentage: 0.7
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          title: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: 12,
-            titleFont: { size: 14 },
-            bodyFont: { size: 13 },
-            callbacks: {
-              label: function(context) {
-                return 'Rs. ' + context.parsed.y.toLocaleString();
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: false },
-            ticks: {
-              maxTicksLimit: 6,
-              font: { size: 12 },
-              color: '#666',
-              callback: function(value) {
-                return 'Rs. ' + value.toLocaleString();
-              }
-            },
-            grid: {
-              color: 'rgba(0,0,0,0.08)',
-              drawBorder: false
-            }
-          },
-          x: {
-            title: { display: false },
-            ticks: {
-              autoSkip: true,
-              maxTicksLimit: 10,
-              font: { size: 12 },
-              color: '#666'
-            },
-            grid: {
-              display: false
-            }
-          }
-        }
-      }
-    });
-  }
+  // income chart removed
 
   // Load data when page loads
   document.addEventListener('DOMContentLoaded', fetchReportData);

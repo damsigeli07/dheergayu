@@ -524,6 +524,17 @@ if (!empty($_SESSION['user_id'])) {
             var products = supplierProductsMap[supplierId] || [];
             var product = products.find(function(p) { return p.name === productName; });
 
+            // Fallback: search all supplier product lists (case-insensitive) if not found
+            if (!product) {
+                var allKeys = Object.keys(supplierProductsMap);
+                var lowerName = (productName || '').trim().toLowerCase();
+                for (var ki = 0; ki < allKeys.length; ki++) {
+                    var pList = supplierProductsMap[allKeys[ki]] || [];
+                    product = pList.find(function(p) { return p.name.trim().toLowerCase() === lowerName; });
+                    if (product) break;
+                }
+            }
+
             if (!product) {
                 showMessage('Error', 'Could not find product details. Please add batch manually from Inventory.', 'error');
                 return;

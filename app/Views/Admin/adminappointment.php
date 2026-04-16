@@ -20,7 +20,6 @@ $plansQuery = "
         tp.patient_id,
         TRIM(CONCAT(IFNULL(p.first_name, ''), ' ', IFNULL(p.last_name, ''))) AS patient_name,
         tl.treatment_name,
-        tp.total_sessions,
         tp.start_date,
         tp.status,
         tp.payment_status,
@@ -407,13 +406,13 @@ function getStatusClass($status) {
                     $pay = $plan['payment_status'] ?? 'Pending';
                     $changeReq = !empty($plan['change_requested']);
                     $completed = (int)($plan['completed_sessions'] ?? 0);
-                    $totalSess = (int)($plan['total_sessions'] ?? 0);
+                    $totalSess = (int)($plan['total_booked_sessions'] ?? 0);
                 ?>
                 <tr>
                   <td><?= htmlspecialchars($plan['plan_id'] ?? '') ?></td>
                   <td><?= htmlspecialchars($plan['patient_name'] ?? '') ?></td>
                   <td><?= htmlspecialchars($plan['treatment_name'] ?? 'Treatment') ?></td>
-                  <td><?= $completed ?>/<?= $totalSess ?: (int)($plan['total_booked_sessions'] ?? 0) ?></td>
+                  <td><?= $completed ?>/<?= $totalSess ?></td>
                   <td><?= !empty($plan['start_date']) ? htmlspecialchars($plan['start_date']) : '—' ?></td>
                   <td>
                     <span class="status-badge <?= strtolower($status) ?>"><?= htmlspecialchars($status) ?></span>

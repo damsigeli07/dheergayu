@@ -364,8 +364,7 @@ foreach ($treatment_plans as $plan) {
                                 <td><?= htmlspecialchars($plan['first_name'] . ' ' . $plan['last_name']) ?></td>
                                 <td><?= htmlspecialchars($plan['treatment_name']) ?></td>
                                 <td>
-                                    <?= $plan['total_sessions'] ?> sessions<br>
-                                    <small style="color:#666;"><?= $plan['sessions_per_week'] ?>x per week</small>
+                                    <?= $plan['total_booked_sessions'] ?> session(s)
                                 </td>
                                 <td>
                                     <?= $plan['completed_sessions'] ?>/<?= $plan['total_booked_sessions'] ?> completed

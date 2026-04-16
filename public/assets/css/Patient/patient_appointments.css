@@ -265,6 +265,11 @@ ul {
     color: #721c24;
 }
 
+.status-awaitingpayment {
+    background: #fff3cd;
+    color: #856404;
+}
+
 .appointment-details {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

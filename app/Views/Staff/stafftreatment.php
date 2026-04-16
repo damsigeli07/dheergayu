@@ -52,6 +52,7 @@ $treatment_plans_query = "
     SELECT tp.*, p.first_name, p.last_name, p.email, tl.treatment_name, tl.price as treatment_price,
         (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id) as total_booked_sessions,
         (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Completed') as completed_sessions,
+        (SELECT COUNT(*) FROM treatment_sessions WHERE plan_id = tp.plan_id AND status = 'Confirmed') as confirmed_sessions,
         (SELECT COUNT(*) FROM staff_treatment_forms WHERE plan_id = tp.plan_id AND staff_id = " . intval($staffUserId) . ") as has_treatment_form
     FROM treatment_plans tp
     LEFT JOIN patients p ON tp.patient_id = p.id
@@ -103,21 +104,18 @@ $offerSessionsByPlan = [];
     treatment_id INT NOT NULL,
     primary_staff1_id INT NOT NULL,
     primary_staff2_id INT NOT NULL,
-    backup_staff_id INT NOT NULL,
     assigned_staff_id INT NULL,
-    primary1_declined TINYINT(1) NOT NULL DEFAULT 0,
-    primary2_declined TINYINT(1) NOT NULL DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     confirmed_at TIMESTAMP NULL,
     UNIQUE KEY one_offer_per_plan (plan_id),
-    INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id, backup_staff_id),
+    INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id),
     INDEX idx_offer_status (status)
 )");
 $offers_stmt = $db->prepare("
-    SELECT o.id AS offer_id, o.plan_id, o.treatment_id, o.primary_staff1_id, o.primary_staff2_id, o.backup_staff_id,
-           o.assigned_staff_id, o.primary1_declined, o.primary2_declined, o.status AS offer_status,
-           tp.patient_id, tp.total_sessions, tp.diagnosis, tp.total_cost,
+    SELECT o.id AS offer_id, o.plan_id, o.treatment_id, o.primary_staff1_id, o.primary_staff2_id,
+           o.assigned_staff_id, o.status AS offer_status,
+           tp.patient_id, tp.diagnosis, tp.total_cost,
            tl.treatment_name, p.first_name, p.last_name,
            u.first_name AS assigned_first_name, u.last_name AS assigned_last_name,
            (SELECT ts.session_date FROM treatment_sessions ts WHERE ts.plan_id = tp.plan_id ORDER BY ts.session_number ASC LIMIT 1) AS first_session_date,
@@ -127,24 +125,19 @@ $offers_stmt = $db->prepare("
     LEFT JOIN treatment_list tl ON o.treatment_id = tl.treatment_id
     LEFT JOIN patients p ON tp.patient_id = p.id
     LEFT JOIN users u ON o.assigned_staff_id = u.id
-    WHERE (o.primary_staff1_id = ? OR o.primary_staff2_id = ? OR o.backup_staff_id = ?)
+    WHERE (o.primary_staff1_id = ? OR o.primary_staff2_id = ?)
       AND tp.payment_status = 'Completed'
     ORDER BY o.status ASC, o.created_at DESC
 ");
 if ($offers_stmt) {
-    $offers_stmt->bind_param('iii', $staffUserId, $staffUserId, $staffUserId);
+    $offers_stmt->bind_param('ii', $staffUserId, $staffUserId);
     $offers_stmt->execute();
     $offers_res = $offers_stmt->get_result();
     while ($row = $offers_res->fetch_assoc()) {
         $row['my_role'] = '';
         if ((int)$row['primary_staff1_id'] === (int)$staffUserId) $row['my_role'] = 'primary1';
         elseif ((int)$row['primary_staff2_id'] === (int)$staffUserId) $row['my_role'] = 'primary2';
-        else $row['my_role'] = 'backup';
-        $row['my_declined'] = (
-            ($row['my_role'] === 'primary1' && (int)$row['primary1_declined'] === 1) ||
-            ($row['my_role'] === 'primary2' && (int)$row['primary2_declined'] === 1)
-        );
-        $row['backup_can_confirm'] = ($row['primary1_declined'] && $row['primary2_declined']);
+        $row['my_declined'] = false;
         $row['assigned_staff_name'] = '';
         if (!empty($row['assigned_staff_id'])) {
             $row['assigned_staff_name'] = trim(($row['assigned_first_name'] ?? '') . ' ' . ($row['assigned_last_name'] ?? ''));
@@ -317,7 +310,7 @@ $db->close();
                 <div class="offer-card" style="background:#fff;padding:16px;border-radius:8px;border-left:4px solid <?= !empty($off['assigned_staff_id']) ? '#2196f3' : '#E6A85A' ?>;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                     <div>
                         <strong>Plan #<?= (int)$off['plan_id'] ?></strong> — <?= htmlspecialchars($off['treatment_name'] ?? 'Treatment') ?>
-                        <span style="color:#666;font-size:13px;"> • <?= htmlspecialchars($off['first_name'] . ' ' . $off['last_name']) ?> • <?= (int)$off['total_sessions'] ?> session(s)</span>
+                        <span style="color:#666;font-size:13px;"> • <?= htmlspecialchars($off['first_name'] . ' ' . $off['last_name']) ?></span>
                         <?php
                         $planId = (int)($off['plan_id'] ?? 0);
                         $sessionSlots = $offerSessionsByPlan[$planId] ?? [];
@@ -380,7 +373,7 @@ $db->close();
                                 <?= $off['backup_can_confirm'] ? 'You can confirm now (primaries declined).' : 'Waiting for primary staff to respond.' ?>
                             </span>
                         <?php else: ?>
-                            <span style="display:block;font-size:12px;color:#666;margin-top:4px;">You are primary staff — confirm or decline</span>
+                            <span style="display:block;font-size:12px;color:#666;margin-top:4px;">confirm or decline</span>
                         <?php endif; ?>
                     </div>
                     <?php if (empty($off['assigned_staff_id']) && empty($off['my_declined'])): ?>
@@ -429,8 +422,6 @@ $db->close();
                             <th>Plan ID</th>
                             <th>Patient Name</th>
                             <th>Treatment</th>
-                            <th>Sessions</th>
-                            <th>Progress</th>
                             <th>Status</th>
                             <th>Total Cost</th>
                             <th>Actions</th>
@@ -440,33 +431,19 @@ $db->close();
                         <?php if (!empty($treatment_plans)): ?>
                             <?php foreach ($treatment_plans as $plan): ?>
                                 <?php
-                                    $progress_percent = $plan['total_sessions'] > 0 
-                                        ? ($plan['completed_sessions'] / $plan['total_sessions'] * 100) 
-                                        : 0;
                                     $tpPay = ($plan['payment_status'] ?? '') === 'Completed';
                                     $tpStatus = $plan['status'] ?? '';
-                                    $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress'], true);
+                                    $tpConfirmed = in_array($tpStatus, ['Confirmed', 'InProgress', 'Completed'], true);
                                     $tpAssignedId = (int)($plan['assigned_staff_id'] ?? 0);
                                     $assignedToMe = $tpAssignedId !== 0 && $tpAssignedId === (int)$staffUserId;
                                     $displayStatus = $tpStatus;
-                                    if ((int)($plan['total_sessions'] ?? 0) > 0 && (int)($plan['completed_sessions'] ?? 0) >= (int)$plan['total_sessions']) {
-                                        $displayStatus = 'Completed';
-                                    }
+                                    // New confirmed (paid) sessions waiting to be treated
+                                    $hasNewConfirmedSessions = (int)($plan['confirmed_sessions'] ?? 0) > 0;
                                 ?>
                                 <tr>
                                     <td><?= $plan['plan_id'] ?></td>
                                     <td><?= htmlspecialchars($plan['first_name'] . ' ' . $plan['last_name']) ?></td>
                                     <td><?= htmlspecialchars($plan['treatment_name']) ?></td>
-                                    <td>
-                                        <?= $plan['total_sessions'] ?> sessions<br>
-                                        <small style="color:#666;"><?= $plan['sessions_per_week'] ?>x per week</small>
-                                    </td>
-                                    <td>
-                                        <?= $plan['completed_sessions'] ?>/<?= $plan['total_sessions'] ?> completed
-                                        <div class="progress-bar-container">
-                                            <div class="progress-bar" style="width:<?= $progress_percent ?>%;"></div>
-                                        </div>
-                                    </td>
                                     <td>
                                         <span class="status-badge <?= strtolower($displayStatus) ?>">
                                             <?= $displayStatus ?>
@@ -474,7 +451,9 @@ $db->close();
                                     </td>
                                     <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
                                     <td>
-                                        <?php if ($plan['has_treatment_form'] > 0): ?>
+                                        <?php if ($plan['has_treatment_form'] > 0 && $hasNewConfirmedSessions && $assignedToMe): ?>
+                                            <button class="btn-start" onclick="window.location.href='stafftreatmentform.php?plan_id=<?= htmlspecialchars($plan['plan_id']) ?>'">Start Treatment</button>
+                                        <?php elseif ($plan['has_treatment_form'] > 0): ?>
                                             <?php if ($assignedToMe): ?>
                                                 <button class="action-btn complete-btn" onclick="viewStaffTreatmentForm(<?= $plan['plan_id'] ?>)">View</button>
                                             <?php else: ?>
