@@ -87,7 +87,6 @@ $db->close();
         <div class="container">
             <p class="subtitle">Discover Wellness</p>
             <h2>OUR AYURVEDIC TREATMENTS</h2>
-            <div class="decorative-line"></div>
             <p class="description">Experience the ancient healing wisdom of Ayurveda through our carefully curated treatments. Each therapy is designed to restore balance, promote natural healing, and enhance your overall well-being.</p>
         </div>
     </section>

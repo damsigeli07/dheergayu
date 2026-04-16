@@ -9,7 +9,7 @@
 
         .form-container-main {
             font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-color: #f7f5f2;
             min-height: 100vh;
             display: flex;
             align-items: center;
