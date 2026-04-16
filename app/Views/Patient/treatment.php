@@ -1,5 +1,10 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../../../config/config.php';
+
+$_sessionRole = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? '');
+$isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true && $_sessionRole === 'patient';
+
 // Fetch active treatments from database
 $db = $conn;
 
@@ -69,6 +74,7 @@ $db->close();
                     <li><a href="/dheergayu/app/Views/Patient/channeling.php">BOOKING</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/treatment.php" class="active">TREATMENTS</a></li>
                     <li><a href="/dheergayu/app/Views/Patient/products.php">SHOP</a></li>
+                    <li><a href="#" onclick="handleContact(event)">CONTACT US</a></li>
                 </ul>
             </nav>
             <div class="header-right">
@@ -162,6 +168,17 @@ $db->close();
     </footer>
 
     <script>
+        const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+
+        function handleContact(event) {
+            event.preventDefault();
+            if (isLoggedIn) {
+                window.location.href = '/dheergayu/app/Views/Patient/contact_us.php';
+            } else {
+                window.location.href = '/dheergayu/app/Views/Patient/login.php';
+            }
+        }
+
         // Smooth scroll to top
         document.querySelector('.scroll-to-top')?.addEventListener('click', function(e) {
             e.preventDefault();
