@@ -95,6 +95,35 @@ if ($is_backup) {
     }
 }
 
+// Check for session time conflicts with treatments already assigned to this staff
+$conflict_stmt = $conn->prepare("
+    SELECT ts_offer.session_date, ts_offer.session_time
+    FROM treatment_sessions ts_offer
+    JOIN treatment_sessions ts_assigned
+        ON ts_assigned.session_date = ts_offer.session_date
+        AND ts_assigned.session_time = ts_offer.session_time
+    JOIN treatment_plans tp
+        ON ts_assigned.plan_id = tp.plan_id
+        AND tp.assigned_staff_id = ?
+        AND tp.plan_id != ?
+    WHERE ts_offer.plan_id = ?
+    LIMIT 1
+");
+$conflict_stmt->bind_param('iii', $staff_id, $offer['plan_id'], $offer['plan_id']);
+$conflict_stmt->execute();
+$conflict = $conflict_stmt->get_result()->fetch_assoc();
+$conflict_stmt->close();
+
+if ($conflict) {
+    $conflict_date = date('M j, Y', strtotime($conflict['session_date']));
+    $conflict_time = date('g:i A', strtotime($conflict['session_time']));
+    echo json_encode([
+        'success' => false,
+        'message' => "You are already assigned to another treatment on {$conflict_date} at {$conflict_time}. You cannot take this assignment."
+    ]);
+    exit;
+}
+
 $upd = $conn->prepare("UPDATE treatment_plan_staff_offer SET assigned_staff_id = ?, status = 'StaffConfirmed', confirmed_at = NOW() WHERE id = ?");
 $upd->bind_param('ii', $staff_id, $offer_id);
 $upd->execute();
