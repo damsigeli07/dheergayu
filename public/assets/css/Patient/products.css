@@ -143,6 +143,7 @@ ul {
     margin-bottom: 3rem;
 }
 
+/* Product Card - FIXED HEIGHT FOR ALIGNMENT */
 .product-card {
     background: white;
     border-radius: 16px;
@@ -150,6 +151,9 @@ ul {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
     border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    min-height: 500px; /* Fixed minimum height */
 }
 
 .product-card:hover {
@@ -162,6 +166,7 @@ ul {
     height: 200px;
     overflow: hidden;
     position: relative;
+    flex-shrink: 0; /* Prevents image from shrinking */
 }
 
 .product-img {
@@ -175,8 +180,12 @@ ul {
     transform: scale(1.05);
 }
 
+/* Product Info - Uses flexbox for alignment */
 .product-info {
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Takes remaining space */
 }
 
 .product-name {
@@ -199,6 +208,7 @@ ul {
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 1rem;
+    flex: 1; /* Allows description to expand and push button down */
 }
 
 .product-availability {
@@ -212,6 +222,7 @@ ul {
     display: inline-block;
 }
 
+/* Add to Cart Button - Always at bottom */
 .add-to-cart-btn {
     background-color: #557945;
     color: white;
@@ -225,7 +236,7 @@ ul {
     width: 100%;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 1rem;
+    margin-top: auto; /* Pushes button to bottom */
     font-family: 'Roboto', sans-serif;
 }
 
@@ -243,6 +254,15 @@ ul {
     background-color: #4CAF50;
     cursor: not-allowed;
     opacity: 0.8;
+}
+
+/* Login required button (for non-logged-in users) */
+.add-to-cart-btn.login-required {
+    background-color: #e6a646;
+}
+
+.add-to-cart-btn.login-required:hover {
+    background-color: #d4952e;
 }
 
 /* Footer Note */
@@ -360,6 +380,10 @@ ul {
     .main-nav {
         display: none;
     }
+
+    .product-card {
+        min-height: 480px;
+    }
 }
 
 @media (max-width: 900px) {
@@ -379,6 +403,10 @@ ul {
     .footer-column {
         flex: 1 1 45%;
         margin-bottom: 30px;
+    }
+
+    .product-card {
+        min-height: 460px;
     }
 }
 
@@ -438,5 +466,9 @@ ul {
 
     .footer-column {
         flex: 1 1 100%;
+    }
+
+    .product-card {
+        min-height: auto; /* Allow natural height on mobile */
     }
 }
