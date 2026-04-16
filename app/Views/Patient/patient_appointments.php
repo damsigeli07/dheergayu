@@ -552,19 +552,43 @@ $treatmentPlansTabCount = count($treatment_plans);
                                     ?>
 
                                     <?php if (($plan['payment_status'] ?? 'Pending') !== 'Completed'): ?>
-                                        <div class="appointment-actions" style="margin-top:20px;background:#fff3cd;padding:12px;border-radius:8px;">
-                                            <p style="margin:0 0 12px 0;font-size:14px;color:#856404;">
-                                                ⚠️ Complete payment or reschedule your treatment plan first
-                                            </p>
+                                        <?php
+                                            $firstTs = ($firstSessionDate && $firstSessionTime)
+                                                ? strtotime($firstSessionDate . ' ' . $firstSessionTime)
+                                                : 0;
+                                            $now = time();
+                                            $hoursLeft = $firstTs > 0 ? ($firstTs - $now) / 3600 : 999;
+                                            $sessionPassed = $firstTs > 0 && $firstTs < $now;
+                                            $deadlinePassed = $hoursLeft < 24; // less than 24h to first session
+                                        ?>
+                                        <div class="appointment-actions" style="margin-top:20px;background:<?= $deadlinePassed ? '#fde8e8' : '#fff3cd' ?>;padding:12px;border-radius:8px;">
+
+                                            <?php if ($sessionPassed): ?>
+                                                <p style="margin:0 0 12px 0;font-size:14px;color:#c0392b;">
+                                                    ❌ Your first session date has passed. Please reschedule before paying.
+                                                </p>
+                                            <?php elseif ($deadlinePassed): ?>
+                                                <p style="margin:0 0 12px 0;font-size:14px;color:#c0392b;">
+                                                    ⚠️ Payment deadline passed — first session is in less than 24 hours. Please reschedule before paying.
+                                                </p>
+                                            <?php else: ?>
+                                                <p style="margin:0 0 12px 0;font-size:14px;color:#856404;">
+                                                    ⚠️ Payment must be completed at least <strong>24 hours before</strong> your first session
+                                                    (<?= $firstSessionDate ? date('M d, Y', strtotime($firstSessionDate)) : '' ?>).
+                                                </p>
+                                            <?php endif; ?>
+
                                             <div style="display:flex;gap:10px;">
-                                                <?php if (($plan['status'] ?? '') === 'Pending' || ($plan['status'] ?? '') === 'ChangeRequested'): ?>
-                                                <button class="action-btn btn-primary" onclick="confirmTreatmentPlan(<?= $plan['plan_id'] ?>)" style="flex:1;">
-                                                    ✓ Confirm & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
-                                                </button>
-                                                <?php else: ?>
-                                                <button class="action-btn btn-primary" onclick="payTreatmentPlan(<?= $plan['plan_id'] ?>)" style="flex:1;">
-                                                    ✓ Confirm & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
-                                                </button>
+                                                <?php if (!$deadlinePassed): ?>
+                                                    <?php if (($plan['status'] ?? '') === 'Pending' || ($plan['status'] ?? '') === 'ChangeRequested'): ?>
+                                                    <button class="action-btn btn-primary" onclick="confirmTreatmentPlan(<?= $plan['plan_id'] ?>)" style="flex:1;">
+                                                        ✓ Confirm & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
+                                                    </button>
+                                                    <?php else: ?>
+                                                    <button class="action-btn btn-primary" onclick="payTreatmentPlan(<?= $plan['plan_id'] ?>)" style="flex:1;">
+                                                        ✓ Confirm & Pay (Rs <?= number_format($plan['total_cost'], 2) ?>)
+                                                    </button>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                                 <button class="action-btn btn-warning" data-sessions-b64="<?= htmlspecialchars($sessionsPayloadB64, ENT_QUOTES, 'UTF-8') ?>" onclick="rescheduleAndPayTreatmentPlan(<?= $plan['plan_id'] ?>, <?= (int)($plan['treatment_id'] ?? 0) ?>, this)">
                                                     Reschedule & Pay
