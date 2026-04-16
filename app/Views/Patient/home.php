@@ -2,9 +2,8 @@
 session_start();
 
 
-// Check if user is logged in as a patient (not another role)
-$_sessionRole = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? '');
-$isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true && $_sessionRole === 'patient';
+// Check if user is logged in
+$isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 $userType = $isLoggedIn ? $_SESSION['user_type'] : '';
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';
@@ -174,34 +173,40 @@ if ($isLoggedIn && !empty($userName)) {
             
             <div class="features-grid">
                 <div class="feature-item">
-                    <div class="feature-icon">✨</div>
+                    <div class="feature-icon">
+                        <img src="/dheergayu/public/assets/images/Patient/Traditional-Method.png" alt="Traditional Methods">
+                    </div>
                     <h3>Traditional Methods</h3>
-                    <p>Authentic Ayurvedic formulations prepared using classical techniques passed down through generations</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">✨</div>
+                    <div class="feature-icon">
+                        <img src="/dheergayu/public/assets/images/Patient/Holistic-Wellness.png" alt="Holistic Wellness">
+                    </div>
                     <h3>Holistic Wellness</h3>
-                    <p>Personalized treatment plans addressing your unique health needs for complete mind-body balance</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">✨</div>
+                    <div class="feature-icon">
+                        <img src="/dheergayu/public/assets/images/Patient/Quality-&-Safety.png" alt="Quality & Safety">
+                    </div>
                     <h3>Quality & Safety</h3>
-                    <p>Hygienic preparation, patient safety protocols, and continuous care follow-up you can trust</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">✨</div>
+                    <div class="feature-icon">
+                        <img src="/dheergayu/public/assets/images/Patient/Expert-Practitioners.png" alt="Expert Practitioners">
+                    </div>
                     <h3>Expert Practitioners</h3>
-                    <p>Certified Ayurvedic doctors with years of experience in traditional healing practices</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">✨</div>
+                    <div class="feature-icon">
+                        <img src="/dheergayu/public/assets/images/Patient/Natural-Ingredients.png" alt="Natural Ingredients">
+                    </div>
                     <h3>Natural Ingredients</h3>
-                    <p>Carefully sourced organic herbs and botanicals ensuring purity and maximum therapeutic benefit</p>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-icon">✨</div>
+                    <div class="feature-icon">
+                        <img src="/dheergayu/public/assets/images/Patient/Lasting-Results.png" alt="Lasting Results">
+                    </div>
                     <h3>Lasting Results</h3>
-                    <p>Focus on root-cause healing for sustainable wellness, not just symptom management</p>
                 </div>
             </div>
         </div>
@@ -235,10 +240,30 @@ if ($isLoggedIn && !empty($userName)) {
             <div class="footer-column">
                 <h3>GET IN TOUCH</h3>
                 <ul>
-                    <li><a href="#" class="social-link">Facebook</a></li>
-                    <li><a href="#" class="social-link">X</a></li>
-                    <li><a href="#" class="social-link">LinkedIn</a></li>
-                    <li><a href="#" class="social-link">Instagram</a></li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/facebook.png" alt="Facebook" class="social-icon">
+                            Facebook
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/twitter(x).png" alt="X" class="social-icon">
+                            X
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/linkedin.png" alt="LinkedIn" class="social-icon">
+                            LinkedIn
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/instagram.png" alt="Instagram" class="social-icon">
+                            Instagram
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
