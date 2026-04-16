@@ -199,6 +199,14 @@ try {
                 }
             }
 
+            // Update start_date to the earliest rescheduled session date
+            $newStartDates = array_column($schedule, 'session_date');
+            sort($newStartDates);
+            $newStartDate = $newStartDates[0] ?? null;
+            if ($newStartDate) {
+                $conn->query("UPDATE treatment_plans SET start_date = '" . $conn->real_escape_string($newStartDate) . "' WHERE plan_id = " . $plan_id);
+            }
+
             ensureTreatmentPlanStaffOffer($conn, $plan_id, $treatment_id);
             $conn->commit();
 
