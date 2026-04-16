@@ -1,5 +1,5 @@
+<?php require_once __DIR__ . '/../../includes/auth_admin.php'; ?>
 <!DOCTYPE html>
-require_once __DIR__ . '/../../includes/auth_admin.php';
 <html lang="en">
 <head>
     <meta charset="UTF-8">

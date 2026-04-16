@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->close();
 
         // 3) Try suppliers table
-        $stmt = $conn->prepare("SELECT id, supplier_name, contact_person, password, status FROM suppliers WHERE email = ?");
+        $stmt = $conn->prepare("SELECT id, supplier_name, contact_person, password, status, must_change_password FROM suppliers WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -122,6 +122,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $_SESSION['role'] = 'Supplier';
                 $_SESSION['name'] = $row['supplier_name'];
                 $_SESSION['contact_person'] = $row['contact_person'];
+
+                if (!empty($row['must_change_password'])) {
+                    header("Location: /dheergayu/app/Views/Supplier/supplier_change_password.php");
+                    exit();
+                }
 
                 header("Location: ../Supplier/supplierrequest.php");
                 exit();
