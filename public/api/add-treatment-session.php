@@ -43,6 +43,22 @@ if ((int)$plan['assigned_staff_id'] !== $staff_id) {
     exit;
 }
 
+// Staff can add a new session only when all existing sessions are completed.
+$pending = $conn->prepare("SELECT COUNT(*) AS cnt FROM treatment_sessions WHERE plan_id = ? AND status != 'Completed'");
+$pending->bind_param('i', $plan_id);
+$pending->execute();
+$pendingRow = $pending->get_result()->fetch_assoc();
+$pending->close();
+
+$incompleteCount = (int)($pendingRow['cnt'] ?? 0);
+if ($incompleteCount > 0) {
+    echo json_encode([
+        'success' => false,
+        'error' => 'Cannot add a new session while there are incomplete sessions. Complete current sessions first.'
+    ]);
+    exit;
+}
+
 // Get next session number
 $num = $conn->prepare("SELECT MAX(session_number) AS max_num FROM treatment_sessions WHERE plan_id = ?");
 $num->bind_param('i', $plan_id);

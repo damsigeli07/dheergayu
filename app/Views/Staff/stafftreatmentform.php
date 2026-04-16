@@ -188,6 +188,17 @@ for ($i = 1; $i <= $total_sessions; $i++) {
     ];
 }
 
+$has_incomplete_session = false;
+foreach ($session_rows as $row) {
+    $rowCompleted = !empty($row['is_completed']) || (($row['status'] ?? '') === 'Completed');
+    if (!$rowCompleted) {
+        $has_incomplete_session = true;
+        break;
+    }
+}
+
+$can_add_new_session = !$has_incomplete_session;
+
 // If viewing existing form, use its data
 if ($view_mode && $existing_form) {
     // Data will be used in the form
@@ -303,6 +314,7 @@ if ($view_mode && $existing_form) {
     </div>
 </div>
                     <!-- Add New Session -->
+                    <?php if ($can_add_new_session): ?>
                     <div class="form-group" style="margin-top:20px;padding:16px;background:#f0f7f4;border-radius:8px;border:1px solid #c3e6cb;">
                         <label style="font-weight:600;color:#2d6a4f;font-size:15px;">Add New Session for Patient</label>
                         <p style="font-size:13px;color:#555;margin:4px 0 12px;">Schedule an additional session — patient will be asked to confirm and pay.</p>
@@ -331,6 +343,11 @@ if ($view_mode && $existing_form) {
                         </div>
                         <p id="addSessionMsg" style="font-size:13px;margin-top:10px;min-height:18px;"></p>
                     </div>
+                    <?php else: ?>
+                    <div class="form-group" style="margin-top:20px;padding:14px 16px;background:#fff8e6;border-radius:8px;border:1px solid #ffe0a3;color:#7a5a00;font-size:13px;">
+                        Add New Session is available only after all current sessions are completed and saved.
+                    </div>
+                    <?php endif; ?>
                     </div>
                 </div>
 
@@ -394,7 +411,30 @@ if ($view_mode && $existing_form) {
             return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
         }
 
-        function addNewSession() {
+        async function saveCurrentSessionProgress() {
+            const form = document.getElementById('treatmentForm');
+            const formData = new FormData(form);
+
+            const response = await fetch('/dheergayu/app/Controllers/StaffTreatmentFormController.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            let payload = null;
+            try {
+                payload = await response.json();
+            } catch (err) {
+                throw new Error('Failed to parse save response');
+            }
+
+            if (!payload || payload.status !== 'success') {
+                throw new Error(payload?.message || 'Failed to save current session notes');
+            }
+
+            return payload;
+        }
+
+        async function addNewSession() {
             const date = document.getElementById('newSessionDate').value;
             const time = document.getElementById('newSessionTime').value;
             const msg  = document.getElementById('addSessionMsg');
@@ -407,6 +447,21 @@ if ($view_mode && $existing_form) {
             }
 
             btn.disabled = true;
+            btn.textContent = 'Saving current notes…';
+
+            try {
+                await saveCurrentSessionProgress();
+            } catch (err) {
+                const allowAddWithoutSave = String(err.message || '').toLowerCase().includes('patient has paid and confirmed the plan');
+                if (!allowAddWithoutSave) {
+                    msg.style.color = '#c0392b';
+                    msg.textContent = 'Error: ' + err.message;
+                    btn.disabled = false;
+                    btn.textContent = 'Save';
+                    return;
+                }
+            }
+
             btn.textContent = 'Adding…';
 
             const fd = new FormData();

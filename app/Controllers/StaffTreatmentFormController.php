@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $gPay = ($gRow['payment_status'] ?? '') === 'Completed';
         $gSt = $gRow['status'] ?? '';
         $gChg = !empty($gRow['change_requested']);
-        $gOk = $gPay && !$gChg && in_array($gSt, ['Confirmed', 'InProgress'], true);
+        $gOk = $gPay && !$gChg && in_array($gSt, ['Confirmed', 'InProgress', 'Completed'], true);
         if (!$gOk) {
             throw new Exception("Treatment cannot be saved until the patient has paid and confirmed the plan.");
         }
