@@ -173,7 +173,7 @@ if ($db->connect_error) {
                                 </button>
                             <?php else: ?>
                                 <button class="add-to-cart-btn login-required" type="button" onclick="window.location.href='login.php'">
-                                    Login to Add
+                                    Add to Cart
                                 </button>
                             <?php endif; ?>
                         </div>

@@ -168,7 +168,6 @@ if ($isLoggedIn && !empty($userName)) {
         <div class="container">
             <p class="subtitle">Why Choose Dheergayu</p>
             <h2>ANCIENT WISDOM, MODERN EXCELLENCE</h2>
-            <div class="decorative-line"></div>
             <p class="description">Experience the perfect blend of time-tested Ayurvedic practices and contemporary healthcare standards</p>
             
             <div class="features-grid">
@@ -221,9 +220,9 @@ if ($isLoggedIn && !empty($userName)) {
             </div>
             <div class="footer-column">
                 <h3>OFFICE</h3>
-                <p>Sri Lanka —</p>
                 <p>123 Wellness Street</p>
                 <p>Colombo, LK 00100</p>
+                <p>Sri Lanka</p>
                 <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
                 <p>+94 11 234 5678</p>
             </div>
