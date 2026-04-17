@@ -156,42 +156,28 @@ class BatchModel {
 
     /** Create new batch */
     public function createBatch(int $productId, ?string $productSource, string $batchNumber, int $quantity, string $mfd, string $exp, string $status): bool {
-        // Log parameters for debugging
-        error_log("BatchModel::createBatch - productId: $productId, productSource: " . var_export($productSource, true) . ", batchNumber: " . var_export($batchNumber, true) . ", quantity: $quantity");
-        error_log("BatchModel::createBatch - batchNumber type: " . gettype($batchNumber) . ", length: " . strlen($batchNumber));
-        
-        // Default product_source to 'admin' if not provided
         $productSource = $productSource ?? 'admin';
-        
+
         $stmt = $this->db->prepare("
-            INSERT INTO batches (product_id, product_source, batch_number, quantity, mfd, exp, status) 
+            INSERT INTO batches (product_id, product_source, batch_number, quantity, mfd, exp, status)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
-        
+
         if (!$stmt) {
             error_log("BatchModel::createBatch prepare error: " . $this->db->error);
             return false;
         }
-        
-        // Parameter order in SQL: product_id, product_source, batch_number, quantity, mfd, exp, status
-        $typeString = 'ississs';  // product_id, product_source, batch_number, quantity, mfd, exp, status
-        
-        error_log("BatchModel::createBatch - Type string: '$typeString' (length: " . strlen($typeString) . ")");
-        error_log("BatchModel::createBatch - Parameters count: 7");
-        
-        $result = $stmt->bind_param($typeString, $productId, $productSource, $batchNumber, $quantity, $mfd, $exp, $status);
+
+        $result = $stmt->bind_param('ississs', $productId, $productSource, $batchNumber, $quantity, $mfd, $exp, $status);
         if (!$result) {
-            error_log("BatchModel::createBatch - bind_param failed: " . $stmt->error);
+            error_log("BatchModel::createBatch bind_param failed: " . $stmt->error);
             $stmt->close();
             return false;
         }
-        
+
         $ok = $stmt->execute();
         if (!$ok) {
             error_log("BatchModel::createBatch execute error: " . $stmt->error);
-            error_log("BatchModel::createBatch - SQL state: " . $stmt->sqlstate);
-        } else {
-            error_log("BatchModel::createBatch - Successfully inserted batch with batch_number: " . var_export($batchNumber, true));
         }
         $stmt->close();
         return $ok;

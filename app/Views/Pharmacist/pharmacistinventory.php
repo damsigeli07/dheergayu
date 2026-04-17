@@ -892,11 +892,6 @@ function renderInventoryTable(array $items): string {
                 
                 const batchNumberValue = formEl.batch_number.value.trim();
 
-                if (!batchNumberValue) {
-                    alert('❌ Batch number is required');
-                    return;
-                }
-                
                 const payload = new FormData();
                 payload.append('product_id', productId);
                 payload.append('product_source', productSource);

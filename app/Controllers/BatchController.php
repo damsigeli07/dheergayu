@@ -26,19 +26,17 @@ class BatchController extends Controller {
 
     public function create(): void {
         try {
-            // Ensure no output before JSON
             ob_clean();
-            
+
             $payload = $_POST;
-            
-            // Validate required fields
+
             $productId = isset($payload['product_id']) ? (int)$payload['product_id'] : null;
             if (!$productId && isset($payload['product_name'])) {
                 $productId = $this->model->findProductIdByName($payload['product_name']);
             }
-            if (!$productId) { 
-                $this->json(['success' => false, 'error' => 'product_id required'], 400); 
-                return; 
+            if (!$productId) {
+                $this->json(['success' => false, 'error' => 'product_id required'], 400);
+                return;
             }
 
             $batchNumber = trim($payload['batch_number'] ?? '');
@@ -46,11 +44,6 @@ class BatchController extends Controller {
                 $this->json(['success' => false, 'error' => 'batch_number is required'], 400);
                 return;
             }
-            
-            // Log the batch number for debugging
-            error_log("BatchController::create - batch_number received: " . var_export($batchNumber, true));
-            error_log("BatchController::create - batch_number type: " . gettype($batchNumber));
-            error_log("BatchController::create - batch_number length: " . strlen($batchNumber));
 
             $quantity = (int)($payload['quantity'] ?? 0);
             if ($quantity <= 0) {
@@ -125,5 +118,3 @@ class BatchController extends Controller {
         $this->json(['success' => true, 'removed' => $count]);
     }
 }
-
-
