@@ -184,12 +184,7 @@ foreach ($treatment_plans as $plan) {
     
     <nav class="navigation">
         <button class="nav-btn active" id="appointments-tab" onclick="showAppointments()">Appointments</button>
-        <button class="nav-btn" id="treatment-plans-tab" onclick="showTreatmentPlans()">
-            Treatment Plans
-            <?php if ($pending_plans > 0): ?>
-                <span class="badge"><?= $pending_plans ?></span>
-            <?php endif; ?>
-        </button>
+        <button class="nav-btn" id="treatment-plans-tab" onclick="showTreatmentPlans()">Treatment Plans</button>
         <a href="patienthistory.php" class="nav-btn">Patient History</a>
         <a href="doctorreport.php" class="nav-btn">Reports</a>
     </nav>
@@ -469,6 +464,13 @@ function showConsultationModal(appointmentId) {
             if (formData && typeof formData[key] !== 'undefined' && formData[key] !== null) value = formData[key];
             else if (data && data.merged && typeof data.merged[key] !== 'undefined' && data.merged[key] !== null) value = data.merged[key];
             else value = '';
+            // sanitize accidental numeric-zero stored as string '0'
+            if (String(value) === '0') value = '';
+            // fallback to patient name when form value is empty
+            if ((key === 'first_name' || key === 'last_name') && (!value || String(value).trim() === '')) {
+                if (data && key === 'first_name' && data.patient_first_name) value = data.patient_first_name;
+                if (data && key === 'last_name' && data.patient_last_name) value = data.patient_last_name;
+            }
 
             if (key === 'personal_products') {
                 try { value = renderProductsToText(value); } catch (e) { value = ''; }
@@ -480,21 +482,27 @@ function showConsultationModal(appointmentId) {
         }
         html += '</table>';
         html += '<div style="display:flex;justify-content:flex-end;margin-top:12px;gap:8px;">';
-        html += '<button id="consultation-edit-btn" style="background:#fff;border:1px solid #ccc;padding:8px 12px;border-radius:6px;cursor:pointer;">Edit</button>';
+        // Only render Edit button when server indicates editing is allowed
+        if (!(data && data.can_edit === false)) {
+            html += '<button id="consultation-edit-btn" style="background:#fff;border:1px solid #ccc;padding:8px 12px;border-radius:6px;cursor:pointer;">Edit</button>';
+        }
         html += '</div>';
         content.innerHTML = html;
 
-        document.getElementById('consultation-edit-btn').addEventListener('click', function(){
-            // Navigate to the full consultation form page to allow editing there
-            window.location.href = 'doctorconsultform.php?appointment_id=' + appointmentId;
-        });
+        var editBtn = document.getElementById('consultation-edit-btn');
+        if (editBtn && !editBtn.disabled) {
+            editBtn.addEventListener('click', function(){
+                // Navigate to the full consultation form page to allow editing there
+                window.location.href = 'doctorconsultform.php?appointment_id=' + appointmentId;
+            });
+        }
     }
 
     function renderEdit(formData, dataMerged) {
-        var first_name = formData.first_name || '';
-        var last_name = formData.last_name || '';
-        var age = formData.age || '';
-        var gender = formData.gender || '';
+        var first_name = (formData.first_name && String(formData.first_name) !== '0') ? formData.first_name : (dataMerged.patient_first_name || '');
+        var last_name = (formData.last_name && String(formData.last_name) !== '0') ? formData.last_name : (dataMerged.patient_last_name || '');
+        var age = (formData.age && String(formData.age) !== '0') ? formData.age : '';
+        var gender = (formData.gender && String(formData.gender) !== '0') ? formData.gender : '';
         var diagnosis = formData.diagnosis || (dataMerged.merged && dataMerged.merged.diagnosis) || '';
         var personal_products = renderProductsToText(formData.personal_products || '');
         var recommended_treatment = formData.recommended_treatment || (dataMerged.merged && dataMerged.merged.recommended_treatment) || '';

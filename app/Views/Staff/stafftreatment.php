@@ -271,9 +271,7 @@ $db->close();
         <nav class="navigation">
             <button class="nav-btn active">
                 Treatment Schedule
-                <?php if ($pending_plans > 0): ?>
-                    <span class="badge"><?= $pending_plans ?></span>
-                <?php endif; ?>
+                <!-- badge removed: show no count for treatment plans -->
             </button>
             <a href="staffappointment.php" class="nav-btn">Appointment</a>
             <a href="staffhomeReports.php" class="nav-btn">Reports</a>

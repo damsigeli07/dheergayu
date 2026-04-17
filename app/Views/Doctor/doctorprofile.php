@@ -33,6 +33,26 @@ $doctorData = [
     'experience' => 'N/A', // Can be added to users table if needed
     'qualification' => 'MBBS, MD' // Can be added to users table if needed
 ];
+
+// Try to load specialization from doctor_info if present
+$stmt2 = $conn->prepare("SELECT specialization FROM doctor_info WHERE user_id = ? LIMIT 1");
+if ($stmt2) {
+    $stmt2->bind_param('i', $doctor['id']);
+    $stmt2->execute();
+    $res2 = $stmt2->get_result();
+    $dinfo = $res2->fetch_assoc();
+    if ($dinfo && !empty($dinfo['specialization'])) {
+        $doctorData['specialization'] = $dinfo['specialization'];
+    }
+    $stmt2->close();
+}
+
+// Show success message if redirected after save
+$successMsg = '';
+if (!empty($_SESSION['doctor_profile_success'])) {
+    $successMsg = $_SESSION['doctor_profile_success'];
+    unset($_SESSION['doctor_profile_success']);
+}
 ?>
 
 <!DOCTYPE html>
@@ -55,6 +75,7 @@ $doctorData = [
         
         <nav class="navigation">
             <a href="doctordashboard.php" class="nav-btn">Appointments</a>
+            <a href="doctordashboard.php?view=treatment-plans" class="nav-btn">Treatment Plans</a>
             <a href="patienthistory.php" class="nav-btn">Patient History</a>
             <a href="doctorreport.php" class="nav-btn">Reports</a>
         </nav>
@@ -74,6 +95,10 @@ $doctorData = [
         <a href="doctordashboard.php" class="btn-back">&times;</a>
 
         <h1 class="profile-title">My Profile</h1>
+
+        <?php if (!empty($successMsg)): ?>
+            <div class="profile-success" style="background:#e6ffed;border:1px solid #b7f0c8;color:#0a6d2a;padding:10px;border-radius:6px;margin-bottom:12px;"><?php echo htmlspecialchars($successMsg); ?></div>
+        <?php endif; ?>
 
         <div class="profile-picture">
             <img src="/dheergayu/public/assets/images/Doctor/doctor-profile.jpg" alt="Doctor Profile">

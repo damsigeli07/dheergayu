@@ -58,6 +58,17 @@ if ($appointment_id) {
         $form = $fstmt->get_result()->fetch_assoc();
         $fstmt->close();
     }
+    // Determine if the consultation form is still editable by the doctor (5 minutes from created_at)
+    $can_edit_consultation = true;
+    if ($form && !empty($form['created_at'])) {
+        $created_ts = strtotime($form['created_at']);
+        if ($created_ts !== false) {
+            $elapsed = time() - $created_ts;
+            if ($elapsed >= 300) { // 5 minutes or more
+                $can_edit_consultation = false;
+            }
+        }
+    }
     // If the consultation form exists but doesn't include a recommended treatment,
     // try to load a linked treatment plan for this appointment so the edit form
     // can show the treatment type (single or multiple) when opening the page.
@@ -221,9 +232,12 @@ if ($appointment_id) {
     <script>
     // Provide initial form data from server to JS
     window.initialConsultationForm = <?= json_encode($form ?? null) ?>;
+        // Whether the doctor can edit this consultation (server-evaluated)
+        window.consultationEditAllowed = <?= json_encode($can_edit_consultation) ?>;
     // Initialize UI from server data once the DOM is ready (independent of product API timing)
     document.addEventListener('DOMContentLoaded', function() {
         var init = window.initialConsultationForm;
+            var canEdit = window.consultationEditAllowed;
         console.log('initialConsultationForm:', init);
         // If URL contains debug=1 show raw data for troubleshooting
         try {
@@ -235,6 +249,29 @@ if ($appointment_id) {
             }
         } catch (e) {}
         if (!init) return;
+
+        // If editing is no longer allowed, disable the form controls and Save button
+        if (canEdit === false) {
+            // Disable inputs, textareas, selects, buttons (except Back/Print)
+            Array.from(document.querySelectorAll('#consultationForm input, #consultationForm textarea, #consultationForm select, #consultationForm button'))
+                .forEach(function(el) {
+                    // keep Back and Print buttons enabled
+                    if (el.classList.contains('btn-back') || el.textContent.trim().toLowerCase() === 'print') return;
+                    el.disabled = true;
+                });
+
+            // Show a small notice to the doctor
+            var notice = document.createElement('div');
+            notice.style.background = '#fff3cd';
+            notice.style.border = '1px solid #ffeeba';
+            notice.style.color = '#856404';
+            notice.style.padding = '10px';
+            notice.style.borderRadius = '6px';
+            notice.style.marginBottom = '12px';
+            notice.innerText = 'Edit window expired: consultation can only be edited within 5 minutes after saving.';
+            var formContainer = document.querySelector('.form-container');
+            if (formContainer) formContainer.insertBefore(notice, formContainer.firstChild);
+        }
 
         // Ensure hidden recommended field is set
         try { if (init.recommended_treatment) document.getElementById('recommended_treatment').value = init.recommended_treatment; } catch(e){}

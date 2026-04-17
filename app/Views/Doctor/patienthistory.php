@@ -175,7 +175,7 @@ function performSearch(params) {
           <span class="patient-id">${esc(p.patient_no)}</span>
         </div>
         <div class="patient-details small">
-          <div><strong>Name:</strong> ${esc(p.first_name)} ${esc(p.last_name)} &nbsp; <strong>Age:</strong> ${esc(p.age||'N/A')} &nbsp; <strong>Gender:</strong> ${esc(p.gender||'N/A')}</div>
+          <div><strong>Name:</strong> ${esc(p.first_name)} ${esc(p.last_name)} &nbsp; <strong>Gender:</strong> ${esc(p.gender||'N/A')}</div>
           <div style="margin-top:6px"><strong>Contact:</strong> ${esc(p.contact_info||'N/A')}</div>
         </div>
       </div>

@@ -95,6 +95,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check->close();
 
         if ($ex) {
+            // Enforce 5-minute edit window from the original save (use DB time to avoid timezone issues)
+            $elapsed = null;
+            try {
+                $et = $db->prepare("SELECT (UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(created_at)) AS elapsed FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+                $et->bind_param('i', $appointment_id);
+                $et->execute();
+                $erow = $et->get_result()->fetch_assoc();
+                $et->close();
+                $elapsed = isset($erow['elapsed']) ? (int)$erow['elapsed'] : null;
+
+                // Log DB-based elapsed for debugging
+                file_put_contents(__DIR__ . '/../../debug_consultation.txt', date('c') . " UPDATE_ATTEMPT_DB appointment:$appointment_id elapsed_db:" . ($elapsed === null ? 'NULL' : $elapsed) . "\n", FILE_APPEND);
+            } catch (Exception $e) {
+                // ignore
+            }
+
+            if ($elapsed !== null && $elapsed >= 300) {
+                file_put_contents(__DIR__ . '/../../debug_consultation.txt', date('c') . " UPDATE_BLOCKED_DB appointment:$appointment_id elapsed_db:$elapsed (>=300)\n", FILE_APPEND);
+                throw new Exception('Edit window expired. Consultation can only be edited within 5 minutes after saving.');
+            }
+
             $upd = $db->prepare("UPDATE consultationforms SET first_name = ?, last_name = ?, age = ?, gender = ?, diagnosis = ?, personal_products = ?, recommended_treatment = ?, notes = ?, patient_id = ?, patient_no = ?, updated_at = NOW() WHERE appointment_id = ?");
             $upd->bind_param('ssisssssisi', $first_name, $last_name, $age, $gender, $diagnosis, $personal_products, $recommended_treatment, $notes, $patient_id, $patient_no, $appointment_id);
             if (!$upd->execute()) throw new Exception('Failed updating consultation form: ' . $upd->error);
@@ -216,7 +237,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $form = $stmt->get_result()->fetch_assoc();
             $stmt->close();
 
-            $response = ['form' => $form ?? null];
+            // Also fetch patient name from consultations/patients to allow UI fallbacks
+            $pfirst = null; $plast = null; $pfull = null;
+            try {
+                $ps = $db->prepare("SELECT c.patient_id, p.first_name AS patient_first_name, p.last_name AS patient_last_name, COALESCE(CONCAT(p.first_name, ' ', p.last_name), c.patient_name) AS patient_name FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id WHERE c.id = ? LIMIT 1");
+                $ps->bind_param('i', $appointment_id);
+                $ps->execute();
+                $prow = $ps->get_result()->fetch_assoc();
+                $ps->close();
+                if ($prow) {
+                    $pfirst = $prow['patient_first_name'] ?? null;
+                    $plast = $prow['patient_last_name'] ?? null;
+                    $pfull = $prow['patient_name'] ?? null;
+                }
+            } catch (Exception $e) {
+                // ignore
+            }
+
+            $response = ['form' => $form ?? null, 'patient_first_name' => $pfirst, 'patient_last_name' => $plast, 'patient_name' => $pfull];
+            // compute whether the consultation can still be edited (5 minutes from created_at) using DB time
+            $can_edit = true;
+            if ($form) {
+                try {
+                    $et = $db->prepare("SELECT (UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(created_at)) AS elapsed FROM consultationforms WHERE appointment_id = ? LIMIT 1");
+                    $et->bind_param('i', $appointment_id);
+                    $et->execute();
+                    $erow = $et->get_result()->fetch_assoc();
+                    $et->close();
+                    $elapsed = isset($erow['elapsed']) ? (int)$erow['elapsed'] : null;
+                    if ($elapsed !== null && $elapsed >= 300) $can_edit = false;
+                    $response['elapsed_db'] = $elapsed;
+                } catch (Exception $e) {
+                    // ignore and default to editable
+                }
+            }
+            $response['can_edit'] = $can_edit;
             $merged = [];
 
             if ($form) {
