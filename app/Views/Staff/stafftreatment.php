@@ -456,7 +456,9 @@ $db->close();
                                     </td>
                                     <td>Rs <?= number_format($plan['total_cost'], 2) ?></td>
                                     <td>
-                                        <?php if (!$isToday): ?>
+                                        <?php if ($tpStatus === 'Completed'): ?>
+                                            <span class="completed-text">Treatment completed</span>
+                                        <?php elseif (!$isToday): ?>
                                             <button class="btn-start" disabled style="opacity:0.5;cursor:not-allowed;" title="No session scheduled for today">Start Treatment</button>
                                             <span style="display:block;font-size:11px;color:#888;margin-top:4px;">Not today</span>
                                         <?php elseif ($plan['has_treatment_form'] > 0 && $hasNewConfirmedSessions && $assignedToMe): ?>

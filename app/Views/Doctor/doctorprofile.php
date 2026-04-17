@@ -34,17 +34,25 @@ $doctorData = [
     'qualification' => 'MBBS, MD' // Can be added to users table if needed
 ];
 
-// Try to load specialization from doctor_info if present
-$stmt2 = $conn->prepare("SELECT specialization FROM doctor_info WHERE user_id = ? LIMIT 1");
-if ($stmt2) {
-    $stmt2->bind_param('i', $doctor['id']);
-    $stmt2->execute();
-    $res2 = $stmt2->get_result();
-    $dinfo = $res2->fetch_assoc();
-    if ($dinfo && !empty($dinfo['specialization'])) {
-        $doctorData['specialization'] = $dinfo['specialization'];
+// Try to load specialization from doctor_info only if the table exists.
+$doctorInfoTableExists = false;
+$tableCheck = $conn->query("SHOW TABLES LIKE 'doctor_info'");
+if ($tableCheck && $tableCheck->num_rows > 0) {
+    $doctorInfoTableExists = true;
+}
+
+if ($doctorInfoTableExists) {
+    $stmt2 = $conn->prepare("SELECT specialization FROM doctor_info WHERE user_id = ? LIMIT 1");
+    if ($stmt2) {
+        $stmt2->bind_param('i', $doctor['id']);
+        $stmt2->execute();
+        $res2 = $stmt2->get_result();
+        $dinfo = $res2->fetch_assoc();
+        if ($dinfo && !empty($dinfo['specialization'])) {
+            $doctorData['specialization'] = $dinfo['specialization'];
+        }
+        $stmt2->close();
     }
-    $stmt2->close();
 }
 
 // Show success message if redirected after save

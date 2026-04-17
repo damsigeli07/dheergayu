@@ -266,6 +266,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const status = r.dataset.status;
             return (tab === 'all' || status === tab) && (name.includes(term) || num.includes(term) || doctor.includes(term));
         });
+
+        if (tab === 'upcoming') {
+            filteredRows.sort((a, b) => {
+                const aTime = new Date(a.dataset.datetime || '').getTime();
+                const bTime = new Date(b.dataset.datetime || '').getTime();
+                return aTime - bTime;
+            });
+        } else if (tab === 'all') {
+            filteredRows.sort((a, b) => {
+                const aTime = new Date(a.dataset.datetime || '').getTime();
+                const bTime = new Date(b.dataset.datetime || '').getTime();
+                return aTime - bTime;
+            });
+        }
+
         currentPage = 1;
         showPage(1);
     }
@@ -283,8 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentPage < pages) showPage(currentPage + 1);
     };
     
-    updatePagination();
-    if (filteredRows.length > 0) showPage(1);
+    filter();
 });
 </script>
 </head>
@@ -379,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         $status = $apt['status'];
                                     }
                                 ?>
-                                <tr class="appointment-row <?= strtolower($status) ?>" data-status="<?= strtolower($status) ?>">
+                                <tr class="appointment-row <?= strtolower($status) ?>" data-status="<?= strtolower($status) ?>" data-datetime="<?= htmlspecialchars(($apt['appointment_date'] ?? '') . 'T' . ($apt['appointment_time'] ?? '00:00:00')) ?>">
                                     <td><?= htmlspecialchars($apt['appointment_id']) ?></td>
                                     <td><?= htmlspecialchars($apt['patient_no'] ?? 'N/A') ?></td>
                                     <td><?= htmlspecialchars($apt['patient_name']) ?></td>

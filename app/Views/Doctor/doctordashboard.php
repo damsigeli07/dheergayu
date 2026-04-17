@@ -285,7 +285,7 @@ foreach ($treatment_plans as $plan) {
                                 }
                             ?>
                             <?php $isToday = ($apt['appointment_date'] === $today); ?>
-                            <tr class="appointment-row <?= strtolower($status) ?>" data-status="<?= strtolower($status) ?>" data-today="<?= $isToday ? 'true' : 'false' ?>">
+                            <tr class="appointment-row <?= strtolower($status) ?>" data-status="<?= strtolower($status) ?>" data-today="<?= $isToday ? 'true' : 'false' ?>" data-datetime="<?= htmlspecialchars(($apt['appointment_date'] ?? '') . 'T' . ($apt['appointment_time'] ?? '00:00:00')) ?>">
                                 <td><?= htmlspecialchars($apt['appointment_id']) ?></td>
                                 <td><?= htmlspecialchars($apt['patient_no'] ?? 'N/A') ?></td>
                                 <td><?= htmlspecialchars($apt['patient_name']) ?></td>
@@ -744,6 +744,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (tab === 'today') return isToday && status === 'upcoming' && matchSearch;
             return (tab === 'all' || status === tab) && matchSearch;
         });
+
+        if (tab === 'upcoming' || tab === 'today') {
+            filteredRows.sort((a, b) => {
+                const aTime = new Date(a.dataset.datetime || '').getTime();
+                const bTime = new Date(b.dataset.datetime || '').getTime();
+                return aTime - bTime;
+            });
+        } else if (tab === 'all') {
+            filteredRows.sort((a, b) => {
+                const aTime = new Date(a.dataset.datetime || '').getTime();
+                const bTime = new Date(b.dataset.datetime || '').getTime();
+                return aTime - bTime;
+            });
+        }
+
         currentPage = 1;
         showPage(1);
     }
@@ -761,8 +776,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentPage < pages) showPage(currentPage + 1);
     };
     
-    updatePagination();
-    if (filteredRows.length > 0) showPage(1);
+    filter();
 });
 
 // Check URL parameters on page load to show treatment plans if needed

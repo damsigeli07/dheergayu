@@ -33,16 +33,24 @@ if (isset($_SESSION['user_id'])) {
         $doctor['license_number'] = 'DOC' . str_pad($row['id'], 6, '0', STR_PAD_LEFT);
     }
 }
-// Load specialization from doctor_info if exists
-$infoStmt = $conn->prepare("SELECT specialization FROM doctor_info WHERE user_id = ? LIMIT 1");
-if ($infoStmt) {
-    $infoStmt->bind_param('i', $uid);
-    $infoStmt->execute();
-    $infoRes = $infoStmt->get_result();
-    $infoRow = $infoRes->fetch_assoc();
-    $infoStmt->close();
-    if ($infoRow && !empty($infoRow['specialization'])) {
-        $doctor['specialization'] = $infoRow['specialization'];
+// Load specialization from doctor_info only if the table exists.
+$doctorInfoTableExists = false;
+$tableCheck = $conn->query("SHOW TABLES LIKE 'doctor_info'");
+if ($tableCheck && $tableCheck->num_rows > 0) {
+    $doctorInfoTableExists = true;
+}
+
+if ($doctorInfoTableExists && isset($uid)) {
+    $infoStmt = $conn->prepare("SELECT specialization FROM doctor_info WHERE user_id = ? LIMIT 1");
+    if ($infoStmt) {
+        $infoStmt->bind_param('i', $uid);
+        $infoStmt->execute();
+        $infoRes = $infoStmt->get_result();
+        $infoRow = $infoRes->fetch_assoc();
+        $infoStmt->close();
+        if ($infoRow && !empty($infoRow['specialization'])) {
+            $doctor['specialization'] = $infoRow['specialization'];
+        }
     }
 }
 // ensure specialization has a sensible default
