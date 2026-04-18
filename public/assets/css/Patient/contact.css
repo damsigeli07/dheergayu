@@ -86,6 +86,7 @@
             font-weight: bold;
             font-size: 15px;
             padding: 10px 0;
+            display: block;
             transition: color 0.3s ease;
         }
 
@@ -316,7 +317,9 @@
 .main-footer .container {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 30px;
+    flex-wrap: wrap;
     padding-bottom: 40px;
     border-bottom: 1px solid #444;
 }
@@ -324,6 +327,15 @@
 .footer-column {
     flex: 1;
     min-width: 200px;
+}
+
+.footer-column ul {
+    margin: 0;
+    padding: 0;
+}
+
+.footer-column ul li {
+    margin: 0;
 }
 
 .footer-column h3 {
@@ -360,6 +372,12 @@
     width: 24px;
     height: 24px;
     object-fit: contain;
+    flex-shrink: 0;
+}
+
+.footer-column .social-icon {
+    width: 24px;
+    height: 24px;
 }
 
         /* Success Message */
