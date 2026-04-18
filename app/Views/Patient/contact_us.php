@@ -135,17 +135,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
             </div>
         </div>
 
-        <!-- Social Media Section -->
-        <div class="social-section">
-            <h2>Connect With Us</h2>
-            <div class="social-links">
-                <a href="#" class="social-link" title="Facebook">📘</a>
-                <a href="#" class="social-link" title="Instagram">📷</a>
-                <a href="#" class="social-link" title="Twitter">🐦</a>
-                <a href="#" class="social-link" title="LinkedIn">💼</a>
-                <a href="#" class="social-link" title="WhatsApp">💬</a>
-            </div>
-        </div>
+
     </div>
 
     <!-- Footer -->

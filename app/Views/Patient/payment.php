@@ -92,19 +92,7 @@ $showTestPayment = payhere_test_payment_allowed();
             <div class="card">
                 <h2 class="card-title">Customer Information</h2>
 
-                <?php if ($showTestPayment): ?>
-                <div class="sandbox-notice">
-                    <?php if ($isSandbox): ?>
-                    <strong>⚠️ Sandbox Mode Active.</strong>
-                    Use the <em>"Test Payment"</em> button below to simulate a successful payment
-                    without going through the PayHere gateway.
-                    The real PayHere button also works if you have sandbox credentials configured.
-                    <?php else: ?>
-                    <strong>Test payment enabled.</strong>
-                    Use <em>"Test Payment"</em> to simulate checkout without PayHere. Set <code>PAYHERE_ALLOW_TEST_PAYMENT</code> to <code>false</code> in production.
-                    <?php endif; ?>
-                </div>
-                <?php endif; ?>
+
 
                 <form id="customerForm">
                     <div class="form-group">
@@ -134,14 +122,7 @@ $showTestPayment = payhere_test_payment_allowed();
                                placeholder="e.g., Colombo" required>
                     </div>
 
-                    <!-- ── Test payment (sandbox or PAYHERE_ALLOW_TEST_PAYMENT) ── -->
-                    <?php if ($showTestPayment): ?>
-                    <button type="button" class="test-pay-btn" id="testPayBtn"
-                            onclick="simulatePayment()">
-                        ✅ Test Payment (no gateway)
-                    </button>
-                    <div class="divider">— or use PayHere gateway below —</div>
-                    <?php endif; ?>
+
 
                     <!-- ── PayHere button ──────────────────────────────── -->
                     <div class="payment-buttons">
