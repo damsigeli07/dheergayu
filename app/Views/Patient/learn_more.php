@@ -109,18 +109,6 @@
         </div>
     </section>
 
-    <div class="container">
-        <section style="text-align: center; padding: 3rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 40px;">
-            <h2 style="font-size: 2.5rem; color: #7c6e4f; margin-bottom: 1rem;">Begin Your Natural Healing Journey</h2>
-            <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                Ready to experience the transformative power of natural herbal remedies? Our experienced practitioners are here to guide you toward optimal health and wellness.
-            </p>
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="treatment.php" class="cta-button">Treatments</a>
-                <a href="products.php" class="cta-button" style="background: transparent; color: #7c6e4f; border: 2px solid #7c6e4f;">Browse Products</a>
-            </div>
-        </section>
-    </div>
 
     <!-- Footer -->
     <footer class="main-footer">
