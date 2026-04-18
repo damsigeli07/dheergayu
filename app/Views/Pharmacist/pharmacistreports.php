@@ -151,11 +151,12 @@ function buildChartData(array $rows): array {
     </main>
 
     <script>
+        const unifiedBarColor = '#F5B24C';
+
         // Medicines Stock Levels Chart
         const stockCtx = document.getElementById('stockChart').getContext('2d');
         const chartLabels = <?= json_encode($chartLabels) ?>;
         const chartData = <?= json_encode($chartData) ?>;
-        const chartColors = <?= json_encode($chartColors) ?>;
         
         new Chart(stockCtx, {
             type: 'bar',
@@ -164,7 +165,7 @@ function buildChartData(array $rows): array {
                 datasets: [{
                     label: 'Current Stock',
                     data: chartData,
-                    backgroundColor: chartColors,
+                    backgroundColor: unifiedBarColor,
                     borderColor: '#333',
                     borderWidth: 1
                 }]
@@ -203,7 +204,6 @@ function buildChartData(array $rows): array {
         const treatmentStockCtx = document.getElementById('treatmentStockChart').getContext('2d');
         const treatmentChartLabels = <?= json_encode($treatmentChartLabels) ?>;
         const treatmentChartData = <?= json_encode($treatmentChartData) ?>;
-        const treatmentChartColors = <?= json_encode($treatmentChartColors) ?>;
 
         new Chart(treatmentStockCtx, {
             type: 'bar',
@@ -212,7 +212,7 @@ function buildChartData(array $rows): array {
                 datasets: [{
                     label: 'Current Stock',
                     data: treatmentChartData,
-                    backgroundColor: treatmentChartColors,
+                    backgroundColor: unifiedBarColor,
                     borderColor: '#333',
                     borderWidth: 1
                 }]

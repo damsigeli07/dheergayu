@@ -276,43 +276,50 @@ if (!$db->connect_error) $db->close();
                                 .print-receipt-btn, .close { display: none !important; }
                             }
                             body {
-                                font-family: 'Courier New', monospace;
-                                max-width: 300px;
+                                font-family: 'Segoe UI', Arial, sans-serif;
+                                max-width: 460px;
                                 margin: 0 auto;
                                 padding: 20px;
                                 background: white;
                                 color: #000;
                             }
+                            .receipt-content {
+                                padding: 1.75rem;
+                                border: 1px solid #d9dfe7;
+                                border-radius: 8px;
+                            }
                             .receipt-header {
                                 text-align: center;
-                                margin-bottom: 20px;
+                                margin-bottom: 1.5rem;
                             }
                             .receipt-logo {
-                                font-size: 24px;
-                                font-weight: bold;
-                                letter-spacing: 2px;
-                                margin-bottom: 5px;
+                                font-size: 32px;
+                                font-weight: 700;
+                                letter-spacing: 1px;
+                                margin-bottom: 0.35rem;
                             }
                             .receipt-subtitle {
                                 font-size: 12px;
-                                color: #333;
-                                margin-bottom: 15px;
+                                color: #666;
+                                margin-bottom: 1rem;
+                                letter-spacing: 0.8px;
+                                text-transform: uppercase;
                             }
                             .receipt-divider {
-                                border-top: 1px dashed #333;
-                                margin: 15px 0;
+                                border-top: 1px solid #d9dfe7;
+                                margin: 1rem 0;
                             }
                             .receipt-info {
-                                margin-bottom: 15px;
+                                margin-bottom: 1rem;
                             }
                             .receipt-line {
                                 display: flex;
                                 justify-content: space-between;
-                                margin-bottom: 5px;
-                                font-size: 12px;
+                                margin-bottom: 0.5rem;
+                                font-size: 13px;
                             }
                             .receipt-label {
-                                font-weight: bold;
+                                font-weight: 600;
                             }
                             .receipt-value {
                                 color: #333;
@@ -320,41 +327,45 @@ if (!$db->connect_error) $db->close();
                             .receipt-table {
                                 width: 100%;
                                 border-collapse: collapse;
-                                margin: 15px 0;
-                                font-size: 11px;
+                                margin: 1rem 0;
+                                font-size: 12px;
                             }
                             .receipt-table thead {
-                                border-bottom: 2px solid #000;
+                                background: #f5f7fa;
+                                color: #1f2937;
                             }
                             .receipt-table th {
                                 text-align: left;
-                                padding: 8px 4px;
-                                font-weight: bold;
-                                background: #f5f5f5;
+                                padding: 0.65rem 0.5rem;
+                                font-weight: 600;
+                                font-size: 12px;
+                                border-bottom: 1px solid #d9dfe7;
                             }
                             .receipt-table td {
-                                padding: 6px 4px;
-                                border-bottom: 1px dotted #ccc;
+                                padding: 0.55rem 0.5rem;
+                                border-bottom: 1px solid #edf1f6;
                             }
                             .receipt-total {
-                                margin-top: 15px;
+                                margin-top: 1rem;
                             }
                             .receipt-total-line {
                                 display: flex;
                                 justify-content: space-between;
-                                font-size: 14px;
-                                font-weight: bold;
-                                padding: 10px 0;
-                                border-top: 2px solid #000;
+                                font-size: 16px;
+                                font-weight: 700;
+                                padding: 0.85rem 0;
+                                border-top: 2px solid #E6A85A;
                             }
                             .receipt-footer {
-                                margin-top: 20px;
+                                margin-top: 1.5rem;
                                 text-align: center;
                             }
                             .receipt-thankyou {
-                                font-size: 12px;
-                                font-style: italic;
-                                margin-bottom: 10px;
+                                font-size: 13px;
+                                font-style: normal;
+                                font-weight: 500;
+                                margin-bottom: 0.5rem;
+                                color: #666;
                             }
                         </style>
                     </head>
