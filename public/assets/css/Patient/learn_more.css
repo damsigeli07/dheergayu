@@ -276,17 +276,14 @@ ul {
     opacity: 0.9;
 }
 
-/* Footer - Fixed Version */
+/* Footer Styles */
 .main-footer {
     background: linear-gradient(135deg, #2d2d2d 0%, #5e3800 100%);
     color: white;
     padding-top: 60px;
 }
 
-.main-footer .footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+.main-footer .container {
     display: flex;
     justify-content: space-between;
     gap: 30px;
@@ -302,10 +299,12 @@ ul {
 .footer-column h3 {
     font-size: 20px;
     text-transform: uppercase;
-    margin: 0 0 25px 0;
+    margin-top: 0;
+    margin-bottom: 25px;
     border-bottom: 2px solid #557945;
     padding-bottom: 5px;
     display: inline-block;
+    color: white;
 }
 
 .footer-column p {
@@ -314,23 +313,23 @@ ul {
     font-size: 15px;
 }
 
-.footer-column ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.footer-link,
-.social-link {
+.footer-link, .social-link {
     color: #ccc;
     transition: color 0.3s;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding: 5px 0;
 }
 
-.footer-link:hover,
-.social-link:hover {
+.footer-link:hover, .social-link:hover {
     color: #557945;
+}
+
+.social-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
 }
 
 /* Responsive Design for Footer */
