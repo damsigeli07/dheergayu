@@ -35,6 +35,8 @@ $conn->query("CREATE TABLE IF NOT EXISTS treatment_plan_staff_offer (
     treatment_id INT NOT NULL,
     primary_staff1_id INT NOT NULL,
     primary_staff2_id INT NOT NULL,
+    primary1_declined TINYINT(1) NOT NULL DEFAULT 0,
+    primary2_declined TINYINT(1) NOT NULL DEFAULT 0,
     assigned_staff_id INT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -43,6 +45,8 @@ $conn->query("CREATE TABLE IF NOT EXISTS treatment_plan_staff_offer (
     INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id),
     INDEX idx_offer_status (status)
 )");
+@$conn->query("ALTER TABLE treatment_plan_staff_offer ADD COLUMN IF NOT EXISTS primary1_declined TINYINT(1) NOT NULL DEFAULT 0");
+@$conn->query("ALTER TABLE treatment_plan_staff_offer ADD COLUMN IF NOT EXISTS primary2_declined TINYINT(1) NOT NULL DEFAULT 0");
 
 $stmt = $conn->prepare("SELECT * FROM treatment_plan_staff_offer WHERE id = ? LIMIT 1");
 $stmt->bind_param('i', $offer_id);
@@ -69,9 +73,22 @@ if (!$is_primary1 && !$is_primary2) {
 }
 
 if ($action === 'decline') {
-    $conn->query("UPDATE treatment_plan_staff_offer SET status = 'Pending' WHERE id = " . (int)$offer_id);
+    if ($is_primary1) {
+        $updDecline = $conn->prepare("UPDATE treatment_plan_staff_offer SET primary1_declined = 1 WHERE id = ? LIMIT 1");
+    } else {
+        $updDecline = $conn->prepare("UPDATE treatment_plan_staff_offer SET primary2_declined = 1 WHERE id = ? LIMIT 1");
+    }
+    $updDecline->bind_param('i', $offer_id);
+    $updDecline->execute();
+    $updDecline->close();
+
     if (ob_get_length()) { ob_clean(); }
     echo json_encode(['success' => true, 'message' => 'You have declined this assignment']);
+    exit;
+}
+
+if (($is_primary1 && (int)($offer['primary1_declined'] ?? 0) === 1) || ($is_primary2 && (int)($offer['primary2_declined'] ?? 0) === 1)) {
+    echo json_encode(['success' => false, 'message' => 'You already declined this assignment']);
     exit;
 }
 
@@ -104,7 +121,7 @@ if ($conflict) {
     exit;
 }
 
-$upd = $conn->prepare("UPDATE treatment_plan_staff_offer SET assigned_staff_id = ?, status = 'StaffConfirmed', confirmed_at = NOW() WHERE id = ?");
+$upd = $conn->prepare("UPDATE treatment_plan_staff_offer SET assigned_staff_id = ?, status = 'StaffConfirmed', confirmed_at = NOW(), primary1_declined = 0, primary2_declined = 0 WHERE id = ?");
 $upd->bind_param('ii', $staff_id, $offer_id);
 $upd->execute();
 $upd->close();

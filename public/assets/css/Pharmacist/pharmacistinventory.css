@@ -218,7 +218,7 @@ body {
 /* Quantity Cell Styling */
 .quantity-cell {
     position: relative;
-    text-align: center;
+    text-align: left;
     vertical-align: middle;
     padding: 0.75rem;
 }
@@ -229,7 +229,8 @@ body {
 }
 
 .quantity-cell .stock-warning {
-    margin-left: -0.2rem;
+    margin-left: 0;
+    width: fit-content;
 }
 
 /* Reduce Cell Styling */

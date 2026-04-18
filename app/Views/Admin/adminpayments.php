@@ -70,7 +70,8 @@ foreach ($orders as $order) {
             <div class="user-icon" id="user-icon">👤</div>
             <span class="user-role">Admin</span>
             <div class="user-dropdown" id="user-dropdown">
-                <a href="/dheergayu/app/Views/logout.php" class="dropdown-item">Logout</a>
+                <a href="adminprofile.php" class="profile-btn">Profile</a>
+                <a href="/dheergayu/app/Views/logout.php" class="logout-btn">Logout</a>
             </div>
         </div>
     </header>

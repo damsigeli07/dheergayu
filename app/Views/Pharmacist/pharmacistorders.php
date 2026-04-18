@@ -26,19 +26,13 @@ if ($db->connect_error) {
     $consultations = array_values($consultations);
 }
 
-// Get product prices and list of admin products
+// Get product prices
 $productPrices = [];
-$adminProducts = [];
 $productsQuery = $db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
 if ($productsQuery) {
     while ($product = $productsQuery->fetch_assoc()) {
         $productPrices[$product['name']] = [
             'id' => $product['product_id'],
-            'price' => (float)$product['price']
-        ];
-        $adminProducts[] = [
-            'id' => $product['product_id'],
-            'name' => $product['name'],
             'price' => (float)$product['price']
         ];
     }
@@ -198,9 +192,6 @@ if (!$db->connect_error) $db->close();
     <script>
         // Product prices from database
         const productPrices = <?= json_encode($productPrices) ?>;
-        
-        // Admin products from database (hardcoded for receipts)
-        const adminProducts = <?= json_encode($adminProducts) ?>;
         
         // Consultation data from database
         const consultations = <?= json_encode($consultations) ?>;

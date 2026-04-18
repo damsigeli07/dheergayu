@@ -43,7 +43,7 @@ if (!$db->connect_error) {
         }
 
         // Fetch existing oils for this treatment
-        $oilStmt = $db->prepare("SELECT tp.product_id, p.name, tp.quantity_per_session FROM treatment_products tp JOIN products p ON p.product_id = tp.product_id WHERE tp.treatment_id = ?");
+        $oilStmt = $db->prepare("SELECT tp.product_id, p.name FROM treatment_products tp JOIN products p ON p.product_id = tp.product_id WHERE tp.treatment_id = ?");
         $oilStmt->bind_param('i', $treatmentId);
         $oilStmt->execute();
         $oilResult = $oilStmt->get_result();

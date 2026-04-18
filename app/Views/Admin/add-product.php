@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../includes/auth_admin.php';
 // Fetch product data from database if editing
 $productId = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
-$productType = isset($_GET['product_type']) ? trim($_GET['product_type']) : (isset($_GET['product_type']) ? $_GET['product_type'] : 'admin');
+$productType = isset($_GET['product_type']) ? trim($_GET['product_type']) : 'admin';
 $productName = '';
 $productPrice = '';
 $productDescription = '';
@@ -307,9 +307,6 @@ if ($productId > 0) {
             data.set('product_id', productId.toString());
             data.set('product_type', productType);
             
-            console.log('Submitting form - product_id:', productId, 'isEdit:', isEdit);
-            console.log('Form data product_id:', data.get('product_id'));
-            
             // Double-check: if we're editing, product_id must be > 0
             if (isEdit && productId <= 0) {
                 alert('❌ Error: Product ID is missing. Cannot update product.');
@@ -321,8 +318,6 @@ if ($productId > 0) {
             try {
                 const res = await fetch(url, { method: 'POST', body: data });
                 const result = await res.json();
-                
-                console.log('Server response:', result);
                 
                 if (result.success) {
                     if (isEdit) {

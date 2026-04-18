@@ -51,19 +51,17 @@ usort($expiringItems, function($a, $b) {
 });
 
 function buildChartData(array $rows): array {
-    $labels = []; $data = []; $colors = [];
+    $labels = []; $data = [];
     foreach ($rows as $row) {
         $qty = (int)$row['total_quantity'];
         $labels[] = $row['product'];
         $data[]   = $qty;
-        $colors[] = $qty <= 5 ? '#FF6B6B' : ($qty <= 15 ? '#FF8C42' : '#FFB84D');
     }
-    return [$labels, $data, $colors];
+    return [$labels, $data];
 }
 
-[$chartLabels,         $chartData,         $chartColors]         = buildChartData($overview);
-[$patientChartLabels,  $patientChartData,  $patientChartColors]  = buildChartData($patientOverview);
-[$treatmentChartLabels,$treatmentChartData,$treatmentChartColors] = buildChartData($treatmentOverview);
+[$chartLabels, $chartData] = buildChartData($overview);
+[$treatmentChartLabels, $treatmentChartData] = buildChartData($treatmentOverview);
 ?>
 <!DOCTYPE html>
 <html lang="en">

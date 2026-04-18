@@ -106,6 +106,8 @@ $offerSessionsByPlan = [];
     treatment_id INT NOT NULL,
     primary_staff1_id INT NOT NULL,
     primary_staff2_id INT NOT NULL,
+    primary1_declined TINYINT(1) NOT NULL DEFAULT 0,
+    primary2_declined TINYINT(1) NOT NULL DEFAULT 0,
     assigned_staff_id INT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -114,8 +116,11 @@ $offerSessionsByPlan = [];
     INDEX idx_offer_staff (primary_staff1_id, primary_staff2_id),
     INDEX idx_offer_status (status)
 )");
+@$db->query("ALTER TABLE treatment_plan_staff_offer ADD COLUMN IF NOT EXISTS primary1_declined TINYINT(1) NOT NULL DEFAULT 0");
+@$db->query("ALTER TABLE treatment_plan_staff_offer ADD COLUMN IF NOT EXISTS primary2_declined TINYINT(1) NOT NULL DEFAULT 0");
 $offers_stmt = $db->prepare("
     SELECT o.id AS offer_id, o.plan_id, o.treatment_id, o.primary_staff1_id, o.primary_staff2_id,
+           o.primary1_declined, o.primary2_declined,
            o.assigned_staff_id, o.status AS offer_status,
            tp.patient_id, tp.diagnosis, tp.total_cost,
            tl.treatment_name, p.first_name, p.last_name,
@@ -140,7 +145,9 @@ if ($offers_stmt) {
         $row['my_role'] = '';
         if ((int)$row['primary_staff1_id'] === (int)$staffUserId) $row['my_role'] = 'primary1';
         elseif ((int)$row['primary_staff2_id'] === (int)$staffUserId) $row['my_role'] = 'primary2';
-        $row['my_declined'] = false;
+        $row['my_declined'] =
+            ($row['my_role'] === 'primary1' && (int)($row['primary1_declined'] ?? 0) === 1)
+            || ($row['my_role'] === 'primary2' && (int)($row['primary2_declined'] ?? 0) === 1);
         $row['assigned_staff_name'] = '';
         if (!empty($row['assigned_staff_id'])) {
             $row['assigned_staff_name'] = trim(($row['assigned_first_name'] ?? '') . ' ' . ($row['assigned_last_name'] ?? ''));
@@ -615,7 +622,7 @@ $db->close();
             btn.addEventListener('click', function() {
                 var offerId = this.getAttribute('data-offer-id');
                 if (!offerId) return;
-                if (!confirm('Decline this assignment? Backup staff will be able to take it.')) return;
+                if (!confirm('Decline this assignment? The other primary staff will be able to take it.')) return;
                 this.disabled = true;
                 var formData = new FormData();
                 formData.append('action', 'decline');
