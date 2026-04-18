@@ -40,6 +40,7 @@
         </div>
     </div>
 
+    <!-- Footer -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-column">
@@ -48,9 +49,9 @@
             </div>
             <div class="footer-column">
                 <h3>OFFICE</h3>
-                <p>Sri Lanka —</p>
                 <p>123 Wellness Street</p>
                 <p>Colombo, LK 00100</p>
+                <p>Sri Lanka</p>
                 <p><a href="mailto:info@dheergayu.com" class="footer-link">info@dheergayu.com</a></p>
                 <p>+94 11 234 5678</p>
             </div>
@@ -61,16 +62,36 @@
                     <li><a href="treatment.php" class="footer-link">Treatments</a></li>
                     <li><a href="learn_more.php" class="footer-link">About Us</a></li>
                     <li><a href="channeling.php" class="footer-link">Booking</a></li>
-                    <li><a href="#" class="footer-link">Contacts</a></li>
+                    <li><a href="contact_us.php" class="footer-link">Contacts</a></li>
                 </ul>
             </div>
             <div class="footer-column">
                 <h3>GET IN TOUCH</h3>
                 <ul>
-                    <li><a href="#" class="social-link">Facebook</a></li>
-                    <li><a href="#" class="social-link">X</a></li>
-                    <li><a href="#" class="social-link">LinkedIn</a></li>
-                    <li><a href="#" class="social-link">Instagram</a></li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/facebook.png" alt="Facebook" class="social-icon">
+                            Facebook
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/twitter(x).png" alt="X" class="social-icon">
+                            X
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/linkedin.png" alt="LinkedIn" class="social-icon">
+                            LinkedIn
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="social-link">
+                            <img src="/dheergayu/public/assets/images/Patient/instagram.png" alt="Instagram" class="social-icon">
+                            Instagram
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
