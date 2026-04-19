@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- Dropdown -->
             <div class="user-dropdown" id="user-dropdown">
                 <a href="staffprofile.php" class="profile-btn">Profile</a>
-                <a href="/dheergayu/app/Views/logout.php" class="logout-btn">Logout</a>
+                <a href="/dheergayu/app/Views/logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
             </div>
         </div>
     </header>

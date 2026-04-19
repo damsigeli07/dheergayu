@@ -16,8 +16,14 @@ require_once __DIR__ . '/../../config/config.php';
 $newPassword     = $_POST['new_password'] ?? '';
 $confirmPassword = $_POST['confirm_password'] ?? '';
 
-if (strlen($newPassword) < 6) {
-    $_SESSION['change_pw_error'] = 'Password must be at least 6 characters.';
+if (
+    strlen($newPassword) < 8 ||
+    !preg_match('/[A-Z]/', $newPassword) ||
+    !preg_match('/[a-z]/', $newPassword) ||
+    !preg_match('/[0-9]/', $newPassword) ||
+    !preg_match('/[!@#$%^&*]/', $newPassword)
+) {
+    $_SESSION['change_pw_error'] = 'Password must be 8+ characters with uppercase, lowercase, number and special character (!@#$%^&*).';
     header('Location: /dheergayu/app/Views/change_password.php');
     exit;
 }

@@ -41,7 +41,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
       <!-- Dropdown -->
       <div class="user-dropdown" id="user-dropdown">
         <a href="doctorprofile.php" class="profile-btn">Profile</a>
-        <a href="/dheergayu/app/Views/logout.php" class="logout-btn">Logout</a>
+        <a href="/dheergayu/app/Views/logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
       </div>
     </div>
   </header>

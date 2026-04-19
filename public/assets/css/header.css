@@ -239,14 +239,14 @@ html {
 /* Logout button */
 .user-dropdown a.logout-btn {
   background-color: #fff;
-  color: #333;
+  color: #e53935;
   border-radius: 0;
+  font-weight: 500;
 }
 
 .user-dropdown a.logout-btn:hover {
-
-  background-color: #FFB84D; /* orange hover */
-  color: #000;
+  background-color: #ffebee;
+  color: #c62828;
   border-radius: 6px;
 }
 

@@ -131,8 +131,21 @@ unset($_SESSION['change_pw_error'], $_SESSION['change_pw_success']);
         <form method="POST" action="/dheergayu/app/Controllers/change_password_action.php">
             <div class="form-group">
                 <label for="new_password">New Password</label>
-                <input type="password" id="new_password" name="new_password" required minlength="6" placeholder="Enter new password">
-                <p class="hint">Minimum 6 characters</p>
+                <input type="password" id="new_password" name="new_password" required minlength="8" placeholder="Enter new password">
+                <p class="hint">Must be 8+ characters with uppercase, lowercase, number &amp; special character</p>
+                <div id="strength-bar-wrap" style="margin-top:8px;display:none;">
+                    <div style="height:6px;border-radius:4px;background:#eee;overflow:hidden;">
+                        <div id="strength-bar" style="height:100%;width:0;border-radius:4px;transition:width .3s,background .3s;"></div>
+                    </div>
+                    <p id="strength-label" style="font-size:.78rem;margin-top:4px;color:#aaa;"></p>
+                </div>
+                <ul id="pw-rules" style="list-style:none;margin-top:10px;padding:0;font-size:.8rem;display:none;">
+                    <li id="rule-len">  ✗ At least 8 characters</li>
+                    <li id="rule-upper">✗ One uppercase letter</li>
+                    <li id="rule-lower">✗ One lowercase letter</li>
+                    <li id="rule-num">  ✗ One number</li>
+                    <li id="rule-spec"> ✗ One special character (!@#$%^&amp;*)</li>
+                </ul>
             </div>
             <div class="form-group">
                 <label for="confirm_password">Confirm Password</label>
@@ -141,5 +154,66 @@ unset($_SESSION['change_pw_error'], $_SESSION['change_pw_success']);
             <button type="submit" class="btn">Save Password &amp; Continue</button>
         </form>
     </div>
+<script>
+const pwInput    = document.getElementById('new_password');
+const rules      = document.getElementById('pw-rules');
+const barWrap    = document.getElementById('strength-bar-wrap');
+const bar        = document.getElementById('strength-bar');
+const label      = document.getElementById('strength-label');
+const ruleLen    = document.getElementById('rule-len');
+const ruleUpper  = document.getElementById('rule-upper');
+const ruleLower  = document.getElementById('rule-lower');
+const ruleNum    = document.getElementById('rule-num');
+const ruleSpec   = document.getElementById('rule-spec');
+
+const colors = ['#e53935','#FF9800','#FDD835','#43a047'];
+const labels = ['Weak','Fair','Good','Strong'];
+
+function setRule(el, pass) {
+    el.textContent = (pass ? '✓' : '✗') + el.textContent.slice(1);
+    el.style.color = pass ? '#43a047' : '#e53935';
+}
+
+pwInput.addEventListener('input', function() {
+    const v = this.value;
+    rules.style.display   = v.length ? 'block' : 'none';
+    barWrap.style.display = v.length ? 'block' : 'none';
+
+    const checks = {
+        len:   v.length >= 8,
+        upper: /[A-Z]/.test(v),
+        lower: /[a-z]/.test(v),
+        num:   /[0-9]/.test(v),
+        spec:  /[!@#$%^&*]/.test(v)
+    };
+
+    setRule(ruleLen,   checks.len);
+    setRule(ruleUpper, checks.upper);
+    setRule(ruleLower, checks.lower);
+    setRule(ruleNum,   checks.num);
+    setRule(ruleSpec,  checks.spec);
+
+    const score = Object.values(checks).filter(Boolean).length;
+    const pct   = (score / 5) * 100;
+    bar.style.width      = pct + '%';
+    bar.style.background = colors[Math.min(score - 1, 3)] || '#eee';
+    label.textContent    = score > 0 ? labels[Math.min(score - 1, 3)] : '';
+    label.style.color    = colors[Math.min(score - 1, 3)] || '#aaa';
+});
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    const pw      = pwInput.value;
+    const confirm = document.getElementById('confirm_password').value;
+    if (pw.length < 8 || !/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[!@#$%^&*]/.test(pw)) {
+        e.preventDefault();
+        alert('Password does not meet all requirements.');
+        return;
+    }
+    if (pw !== confirm) {
+        e.preventDefault();
+        alert('Passwords do not match.');
+    }
+});
+</script>
 </body>
 </html>
