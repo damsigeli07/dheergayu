@@ -91,7 +91,7 @@ function doProcessOrder(mysqli $conn, bool $markPaid): void
     $cartId = $cartRow['cart_id'] ?? null;
     $items  = [];
 
-    if ($cartId) {
+    if ($cartId !== null) {
         $iq = $conn->prepare("SELECT * FROM cart_items WHERE cart_id = ?");
         $iq->bind_param('i', $cartId);
         $iq->execute();
