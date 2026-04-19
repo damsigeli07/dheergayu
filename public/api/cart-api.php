@@ -102,7 +102,7 @@ function getCart($conn) {
     
     $cartId = getExistingCart($conn, $userId, $sessionId);
     
-    if (!$cartId) {
+    if ($cartId === null) {
         echo json_encode(['success' => true, 'items' => [], 'count' => 0, 'cart_id' => null]);
         return;
     }
@@ -188,7 +188,7 @@ function clearCart($conn) {
     
     $cartId = getExistingCart($conn, $userId, $sessionId);
     
-    if ($cartId) {
+    if ($cartId !== null) {
         $stmt = $conn->prepare("DELETE FROM cart_items WHERE cart_id = ?");
         $stmt->bind_param("i", $cartId);
         $stmt->execute();
@@ -202,7 +202,7 @@ function clearCart($conn) {
 function getOrCreateCart($conn, $userId, $sessionId) {
     $cartId = getExistingCart($conn, $userId, $sessionId);
     
-    if ($cartId) {
+    if ($cartId !== null) {
         return $cartId;
     }
     
@@ -232,7 +232,7 @@ function getExistingCart($conn, $userId, $sessionId) {
     $row = $result->fetch_assoc();
     $stmt->close();
     
-    return $row['cart_id'] ?? null;
+    return isset($row['cart_id']) ? (int)$row['cart_id'] : null;
 }
 
 function getCartCount($conn, $cartId) {
