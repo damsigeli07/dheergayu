@@ -154,13 +154,23 @@ class BatchModel {
         return $row ?: null;
     }
 
+    /** Look up supplier name by ID */
+    public function getSupplierNameById(int $supplierId): string {
+        $stmt = $this->db->prepare("SELECT supplier_name FROM suppliers WHERE id = ? LIMIT 1");
+        $stmt->bind_param('i', $supplierId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $row['supplier_name'] ?? '';
+    }
+
     /** Create new batch */
-    public function createBatch(int $productId, ?string $productSource, string $batchNumber, int $quantity, string $mfd, string $exp, string $status): bool {
+    public function createBatch(int $productId, ?string $productSource, string $batchNumber, int $quantity, string $mfd, string $exp, string $status, string $supplier = ''): bool {
         $productSource = $productSource ?? 'admin';
 
         $stmt = $this->db->prepare("
-            INSERT INTO batches (product_id, product_source, batch_number, quantity, mfd, exp, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO batches (product_id, product_source, batch_number, quantity, mfd, exp, supplier, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         if (!$stmt) {
@@ -168,7 +178,7 @@ class BatchModel {
             return false;
         }
 
-        $result = $stmt->bind_param('ississs', $productId, $productSource, $batchNumber, $quantity, $mfd, $exp, $status);
+        $result = $stmt->bind_param('ississss', $productId, $productSource, $batchNumber, $quantity, $mfd, $exp, $supplier, $status);
         if (!$result) {
             error_log("BatchModel::createBatch bind_param failed: " . $stmt->error);
             $stmt->close();

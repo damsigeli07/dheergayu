@@ -35,10 +35,7 @@ function deliveryStatus(string $status, string $createdAt): string
     if ($status !== 'paid') {
         return 'Awaiting Payment';
     }
-    $hours = (time() - strtotime($createdAt)) / 3600;
-    if ($hours < 24) return 'Order Confirmed';
-    if ($hours < 72) return 'Out for Delivery';
-    return 'Delivered';
+    return 'Order Confirmed';
 }
 ?>
 <!DOCTYPE html>

@@ -7,16 +7,18 @@ $userName  = $_SESSION['user_name']  ?? 'Guest User';
 $userEmail = $_SESSION['user_email'] ?? '';
 $userPhone = '';
 
-// Pre-fill phone from patient_info if available
+// Pre-fill phone and address from patient_info if available
+$userAddress = '';
 if ($userId) {
     require_once __DIR__ . '/../../../config/config.php';
-    $piStmt = $conn->prepare("SELECT phone FROM patient_info WHERE patient_id = ? LIMIT 1");
+    $piStmt = $conn->prepare("SELECT phone, address FROM patient_info WHERE patient_id = ? LIMIT 1");
     if ($piStmt) {
         $piStmt->bind_param('i', $userId);
         $piStmt->execute();
         $piRow = $piStmt->get_result()->fetch_assoc();
         $piStmt->close();
-        $userPhone = $piRow['phone'] ?? '';
+        $userPhone   = $piRow['phone']   ?? '';
+        $userAddress = $piRow['address'] ?? '';
     }
 }
 
@@ -114,7 +116,7 @@ $showTestPayment = payhere_test_payment_allowed();
                     <div class="form-group">
                         <label for="address">Delivery Address *</label>
                         <textarea id="address" name="address" rows="3"
-                                  placeholder="Enter your delivery address" required></textarea>
+                                  placeholder="Enter your delivery address" required><?= htmlspecialchars($userAddress) ?></textarea>
                     </div>
                     <div class="form-group">
                         <label for="city">City *</label>

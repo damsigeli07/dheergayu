@@ -77,6 +77,7 @@ if (!empty($_SESSION['user_id'])) {
             <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
             <a href="pharmacistorders.php" class="nav-btn">Orders</a>
             <a href="pharmacistreports.php" class="nav-btn">Reports</a>
+            <a href="pharmacistshoporders.php" class="nav-btn">Shop Orders</a>
             <button class="nav-btn active">Request</button>
             <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
         </nav>
@@ -128,9 +129,9 @@ if (!empty($_SESSION['user_id'])) {
                     </div>
 
                     <div class="form-group">
-                        <label for="request_date">Request Date *</label>
-                        <input type="date" id="request_date" name="request_date" required 
-                               value="<?= date('Y-m-d') ?>">
+                        <label for="request_date">Request Date</label>
+                        <input type="date" id="request_date" name="request_date" required readonly
+                               value="<?= date('Y-m-d') ?>" style="background:#f8f9fa;cursor:not-allowed;">
                     </div>
 
                     <div class="form-actions">
@@ -181,6 +182,7 @@ if (!empty($_SESSION['user_id'])) {
                 <input type="hidden" id="inv_request_id">
                 <input type="hidden" id="inv_product_id">
                 <input type="hidden" id="inv_product_source">
+                <input type="hidden" id="inv_supplier_id">
                 <div class="form-group">
                     <label>Product</label>
                     <input type="text" id="inv_product_name" class="form-input" readonly style="background:#f8f9fa;">
@@ -498,7 +500,7 @@ if (!empty($_SESSION['user_id'])) {
             var prefix = getPrefixForProduct(productName);
             var maxNum = 0;
             try {
-                var res = await fetch('/dheergayu/public/api/batches/by-product?product_id=' + productId + '&product_source=' + productSource);
+                var res = await fetch('/dheergayu/public/api/batches/by-product?product_id=' + productId);
                 var data = await res.json();
                 var rows = data.data || [];
                 rows.forEach(function(b) {
@@ -550,6 +552,7 @@ if (!empty($_SESSION['user_id'])) {
             document.getElementById('inv_request_id').value = requestId;
             document.getElementById('inv_product_id').value = product.id;
             document.getElementById('inv_product_source').value = productSource;
+            document.getElementById('inv_supplier_id').value = supplierId;
             document.getElementById('inv_product_name').value = productName;
             document.getElementById('inv_quantity').value = qty;
 
@@ -593,6 +596,7 @@ if (!empty($_SESSION['user_id'])) {
             var payload = new FormData();
             payload.append('product_id', productId);
             payload.append('product_source', productSource);
+            payload.append('supplier_id', document.getElementById('inv_supplier_id').value);
             payload.append('batch_number', batchNumber);
             payload.append('quantity', quantity);
             payload.append('mfd', mfd);

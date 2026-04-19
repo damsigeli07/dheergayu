@@ -156,13 +156,8 @@ if ($orderId) {
 
     <div class="info-grid">
         <div class="info-box">
-            <h3>📧 Confirmation Email</h3>
-            <p>We've sent an order confirmation to your registered email address.</p>
-        </div>
-        <div class="info-box">
             <h3>📦 Delivery</h3>
-            <p>Your order will be delivered within 3–5 business days.
-               You'll receive a tracking number via SMS once dispatched.</p>
+            <p>Your order will be delivered within 3–5 business days.</p>
         </div>
     </div>
 

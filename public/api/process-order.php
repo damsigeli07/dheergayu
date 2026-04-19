@@ -160,15 +160,7 @@ function doProcessOrder(mysqli $conn, bool $markPaid): void
         $s->execute();
         $s->close();
 
-        // ── 2. Reduce stock (only when marking as paid) ───────────────────────
-        if ($markPaid) {
-            foreach ($items as $item) {
-                if ($item['product_type'] === 'admin') {
-                    reduceStock($conn, (int)$item['product_id'], (int)$item['quantity']);
-                }
-                // patient_products have no batch tracking; extend here if needed
-            }
-        }
+        // Stock reduction happens at dispatch time (dispatch-shop-order.php), not here
 
         // ── 3. Clear cart ─────────────────────────────────────────────────────
         if ($cartId && $markPaid) {

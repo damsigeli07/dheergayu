@@ -61,6 +61,8 @@ class BatchController extends Controller {
 
             $productSource = trim($payload['product_source'] ?? 'admin');
             $status = trim($payload['status'] ?? 'Good');
+            $supplierId = (int)($payload['supplier_id'] ?? 0);
+            $supplier = $supplierId ? $this->model->getSupplierNameById($supplierId) : '';
 
             $ok = $this->model->createBatch(
                 $productId,
@@ -69,7 +71,8 @@ class BatchController extends Controller {
                 $quantity,
                 $mfd,
                 $exp,
-                $status
+                $status,
+                $supplier
             );
             
             if ($ok) {

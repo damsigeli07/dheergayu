@@ -73,6 +73,7 @@ if (!$db->connect_error) $db->close();
             <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
             <button class="nav-btn active">Orders</button>
             <a href="pharmacistreports.php" class="nav-btn">Reports</a>
+            <a href="pharmacistshoporders.php" class="nav-btn">Shop Orders</a>
             <a href="pharmacistrequest.php" class="nav-btn">Request</a>
             <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
         </nav>
