@@ -61,7 +61,7 @@ class BatchController extends Controller {
 
             $productSource = trim($payload['product_source'] ?? 'admin');
             $status = trim($payload['status'] ?? 'Good');
-            
+
             $ok = $this->model->createBatch(
                 $productId,
                 $productSource,

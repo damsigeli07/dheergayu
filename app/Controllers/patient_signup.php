@@ -58,9 +58,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Insert new patient
     $stmt = $conn->prepare("INSERT INTO patients (first_name, last_name, dob, nic, email, password) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssss", $first_name, $last_name, $dob, $nic, $email, $hashed_pw);
-    
+
     if ($stmt->execute()) {
+        $newId = $stmt->insert_id;
         $stmt->close();
+
+        // Assign patient_number e.g. P0016
+        $patientNumber = 'P' . str_pad($newId, 4, '0', STR_PAD_LEFT);
+        $upd = $conn->prepare("UPDATE patients SET patient_number = ? WHERE id = ?");
+        $upd->bind_param("si", $patientNumber, $newId);
+        $upd->execute();
+        $upd->close();
+
         $conn->close();
         header("Location: /dheergayu/app/Views/Patient/signup.php?success=signup_complete");
         exit();

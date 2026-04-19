@@ -24,13 +24,15 @@ class PatientModel {
     public function createProfile($user_id, $email, $first_name = '', $last_name = '') {
         $date_of_birth = null;
         $nic = null;
-        $p = $this->conn->prepare("SELECT dob, nic FROM patients WHERE id = ? LIMIT 1");
+        $p = $this->conn->prepare("SELECT first_name, last_name, dob, nic FROM patients WHERE id = ? LIMIT 1");
         if ($p) {
             $p->bind_param('i', $user_id);
             $p->execute();
             $row = $p->get_result()->fetch_assoc();
             $p->close();
             if ($row) {
+                if (!empty($row['first_name'])) $first_name = $row['first_name'];
+                if (!empty($row['last_name']))  $last_name  = $row['last_name'];
                 $date_of_birth = !empty($row['dob']) ? $row['dob'] : null;
                 $nic = isset($row['nic']) && trim((string)$row['nic']) !== '' ? trim($row['nic']) : null;
             }

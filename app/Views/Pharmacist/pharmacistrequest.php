@@ -201,6 +201,10 @@ if (!empty($_SESSION['user_id'])) {
                     <label for="inv_exp">Expiry Date *</label>
                     <input type="date" id="inv_exp" class="form-input" required>
                 </div>
+                <div class="form-group">
+                    <label for="inv_notes">Notes</label>
+                    <textarea id="inv_notes" class="form-input" rows="3" placeholder="Optional notes about this batch..."></textarea>
+                </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-submit">Add to Inventory</button>
                     <button type="button" class="btn-reset" onclick="closeAddInventoryModal()">Cancel</button>
@@ -559,6 +563,7 @@ if (!empty($_SESSION['user_id'])) {
             document.getElementById('inv_mfd').value = '';
             document.getElementById('inv_exp').value = '';
             document.getElementById('inv_batch_number').value = 'Loading...';
+            document.getElementById('inv_notes').value = '';
 
             document.getElementById('addInventoryModal').style.display = 'block';
 
@@ -578,6 +583,7 @@ if (!empty($_SESSION['user_id'])) {
             var batchNumber = document.getElementById('inv_batch_number').value.trim();
             var mfd = document.getElementById('inv_mfd').value;
             var exp = document.getElementById('inv_exp').value;
+            var notes = document.getElementById('inv_notes').value.trim();
 
             if (!batchNumber || !mfd || !exp) {
                 showMessage('Error', 'All fields are required.', 'error');
@@ -598,6 +604,7 @@ if (!empty($_SESSION['user_id'])) {
             payload.append('mfd', mfd);
             payload.append('exp', exp);
             payload.append('status', status);
+            payload.append('notes', notes);
 
             try {
                 var res = await fetch('/dheergayu/public/api/batches/create', { method: 'POST', body: payload });

@@ -4,14 +4,21 @@ session_start();
 $patientProducts = [];
 $adminProducts   = [];
 $productsError   = '';
-$loggedIn       = !empty($_SESSION['user_id']);
+$_role    = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? '');
+$loggedIn = !empty($_SESSION['user_id']) && $_role === 'patient';
 
 $db = $conn;
 
 if ($db->connect_error) {
     $productsError = 'Failed to load products. Please try again later.';
 } else {
-    $patientQuery = "SELECT product_id, name, price, description, image FROM products WHERE product_type = 'patient' ORDER BY name ASC";
+    $patientQuery = "SELECT p.product_id, p.name, p.price, p.description, p.image,
+                           COALESCE(SUM(CASE WHEN b.exp >= CURDATE() OR b.exp IS NULL THEN b.quantity ELSE 0 END), 0) AS available_qty
+                    FROM products p
+                    LEFT JOIN batches b ON b.product_id = p.product_id
+                    WHERE p.product_type = 'patient'
+                    GROUP BY p.product_id, p.name, p.price, p.description, p.image
+                    ORDER BY p.name ASC";
     if ($result = $db->query($patientQuery)) {
         while ($row = $result->fetch_assoc()) {
             $imagePath = trim((string)($row['image'] ?? ''));
@@ -28,13 +35,19 @@ if ($db->connect_error) {
                 'description' => $row['description'] ?? 'No description available.',
                 'image'       => $imagePath,
                 'type'        => 'patient',
+                'stock'       => (int)$row['available_qty'],
             ];
         }
         $result->free();
     }
 
-    $adminQuery = "SELECT product_id, name, price, description, image FROM products
-                   WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name ASC";
+    $adminQuery = "SELECT p.product_id, p.name, p.price, p.description, p.image,
+                          COALESCE(SUM(CASE WHEN b.exp >= CURDATE() OR b.exp IS NULL THEN b.quantity ELSE 0 END), 0) AS available_qty
+                   FROM products p
+                   LEFT JOIN batches b ON b.product_id = p.product_id
+                   WHERE COALESCE(p.product_type, 'admin') = 'admin'
+                   GROUP BY p.product_id, p.name, p.price, p.description, p.image
+                   ORDER BY p.name ASC";
     if ($result = $db->query($adminQuery)) {
         while ($row = $result->fetch_assoc()) {
             $imagePath = trim((string)($row['image'] ?? ''));
@@ -49,6 +62,7 @@ if ($db->connect_error) {
                 'description' => $row['description'] ?? 'No description available.',
                 'image'       => $imagePath,
                 'type'        => 'admin',
+                'stock'       => (int)$row['available_qty'],
             ];
         }
         $result->free();
@@ -159,7 +173,13 @@ if ($db->connect_error) {
                             <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
                             <div class="product-price">Rs. <?= htmlspecialchars($product['price']) ?></div>
                             <p class="product-use"><?= htmlspecialchars($product['description']) ?></p>
-                            <?php if ($loggedIn): ?>
+                            <?php $outOfStock = (($product['stock'] ?? 1) === 0); ?>
+                            <?php if ($outOfStock): ?>
+                                <button class="add-to-cart-btn" disabled
+                                        style="background:#ccc;cursor:not-allowed;opacity:.7;">
+                                    Out of Stock
+                                </button>
+                            <?php elseif ($loggedIn): ?>
                                 <button class="add-to-cart-btn"
                                         onclick="addToCart(
                                             <?= $product['id'] ?>,

@@ -67,7 +67,7 @@ $error   = $_GET['error'] ?? '';
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-field">
-                        <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+                        <input type="password" id="password" name="password" placeholder="Create a strong password" required autocomplete="new-password">
                         <button type="button" class="password-toggle" onclick="togglePassword('password')">👁</button>
                     </div>
                     <small style="color: #666; font-size: 11px; margin-top: 5px; display: block;">
@@ -91,7 +91,7 @@ $error   = $_GET['error'] ?? '';
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="password-field">
-                        <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm your password" required>
+                        <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm your password" required autocomplete="new-password">
                         <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">🙈</button>
                     </div>
                     <small id="confirmPasswordError" class="error-message" style="color: red; display: none; font-size: 12px; margin-top: 5px;">Passwords do not match</small>

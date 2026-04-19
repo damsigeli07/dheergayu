@@ -189,6 +189,79 @@ try {
             }
         }
     } else {
+        // Only restore stock if it was previously dispatched
+        $checkStmt = $db->prepare("SELECT 1 FROM consultation_dispatches WHERE consultation_id = ? AND status = 'Dispatched' LIMIT 1");
+        $checkStmt->bind_param('i', $consultationId);
+        $checkStmt->execute();
+        $wasDispatched = $checkStmt->get_result()->num_rows > 0;
+        $checkStmt->close();
+
+        if ($wasDispatched) {
+            // Get prescribed products to restore
+            $formStmt = $db->prepare("SELECT personal_products FROM consultationforms WHERE id = ? LIMIT 1");
+            $formStmt->bind_param('i', $consultationId);
+            $formStmt->execute();
+            $formRow = $formStmt->get_result()->fetch_assoc();
+            $formStmt->close();
+
+            $items = [];
+            if ($formRow && !empty($formRow['personal_products'])) {
+                $decoded = json_decode($formRow['personal_products'], true);
+                $items = is_array($decoded) ? $decoded : [];
+            }
+
+            if (!empty($items)) {
+                $db->begin_transaction();
+                try {
+                    foreach ($items as $item) {
+                        $productName = trim($item['product'] ?? $item['name'] ?? '');
+                        $qtyRestore  = (int)($item['qty'] ?? $item['quantity'] ?? 0);
+                        if ($productName === '' || $qtyRestore <= 0) continue;
+
+                        // Get product_id
+                        $pidStmt = $db->prepare("SELECT product_id FROM products WHERE name = ? LIMIT 1");
+                        $pidStmt->bind_param('s', $productName);
+                        $pidStmt->execute();
+                        $pidRow = $pidStmt->get_result()->fetch_assoc();
+                        $pidStmt->close();
+                        if (!$pidRow) continue;
+                        $productId = (int)$pidRow['product_id'];
+
+                        // Add stock back to the earliest expiry batch (FIFO reverse)
+                        $batchStmt = $db->prepare("
+                            SELECT batch_id FROM batches
+                            WHERE product_id = ? AND quantity >= 0
+                            ORDER BY exp ASC, batch_id ASC
+                            LIMIT 1
+                        ");
+                        $batchStmt->bind_param('i', $productId);
+                        $batchStmt->execute();
+                        $batchRow = $batchStmt->get_result()->fetch_assoc();
+                        $batchStmt->close();
+
+                        if ($batchRow) {
+                            $restoreStmt = $db->prepare("UPDATE batches SET quantity = quantity + ? WHERE batch_id = ?");
+                            $restoreStmt->bind_param('ii', $qtyRestore, $batchRow['batch_id']);
+                            $restoreStmt->execute();
+                            $restoreStmt->close();
+                        }
+                    }
+                    $db->commit();
+                } catch (Exception $e) {
+                    $db->rollback();
+                    throw $e;
+                }
+            }
+
+            // Cancel the associated order record
+            $cancelStmt = $db->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id LIKE ? LIMIT 1");
+            $likeId = 'DISP' . $consultationId . '_%';
+            $cancelStmt->bind_param('s', $likeId);
+            $cancelStmt->execute();
+            $cancelStmt->close();
+        }
+
+        // Remove dispatch record
         $stmt = $db->prepare("DELETE FROM consultation_dispatches WHERE consultation_id = ?");
         $stmt->bind_param('i', $consultationId);
         $stmt->execute();

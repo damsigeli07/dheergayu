@@ -2,8 +2,9 @@
 session_start();
 
 
-// Check if user is logged in
-$isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
+// Check if user is logged in as a patient
+$_role = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? '');
+$isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true && $_role === 'patient';
 $userType = $isLoggedIn ? $_SESSION['user_type'] : '';
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 $userEmail = $isLoggedIn ? $_SESSION['user_email'] : '';

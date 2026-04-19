@@ -403,7 +403,7 @@ if (!$db->connect_error) $db->close();
                     var dispatchedEmpty = dispatchedContainer.querySelector('.empty-state');
 
                     if (isDispatched) {
-                        alert('Order marked as dispatched. Stock has been reduced from inventory.');
+                        alert('Order marked as dispatched. Stock has been deducted from inventory.');
                         if (dispatchedEmpty) dispatchedEmpty.remove();
                         card.classList.add('row-dispatched');
                         card.querySelector('.order-status-badge').className = 'order-status-badge dispatched';
@@ -418,6 +418,7 @@ if (!$db->connect_error) $db->close();
                         card.parentNode.removeChild(card);
                         dispatchedContainer.appendChild(card);
                     } else {
+                        alert('Dispatch undone. Stock has been restored to inventory.');
                         if (pendingEmpty) pendingEmpty.remove();
                         card.classList.remove('row-dispatched');
                         card.querySelector('.order-status-badge').className = 'order-status-badge pending';
