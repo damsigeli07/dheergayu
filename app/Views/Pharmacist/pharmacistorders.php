@@ -381,6 +381,29 @@ if (!$db->connect_error) $db->close();
             var card = document.querySelector('.order-card[data-consultation-id="' + consultationId + '"]');
             if (!card) return;
             var checkbox = card.querySelector('.dispense-status');
+
+            // Warn if dispatching and expired stock exists for prescribed medicines
+            if (isDispatched) {
+                var consultation = consultations.find(function(c) { return c.id == consultationId; });
+                if (consultation && consultation.personal_products) {
+                    var prescribed = [];
+                    try { prescribed = JSON.parse(consultation.personal_products); } catch(e) {}
+                    var names = prescribed.map(function(p) { return (p.product || p.name || '') + ' x' + (p.qty || 1); }).join(', ');
+                    if (names) {
+                        var chk = new FormData();
+                        chk.append('order_items', names);
+                        var chkRes = await fetch('/dheergayu/public/api/check-expired-stock.php', { method: 'POST', body: chk });
+                        var chkData = await chkRes.json();
+                        if (chkData.has_expired) {
+                            if (!confirm('⚠️ Warning: Some prescribed medicines have EXPIRED batches in stock.\n\nExpired stock: ' + chkData.products.join(', ') + '\n\nPlease remove expired batches from inventory first.\n\nProceed anyway?')) {
+                                checkbox.checked = false;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
             checkbox.disabled = true;
             try {
                 var formData = new FormData();

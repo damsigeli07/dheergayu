@@ -127,13 +127,13 @@ class BatchModel {
     public function getBatchesByProductId(int $productId, ?string $productSource = null): array {
         if ($productSource) {
             $stmt = $this->db->prepare("
-                SELECT product_id, batch_number, quantity, mfd, exp, status 
+                SELECT batch_id, product_id, batch_number, quantity, mfd, exp, status, created_at, updated_at
                 FROM batches WHERE product_id = ? AND product_source = ? ORDER BY mfd DESC
             ");
             $stmt->bind_param('is', $productId, $productSource);
         } else {
             $stmt = $this->db->prepare("
-                SELECT product_id, batch_number, quantity, mfd, exp, status 
+                SELECT batch_id, product_id, batch_number, quantity, mfd, exp, status, created_at, updated_at
                 FROM batches WHERE product_id = ? ORDER BY mfd DESC
             ");
             $stmt->bind_param('i', $productId);
@@ -205,64 +205,12 @@ class BatchModel {
         return $ok;
     }
 
-    /** Delete batch safely (no duplicate in deleted_batches) */
+    /** Delete batch directly from DB */
     public function deleteBatch(int $productId, string $batchNumber): bool {
         $batch = $this->getBatch($productId, $batchNumber);
         if (!$batch) {
             error_log("BatchModel::deleteBatch - Batch not found: product_id=$productId, batch_number=$batchNumber");
             return false;
-        }
-
-        // Try to archive to expired_batches if table exists and batch_id exists
-        if (isset($batch['batch_id'])) {
-            try {
-                // Check if expired_batches table exists
-                $tableCheck = $this->db->query("SHOW TABLES LIKE 'expired_batches'");
-                if ($tableCheck && $tableCheck->num_rows > 0) {
-                    // Check if already exists in expired_batches
-                    $stmtCheck = $this->db->prepare("
-                        SELECT 1 FROM expired_batches WHERE batch_id=? LIMIT 1
-                    ");
-                    if ($stmtCheck) {
-                        $stmtCheck->bind_param('i', $batch['batch_id']);
-                        $stmtCheck->execute();
-                        $exists = $stmtCheck->get_result()->fetch_assoc();
-                        $stmtCheck->close();
-
-                        if (!$exists) {
-                            $stmtInsert = $this->db->prepare("
-                                INSERT INTO expired_batches
-                                (batch_id, product_id, batch_number, quantity, mfd, exp, status, created_at, updated_at)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            ");
-                            if ($stmtInsert) {
-                                $createdAt = $batch['created_at'] ?? date('Y-m-d H:i:s');
-                                $updatedAt = $batch['updated_at'] ?? date('Y-m-d H:i:s');
-                                $stmtInsert->bind_param(
-                                    'iisisssss',
-                                    $batch['batch_id'],
-                                    $batch['product_id'],
-                                    $batch['batch_number'],
-                                    $batch['quantity'],
-                                    $batch['mfd'],
-                                    $batch['exp'],
-                                    $batch['status'],
-                                    $createdAt,
-                                    $updatedAt
-                                );
-                                $stmtInsert->execute();
-                                if ($stmtInsert->error) {
-                                    error_log("BatchModel::deleteBatch - Error inserting into expired_batches: " . $stmtInsert->error);
-                                }
-                                $stmtInsert->close();
-                            }
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                // If expired_batches table doesn't exist or has issues, just log and continue
-                error_log("BatchModel::deleteBatch - Error archiving to expired_batches: " . $e->getMessage());
-            }
         }
 
         // Delete from main batches table
@@ -281,16 +229,42 @@ class BatchModel {
         return $okDelete;
     }
 
-    /** Remove all expired batches for a product (archives to expired_batches) */
+    /** Remove all expired batches for a product — archives to expired_batches then deletes */
     public function removeExpiredBatchesByProduct(int $productId, ?string $productSource = null): int {
         $batches = $this->getBatchesByProductId($productId, $productSource);
         $today = date('Y-m-d');
         $count = 0;
         foreach ($batches as $batch) {
-            if (!empty($batch['exp']) && $batch['exp'] < $today) {
-                if ($this->deleteBatch($productId, $batch['batch_number'])) {
-                    $count++;
+            if (empty($batch['exp']) || $batch['exp'] >= $today) continue;
+
+            // Archive to expired_batches
+            if (isset($batch['batch_id'])) {
+                $stmtCheck = $this->db->prepare("SELECT 1 FROM expired_batches WHERE batch_id = ? LIMIT 1");
+                $stmtCheck->bind_param('i', $batch['batch_id']);
+                $stmtCheck->execute();
+                $exists = $stmtCheck->get_result()->fetch_assoc();
+                $stmtCheck->close();
+
+                if (!$exists) {
+                    $createdAt = $batch['created_at'] ?? date('Y-m-d H:i:s');
+                    $updatedAt = $batch['updated_at'] ?? date('Y-m-d H:i:s');
+                    $ins = $this->db->prepare("
+                        INSERT INTO expired_batches
+                        (batch_id, product_id, batch_number, quantity, mfd, exp, status, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $ins->bind_param('iisisssss',
+                        $batch['batch_id'], $batch['product_id'], $batch['batch_number'],
+                        $batch['quantity'], $batch['mfd'], $batch['exp'], $batch['status'],
+                        $createdAt, $updatedAt
+                    );
+                    $ins->execute();
+                    $ins->close();
                 }
+            }
+
+            if ($this->deleteBatch($productId, $batch['batch_number'])) {
+                $count++;
             }
         }
         return $count;

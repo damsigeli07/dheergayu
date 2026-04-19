@@ -253,6 +253,7 @@ $db->close();
 
 <?php
 function renderInventoryTable(array $items): string {
+    $todayStr = date('Y-m-d');
     $html = '<table class="inventory-table"><thead><tr>
         <th>Image</th><th>Product</th><th>Total Qty (Bottles)</th><th>Earliest Expiry</th><th>Batches</th><th>Actions</th>
     </tr></thead><tbody>';
@@ -261,11 +262,16 @@ function renderInventoryTable(array $items): string {
     } else {
         foreach ($items as $item) {
             $badge = '';
-            if ($item['total_quantity'] == 0 && $item['expired_quantity'] > 0) {
+            $expiredHint = '';
+            $hasExpired = $item['expired_quantity'] > 0 || ($item['earliest_exp'] && $item['earliest_exp'] < $todayStr);
+            $allExpired  = $item['total_quantity'] == 0 && $hasExpired;
+
+            if ($allExpired) {
                 $badge = '<span class="stock-warning critical">All Expired</span>';
-                $expiredHint = '';
             } else {
-                $expiredHint = $item['expired_quantity'] > 0 ? '<span class="expired-qty-hint">(' . $item['expired_quantity'] . ' expired)</span>' : '';
+                if ($hasExpired) {
+                    $expiredHint = ' <span class="stock-warning critical" style="font-size:0.72rem;padding:2px 7px;">HAS EXPIRED</span>';
+                }
                 if ($item['total_quantity'] <= 5) {
                     $badge = '<span class="stock-warning critical">Critical</span>';
                 } elseif ($item['total_quantity'] <= 15) {
@@ -284,7 +290,7 @@ function renderInventoryTable(array $items): string {
                 <td>{$name}</td>
                 <td class=\"quantity-cell\">
                     <span class=\"total-quantity\">{$item['total_quantity']}</span>
-                    {$expiredHint}{$badge}
+                    {$badge}{$expiredHint}
                 </td>
                 <td class=\"earliest-expiry\">{$exp}</td>
                 <td class=\"batches-count\">{$batchLabel}</td>
@@ -426,7 +432,8 @@ function renderInventoryTable(array $items): string {
         }
 
             if (rows.length > 0) {
-                const todayStr = new Date().toISOString().split('T')[0];
+                const _t = new Date();
+                const todayStr = _t.getFullYear() + '-' + String(_t.getMonth()+1).padStart(2,'0') + '-' + String(_t.getDate()).padStart(2,'0');
                 const availableQty = rows.filter(b => !b.exp || b.exp >= todayStr).reduce((sum, b) => sum + Number(b.quantity || 0), 0);
                 const expiredBatches = rows.filter(b => b.exp && b.exp < todayStr);
                 const row = document.querySelector(`tr[data-product-id="${productId}"]`);
@@ -445,7 +452,7 @@ function renderInventoryTable(array $items): string {
                         ${expiredBatches.length > 0 ? `
                         <div class="summary-card">
                             <h4>Expired Batches</h4>
-                            <span style="color:#dc3545;font-weight:700;">${expiredBatches.length}</span>
+                            <span style="color:#dc3545;font-weight:700;font-size:2rem;">${expiredBatches.length}</span>
                         </div>` : ''}
                     </div>
                     ${expiredBatches.length > 0 ? `
@@ -701,7 +708,8 @@ function renderInventoryTable(array $items): string {
                 let totalQty = 0;
                 let expiredQty = 0;
                 let earliestExp = null;
-                const todayStr = new Date().toISOString().split('T')[0];
+                const _td = new Date();
+                const todayStr = _td.getFullYear() + '-' + String(_td.getMonth()+1).padStart(2,'0') + '-' + String(_td.getDate()).padStart(2,'0');
 
                 rows.forEach(b => {
                     if (!b.exp || b.exp >= todayStr) {

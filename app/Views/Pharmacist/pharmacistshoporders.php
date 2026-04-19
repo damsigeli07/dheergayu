@@ -83,7 +83,7 @@ $dispatchedOrders = array_values(array_filter($shopOrders, fn($o) => $o['dispatc
         <div id="tab-pending" class="tab-section">
             <?php if (!empty($pendingOrders)): ?>
                 <?php foreach ($pendingOrders as $order): ?>
-                <div class="order-card pending" data-order-id="<?= htmlspecialchars($order['order_id']) ?>">
+                <div class="order-card pending" data-order-id="<?= htmlspecialchars($order['order_id']) ?>" data-items="<?= htmlspecialchars($order['order_items']) ?>">
                     <div class="card-header">
                         <div>
                             <span class="order-id">#<?= htmlspecialchars($order['order_id']) ?></span>
@@ -148,7 +148,22 @@ $dispatchedOrders = array_values(array_filter($shopOrders, fn($o) => $o['dispatc
         });
 
         async function dispatchOrder(orderId, btn) {
-            if (!confirm('Dispatch order #' + orderId + '?\n\nThis will reduce stock from inventory (FEFO).')) return;
+            // Check for expired stock first
+            const card = document.querySelector('.order-card[data-order-id="' + orderId + '"]');
+            const orderItems = card ? card.getAttribute('data-items') : '';
+            if (orderItems) {
+                const chk = new FormData();
+                chk.append('order_items', orderItems);
+                const chkRes = await fetch('/dheergayu/public/api/check-expired-stock.php', { method: 'POST', body: chk });
+                const chkData = await chkRes.json();
+                if (chkData.has_expired) {
+                    if (!confirm('⚠️ Warning: Some items in this order have EXPIRED batches in stock.\n\nExpired stock found for: ' + chkData.products.join(', ') + '\n\nPlease remove expired batches from inventory first.\n\nProceed anyway?')) return;
+                } else {
+                    if (!confirm('Dispatch order #' + orderId + '?\n\nThis will reduce stock from inventory (FEFO).')) return;
+                }
+            } else {
+                if (!confirm('Dispatch order #' + orderId + '?\n\nThis will reduce stock from inventory (FEFO).')) return;
+            }
             btn.disabled = true;
             btn.textContent = 'Dispatching...';
             try {

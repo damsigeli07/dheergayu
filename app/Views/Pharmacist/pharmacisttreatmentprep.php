@@ -357,7 +357,16 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'today';
     }
 
     async function dispenseOils(btn, sessionId) {
-        if (!confirm('Mark oils as dispensed for this session? This will deduct from inventory.')) return;
+        // Check for expired treatment stock first
+        const chk = new FormData();
+        chk.append('product_source', 'treatment');
+        const chkRes = await fetch('/dheergayu/public/api/check-expired-stock.php', { method: 'POST', body: chk });
+        const chkData = await chkRes.json();
+        if (chkData.has_expired) {
+            if (!confirm('⚠️ Warning: There are EXPIRED treatment oil batches in inventory.\n\nPlease remove expired batches from inventory first.\n\nProceed anyway?')) return;
+        } else {
+            if (!confirm('Mark oils as dispensed for this session? This will deduct from inventory.')) return;
+        }
         btn.disabled = true;
         btn.textContent = 'Dispensing...';
         try {

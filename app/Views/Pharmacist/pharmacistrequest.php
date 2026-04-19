@@ -238,7 +238,7 @@ if (!empty($_SESSION['user_id'])) {
         const pharmacistId = <?= json_encode($pharmacist_id) ?>;
         const supplierProductsMap = <?= json_encode($supplierProductsMap) ?>;
 
-        document.getElementById('request_date').valueAsDate = new Date();
+        document.getElementById('request_date').value = '<?= date('Y-m-d') ?>';
 
         const supplierSelect = document.getElementById('supplier');
         const productsSection = document.getElementById('productsSection');
@@ -427,7 +427,7 @@ if (!empty($_SESSION['user_id'])) {
                 if (data.success) {
                     showMessage('Success', data.message || 'Request submitted successfully!', 'success');
                     this.reset();
-                    document.getElementById('request_date').valueAsDate = new Date();
+                    document.getElementById('request_date').value = '<?= date('Y-m-d') ?>';
                     renderProductsTable();
                     loadRequestHistory();
                 } else {
@@ -441,7 +441,7 @@ if (!empty($_SESSION['user_id'])) {
 
         document.getElementById('requestForm').addEventListener('reset', function() {
             setTimeout(function() {
-                document.getElementById('request_date').valueAsDate = new Date();
+                document.getElementById('request_date').value = '<?= date('Y-m-d') ?>';
                 renderProductsTable();
             }, 0);
         });
@@ -556,7 +556,7 @@ if (!empty($_SESSION['user_id'])) {
             document.getElementById('inv_product_name').value = productName;
             document.getElementById('inv_quantity').value = qty;
 
-            var today = new Date().toISOString().split('T')[0];
+            var _tn = new Date(); var today = _tn.getFullYear() + '-' + String(_tn.getMonth()+1).padStart(2,'0') + '-' + String(_tn.getDate()).padStart(2,'0');
             document.getElementById('inv_mfd').max = today;
             document.getElementById('inv_exp').min = today;
             document.getElementById('inv_mfd').value = '';
