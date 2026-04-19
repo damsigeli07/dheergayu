@@ -14,6 +14,11 @@ $stmt = $conn->prepare("
     SELECT id, order_id, amount, currency, status, payment_method, order_items, created_at
     FROM orders
     WHERE user_id = ?
+      AND order_items NOT LIKE 'Consultation #%'
+      AND order_items NOT LIKE 'Treatment #%'
+      AND order_items NOT LIKE 'Treatment Plan #%'
+      AND order_items NOT LIKE 'Session #%'
+      AND order_items NOT LIKE 'Dispensed:%'
     ORDER BY created_at DESC
 ");
 $stmt->bind_param('i', $userId);

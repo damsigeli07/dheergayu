@@ -124,6 +124,23 @@ $showTestPayment = payhere_test_payment_allowed();
 
 
 
+                    <!-- ── Test Payment (sandbox) ────────────────────── -->
+                    <?php if ($showTestPayment): ?>
+                    <div class="sandbox-notice">
+                        <?php if ($isSandbox): ?>
+                        <strong>&#9888;&#65039; Sandbox Mode Active.</strong>
+                        Use <em>"Test Payment"</em> to simulate a successful payment without the PayHere gateway.
+                        <?php else: ?>
+                        <strong>Test payment enabled.</strong>
+                        Use <em>"Test Payment"</em> to simulate success without PayHere.
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="test-pay-btn" id="testPayBtn" onclick="simulatePayment()">
+                        &#10004; Test Payment (no gateway)
+                    </button>
+                    <div class="divider">&mdash; or use PayHere gateway below &mdash;</div>
+                    <?php endif; ?>
+
                     <!-- ── PayHere button ──────────────────────────────── -->
                     <div class="payment-buttons">
                         <button type="button" class="pay-btn" onclick="proceedToPayment()">
