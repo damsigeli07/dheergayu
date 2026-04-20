@@ -95,4 +95,4 @@ ssl/
 certificates/
 *.pem
 *.key
-*.crt
+*.crtapp/includes/pharmacist.md
