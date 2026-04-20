@@ -177,7 +177,7 @@ if (!empty($_SESSION['user_id'])) {
                 </div>
                 <div class="form-group">
                     <label>Quantity</label>
-                    <input type="number" id="inv_quantity" class="form-input" min="1" required>
+                    <input type="number" id="inv_quantity" class="form-input" min="1" required readonly style="background:#f8f9fa;">
                 </div>
                 <div class="form-group">
                     <label for="inv_batch_number">Batch Number *</label>
