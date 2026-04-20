@@ -533,9 +533,7 @@ if (!empty($_SESSION['user_id'])) {
             // Determine product_source from supplier name
             var supplierCell = btn.closest('tr') ? btn.closest('tr').cells[2] : null;
             var supplierName = supplierCell ? supplierCell.textContent.trim().toLowerCase() : '';
-            var productSource = supplierName.includes('oil') ? 'treatment'
-                              : supplierName.includes('trader') ? 'patient'
-                              : 'admin';
+            var productSource = supplierName.includes('oil') ? 'treatment' : 'patient';
 
             document.getElementById('inv_request_id').value = requestId;
             document.getElementById('inv_product_id').value = product.id;

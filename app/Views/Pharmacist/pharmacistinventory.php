@@ -37,7 +37,8 @@ if ($allProductsResult && $allProductsResult->num_rows > 0) {
         $productId = (int)$row['product_id'];
         $productType = $row['product_type'];
 
-        $batches = $model->getBatchesByProductId($productId, $productType);
+        $sourceFilter = ($productType === 'treatment') ? 'treatment' : 'patient';
+        $batches = $model->getBatchesByProductId($productId, $sourceFilter);
         $totalQuantity = 0;
         $expiredQuantity = 0;
         $earliestExp = null;
