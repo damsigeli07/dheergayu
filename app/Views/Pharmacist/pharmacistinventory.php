@@ -25,7 +25,7 @@ function get_product_image($image_path) {
 $todayStr = date('Y-m-d');
 
 // Get all products from unified products table
-$allProductsQuery = "SELECT product_id, name, price, description, image, COALESCE(product_type, 'admin') AS product_type
+$allProductsQuery = "SELECT product_id, name, price, description, image, product_type
                      FROM products ORDER BY name";
 $allProductsResult = $db->query($allProductsQuery);
 
@@ -437,7 +437,7 @@ function renderInventoryTable(array $items): string {
                 const availableQty = rows.filter(b => !b.exp || b.exp >= todayStr).reduce((sum, b) => sum + Number(b.quantity || 0), 0);
                 const expiredBatches = rows.filter(b => b.exp && b.exp < todayStr);
                 const row = document.querySelector(`tr[data-product-id="${productId}"]`);
-                const productSource = row && row.getAttribute('data-type') === 'patient' ? 'patient' : 'admin';
+                const productSource = row && row.getAttribute('data-type') === 'treatment' ? 'treatment' : 'patient';
 
                 let html = `
                     <div class="batch-summary">

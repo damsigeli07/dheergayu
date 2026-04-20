@@ -16,32 +16,20 @@ $suppliers = $supplierModel->getAllSuppliers();
 
 $batchModel = new BatchModel();
 
-// Products by type
-$adminProducts = [];
-$adminRes = $conn->query("SELECT product_id AS id, name FROM products WHERE product_type = 'admin' ORDER BY name");
-if ($adminRes) while ($row = $adminRes->fetch_assoc()) $adminProducts[] = ['id' => $row['id'], 'name' => $row['name']];
-
-$patientProducts = [];
-$patientRes = $conn->query("SELECT product_id AS id, name FROM products WHERE product_type = 'patient' ORDER BY name");
-if ($patientRes) while ($row = $patientRes->fetch_assoc()) $patientProducts[] = ['id' => $row['id'], 'name' => $row['name']];
-
-$treatmentProducts = [];
-$treatmentRes = $conn->query("SELECT product_id AS id, name FROM products WHERE product_type = 'treatment' ORDER BY name");
-if ($treatmentRes) while ($row = $treatmentRes->fetch_assoc()) $treatmentProducts[] = ['id' => $row['id'], 'name' => $row['name']];
-
-// Map supplier -> products by name keywords
+// Map supplier -> their products (via supplier_id on products table)
 $supplierProductsMap = [];
 foreach ($suppliers as $s) {
-    $name = strtolower($s['supplier_name'] ?? '');
-    if (str_contains($name, 'oil')) {
-        $supplierProductsMap[$s['id']] = $treatmentProducts;   // Herbal Oils & Supplies
-    } elseif (str_contains($name, 'medicine')) {
-        $supplierProductsMap[$s['id']] = $adminProducts;        // Ayurvedic Medicines Co
-    } elseif (str_contains($name, 'trader')) {
-        $supplierProductsMap[$s['id']] = $patientProducts;      // Ayurvedic Traders
-    } else {
-        $supplierProductsMap[$s['id']] = [];
+    $supplierProductsMap[$s['id']] = [];
+}
+$pRes = $conn->query("SELECT product_id AS id, name, supplier_id FROM products WHERE product_type != 'treatment' OR product_type = 'treatment' ORDER BY name");
+if ($pRes) {
+    while ($row = $pRes->fetch_assoc()) {
+        $sid = (int)($row['supplier_id'] ?? 0);
+        if ($sid && isset($supplierProductsMap[$sid])) {
+            $supplierProductsMap[$sid][] = ['id' => (int)$row['id'], 'name' => $row['name']];
+        }
     }
+    $pRes->free();
 }
 
 // Only use session user_id as pharmacist_id when the logged-in user is actually a pharmacist.

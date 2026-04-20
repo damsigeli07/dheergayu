@@ -55,8 +55,8 @@ $dispatchedOrders = array_values(array_filter($shopOrders, fn($o) => $o['dispatc
             <a href="pharmacisthome.php" class="nav-btn">Home</a>
             <a href="pharmacistinventory.php" class="nav-btn">Inventory</a>
             <a href="pharmacistorders.php" class="nav-btn">Orders</a>
-            <button class="nav-btn active">Shop Orders</button>
             <a href="pharmacistreports.php" class="nav-btn">Reports</a>
+            <button class="nav-btn active">Shop Orders</button>
             <a href="pharmacistrequest.php" class="nav-btn">Request</a>
             <a href="pharmacisttreatmentprep.php" class="nav-btn">Treatment Prep</a>
         </nav>

@@ -20,7 +20,8 @@ try {
     $product_name = trim($_POST['product_name'] ?? '');
     $product_price = (float)($_POST['product_price'] ?? 0);
     $product_description = trim($_POST['product_description'] ?? '');
-    $product_type = trim($_POST['product_type'] ?? 'admin'); // 'admin' or 'patient'
+    $product_type = trim($_POST['product_type'] ?? 'patient');
+    $supplier_id  = !empty($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : null;
     $action = $_POST['action'] ?? '';
 
     // Determine which table to use
@@ -162,11 +163,11 @@ try {
 
         // Update product (preserving product_id)
         if ($final_image_path) {
-            $stmt = $db->prepare("UPDATE $table_name SET name = ?, price = ?, description = ?, image = ?, product_type = ? WHERE product_id = ?");
-            $stmt->bind_param('sdsssi', $product_name, $product_price, $product_description, $final_image_path, $product_type, $product_id);
+            $stmt = $db->prepare("UPDATE $table_name SET name = ?, price = ?, description = ?, image = ?, product_type = ?, supplier_id = ? WHERE product_id = ?");
+            $stmt->bind_param('sdsssii', $product_name, $product_price, $product_description, $final_image_path, $product_type, $supplier_id, $product_id);
         } else {
-            $stmt = $db->prepare("UPDATE $table_name SET name = ?, price = ?, description = ?, product_type = ? WHERE product_id = ?");
-            $stmt->bind_param('sdssi', $product_name, $product_price, $product_description, $product_type, $product_id);
+            $stmt = $db->prepare("UPDATE $table_name SET name = ?, price = ?, description = ?, product_type = ?, supplier_id = ? WHERE product_id = ?");
+            $stmt->bind_param('sdssii', $product_name, $product_price, $product_description, $product_type, $supplier_id, $product_id);
         }
         
         if ($stmt->execute()) {
@@ -215,8 +216,8 @@ try {
         }
 
         // Insert into appropriate table
-        $stmt = $db->prepare("INSERT INTO $table_name (product_id, name, price, description, image, product_type) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param('isdsss', $nextId, $product_name, $product_price, $product_description, $image_path, $product_type);
+        $stmt = $db->prepare("INSERT INTO $table_name (product_id, name, price, description, image, product_type, supplier_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param('isdsssi', $nextId, $product_name, $product_price, $product_description, $image_path, $product_type, $supplier_id);
 
         if ($stmt->execute()) {
             $stmt->close();

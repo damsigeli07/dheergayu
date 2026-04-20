@@ -28,7 +28,7 @@ if ($db->connect_error) {
 
 // Get product prices
 $productPrices = [];
-$productsQuery = $db->query("SELECT product_id, name, price FROM products WHERE COALESCE(product_type, 'admin') = 'admin' ORDER BY name");
+$productsQuery = $db->query("SELECT product_id, name, price FROM products ORDER BY name");
 if ($productsQuery) {
     while ($product = $productsQuery->fetch_assoc()) {
         $productPrices[$product['name']] = [

@@ -3,32 +3,37 @@ require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../includes/auth_admin.php';
 // Fetch product data from database if editing
 $productId = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
-$productType = isset($_GET['product_type']) ? trim($_GET['product_type']) : 'admin';
+$productType = isset($_GET['product_type']) ? trim($_GET['product_type']) : 'patient';
 $productName = '';
 $productPrice = '';
 $productDescription = '';
 $currentImage = '';
+$currentSupplierId = null;
 
-// Determine which table to use
 $table_name = 'products';
 
+// Fetch suppliers
+$suppliers = [];
+$sRes = $conn->query("SELECT id, supplier_name FROM suppliers ORDER BY supplier_name");
+if ($sRes) { while ($r = $sRes->fetch_assoc()) $suppliers[] = $r; $sRes->free(); }
+
 if ($productId > 0) {
-    // Fetch product data from database
     $db = $conn;
     if (!$db->connect_error) {
-        $stmt = $db->prepare("SELECT product_id, name, price, description, image FROM $table_name WHERE product_id = ?");
+        $stmt = $db->prepare("SELECT product_id, name, price, description, image, supplier_id FROM $table_name WHERE product_id = ?");
         $stmt->bind_param('i', $productId);
         $stmt->execute();
         $result = $stmt->get_result();
         $product = $result->fetch_assoc();
         $stmt->close();
         $db->close();
-        
+
         if ($product) {
             $productName = $product['name'] ?? '';
             $productPrice = $product['price'] ?? '';
             $productDescription = $product['description'] ?? '';
             $currentImage = $product['image'] ?? '';
+            $currentSupplierId = $product['supplier_id'] ?? null;
         }
     }
 }
@@ -38,7 +43,7 @@ if ($productId > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $productId ? 'Edit ' . ucfirst($productType) . ' Product' : 'Add New ' . ucfirst($productType) . ' Product' ?> - Admin Dashboard</title>
+    <title><?= $productId ? 'Edit Product' : ($productType === 'treatment' ? 'Add New Treatment Product' : 'Add New Product') ?> - Admin Dashboard</title>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/header.css">
     <script src="/dheergayu/public/assets/js/header.js"></script>
     <link rel="stylesheet" href="/dheergayu/public/assets/css/Admin/inventory-styles.css">
@@ -221,7 +226,7 @@ if ($productId > 0) {
     
     <main class="main-content">
         <div class="add-product-form">
-            <h2 class="form-title"><?= $productId ? 'Edit ' . ucfirst($productType) . ' Product' : 'Add New ' . ucfirst($productType) . ' Product' ?></h2>
+            <h2 class="form-title"><?= $productId ? 'Edit Product' : ($productType === 'treatment' ? 'Add New Treatment Product' : 'Add New Product') ?></h2>
             
             <form id="addProductForm" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="product_id" id="hidden_product_id" value="<?= $productId ?>">
@@ -248,6 +253,19 @@ if ($productId > 0) {
                     <textarea id="product-description" name="product_description" class="form-textarea" required placeholder="Enter product description"><?= htmlspecialchars($productDescription) ?></textarea>
                 </div>
 
+                <!-- Supplier -->
+                <div class="form-group">
+                    <label for="supplier-id" class="form-label">Supplier</label>
+                    <select id="supplier-id" name="supplier_id" class="form-input">
+                        <option value="">— Select Supplier —</option>
+                        <?php foreach ($suppliers as $s): ?>
+                            <option value="<?= $s['id'] ?>" <?= $currentSupplierId == $s['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($s['supplier_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <!-- Product Image -->
                 <div class="form-group">
                     <label class="form-label">Product Image</label>
@@ -269,7 +287,7 @@ if ($productId > 0) {
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="submit" class="btn-submit"><?= $productId ? 'Save Changes' : 'Add ' . ucfirst($productType) . ' Product' ?></button>
+                    <button type="submit" class="btn-submit"><?= $productId ? 'Save Changes' : ($productType === 'treatment' ? 'Add Treatment Product' : 'Add Product') ?></button>
                     <a href="admininventory.php" class="btn-cancel">Cancel</a>
                 </div>
             </form>

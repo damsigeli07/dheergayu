@@ -21,7 +21,7 @@ function get_product_image($image_path, $name) {
 $todayStr = date('Y-m-d');
 
 // Get all products from unified table
-$allProductsQuery = "SELECT product_id, name, price, description, image, COALESCE(product_type,'admin') AS product_type
+$allProductsQuery = "SELECT product_id, name, price, description, image, product_type
                      FROM products ORDER BY name";
 $allProductsResult = $db->query($allProductsQuery);
 

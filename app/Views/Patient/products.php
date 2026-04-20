@@ -1,9 +1,8 @@
 <?php
 require_once __DIR__ . '/../../../config/config.php';
 session_start();
-$patientProducts = [];
-$adminProducts   = [];
-$productsError   = '';
+$allProducts   = [];
+$productsError = '';
 $_role    = strtolower($_SESSION['user_role'] ?? $_SESSION['user_type'] ?? '');
 $loggedIn = !empty($_SESSION['user_id']) && $_role === 'patient';
 
@@ -12,25 +11,22 @@ $db = $conn;
 if ($db->connect_error) {
     $productsError = 'Failed to load products. Please try again later.';
 } else {
-    $patientQuery = "SELECT p.product_id, p.name, p.price, p.description, p.image,
-                           COALESCE(SUM(CASE WHEN b.exp >= CURDATE() OR b.exp IS NULL THEN b.quantity ELSE 0 END), 0) AS available_qty
-                    FROM products p
-                    LEFT JOIN batches b ON b.product_id = p.product_id
-                    WHERE p.product_type = 'patient'
-                    GROUP BY p.product_id, p.name, p.price, p.description, p.image
-                    ORDER BY p.name ASC";
-    if ($result = $db->query($patientQuery)) {
+    $query = "SELECT p.product_id, p.name, p.price, p.description, p.image,
+                     COALESCE(SUM(CASE WHEN b.exp >= CURDATE() OR b.exp IS NULL THEN b.quantity ELSE 0 END), 0) AS available_qty
+              FROM products p
+              LEFT JOIN batches b ON b.product_id = p.product_id
+              WHERE p.product_type = 'patient'
+              GROUP BY p.product_id, p.name, p.price, p.description, p.image
+              ORDER BY p.name ASC";
+    if ($result = $db->query($query)) {
         while ($row = $result->fetch_assoc()) {
             $imagePath = trim((string)($row['image'] ?? ''));
             $imagePath = $imagePath !== ''
                 ? '/dheergayu/public/assets/images/Admin/' . ltrim(str_replace('images/', '', $imagePath), '/')
                 : '/dheergayu/public/assets/images/dheergayu.png';
-
-            $productName = str_replace([' (Patient)', ' (Sachets)'], '', $row['name'] ?? 'Unnamed Product');
-
-            $patientProducts[] = [
+            $allProducts[] = [
                 'id'          => (int)$row['product_id'],
-                'name'        => $productName,
+                'name'        => $row['name'] ?? 'Unnamed Product',
                 'price'       => number_format((float)($row['price'] ?? 0), 2),
                 'description' => $row['description'] ?? 'No description available.',
                 'image'       => $imagePath,
@@ -41,34 +37,7 @@ if ($db->connect_error) {
         $result->free();
     }
 
-    $adminQuery = "SELECT p.product_id, p.name, p.price, p.description, p.image,
-                          COALESCE(SUM(CASE WHEN b.exp >= CURDATE() OR b.exp IS NULL THEN b.quantity ELSE 0 END), 0) AS available_qty
-                   FROM products p
-                   LEFT JOIN batches b ON b.product_id = p.product_id
-                   WHERE COALESCE(p.product_type, 'admin') = 'admin'
-                   GROUP BY p.product_id, p.name, p.price, p.description, p.image
-                   ORDER BY p.name ASC";
-    if ($result = $db->query($adminQuery)) {
-        while ($row = $result->fetch_assoc()) {
-            $imagePath = trim((string)($row['image'] ?? ''));
-            $imagePath = $imagePath !== ''
-                ? '/dheergayu/public/assets/images/Admin/' . ltrim(str_replace('images/', '', $imagePath), '/')
-                : '/dheergayu/public/assets/images/dheergayu.png';
-
-            $adminProducts[] = [
-                'id'          => (int)$row['product_id'],
-                'name'        => $row['name'] ?? 'Unnamed Product',
-                'price'       => number_format((float)($row['price'] ?? 0), 2),
-                'description' => $row['description'] ?? 'No description available.',
-                'image'       => $imagePath,
-                'type'        => 'admin',
-                'stock'       => (int)$row['available_qty'],
-            ];
-        }
-        $result->free();
-    }
-
-    if (empty($patientProducts) && empty($adminProducts)) {
+    if (empty($allProducts)) {
         $productsError = 'Failed to load products. Please try again later.';
     }
     $db->close();
@@ -154,13 +123,13 @@ if ($db->connect_error) {
                 <div class="product-card" style="grid-column:1/-1;text-align:center;">
                     <p><?= htmlspecialchars($productsError) ?></p>
                 </div>
-            <?php elseif (empty($patientProducts) && empty($adminProducts)): ?>
+            <?php elseif (empty($allProducts)): ?>
                 <div class="product-card" style="grid-column:1/-1;text-align:center;">
                     <h3 class="product-name">No products available</h3>
                     <p class="product-use">Please check back soon.</p>
                 </div>
             <?php else: ?>
-                <?php foreach (array_merge($patientProducts, $adminProducts) as $product): ?>
+                <?php foreach ($allProducts as $product): ?>
                     <div class="product-card"
                          data-product-id="<?= $product['id'] ?>"
                          data-product-type="<?= $product['type'] ?>">

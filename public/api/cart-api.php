@@ -39,7 +39,7 @@ function addToCart($conn) {
     $sessionId = session_id();
     
     $productId = intval($_POST['product_id'] ?? 0);
-    $productType = $_POST['product_type'] ?? 'admin';
+    $productType = $_POST['product_type'] ?? 'patient';
     $productName = trim($_POST['product_name'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
     $quantity = intval($_POST['quantity'] ?? 1);

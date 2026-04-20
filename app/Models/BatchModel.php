@@ -65,7 +65,7 @@ class BatchModel {
                        COUNT(b.product_id) AS batches_count
                 FROM products p
                 LEFT JOIN batches b ON b.product_id = p.`$idCol` AND b.product_source != 'treatment'
-                WHERE COALESCE(p.product_type, 'admin') != 'treatment'
+                WHERE p.product_type != 'treatment'
                 GROUP BY p.`$idCol`, p.`$nameCol`
                 ORDER BY p.`$nameCol`";
         $res = $this->db->query($sql);

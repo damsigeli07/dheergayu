@@ -11,7 +11,7 @@ if ($db->connect_error) {
 // Check if product_type column exists, if not add it
 $checkColumn = $db->query("SHOW COLUMNS FROM products LIKE 'product_type'");
 if ($checkColumn->num_rows == 0) {
-    $db->query("ALTER TABLE products ADD COLUMN product_type VARCHAR(20) DEFAULT 'admin' AFTER image");
+    $db->query("ALTER TABLE products ADD COLUMN product_type VARCHAR(20) DEFAULT 'patient' AFTER image");
 }
 
 // Fix images for admin products
@@ -27,16 +27,19 @@ $db->query("UPDATE products SET image = 'images/asamodagam.jpg' WHERE name = 'As
 $db->query("UPDATE products SET image = 'images/Dashamoolarishta.jpeg' WHERE name LIKE '%Dashamoolarishta%' AND (image != 'images/Dashamoolarishta.jpeg' OR image IS NULL OR image = '')");
 
 // Fix images for patient products
-$db->query("UPDATE products SET image = 'images/Samhan.jpg' WHERE product_type = 'patient' AND name LIKE '%Samahan%' AND image != 'images/Samhan.jpg'");
+$db->query("UPDATE products SET image = 'images/Samhan.jpg' WHERE name LIKE '%Samahan%' AND image != 'images/Samhan.jpg'");
 
 if (!file_exists($asamodagamAdminPath) && file_exists($asamodagamPharmacistPath)) {
     copy($asamodagamPharmacistPath, $asamodagamAdminPath);
 }
-$db->query("UPDATE products SET image = 'images/asamodagam.jpg' WHERE product_type = 'patient' AND name LIKE '%Asamodagam%' AND image != 'images/asamodagam.jpg'");
+$db->query("UPDATE products SET image = 'images/asamodagam.jpg' WHERE name LIKE '%Asamodagam%' AND image != 'images/asamodagam.jpg'");
 
 // Fetch all products
-$query = "SELECT product_id, name, price, description, image, COALESCE(product_type,'admin') AS product_type
-          FROM products ORDER BY name";
+$query = "SELECT p.product_id, p.name, p.price, p.description, p.image, p.product_type,
+                 s.supplier_name
+          FROM products p
+          LEFT JOIN suppliers s ON s.id = p.supplier_id
+          ORDER BY p.name";
 $result = $db->query($query);
 
 $allProducts = [];
@@ -54,7 +57,8 @@ if ($result && $result->num_rows > 0) {
             'price' => number_format($row['price'], 2, '.', ','),
             'description' => $row['description'],
             'image' => $image_path,
-            'product_type' => $row['product_type']
+            'product_type' => $row['product_type'],
+            'supplier_name' => $row['supplier_name'] ?? ''
         ];
         $allProducts[] = $entry;
         if ($row['product_type'] === 'treatment') {
@@ -195,7 +199,7 @@ foreach($inventoryData as $item) {
             <div class="product-grid" id="productGrid">
                 <?php if (empty($regularProducts)): ?>
                     <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
-                        <p>No products found. <a href="add-product.php?product_type=admin" style="color: #E6A85A;">Add a new product</a></p>
+                        <p>No products found. <a href="add-product.php?product_type=patient" style="color: #E6A85A;">Add a new product</a></p>
                     </div>
                 <?php else: ?>
                     <?php foreach ($regularProducts as $product): ?>
@@ -207,6 +211,9 @@ foreach($inventoryData as $item) {
                                 <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
                                 <p class="product-price">Price: Rs. <?= htmlspecialchars($product['price']) ?></p>
                                 <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
+                                <?php if ($product['supplier_name']): ?>
+                                    <p class="product-supplier" style="font-size:0.8rem;color:#888;margin-top:4px;">Supplier: <?= htmlspecialchars($product['supplier_name']) ?></p>
+                                <?php endif; ?>
                             </div>
                             <div class="product-actions">
                                 <button class="btn btn-edit" onclick="editProduct(<?= $product['id'] ?>, '<?= $product['product_type'] ?>')">Edit</button>
@@ -217,7 +224,7 @@ foreach($inventoryData as $item) {
                 <?php endif; ?>
             </div>
             <div class="add-product-container">
-                <a href="add-product.php?product_type=admin" class="btn-add-product">+ Add New Product</a>
+                <a href="add-product.php?product_type=patient" class="btn-add-product">+ Add New Product</a>
             </div>
         </div>
 
@@ -247,6 +254,9 @@ foreach($inventoryData as $item) {
                                 <h3 class="product-name"><?= htmlspecialchars($product['name']) ?></h3>
                                 <p class="product-price">Price: Rs. <?= htmlspecialchars($product['price']) ?></p>
                                 <p class="product-description"><?= htmlspecialchars($product['description']) ?></p>
+                                <?php if ($product['supplier_name']): ?>
+                                    <p class="product-supplier" style="font-size:0.8rem;color:#888;margin-top:4px;">Supplier: <?= htmlspecialchars($product['supplier_name']) ?></p>
+                                <?php endif; ?>
                                 <span class="treatment-badge">Treatment Oil</span>
                             </div>
                             <div class="product-actions">
