@@ -181,7 +181,7 @@ if (!empty($_SESSION['user_id'])) {
                 </div>
                 <div class="form-group">
                     <label for="inv_batch_number">Batch Number *</label>
-                    <input type="text" id="inv_batch_number" class="form-input" required placeholder="e.g. ASM001">
+                    <input type="text" id="inv_batch_number" class="form-input" required readonly style="background:#f8f9fa;" placeholder="e.g. ASM001">
                 </div>
                 <div class="form-group">
                     <label for="inv_mfd">Manufacturing Date *</label>
