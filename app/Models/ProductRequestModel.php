@@ -8,29 +8,6 @@ class ProductRequestModel {
         $this->conn = $conn;
     }
 
-    // Create a new product request
-    public function createRequest($data) {
-        $stmt = $this->conn->prepare("
-            INSERT INTO product_requests (
-                product_name, quantity, supplier_id, request_date, status, pharmacist_id
-            ) VALUES (?, ?, ?, ?, 'pending', ?)
-        ");
-        
-        $stmt->bind_param(
-            "siisi",
-            $data['product_name'],
-            $data['quantity'],
-            $data['supplier_id'],
-            $data['request_date'],
-            $data['pharmacist_id']
-        );
-        
-        $result = $stmt->execute();
-        $request_id = $this->conn->insert_id;
-        $stmt->close();
-        
-        return $result ? $request_id : false;
-    }
 
     /**
      * Create multiple product requests (one order with multiple lines).
