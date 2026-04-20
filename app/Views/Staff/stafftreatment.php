@@ -79,6 +79,7 @@ $pending_plans = 0;
 $confirmed_plans = 0;
 $change_requested_plans = 0;
 $inprogress_plans = 0;
+$completed_plans = 0;
 
 foreach ($treatment_plans as $plan) {
     switch ($plan['status']) {
@@ -93,6 +94,9 @@ foreach ($treatment_plans as $plan) {
             break;
         case 'InProgress':
             $inprogress_plans++;
+            break;
+        case 'Completed':
+            $completed_plans++;
             break;
     }
 }
@@ -414,12 +418,12 @@ $db->close();
                     <div class="stat-label">Total Plans</div>
                 </div>
                 <div class="stat-box" style="border-left:4px solid #ffc107;">
-                    <div class="stat-number"><?= $pending_plans ?></div>
-                    <div class="stat-label">Pending Confirmation</div>
+                    <div class="stat-number"><?= $inprogress_plans ?></div>
+                    <div class="stat-label">In Progress</div>
                 </div>
                 <div class="stat-box" style="border-left:4px solid #28a745;">
-                    <div class="stat-number"><?= $confirmed_plans ?></div>
-                    <div class="stat-label">Confirmed</div>
+                    <div class="stat-number"><?= $completed_plans ?></div>
+                    <div class="stat-label">Completed</div>
                 </div>
             </div>
 
