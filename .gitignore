@@ -96,3 +96,7 @@ certificates/
 *.pem
 *.key
 *.crt
+
+# ===== LOCAL TEST CASE DOCS =====
+app/Views/Supplier/supplier_treatment.md
+app/Views/Supplier/supplier_userr.md
