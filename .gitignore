@@ -85,6 +85,7 @@ package-lock.json
 *.sql.zip
 backup_*.sql
 dump_*.sql
+dheergayu_db*.sql
 # Keep structure files
 !Database/*.sql
 
