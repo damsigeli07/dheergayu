@@ -97,3 +97,9 @@ certificates/
 *.pem
 *.key
 app/includes/pharmacist.md
+
+# ===== MODIFIED FILES (Do not commit) =====
+app/Models/PatientModel.php
+app/Views/Patient/patient_profile.php
+public/api/update-profile.php
+public/patient-form-ut.php

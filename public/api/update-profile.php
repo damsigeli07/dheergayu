@@ -38,7 +38,8 @@ try {
                 'email' => $_POST['email'] ?? '',
                 'phone' => $_POST['phone'] ?? '',
                 'emergency_contact' => $_POST['emergency_contact'] ?? '',
-                'address' => $_POST['address'] ?? ''
+                'address' => $_POST['address'] ?? ''//,
+                'school_name' => $_POST['school_name'] ?? ''
             ];
 
             if (empty($data['first_name']) || empty($data['last_name']) || empty($data['email'])) {

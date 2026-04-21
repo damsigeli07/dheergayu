@@ -73,6 +73,7 @@ $history = $model->getRecentMedicalHistory($user_id);
                 </div>
                 <div class="patient-name"><?php echo htmlspecialchars($profile['first_name'] ?? '') . ' ' . htmlspecialchars($profile['last_name'] ?? ''); ?></div>
                 <div class="patient-id">Patient ID: P<?php echo str_pad($user_id, 5, '0', STR_PAD_LEFT); ?></div>
+                <!-- <div class="patient-id" style="margin-top:8px;">School: <?php echo htmlspecialchars($profile['school_name'] ?? '—'); ?></div> -->
             </div>
 
             <div class="profile-main">
@@ -162,6 +163,13 @@ $history = $model->getRecentMedicalHistory($user_id);
                                     <textarea id="address" name="address" rows="3" disabled><?php echo htmlspecialchars($profile['address'] ?? ''); ?></textarea>
                                 </div>
                             </div>
+
+                            <!-- <div class="form-group">
+                                <label for="school_name">School name</label>
+                                <input type="text" id="school_name" name="school_name"
+                                    value="<?php echo htmlspecialchars($profile['school_name'] ?? ''); ?>"
+                                    disabled>
+                            </div> -->
 
                             <div class="btn-group">
                                 <button type="button" class="btn btn-edit" onclick="enableEditing()">Edit Profile</button>

@@ -60,13 +60,14 @@ class PatientModel {
                 email = ?,
                 phone = ?,
                 emergency_contact = ?,
-                address = ?
+                address = ? //,
+                // school_name = ?
             WHERE patient_id = ?
         ");
         
         $nic = isset($data['nic']) ? trim((string)$data['nic']) : '';
         $stmt->bind_param(
-            "sssssssssi",
+            "sssssssssi",   //s
             $data['first_name'],
             $data['last_name'],
             $data['date_of_birth'],
@@ -76,6 +77,7 @@ class PatientModel {
             $data['phone'],
             $data['emergency_contact'],
             $data['address'],
+            //$data['school_name'],
             $user_id
         );
         

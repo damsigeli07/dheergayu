@@ -29,10 +29,43 @@ window.PatientFormUtils = (function () {
         return '';
     }
 
+    // ALTER TABLE contact_submissions
+// ADD COLUMN comments TEXT NULL AFTER message;
+    //db-school
+    // ALTER TABLE patient_info
+    // ADD COLUMN school_name VARCHAR(255) NULL DEFAULT NULL AFTER address;
+
     return {
         isRequired,
         matches,
         toDigits,
         validateRules
     };
+
+        return {
+        //profile
+        db_1,
+        patientModel_3,
+        api_1,
+        view_2
+    };
+
+        return {
+        //contact
+        db_1,
+        view_2,
+        api_5,
+        admincontact,
+        myinquiries
+    };
+
+        return {
+        //appointment
+        db_1,
+        channeling,
+        patient_app,
+        api_book_con,
+        app_model
+    };
+
 })();
