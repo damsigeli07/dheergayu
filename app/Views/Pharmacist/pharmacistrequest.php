@@ -247,8 +247,21 @@ if (!empty($_SESSION['user_id'])) {
             products.forEach(function(p) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = '<td class="product-name-cell">' + escapeHtml(p.name) + '</td>' +
-                    '<td><input type="number" class="quantity-input" name="qty_' + escapeHtml(String(p.id)) + '" data-product-name="' + escapeHtml(p.name) + '" min="0" value="0" placeholder="0"></td>';
+                    '<td><input type="number" class="quantity-input" name="qty_' + escapeHtml(String(p.id)) + '" data-product-name="' + escapeHtml(p.name) + '" min="0" max="1000" value="0" placeholder="0" title="Quantity must be between 0 and 1000"></td>';
                 productsTableBody.appendChild(tr);
+            });
+
+            document.querySelectorAll('#productsTableBody .quantity-input').forEach(function(input) {
+                input.addEventListener('input', function() {
+                    const value = parseInt(input.value, 10);
+                    if (!isNaN(value) && value > 1000) {
+                        input.setCustomValidity('Value must be less than or equal to 1000.');
+                    } else if (!isNaN(value) && value < 0) {
+                        input.setCustomValidity('Value must be greater than or equal to 0.');
+                    } else {
+                        input.setCustomValidity('');
+                    }
+                });
             });
         }
 
@@ -285,14 +298,19 @@ if (!empty($_SESSION['user_id'])) {
                         tbody.innerHTML = requests.map(function(request) {
                             var status = request.status || 'pending';
                             var isPending = (status === 'pending');
+                            var isEmergency = (status === 'emergency');
                             var isDelivered = (status === 'delivered');
+                            var canEdit = isPending || isEmergency;
                             var safeProduct = escapeHtmlAttr(request.product_name || '');
-                            var actions = isPending
-                                ? '<button type="button" class="btn-edit-order" data-id="' + request.id + '" data-product="' + safeProduct + '" data-qty="' + request.quantity + '">Edit</button> '
-                                + '<button type="button" class="btn-cancel-order" data-id="' + request.id + '" data-product="' + safeProduct + '">Cancel</button>'
-                                : isDelivered
-                                ? '<button type="button" class="btn-add-inventory" data-id="' + request.id + '" data-product="' + safeProduct + '" data-qty="' + request.quantity + '" data-supplier="' + request.supplier_id + '" style="background:#28a745;color:#fff;border:none;padding:0.3rem 0.8rem;border-radius:4px;cursor:pointer;font-weight:600;">Add to Inventory</button>'
-                                : '<span class="no-actions">—</span>';
+                            var actions = '';
+                            if (canEdit) {
+                                actions += '<button type="button" class="btn-edit-order" data-id="' + request.id + '" data-product="' + safeProduct + '" data-qty="' + request.quantity + '">Edit</button> ';
+                                actions += '<button type="button" class="btn-cancel-order" data-id="' + request.id + '" data-product="' + safeProduct + '">Cancel</button> ';
+                            } else if (isDelivered) {
+                                actions += '<button type="button" class="btn-add-inventory" data-id="' + request.id + '" data-product="' + safeProduct + '" data-qty="' + request.quantity + '" data-supplier="' + request.supplier_id + '" style="background:#28a745;color:#fff;border:none;padding:0.3rem 0.8rem;border-radius:4px;cursor:pointer;font-weight:600;">Add to Inventory</button> ';
+                            }
+                            var emergencyDisabled = isPending ? '' : 'disabled';
+                            actions += '<button type="button" class="btn-emergency-order" data-id="' + request.id + '" data-product="' + safeProduct + '" ' + emergencyDisabled + '>Emergency</button>';
                             return '<tr><td>' + escapeHtml(request.product_name) + '</td><td>' + request.quantity + '</td><td>' + escapeHtml(request.supplier_name || 'N/A') + '</td><td>' + request.request_date + '</td><td><span class="status-badge status-' + status + '">' + status + '</span></td><td class="actions-cell">' + actions + '</td></tr>';
                         }).join('');
                         tbody.querySelectorAll('.btn-edit-order').forEach(function(btn) {
@@ -303,6 +321,9 @@ if (!empty($_SESSION['user_id'])) {
                         });
                         tbody.querySelectorAll('.btn-add-inventory').forEach(function(btn) {
                             btn.addEventListener('click', openAddInventoryModal);
+                        });
+                        tbody.querySelectorAll('.btn-emergency-order').forEach(function(btn) {
+                            btn.addEventListener('click', markAsEmergency);
                         });
                     } else {
                         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No requests found.</td></tr>';
@@ -374,6 +395,30 @@ if (!empty($_SESSION['user_id'])) {
                 });
         }
 
+        function markAsEmergency(e) {
+            var btn = e.target;
+            var id = btn.getAttribute('data-id');
+            var product = btn.getAttribute('data-product');
+            if (!confirm('Mark this order as EMERGENCY?\n\nProduct: ' + product + '\n\nThis will notify the supplier of urgency.')) return;
+            var formData = new FormData();
+            formData.append('action', 'mark_emergency');
+            formData.append('request_id', id);
+            formData.append('pharmacist_id', pharmacistId);
+            fetch('/dheergayu/public/api/submit-request.php', { method: 'POST', body: formData })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        showMessage('Emergency', data.message || 'Order marked as emergency.', 'success');
+                        loadRequestHistory();
+                    } else {
+                        showMessage('Error', data.error || 'Failed to mark as emergency.', 'error');
+                    }
+                })
+                .catch(function(err) {
+                    showMessage('Error', 'Request failed.', 'error');
+                });
+        }
+
         document.getElementById('requestForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (!pharmacistId) {
@@ -386,8 +431,13 @@ if (!empty($_SESSION['user_id'])) {
                 return;
             }
             const items = [];
+            const overLimitProducts = [];
             document.querySelectorAll('#productsTableBody .quantity-input').forEach(function(input) {
                 const qty = parseInt(input.value, 10) || 0;
+                if (qty > 1000) {
+                    overLimitProducts.push(input.getAttribute('data-product-name'));
+                    return;
+                }
                 if (qty > 0) {
                     items.push({
                         product_name: input.getAttribute('data-product-name'),
@@ -395,6 +445,10 @@ if (!empty($_SESSION['user_id'])) {
                     });
                 }
             });
+            if (overLimitProducts.length > 0) {
+                showMessage('Error', 'Quantity cannot be greater than 1000 for: ' + overLimitProducts.join(', ') + '.', 'error');
+                return;
+            }
             if (items.length === 0) {
                 showMessage('Error', 'Enter at least one quantity to order.', 'error');
                 return;
@@ -543,6 +597,10 @@ if (!empty($_SESSION['user_id'])) {
             document.getElementById('inv_quantity').value = qty;
 
             var _tn = new Date(); var today = _tn.getFullYear() + '-' + String(_tn.getMonth()+1).padStart(2,'0') + '-' + String(_tn.getDate()).padStart(2,'0');
+            document.getElementById('inv_mfd').max = today;
+            document.getElementById('inv_exp').min = today;
+            document.getElementById('inv_mfd').value = '';
+            document.getElementById('inv_exp').value = '';
             document.getElementById('inv_batch_number').value = 'Loading...';
 
             document.getElementById('addInventoryModal').style.display = 'block';

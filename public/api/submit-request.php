@@ -27,6 +27,17 @@ try {
         $pharmacist_id = (int)($_POST['pharmacist_id'] ?? $_SESSION['user_id']);
         $itemsJson = $_POST['items'] ?? '[]';
         $items = json_decode($itemsJson, true);
+        $hasOverLimitQty = false;
+
+        if (is_array($items)) {
+            foreach ($items as $item) {
+                $qty = (int)($item['quantity'] ?? 0);
+                if ($qty > 1000) {
+                    $hasOverLimitQty = true;
+                    break;
+                }
+            }
+        }
 
         if (!$supplier_id || !is_array($items) || empty($items)) {
             echo json_encode(['success' => false, 'error' => 'Supplier and at least one product with quantity are required']);
@@ -43,9 +54,12 @@ try {
                 'count' => $count
             ]);
         } else {
+            $errorMessage = $hasOverLimitQty
+                ? 'No valid items to submit. Quantity must be between 1 and 1000.'
+                : 'No valid items to submit. Enter quantity for at least one product.';
             echo json_encode([
                 'success' => false,
-                'error' => 'No valid items to submit. Enter quantity for at least one product.'
+                'error' => $errorMessage
             ]);
         }
     } elseif ($action === 'update_request') {
@@ -81,6 +95,20 @@ try {
             echo json_encode(['success' => true, 'message' => 'Order line cancelled.']);
         } else {
             echo json_encode(['success' => false, 'error' => 'Cancel failed. Request may be delivered or not found.']);
+        }
+    } elseif ($action === 'mark_emergency') {
+        $request_id = (int)($_POST['request_id'] ?? 0);
+        $pharmacist_id = (int)($_POST['pharmacist_id'] ?? $_SESSION['user_id']);
+        if (!$request_id) {
+            echo json_encode(['success' => false, 'error' => 'Request ID is required.']);
+            exit;
+        }
+        $model = new ProductRequestModel($conn);
+        $ok = $model->markAsEmergency($request_id, $pharmacist_id);
+        if ($ok) {
+            echo json_encode(['success' => true, 'message' => 'Order marked as emergency.']);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Failed to mark as emergency. Request may not be pending.']);
         }
     } elseif ($action === 'mark_stocked') {
         $request_id = (int)($_POST['request_id'] ?? 0);

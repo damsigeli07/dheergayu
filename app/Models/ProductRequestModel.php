@@ -32,7 +32,7 @@ class ProductRequestModel {
         $count = 0;
         foreach ($items as $item) {
             $qty = (int)($item['quantity'] ?? 0);
-            if ($qty <= 0) {
+            if ($qty <= 0 || $qty > 1000) {
                 continue;
             }
             $name = trim($item['product_name'] ?? '');
@@ -163,7 +163,7 @@ class ProductRequestModel {
         $stmt = $this->conn->prepare("
             UPDATE product_requests
             SET product_name = ?, quantity = ?
-            WHERE id = ? AND pharmacist_id = ? AND status = 'pending'
+            WHERE id = ? AND pharmacist_id = ? AND status IN ('pending', 'emergency')
         ");
         $stmt->bind_param("siii", $product_name, $quantity, $request_id, $pharmacist_id);
         $result = $stmt->execute();
@@ -177,6 +177,17 @@ class ProductRequestModel {
     public function deleteRequest($request_id, $pharmacist_id) {
         $stmt = $this->conn->prepare("
             DELETE FROM product_requests
+            WHERE id = ? AND pharmacist_id = ? AND status IN ('pending', 'emergency')
+        ");
+        $stmt->bind_param("ii", $request_id, $pharmacist_id);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
+    }
+
+    public function markAsEmergency($request_id, $pharmacist_id) {
+        $stmt = $this->conn->prepare("
+            UPDATE product_requests SET status = 'emergency'
             WHERE id = ? AND pharmacist_id = ? AND status = 'pending'
         ");
         $stmt->bind_param("ii", $request_id, $pharmacist_id);

@@ -104,7 +104,8 @@ function escapeHtml(str) {
 }
 
 function buildActionButtons(request) {
-    const disabled = request.status !== 'pending' ? 'disabled' : '';
+    const canDeliver = request.status === 'pending' || request.status === 'emergency';
+    const disabled = canDeliver ? '' : 'disabled';
     return `
         <button class="btn delivered" data-request-id="${request.id}" ${disabled}>Mark as Delivered</button>
     `;

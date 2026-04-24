@@ -266,7 +266,8 @@ body {
     white-space: nowrap;
 }
 .btn-edit-order,
-.btn-cancel-order {
+.btn-cancel-order,
+.btn-emergency-order {
     padding: 0.35rem 0.6rem;
     font-size: 0.8rem;
     font-weight: 600;
@@ -277,7 +278,8 @@ body {
     transition: opacity 0.2s;
 }
 .btn-edit-order:hover,
-.btn-cancel-order:hover {
+.btn-cancel-order:hover,
+.btn-emergency-order:hover:not(:disabled) {
     opacity: 0.9;
 }
 .btn-edit-order {
@@ -287,6 +289,20 @@ body {
 .btn-cancel-order {
     background: #dc3545;
     color: #fff;
+}
+.btn-emergency-order {
+    background: #ff6b35;
+    color: #fff;
+}
+.btn-emergency-order:disabled {
+    background: #d6d6d6;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+.status-emergency {
+    background: #ffe5d0;
+    color: #b94a00;
 }
 .no-actions {
     color: #999;
